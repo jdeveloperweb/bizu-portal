@@ -1,0 +1,13 @@
+.env
+.DS_Store
+node_modules/
+.next/
+dist/
+target/
+*.log
+.idea/
+.vscode/
+build/
+.gradle/
+bin/
+out/
