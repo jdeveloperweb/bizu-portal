@@ -12,17 +12,92 @@ import {
     ChevronRight
 } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Input } from "../../../../components/ui/input";
 
 export default function AdminCursosPage() {
-    const [courses, setCourses] = useState([
-        { id: "1", title: "Direito Administrativo", color: "#8b5cf6", modules: 12, status: "PUBLISHED" },
-        { id: "2", title: "Direito Constitucional", color: "#10b981", modules: 15, status: "PUBLISHED" },
-        { id: "3", title: "Raciocínio Lógico", color: "#f59e0b", modules: 8, status: "DRAFT" },
-    ]);
+    const [courses, setCourses] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isCreating, setIsCreating] = useState(false);
 
-    const updateCourseColor = (id: string, newColor: string) => {
-        setCourses(prev => prev.map(c => c.id === id ? { ...c, color: newColor } : c));
+    const [newCourse, setNewCourse] = useState({
+        title: "",
+        description: "",
+        themeColor: "#8b5cf6",
+        status: "PUBLISHED"
+    });
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+
+    const fetchCourses = async () => {
+        setIsLoading(true);
+        try {
+            const res = await fetch(`${apiUrl}/admin/courses`);
+            if (res.ok) {
+                const data = await res.json();
+                setCourses(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch courses", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchCourses();
+    }, []);
+
+    const updateCourseColor = async (id: string, newColor: string) => {
+        const course = courses.find(c => c.id === id);
+        if (!course) return;
+
+        try {
+            const res = await fetch(`${apiUrl}/admin/courses/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ...course, themeColor: newColor })
+            });
+            if (res.ok) {
+                const updated = await res.json();
+                setCourses(prev => prev.map(c => c.id === id ? updated : c));
+            }
+        } catch (error) {
+            console.error("Failed to update course color", error);
+        }
+    };
+
+    const handleCreateCourse = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const res = await fetch(`${apiUrl}/admin/courses`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ...newCourse,
+                    thumbnailUrl: ""
+                })
+            });
+            if (res.ok) {
+                await fetchCourses();
+                setIsCreating(false);
+                setNewCourse({ title: "", description: "", themeColor: "#8b5cf6", status: "PUBLISHED" });
+            }
+        } catch (error) {
+            console.error("Failed to create course", error);
+        }
+    };
+
+    const handleDeleteCourse = async (id: string) => {
+        if (!confirm("Tem certeza que deseja remover este curso?")) return;
+        try {
+            const res = await fetch(`${apiUrl}/admin/courses/${id}`, { method: "DELETE" });
+            if (res.ok) {
+                setCourses(prev => prev.filter(c => c.id !== id));
+            }
+        } catch (error) {
+            console.error("Failed to delete course", error);
+        }
     };
 
     return (
@@ -33,7 +108,10 @@ export default function AdminCursosPage() {
                     description="Crie e configure seus cursos. Defina cores exclusivas para personalizar a experiência do aluno."
                     badge="CONTEÚDO"
                 />
-                <Button className="h-14 rounded-2xl font-black px-8 gap-2 shadow-xl shadow-primary/20">
+                <Button
+                    className="h-14 rounded-2xl font-black px-8 gap-2 shadow-xl shadow-primary/20"
+                    onClick={() => setIsCreating(true)}
+                >
                     <Plus className="w-5 h-5" />
                     Novo Curso
                 </Button>
@@ -51,19 +129,31 @@ export default function AdminCursosPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y">
-                                {courses.map((course) => (
+                                {isLoading ? (
+                                    <tr>
+                                        <td colSpan={3} className="px-8 py-6 text-center text-muted-foreground">
+                                            Carregando cursos...
+                                        </td>
+                                    </tr>
+                                ) : courses.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={3} className="px-8 py-6 text-center text-muted-foreground">
+                                            Nenhum curso cadastrado.
+                                        </td>
+                                    </tr>
+                                ) : courses.map((course) => (
                                     <tr key={course.id} className="hover:bg-muted/30 transition-colors group">
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-4">
                                                 <div
                                                     className="w-12 h-12 rounded-2xl flex items-center justify-center text-white"
-                                                    style={{ backgroundColor: course.color }}
+                                                    style={{ backgroundColor: course.themeColor || course.color }}
                                                 >
                                                     <BookOpen className="w-6 h-6" />
                                                 </div>
                                                 <div>
                                                     <div className="font-bold text-lg">{course.title}</div>
-                                                    <div className="text-xs text-muted-foreground font-medium">{course.modules} módulos • {course.status}</div>
+                                                    <div className="text-xs text-muted-foreground font-medium">{course.modules?.length || 0} módulos • {course.status}</div>
                                                 </div>
                                             </div>
                                         </td>
@@ -71,11 +161,11 @@ export default function AdminCursosPage() {
                                             <div className="flex items-center gap-3">
                                                 <input
                                                     type="color"
-                                                    value={course.color}
+                                                    value={course.themeColor || course.color || "#000000"}
                                                     onChange={(e) => updateCourseColor(course.id, e.target.value)}
                                                     className="w-10 h-10 rounded-xl cursor-pointer border-none p-0"
                                                 />
-                                                <span className="font-mono text-xs font-bold text-muted-foreground">{course.color.toUpperCase()}</span>
+                                                <span className="font-mono text-xs font-bold text-muted-foreground">{(course.themeColor || course.color || "#000000").toUpperCase()}</span>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 text-right">
@@ -83,7 +173,7 @@ export default function AdminCursosPage() {
                                                 <Button variant="ghost" size="sm" className="rounded-xl hover:bg-muted">
                                                     <Settings className="w-4 h-4" />
                                                 </Button>
-                                                <Button variant="ghost" size="sm" className="rounded-xl text-destructive hover:bg-destructive/10">
+                                                <Button variant="ghost" size="sm" onClick={() => handleDeleteCourse(course.id)} className="rounded-xl text-destructive hover:bg-destructive/10">
                                                     <Trash2 className="w-4 h-4" />
                                                 </Button>
                                             </div>
@@ -107,20 +197,79 @@ export default function AdminCursosPage() {
                         </p>
 
                         <div className="space-y-4">
-                            <div className="p-6 rounded-3xl bg-muted/30 border border-dashed">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-8 h-8 rounded-lg bg-primary" style={{ backgroundColor: courses[0].color }} />
-                                    <div className="text-sm font-bold">{courses[0].title}</div>
+                            {courses.length > 0 ? (
+                                <div className="p-6 rounded-3xl bg-muted/30 border border-dashed">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-8 h-8 rounded-lg bg-primary" style={{ backgroundColor: courses[0]?.themeColor || courses[0]?.color }} />
+                                        <div className="text-sm font-bold">{courses[0]?.title}</div>
+                                    </div>
+                                    <Button className="w-full h-10 rounded-xl text-xs font-black uppercase" style={{ backgroundColor: courses[0]?.themeColor || courses[0]?.color }}>
+                                        Continuar Estudando
+                                        <ChevronRight className="w-3 h-3 ml-2" />
+                                    </Button>
                                 </div>
-                                <Button className="w-full h-10 rounded-xl text-xs font-black uppercase" style={{ backgroundColor: courses[0].color }}>
-                                    Continuar Estudando
-                                    <ChevronRight className="w-3 h-3 ml-2" />
-                                </Button>
-                            </div>
+                            ) : (
+                                <div className="p-6 rounded-3xl bg-muted/30 border border-dashed text-center text-muted-foreground text-sm font-medium">
+                                    Crie um curso para visualizar o preview.
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
+
+            {isCreating && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-card w-full max-w-md rounded-[32px] p-8 shadow-2xl border">
+                        <h2 className="text-2xl font-black mb-6">Novo Curso</h2>
+                        <form onSubmit={handleCreateCourse} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-muted-foreground">Título do Curso</label>
+                                <Input
+                                    autoFocus
+                                    required
+                                    placeholder="Ex: Direito Administrativo"
+                                    value={newCourse.title}
+                                    onChange={e => setNewCourse({ ...newCourse, title: e.target.value })}
+                                    className="h-12 rounded-xl"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-muted-foreground">Descrição</label>
+                                <textarea
+                                    placeholder="Breve descrição do curso"
+                                    value={newCourse.description}
+                                    onChange={e => setNewCourse({ ...newCourse, description: e.target.value })}
+                                    className="flex w-full rounded-xl border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 min-h-[100px] resize-none"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-muted-foreground">Cor de Identidade</label>
+                                <div className="flex items-center gap-4">
+                                    <input
+                                        type="color"
+                                        value={newCourse.themeColor}
+                                        onChange={e => setNewCourse({ ...newCourse, themeColor: e.target.value })}
+                                        className="w-12 h-12 rounded-xl cursor-pointer border-none p-0"
+                                    />
+                                    <span className="font-mono font-bold text-lg">{newCourse.themeColor.toUpperCase()}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4 pt-4">
+                                <Button type="button" variant="outline" className="flex-1 h-12 rounded-xl font-bold" onClick={() => setIsCreating(false)}>
+                                    Cancelar
+                                </Button>
+                                <Button type="submit" className="flex-1 h-12 rounded-xl font-bold">
+                                    Criar Curso
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

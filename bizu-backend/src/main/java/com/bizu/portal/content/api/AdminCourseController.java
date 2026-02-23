@@ -28,4 +28,20 @@ public class AdminCourseController {
         course.setId(existing.getId());
         return ResponseEntity.ok(courseService.save(course));
     }
+
+    @GetMapping
+    public ResponseEntity<java.util.List<Course>> getAllCourses() {
+        return ResponseEntity.ok(courseService.findAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Course> getCourseById(@PathVariable UUID id) {
+        return ResponseEntity.ok(courseService.findById(id));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCourse(@PathVariable UUID id) {
+        courseService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -29,4 +29,10 @@ public class CourseService {
     public Course save(Course course) {
         return courseRepository.save(course);
     }
+
+    @Transactional
+    public void delete(UUID id) {
+        Course course = findById(id);
+        courseRepository.delete(course);
+    }
 }
