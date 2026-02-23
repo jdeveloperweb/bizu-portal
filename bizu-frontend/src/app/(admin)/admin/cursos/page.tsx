@@ -14,11 +14,13 @@ import {
 } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "../../../../components/ui/input";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 
 export default function AdminCursosPage() {
+    const router = useRouter();
     const [courses, setCourses] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
@@ -206,7 +208,7 @@ export default function AdminCursosPage() {
                                                     variant="ghost"
                                                     size="sm"
                                                     className="rounded-xl hover:bg-primary/10 text-primary"
-                                                    onClick={() => window.location.href = `/admin/cursos/${course.id}`}
+                                                    onClick={() => router.push(`/admin/cursos/${course.id}`)}
                                                     title="Gerenciar módulos e aulas"
                                                 >
                                                     <Settings className="w-4 h-4" />

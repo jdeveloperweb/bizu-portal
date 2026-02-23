@@ -3,6 +3,8 @@ package com.bizu.portal.content.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -31,4 +33,9 @@ public class Module {
     @JoinColumn(name = "course_id")
     @com.fasterxml.jackson.annotation.JsonBackReference
     private Course course;
+
+    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @com.fasterxml.jackson.annotation.JsonManagedReference
+    private List<Material> materials = new ArrayList<>();
 }
