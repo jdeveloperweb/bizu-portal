@@ -16,6 +16,26 @@ services:
       - bizu-network
     restart: always
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: bizu-keycloak
+    command: start-dev
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=${DB_PASSWORD:-bizu_pass_2024}
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://bizu-db:5432/bizu_portal
+      - KC_DB_USERNAME=bizu_admin
+      - KC_DB_PASSWORD=${DB_PASSWORD:-bizu_pass_2024}
+      - KC_HOSTNAME_STRICT=false
+    ports:
+      - "8180:8080"
+    depends_on:
+      - bizu-db
+    networks:
+      - bizu-network
+    restart: always
+
   bizu-backend:
     build:
       context: ./bizu-backend
@@ -30,6 +50,7 @@ services:
       - STRIPE_API_KEY=${STRIPE_KEY}
     depends_on:
       - bizu-db
+      - keycloak
     ports:
       - "15500:8080"
     networks:

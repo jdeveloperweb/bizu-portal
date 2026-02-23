@@ -134,24 +134,14 @@ export default function Hero() {
             <section className="relative min-h-screen flex items-center overflow-hidden">
                 {/* BG */}
                 <div className="absolute inset-0">
-                    <div className="absolute inset-0 transition-transform duration-1000 origin-center" style={{
-                        backgroundImage: "url('/images/navy-ship.png')",
-                        backgroundSize: "cover",
-                        backgroundPosition: "top center",
-                        opacity: 0.12,
-                        filter: "blur(2px) grayscale(50%)",
-                        animation: "float-slow 30s ease-in-out infinite alternate",
-                        transform: "scale(1.05)"
-                    }} />
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/80 to-white" />
                     <div className="absolute inset-0" style={{
                         background: `
-              radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99,102,241,0.15) 0%, transparent 70%),
-              radial-gradient(ellipse 50% 40% at 85% 70%, rgba(139,92,246,0.08) 0%, transparent 55%),
-              radial-gradient(ellipse 40% 30% at 10% 80%, rgba(245,158,11,0.05) 0%, transparent 50%)
+              radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99,102,241,0.1) 0%, transparent 70%),
+              radial-gradient(ellipse 50% 40% at 85% 70%, rgba(139,92,246,0.05) 0%, transparent 55%),
+              radial-gradient(ellipse 40% 30% at 10% 80%, rgba(245,158,11,0.03) 0%, transparent 50%)
             `,
                     }} />
-                    <div className="absolute inset-0 opacity-[0.25]" style={{
+                    <div className="absolute inset-0 opacity-[0.2]" style={{
                         backgroundImage: `radial-gradient(circle, #CBD5E1 0.8px, transparent 0.8px)`,
                         backgroundSize: "32px 32px",
                     }} />
@@ -434,12 +424,12 @@ export default function Hero() {
                                     transition: "transform 0.5s ease"
                                 }} onMouseEnter={(e) => e.currentTarget.style.transform = "perspective(1000px) rotateY(0deg) rotateX(0deg)"} onMouseLeave={(e) => e.currentTarget.style.transform = "perspective(1000px) rotateY(-5deg) rotateX(5deg)"}>
 
-                                    {/* ── IMAGEM DE FUNDO ESPETACULAR ── */}
-                                    <div className="absolute inset-0 mix-blend-overlay opacity-50" style={{
-                                        backgroundImage: "url('/images/student-victory.png')",
+                                    {/* ── IMAGEM DE FUNDO REALISTA ── */}
+                                    <div className="absolute inset-0 mix-blend-overlay opacity-30" style={{
+                                        backgroundImage: "url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1470&auto=format&fit=crop')",
                                         backgroundSize: "cover",
-                                        backgroundPosition: "center top",
-                                        filter: "grayscale(20%) contrast(1.2)"
+                                        backgroundPosition: "center",
+                                        filter: "grayscale(100%)"
                                     }} />
 
                                     <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-2xl" />
@@ -527,20 +517,9 @@ export default function Hero() {
             {/* ═══════════════════════════
            SOCIAL PROOF - mural
          ═══════════════════════════ */}
-            <section className="py-24 overflow-hidden relative border-t border-slate-900/10 shadow-inner">
-                {/* BG CINEMATICO */}
-                <div className="absolute inset-0" style={{
-                    backgroundImage: "url('/images/hero-sailor.png')",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center 30%",
-                    transform: "scale(1.05)",
-                    animation: "float-slow 25s ease-in-out infinite alternate"
-                }} />
+            <section className="py-24 overflow-hidden relative border-y border-slate-100 bg-slate-50/10">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/20 via-white to-violet-50/20" />
 
-                {/* OVERLAYS PODEROSOS */}
-                <div className="absolute inset-0 bg-indigo-950/85 mix-blend-multiply" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-indigo-950/80 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-transparent to-transparent opacity-60" />
 
                 <div className="absolute inset-0 opacity-20" style={{
                     backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)`,
@@ -549,15 +528,15 @@ export default function Hero() {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-500/20 rounded-full blur-[150px] mix-blend-screen" />
 
                 <div className="relative container mx-auto px-6 text-center z-10">
-                    <div className="inline-block hover:scale-105 transition-transform duration-500">
-                        <BrandLogo size="lg" variant="light" link={false} />
+                    <div className="inline-block hover:scale-105 transition-transform duration-500 mb-2">
+                        <BrandLogo size="md" variant="dark" link={false} />
                     </div>
-                    <h2 className="text-4xl md:text-5xl font-extrabold text-white mt-8 mb-5 slide-in-d1 drop-shadow-lg">
+                    <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mt-8 mb-5 slide-in-d1">
                         Junte-se a milhares de
                         <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-violet-300">bizurados</span>
+                        <span className="gradient-text">bizurados</span>
                     </h2>
-                    <p className="text-indigo-200/70 mb-14 max-w-md mx-auto text-lg slide-in-d2">
+                    <p className="text-slate-500 mb-14 max-w-md mx-auto text-lg slide-in-d2">
                         Concurseiros que ja estao usando o Bizu! para conquistar sua vaga na Marinha.
                     </p>
 
@@ -570,18 +549,18 @@ export default function Hero() {
                         ].map((s) => {
                             const Icon = s.icon;
                             return (
-                                <div key={s.label} className="bg-white/5 backdrop-blur-sm rounded-2xl p-5 border border-white/10 hover:border-indigo-400/30 transition-all group">
-                                    <Icon size={20} className="text-indigo-400 mx-auto mb-3" />
-                                    <div className="text-2xl font-extrabold text-white mb-1 group-hover:text-indigo-300 transition-colors">
-                                        <Counter target={s.val} />{s.suffix && <span className="text-indigo-400">{s.suffix}</span>}
+                                <div key={s.label} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-indigo-400/30 transition-all group">
+                                    <Icon size={20} className="text-indigo-600 mx-auto mb-3" />
+                                    <div className="text-2xl font-extrabold text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors">
+                                        <Counter target={s.val} />{s.suffix && <span className="text-indigo-600">{s.suffix}</span>}
                                     </div>
-                                    <div className="text-[11px] text-indigo-300/50 font-medium">{s.label}</div>
+                                    <div className="text-[11px] text-slate-400 font-medium">{s.label}</div>
                                 </div>
                             );
                         })}
                     </div>
 
-                    <p className="text-[10px] text-indigo-300/30 uppercase tracking-[0.2em] font-bold mb-4">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-bold mb-4">
                         Concursos cobertos
                     </p>
                     <div className="flex flex-wrap items-center justify-center gap-2.5">
@@ -589,11 +568,11 @@ export default function Hero() {
                             { tag: "C-EspFN", desc: "Cabo Fuzileiro Naval" },
                             { tag: "C-Hab/Ap-SG", desc: "Sargento" },
                         ].map((c) => (
-                            <div key={c.tag} className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
-                                <Anchor size={14} className="text-indigo-400" />
+                            <div key={c.tag} className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 hover:border-indigo-200 transition-all">
+                                <Anchor size={14} className="text-indigo-600" />
                                 <div className="text-left">
-                                    <div className="text-xs font-bold text-white">{c.tag}</div>
-                                    <div className="text-[10px] text-indigo-300/50">{c.desc}</div>
+                                    <div className="text-xs font-bold text-slate-900">{c.tag}</div>
+                                    <div className="text-[10px] text-slate-400">{c.desc}</div>
                                 </div>
                             </div>
                         ))}
