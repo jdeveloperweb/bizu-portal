@@ -36,29 +36,37 @@ export default function RegisterPage() {
         <div className="min-h-screen flex">
             {/* ── Left ── */}
             <div className="hidden lg:flex w-[50%] relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700" />
-                <div className="absolute inset-0 opacity-[0.15]" style={{
-                    backgroundImage: `radial-gradient(circle, white 0.8px, transparent 0.8px)`,
-                    backgroundSize: "28px 28px",
+                <div
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{
+                        backgroundImage: `url('https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&q=80')`,
+                        filter: 'blur(10px)',
+                        transform: 'scale(1.1)',
+                    }}
+                />
+                <div className="absolute inset-0 bg-indigo-950/70 mix-blend-multiply" />
+                <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/90 via-indigo-900/40 to-transparent" />
+                <div className="absolute inset-0 opacity-[0.1]" style={{
+                    backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
+                    backgroundSize: "32px 32px",
                 }} />
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full blur-[100px]" />
-                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-violet-400/10 rounded-full blur-[80px]" />
 
-                <div className="relative z-10 flex flex-col justify-between p-14 xl:p-20 w-full">
-                    <BrandLogo size="md" variant="light" />
-
+                <div className="relative z-10 flex flex-col justify-end p-14 xl:p-20 w-full h-full">
                     <div>
+                        <div className="mb-10">
+                            <BrandLogo size="hero" variant="light" link={false} />
+                        </div>
                         <h2 className="text-4xl xl:text-5xl font-extrabold text-white leading-[1.1] mb-5">
                             Sua aprovacao
                             <br />
                             <span className="text-indigo-200">comeca aqui.</span>
                         </h2>
-                        <p className="text-indigo-200/70 text-sm max-w-sm leading-relaxed mb-8">
+                        <p className="text-indigo-200/80 text-sm max-w-sm leading-relaxed mb-8">
                             Junte-se a milhares de concurseiros que ja estao evoluindo com a plataforma mais completa do Brasil.
                         </p>
 
                         {/* Steps */}
-                        <div className="space-y-4">
+                        <div className="space-y-4 mb-10">
                             {[
                                 { step: "1", text: "Crie sua conta gratis" },
                                 { step: "2", text: "Explore a plataforma por 7 dias" },
@@ -68,7 +76,7 @@ export default function RegisterPage() {
                                     <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-xs font-bold text-white border border-white/10">
                                         {s.step}
                                     </div>
-                                    <span className="text-sm text-indigo-100">{s.text}</span>
+                                    <span className="text-sm text-indigo-50">{s.text}</span>
                                 </div>
                             ))}
                         </div>
@@ -77,7 +85,7 @@ export default function RegisterPage() {
                     <div className="flex items-center gap-3">
                         <div className="flex -space-x-2.5">
                             {["JM", "LC", "BR", "FK"].map((init, i) => (
-                                <div key={init} className="w-8 h-8 rounded-full border-2 border-indigo-600 flex items-center justify-center text-[9px] font-bold text-white"
+                                <div key={init} className="w-8 h-8 rounded-full border-2 border-indigo-900 flex items-center justify-center text-[9px] font-bold text-white"
                                     style={{ background: `hsl(${260 + i * 20}, 55%, ${50 + i * 5}%)`, zIndex: 4 - i }}>
                                     {init}
                                 </div>

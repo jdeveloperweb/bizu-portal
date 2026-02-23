@@ -22,18 +22,26 @@ export default function LoginPage() {
 
             {/* ── Left: visual branding ── */}
             <div className="hidden lg:flex w-[50%] relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700" />
-                <div className="absolute inset-0 opacity-[0.15]" style={{
-                    backgroundImage: `radial-gradient(circle, white 0.8px, transparent 0.8px)`,
-                    backgroundSize: "28px 28px",
+                <div
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{
+                        backgroundImage: `url('https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&q=80')`,
+                        filter: 'blur(10px)',
+                        transform: 'scale(1.1)',
+                    }}
+                />
+                <div className="absolute inset-0 bg-indigo-950/70 mix-blend-multiply" />
+                <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/90 via-indigo-900/40 to-transparent" />
+                <div className="absolute inset-0 opacity-[0.1]" style={{
+                    backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
+                    backgroundSize: "32px 32px",
                 }} />
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full blur-[100px]" />
-                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-violet-400/10 rounded-full blur-[80px]" />
 
-                <div className="relative z-10 flex flex-col justify-between p-14 xl:p-20 w-full">
-                    <BrandLogo size="md" variant="light" />
-
+                <div className="relative z-10 flex flex-col justify-end p-14 xl:p-20 w-full h-full">
                     <div>
+                        <div className="mb-10">
+                            <BrandLogo size="hero" variant="light" link={false} />
+                        </div>
                         <h2 className="text-4xl xl:text-5xl font-extrabold text-white leading-[1.1] mb-5">
                             Estude com
                             <br />
@@ -41,18 +49,18 @@ export default function LoginPage() {
                             <br />
                             <span className="text-indigo-200">Passe com certeza.</span>
                         </h2>
-                        <p className="text-indigo-200/70 text-sm max-w-sm leading-relaxed mb-8">
+                        <p className="text-indigo-200/80 text-sm max-w-sm leading-relaxed mb-8">
                             A plataforma inteligente que ja ajudou mais de 10.000 concurseiros a conquistar a aprovacao.
                         </p>
-                        <div className="flex flex-col gap-2.5">
+                        <div className="flex flex-col gap-2.5 mb-10">
                             {[
                                 "Simulados adaptativos com IA",
                                 "Banco de questoes atualizado",
                                 "Duelos em tempo real",
                                 "Analytics de desempenho",
                             ].map((p) => (
-                                <div key={p} className="flex items-center gap-2.5 text-sm text-indigo-100/90">
-                                    <CheckCircle2 size={15} className="text-emerald-300 shrink-0" />
+                                <div key={p} className="flex items-center gap-2.5 text-sm text-indigo-50">
+                                    <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
                                     {p}
                                 </div>
                             ))}
@@ -63,7 +71,7 @@ export default function LoginPage() {
                     <div className="flex items-center gap-3">
                         <div className="flex -space-x-2.5">
                             {["MC", "AP", "DS", "JM"].map((init, i) => (
-                                <div key={init} className="w-8 h-8 rounded-full border-2 border-indigo-600 flex items-center justify-center text-[9px] font-bold text-white"
+                                <div key={init} className="w-8 h-8 rounded-full border-2 border-indigo-900 flex items-center justify-center text-[9px] font-bold text-white"
                                     style={{ background: `hsl(${240 + i * 15}, 60%, ${55 + i * 5}%)`, zIndex: 4 - i }}>
                                     {init}
                                 </div>
