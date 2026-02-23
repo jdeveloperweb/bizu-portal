@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#4F46E5",
+  themeColor: "#6366F1",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -22,7 +22,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "Bizu! Portal - Excelência em Concursos",
-  description: "O portal definitivo para concurseiros de elite. Flashcards, Simulados e Arena de Duelos.",
+  description: "O portal definitivo para concurseiros de elite. Simulados inteligentes, banco de questões e trilhas personalizadas para sua aprovação.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
