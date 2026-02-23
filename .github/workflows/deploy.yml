@@ -1,0 +1,36 @@
+name: Deploy Bizu! Portal
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Remote Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            # Navegar até a pasta do projeto no servidor (deve ser criada previamente)
+            cd ~/bizu-portal
+            
+            # Puxar as últimas alterações (assume que o repo já está clonado no servidor)
+            git pull origin main
+            
+            # Parar e remover containers antigos, buildar novos e subir
+            docker-compose down
+            docker-compose up -d --build --remove-orphans
+            
+            # Limpeza de imagens antigas/não utilizadas
+            docker image prune -f
+            
+            echo "✅ Deploy concluído com sucesso!"
