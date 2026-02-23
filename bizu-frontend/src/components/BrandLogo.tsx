@@ -7,17 +7,17 @@ interface BrandLogoProps {
 }
 
 const sizes = {
-    sm: { bizu: "text-[24px]", tag: "text-[8px]", gap: "gap-1.5", pl: "pl-1.5", border: "border-l" },
-    md: { bizu: "text-[32px]", tag: "text-[9px]", gap: "gap-2", pl: "pl-2", border: "border-l" },
-    lg: { bizu: "text-[44px]", tag: "text-[11px]", gap: "gap-2.5", pl: "pl-2.5", border: "border-l-2" },
-    xl: { bizu: "text-[56px]", tag: "text-[13px]", gap: "gap-3", pl: "pl-3", border: "border-l-2" },
-    hero: { bizu: "text-[72px]", tag: "text-[15px]", gap: "gap-3.5", pl: "pl-3.5", border: "border-l-2" },
+    sm: { bizu: "text-[28px]", tag: "text-[9px]", gap: "gap-2", pl: "pl-2", border: "border-l", py: "py-1" },
+    md: { bizu: "text-[36px]", tag: "text-[10px]", gap: "gap-2.5", pl: "pl-2.5", border: "border-l", py: "py-1" },
+    lg: { bizu: "text-[52px]", tag: "text-[13px]", gap: "gap-3", pl: "pl-3", border: "border-l-2", py: "py-2" },
+    xl: { bizu: "text-[68px]", tag: "text-[15px]", gap: "gap-3.5", pl: "pl-3.5", border: "border-l-2", py: "py-2" },
+    hero: { bizu: "text-[90px] sm:text-[110px] md:text-[130px]", tag: "text-[14px] sm:text-[16px] md:text-[18px]", gap: "gap-4", pl: "pl-4", border: "border-l-[3px]", py: "py-3" },
 };
 
 const variants = {
-    dark: { bizu: "text-slate-900", tag: "text-slate-400", tagBorder: "border-slate-200" },
-    light: { bizu: "text-white", tag: "text-white/60", tagBorder: "border-white/20" },
-    gradient: { bizu: "", tag: "text-indigo-400", tagBorder: "border-indigo-200" },
+    dark: { bizu: "text-slate-900", tag: "text-slate-400", tagBorder: "border-slate-300" },
+    light: { bizu: "text-white", tag: "text-white/70", tagBorder: "border-white/30" },
+    gradient: { bizu: "", tag: "text-indigo-400", tagBorder: "border-indigo-300" },
 };
 
 export default function BrandLogo({ size = "md", variant = "dark", link = true }: BrandLogoProps) {
@@ -25,14 +25,15 @@ export default function BrandLogo({ size = "md", variant = "dark", link = true }
     const v = variants[variant];
 
     const content = (
-        <span className={`inline-flex items-center ${s.gap} select-none`}>
+        <span className={`inline-flex items-center ${s.gap} select-none overflow-visible`}>
             <span
-                className={`leading-none font-normal ${s.bizu} ${variant === "gradient" ? "" : v.bizu}`}
+                className={`${s.py} overflow-visible ${s.bizu} ${variant === "gradient" ? "" : v.bizu}`}
                 style={{
                     fontFamily: "Bobaland, sans-serif",
+                    lineHeight: 1.1,
                     ...(variant === "gradient"
                         ? {
-                            background: "linear-gradient(135deg, #6366F1, #8B5CF6)",
+                            background: "linear-gradient(135deg, #6366F1, #8B5CF6, #A855F7)",
                             WebkitBackgroundClip: "text",
                             WebkitTextFillColor: "transparent",
                             backgroundClip: "text",
@@ -43,7 +44,8 @@ export default function BrandLogo({ size = "md", variant = "dark", link = true }
                 Bizu!
             </span>
             <span
-                className={`${s.tag} font-extrabold tracking-[0.25em] uppercase mt-1 ${s.border} ${s.pl} ${v.tag} ${v.tagBorder}`}
+                className={`${s.tag} font-extrabold tracking-[0.3em] uppercase ${s.border} ${s.pl} ${v.tag} ${v.tagBorder}`}
+                style={{ lineHeight: 1 }}
             >
                 Academy
             </span>
@@ -52,7 +54,7 @@ export default function BrandLogo({ size = "md", variant = "dark", link = true }
 
     if (link) {
         return (
-            <Link href="/" className="inline-flex hover:opacity-80 transition-opacity">
+            <Link href="/" className="inline-flex hover:opacity-80 transition-opacity overflow-visible">
                 {content}
             </Link>
         );
