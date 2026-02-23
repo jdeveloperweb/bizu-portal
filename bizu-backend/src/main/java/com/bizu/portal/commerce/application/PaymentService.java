@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -24,6 +25,14 @@ public class PaymentService {
     private final SubscriptionGroupService subscriptionGroupService;
     private final NotificationService notificationService;
     private final CouponService couponService;
+
+    public String initiatePayment(User user, BigDecimal amount, String provider) {
+        // Em produção, este método criaria uma sessão no Stripe ou Pagar.me
+        // e retornaria a URL real de pagamento.
+        String sessionId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        log.info("Iniciando pagamento via {} para usuário {} — valor: R$ {}", provider, user.getEmail(), amount);
+        return sessionId;
+    }
 
     @Transactional
     public void processStripeEvent(String payload, String sigHeader) {

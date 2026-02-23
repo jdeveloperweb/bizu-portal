@@ -26,7 +26,7 @@ public class AttemptService {
             .user(user)
             .question(question)
             .selectedOption(selectedOption)
-            .isCorrect(isCorrect)
+            .correct(isCorrect)
             .build();
 
         if (isCorrect) {
