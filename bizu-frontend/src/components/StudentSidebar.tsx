@@ -2,23 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import BrandLogo from "@/components/BrandLogo";
 import {
-    LayoutDashboard,
-    BookOpen,
-    ClipboardList,
-    Layers,
-    Swords,
-    TrendingUp,
-    User,
-    Trophy,
-    LogOut,
-    ChevronRight,
-    Search,
-    Bell,
-    Flame,
+    LayoutDashboard, BookOpen, ClipboardList, Layers,
+    Swords, TrendingUp, User, Trophy, LogOut,
+    ChevronRight, Search, Flame,
 } from "lucide-react";
 
-const mainNav = [
+const studyNav = [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/cursos", icon: BookOpen, label: "Cursos" },
     { href: "/simulados", icon: ClipboardList, label: "Simulados" },
@@ -35,87 +26,59 @@ const trackNav = [
 export default function StudentSidebar() {
     const pathname = usePathname();
 
-    const NavItem = ({ href, icon: Icon, label }: { href: string; icon: typeof LayoutDashboard; label: string }) => {
+    const Item = ({ href, icon: Icon, label }: { href: string; icon: typeof LayoutDashboard; label: string }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
         return (
-            <Link
-                href={href}
-                className={`group flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 ${active
-                        ? "bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-700 font-semibold shadow-sm shadow-indigo-500/5"
+            <Link href={href}
+                className={`group flex items-center gap-2.5 px-3 py-[7px] rounded-xl text-[13px] font-medium transition-all ${active
+                        ? "bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-700 font-semibold"
                         : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
-                    }`}
-            >
-                <Icon
-                    size={17}
-                    className={`shrink-0 ${active ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-500"}`}
-                />
+                    }`}>
+                <Icon size={16} className={active ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-500"} />
                 <span className="flex-1">{label}</span>
-                {active && <ChevronRight size={13} className="text-indigo-400" />}
+                {active && <ChevronRight size={12} className="text-indigo-400" />}
             </Link>
         );
     };
 
     return (
-        <aside className="w-[240px] shrink-0 h-screen sticky top-0 flex flex-col bg-white border-r border-slate-100">
-
-            {/* Logo + streak */}
-            <div className="h-16 flex items-center justify-between px-5 border-b border-slate-50">
-                <Link href="/" className="flex items-center gap-1.5">
-                    <span className="text-[22px] leading-none" style={{ fontFamily: "Bobaland, sans-serif" }}>
-                        <span className="text-slate-900">Bizu</span>
-                        <span className="text-indigo-500">!</span>
-                    </span>
-                    <span className="text-[9px] font-bold tracking-[0.15em] text-slate-400 uppercase mt-0.5">Portal</span>
-                </Link>
-                <div className="flex items-center gap-1 pill-warning text-[10px] py-0.5 px-2">
-                    <Flame size={11} />
-                    <span className="font-bold">7</span>
+        <aside className="w-[230px] shrink-0 h-screen sticky top-0 flex flex-col bg-white border-r border-slate-100/80">
+            <div className="h-14 flex items-center justify-between px-4 border-b border-slate-50">
+                <BrandLogo size="sm" variant="dark" />
+                <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
+                    <Flame size={10} /> 7
                 </div>
             </div>
 
-            {/* Search */}
-            <div className="px-4 py-3">
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-slate-400">
-                    <Search size={14} />
-                    <span className="text-xs">Buscar...</span>
-                    <span className="ml-auto text-[10px] bg-white border border-slate-200 px-1.5 py-0.5 rounded font-mono">Ctrl+K</span>
+            <div className="px-3 py-2.5">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-slate-400 text-[11px] cursor-pointer hover:border-slate-200 transition-colors">
+                    <Search size={13} />
+                    <span>Buscar...</span>
+                    <span className="ml-auto bg-white border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-mono">⌘K</span>
                 </div>
             </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 px-3 overflow-y-auto">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2 mt-1">
-                    Estudar
-                </p>
-                <div className="space-y-0.5 mb-5">
-                    {mainNav.map((item) => (
-                        <NavItem key={item.href} {...item} />
-                    ))}
+            <nav className="flex-1 px-2.5 overflow-y-auto">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] px-3 mb-1.5 mt-1">Estudar</p>
+                <div className="space-y-px mb-4">
+                    {studyNav.map((i) => <Item key={i.href} {...i} />)}
                 </div>
-
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">
-                    Acompanhar
-                </p>
-                <div className="space-y-0.5">
-                    {trackNav.map((item) => (
-                        <NavItem key={item.href} {...item} />
-                    ))}
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] px-3 mb-1.5">Acompanhar</p>
+                <div className="space-y-px">
+                    {trackNav.map((i) => <Item key={i.href} {...i} />)}
                 </div>
             </nav>
 
-            {/* Plan badge + Sair */}
-            <div className="px-3 py-3 border-t border-slate-50 space-y-2">
-                <div className="bg-gradient-to-r from-indigo-50 to-violet-50 rounded-xl px-4 py-3 border border-indigo-100">
-                    <p className="text-[11px] font-bold text-indigo-700 mb-0.5">Plano Gratuito</p>
-                    <p className="text-[10px] text-indigo-500 mb-2">5 dias restantes do trial</p>
-                    <Link href="/pricing" className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1">
-                        Fazer upgrade <ChevronRight size={12} />
+            <div className="px-2.5 py-3 border-t border-slate-50 space-y-2">
+                <div className="rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-100 px-3.5 py-3">
+                    <p className="text-[11px] font-bold text-indigo-700 mb-0.5">Plano Free</p>
+                    <p className="text-[10px] text-indigo-500/70 mb-2">Faca upgrade para desbloquear tudo</p>
+                    <Link href="/pricing" className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5">
+                        Ver planos <ChevronRight size={11} />
                     </Link>
                 </div>
-
-                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all">
-                    <LogOut size={16} />
-                    Sair da conta
+                <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[12px] font-medium text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all">
+                    <LogOut size={15} /> Sair
                 </button>
             </div>
         </aside>
