@@ -25,8 +25,8 @@ export default function AdminDashboardPage() {
                                 <stat.icon className="w-6 h-6" />
                             </div>
                             <div className={`flex items-center gap-1 text-xs font-bold ${stat.inverseTrend
-                                    ? (stat.trend.startsWith("-") ? "text-success" : "text-danger")
-                                    : (stat.trend.startsWith("+") ? "text-success" : "text-danger")
+                                ? (stat.trend.startsWith("-") ? "text-success" : "text-danger")
+                                : (stat.trend.startsWith("+") ? "text-success" : "text-danger")
                                 }`}>
                                 {stat.trend.startsWith("+") ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                                 {stat.trend}
