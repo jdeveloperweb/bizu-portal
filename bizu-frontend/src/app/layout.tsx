@@ -1,16 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-/* Inter: fonte moderna e legível para todo o sistema */
-const inter = Inter({
-  variable: "--font-inter",
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
   display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrains = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
   display: "swap",
 });
@@ -24,9 +24,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Bizu! Portal — Excelência em Concursos",
+  title: "Bizu! Portal — Plataforma #1 para Concursos",
   description:
-    "O portal definitivo para concurseiros de elite. Simulados inteligentes, banco de questões e trilhas personalizadas para sua aprovação.",
+    "A plataforma definitiva para concurseiros de elite. Simulados com IA, banco de 50k+ questoes e trilhas personalizadas.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -43,7 +43,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${inter.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${jakarta.variable} ${jetbrains.variable} antialiased font-sans`}
+        style={{ fontFamily: "var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif" }}
+      >
         <BrandingLoader />
         <NotificationProvider>{children}</NotificationProvider>
       </body>

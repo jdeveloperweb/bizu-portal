@@ -6,15 +6,15 @@ interface PageHeaderProps {
 
 export default function PageHeader({ title, description, badge }: PageHeaderProps) {
     return (
-        <div className="mb-12">
+        <div>
             {badge && (
-                <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold mb-4">
+                <span className="pill pill-primary text-[10px] font-bold uppercase tracking-[0.15em] mb-3 inline-flex">
                     {badge}
-                </div>
+                </span>
             )}
-            <h1 className="text-4xl font-extrabold tracking-tight mb-2">{title}</h1>
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-1">{title}</h1>
             {description && (
-                <p className="text-muted-foreground text-lg">{description}</p>
+                <p className="text-sm text-slate-500">{description}</p>
             )}
         </div>
     );
