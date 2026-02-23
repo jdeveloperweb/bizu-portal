@@ -77,11 +77,10 @@ export default function LoginPage() {
                                 value={form.email}
                                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                                 placeholder="seu@email.com"
-                                className="w-full h-12 px-4 rounded-xl text-sm text-white placeholder-[#334155] outline-none transition-all duration-200 focus:ring-2"
+                                className="w-full h-12 px-4 rounded-xl text-sm text-white placeholder-[#334155] outline-none transition-all duration-200"
                                 style={{
                                     background: "rgba(30,40,69,0.8)",
                                     border: "1px solid rgba(99,102,241,0.15)",
-                                    focusRingColor: "#6366F1",
                                 }}
                                 onFocus={(e) => (e.target.style.borderColor = "#6366F1")}
                                 onBlur={(e) => (e.target.style.borderColor = "rgba(99,102,241,0.15)")}

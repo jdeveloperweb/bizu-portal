@@ -110,7 +110,7 @@ pm2 logs bizu-frontend
 ```bash
 sudo nano /etc/nginx/sites-available/bizu-portal
 ```
-
+sudo nano /etc/nginx/conf.d/bizu-portal
 Cole o seguinte (configuração **HTTP temporária**, antes do HTTPS):
 
 ```nginx
@@ -142,7 +142,7 @@ server {
 Ativar o site:
 ```bash
 # Criar link simbólico
-sudo ln -s /etc/nginx/sites-available/bizu-portal /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/conf.d/bizu-portal /etc/nginx/sites-enabled/
 
 # Testar configuração (sem erros = ok)
 sudo nginx -t
