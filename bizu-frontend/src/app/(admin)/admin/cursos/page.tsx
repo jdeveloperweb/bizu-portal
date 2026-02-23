@@ -14,6 +14,8 @@ import {
 import { Button } from "../../../../components/ui/button";
 import { useState, useEffect } from "react";
 import { Input } from "../../../../components/ui/input";
+import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function AdminCursosPage() {
     const [courses, setCourses] = useState<any[]>([]);
@@ -32,7 +34,7 @@ export default function AdminCursosPage() {
     const fetchCourses = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch(`${apiUrl}/admin/courses`);
+            const res = await apiFetch("/admin/courses");
             if (res.ok) {
                 const data = await res.json();
                 setCourses(data);
@@ -53,9 +55,8 @@ export default function AdminCursosPage() {
         if (!course) return;
 
         try {
-            const res = await fetch(`${apiUrl}/admin/courses/${id}`, {
+            const res = await apiFetch(`/admin/courses/${id}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ ...course, themeColor: newColor })
             });
             if (res.ok) {
@@ -70,9 +71,8 @@ export default function AdminCursosPage() {
     const handleCreateCourse = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const res = await fetch(`${apiUrl}/admin/courses`, {
+            const res = await apiFetch("/admin/courses", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ...newCourse,
                     thumbnailUrl: ""
@@ -91,7 +91,7 @@ export default function AdminCursosPage() {
     const handleDeleteCourse = async (id: string) => {
         if (!confirm("Tem certeza que deseja remover este curso?")) return;
         try {
-            const res = await fetch(`${apiUrl}/admin/courses/${id}`, { method: "DELETE" });
+            const res = await apiFetch(`/admin/courses/${id}`, { method: "DELETE" });
             if (res.ok) {
                 setCourses(prev => prev.filter(c => c.id !== id));
             }

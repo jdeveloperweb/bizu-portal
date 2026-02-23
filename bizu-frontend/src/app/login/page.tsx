@@ -5,12 +5,26 @@ import Link from "next/link";
 import { Eye, EyeOff, Loader2, LogIn, ArrowLeft, CheckCircle2, Sparkles } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import { useAuth } from "@/components/AuthProvider";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function LoginPage() {
-    const { login, authenticated } = useAuth();
+    const { login, authenticated, user } = useAuth();
+    const router = useRouter();
     const [show, setShow] = useState(false);
     const [loading, setLoading] = useState(false);
     const [form, setForm] = useState({ email: "", password: "" });
+
+    useEffect(() => {
+        if (authenticated) {
+            const roles = user?.realm_access?.roles || [];
+            if (roles.includes("ADMIN")) {
+                router.push("/admin");
+            } else {
+                router.push("/");
+            }
+        }
+    }, [authenticated, user, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
