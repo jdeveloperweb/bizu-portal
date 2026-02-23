@@ -29,7 +29,7 @@ services:
       - KC_DB_PASSWORD=${DB_PASSWORD:-bizu_pass_2024}
       - KC_HOSTNAME_STRICT=false
     ports:
-      - "8180:8080"
+      - "8280:8080"
     depends_on:
       - bizu-db
     networks:
