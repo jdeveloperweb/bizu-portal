@@ -1,16 +1,17 @@
 import Link from "next/link";
 
 interface BrandLogoProps {
-    size?: "sm" | "md" | "lg" | "xl";
+    size?: "sm" | "md" | "lg" | "xl" | "hero";
     variant?: "dark" | "light" | "gradient";
     link?: boolean;
 }
 
 const sizes = {
-    sm: { bizu: "text-[20px]", tag: "text-[7px]", gap: "gap-1" },
-    md: { bizu: "text-[26px]", tag: "text-[8px]", gap: "gap-1.5" },
-    lg: { bizu: "text-[34px]", tag: "text-[9px]", gap: "gap-1.5" },
-    xl: { bizu: "text-[48px]", tag: "text-[11px]", gap: "gap-2" },
+    sm: { bizu: "text-[24px]", tag: "text-[8px]", gap: "gap-1.5", pl: "pl-1.5", border: "border-l" },
+    md: { bizu: "text-[32px]", tag: "text-[9px]", gap: "gap-2", pl: "pl-2", border: "border-l" },
+    lg: { bizu: "text-[44px]", tag: "text-[11px]", gap: "gap-2.5", pl: "pl-2.5", border: "border-l-2" },
+    xl: { bizu: "text-[56px]", tag: "text-[13px]", gap: "gap-3", pl: "pl-3", border: "border-l-2" },
+    hero: { bizu: "text-[72px]", tag: "text-[15px]", gap: "gap-3.5", pl: "pl-3.5", border: "border-l-2" },
 };
 
 const variants = {
@@ -42,7 +43,7 @@ export default function BrandLogo({ size = "md", variant = "dark", link = true }
                 Bizu!
             </span>
             <span
-                className={`${s.tag} font-extrabold tracking-[0.25em] uppercase mt-0.5 border-l pl-1.5 ${v.tag} ${v.tagBorder}`}
+                className={`${s.tag} font-extrabold tracking-[0.25em] uppercase mt-1 ${s.border} ${s.pl} ${v.tag} ${v.tagBorder}`}
             >
                 Academy
             </span>
