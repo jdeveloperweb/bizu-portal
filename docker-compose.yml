@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: bizu_admin
       POSTGRES_PASSWORD: ${DB_PASSWORD:-bizu_pass_2024}
     ports:
-      - "5432:5432"
+      - "15432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
