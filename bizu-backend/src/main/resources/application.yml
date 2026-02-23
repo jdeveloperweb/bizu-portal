@@ -23,7 +23,7 @@ spring:
           issuer-uri: http://localhost:8080/realms/bizu-portal
 
 server:
-  port: 8081
+  port: 8080
 
 logging:
   level:
