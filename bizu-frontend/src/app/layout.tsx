@@ -35,6 +35,7 @@ export const metadata: Metadata = {
   },
 };
 
+import { AuthProvider } from "@/components/AuthProvider";
 import { NotificationProvider } from "@/components/NotificationProvider";
 import BrandingLoader from "@/components/BrandingLoader";
 
@@ -46,8 +47,10 @@ export default function RootLayout({
       <body className={`${jakarta.variable} ${jetbrains.variable} antialiased font-sans`}
         style={{ fontFamily: "var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif" }}
       >
-        <BrandingLoader />
-        <NotificationProvider>{children}</NotificationProvider>
+        <AuthProvider>
+          <BrandingLoader />
+          <NotificationProvider>{children}</NotificationProvider>
+        </AuthProvider>
       </body>
     </html>
   );

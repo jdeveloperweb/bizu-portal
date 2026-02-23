@@ -4,8 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2, LogIn, ArrowLeft, CheckCircle2, Sparkles } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function LoginPage() {
+    const { login, authenticated } = useAuth();
     const [show, setShow] = useState(false);
     const [loading, setLoading] = useState(false);
     const [form, setForm] = useState({ email: "", password: "" });
@@ -13,8 +15,7 @@ export default function LoginPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        await new Promise((r) => setTimeout(r, 1500));
-        setLoading(false);
+        login();
     };
 
     return (
@@ -120,10 +121,10 @@ export default function LoginPage() {
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">E-mail</label>
-                            <input type="email" required value={form.email}
+                            <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Usuário ou E-mail</label>
+                            <input type="text" required value={form.email}
                                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                                placeholder="voce@email.com" className="input-field" />
+                                placeholder="Seu usuário ou e-mail" className="input-field" />
                         </div>
                         <div>
                             <div className="flex justify-between items-center mb-1.5">
