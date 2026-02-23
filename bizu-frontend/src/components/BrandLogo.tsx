@@ -27,7 +27,7 @@ export default function BrandLogo({ size = "md", variant = "dark", link = true }
     const content = (
         <span className={`inline-flex items-center ${s.gap} select-none overflow-visible`}>
             <span
-                className={`${s.py} overflow-visible ${s.bizu} ${variant === "gradient" ? "" : v.bizu}`}
+                className={`${s.py} pr-[0.15em] -mr-[0.15em] overflow-visible ${s.bizu} ${variant === "gradient" ? "" : v.bizu}`}
                 style={{
                     fontFamily: "Bobaland, sans-serif",
                     lineHeight: 1.1,
