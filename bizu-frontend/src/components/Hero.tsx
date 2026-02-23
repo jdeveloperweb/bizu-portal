@@ -7,7 +7,7 @@ import {
     Brain, BarChart3, Swords, Layers, Timer,
     ChevronRight, Play, CheckCircle2, Sparkles, Shield,
     ClipboardList, ListChecks, StickyNote, Settings,
-    Trophy, Anchor, Rocket, Users, Star,
+    Trophy, Rocket, Users, Star,
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 
@@ -16,7 +16,7 @@ const features = [
     {
         icon: Brain,
         title: "Quiz Game",
-        desc: "Mais de 2.000 questoes especificas para C-EspFN e C-Hab/Ap-SG, elaboradas por especialistas.",
+        desc: "Milhares de questões dos principais concursos, elaboradas por especialistas e atualizadas constantemente.",
         gradient: "from-indigo-500 to-violet-600",
     },
     {
@@ -65,8 +65,8 @@ const features = [
 
 /* ── Concursos ── */
 const concursos = [
-    { name: "C-EspFN", full: "Cabo Fuzileiro Naval" },
-    { name: "C-Hab/Ap-SG", full: "Habilitacao e Aperfeicoamento de Sargentos" },
+    { name: "C-EspFN", full: "Carreira de Elite - Fuzileiros" },
+    { name: "C-Hab/Ap-SG", full: "Especialização e Carreira - Sargentos" },
 ];
 
 /* ── Counter ── */
@@ -134,26 +134,38 @@ export default function Hero() {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
-        .slide-in { animation: slide-in 0.8s ease-out forwards; }
-        .slide-in-d1 { animation: slide-in 0.8s ease-out 0.15s forwards; opacity: 0; }
-        .slide-in-d2 { animation: slide-in 0.8s ease-out 0.3s forwards; opacity: 0; }
-        .slide-in-d3 { animation: slide-in 0.8s ease-out 0.45s forwards; opacity: 0; }
+        @keyframes aurora {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .aurora {
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 200%;
+          height: 200%;
+          background: conic-gradient(from 0deg at 50% 50%, #6366f1 0deg, #a855f7 90deg, #ec4899 180deg, #6366f1 270deg);
+          filter: blur(100px);
+          opacity: 0.15;
+          animation: aurora 20s linear infinite;
+          z-index: -1;
+        }
+        .noise {
+            position: absolute;
+            inset: 0;
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 10;
+            background-image: url('https://grainy-gradients.vercel.app/noise.svg');
+        }
+        .slide-in { animation: slide-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .slide-in-d1 { animation: slide-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards; opacity: 0; }
+        .slide-in-d2 { animation: slide-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards; opacity: 0; }
+        .slide-in-d3 { animation: slide-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards; opacity: 0; }
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .gradient-border {
-            position: relative;
-        }
-        .gradient-border::after {
-            content: '';
-            position: absolute;
-            inset: -1px;
-            background: linear-gradient(45deg, #6366f1, #a855f7, #ec4899);
-            z-index: -1;
-            border-radius: inherit;
-            opacity: 0.5;
         }
       `}</style>
 
@@ -163,22 +175,24 @@ export default function Hero() {
             <section className="relative min-h-screen flex items-center overflow-hidden bg-slate-950">
                 {/* ── BACKGROUND DINAMICO ── */}
                 <div className="absolute inset-0 z-0 overflow-hidden">
+                    <div className="aurora" />
+                    <div className="noise" />
                     <video
                         autoPlay
                         loop
                         muted
                         playsInline
-                        className="absolute inset-0 w-full h-full object-cover opacity-60 scale-105"
-                        style={{ animation: 'slow-zoom 25s linear infinite alternate' }}
+                        className="absolute inset-0 w-full h-full object-cover opacity-40 scale-105 contrast-125"
+                        style={{ animation: 'slow-zoom 30s linear infinite alternate' }}
                     >
                         <source src="https://player.vimeo.com/external/400494519.hd.mp4?s=f5e49cf9d414f6b0f945377f3a6a9d700e395562&profile_id=175" type="video/mp4" />
                     </video>
                     {/* Overlays para profundidade e legibilidade */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-slate-950/40 to-slate-950/90" />
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.15),transparent_50%)]" />
-                    <div className="absolute inset-0 opacity-[0.1]" style={{
-                        backgroundImage: `radial-gradient(circle, #fff 0.5px, transparent 0.5px)`,
-                        backgroundSize: "40px 40px",
+                    <div className="absolute inset-0 bg-gradient-to-b from-slate-950/90 via-slate-950/50 to-slate-950/95" />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.2),transparent_60%)]" />
+                    <div className="absolute inset-0 opacity-[0.05]" style={{
+                        backgroundImage: `radial-gradient(circle, #fff 1px, transparent 1px)`,
+                        backgroundSize: "60px 60px",
                     }} />
                 </div>
 
@@ -186,11 +200,11 @@ export default function Hero() {
                 <div className="absolute top-[15%] left-[10%] w-64 h-64 bg-indigo-600/10 blur-[100px] rounded-full animate-pulse" />
                 <div className="absolute bottom-[20%] right-[10%] w-80 h-80 bg-violet-600/10 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: "2s" }} />
 
-                {/* Icones Maritimos Flutuantes */}
-                <div className="absolute top-[20%] right-[15%] text-white/10 hidden lg:block scale-150" style={{ animation: "float-slow 10s ease-in-out infinite" }}>
-                    <Anchor size={40} />
+                {/* Icones Decorativos Flutuantes */}
+                <div className="absolute top-[20%] right-[15%] text-indigo-400/20 hidden lg:block scale-150" style={{ animation: "float-slow 10s ease-in-out infinite" }}>
+                    <Sparkles size={40} />
                 </div>
-                <div className="absolute bottom-[25%] left-[15%] text-white/10 hidden lg:block" style={{ animation: "float-medium 12s ease-in-out infinite" }}>
+                <div className="absolute bottom-[25%] left-[15%] text-indigo-400/20 hidden lg:block" style={{ animation: "float-medium 12s ease-in-out infinite" }}>
                     <Shield size={32} />
                 </div>
 
@@ -198,12 +212,13 @@ export default function Hero() {
                     <div className="max-w-5xl mx-auto text-center">
 
                         {/* Badge Premium */}
-                        <div className="slide-in inline-flex items-center gap-2 px-4 py-2 rounded-full mb-10 bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl">
-                            <Anchor size={15} className="text-indigo-400" />
-                            <span className="text-[13px] font-semibold text-white/90">
-                                Preparatório Marinha do Brasil
+                        <div className="slide-in inline-flex items-center gap-2 px-4 py-2 rounded-full mb-10 bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl overflow-hidden group">
+                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <Sparkles size={15} className="text-indigo-400 animate-pulse" />
+                            <span className="text-[13px] font-semibold text-white/90 tracking-wide">
+                                Plataforma de Estudos Premium
                             </span>
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
                         </div>
 
                         {/* Logo grande com brilho */}
@@ -213,30 +228,30 @@ export default function Hero() {
                         </div>
 
                         {/* Subtitulo Cinematográfico */}
-                        <h1 className="slide-in-d1 text-3xl sm:text-4xl md:text-6xl font-black text-white leading-tight mb-4 tracking-tight">
+                        <h1 className="slide-in-d1 text-3xl sm:text-4xl md:text-7xl font-black text-white leading-[1.1] mb-6 tracking-tighter">
                             O jeito certo de estudar
                             <br />
-                            <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-violet-400 to-indigo-400 animate-gradient-x">
-                                para a Marinha
+                            <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-violet-400 to-indigo-400 animate-gradient-x drop-shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+                                para o seu concurso
                             </span>
                         </h1>
 
-                        <p className="slide-in-d2 max-w-2xl mx-auto text-base md:text-xl text-slate-300 mb-8 leading-relaxed font-medium">
-                            Questões específicas, simulados semanais, ranking e desempenho detalhado.
+                        <p className="slide-in-d2 max-w-2xl mx-auto text-base md:text-xl text-slate-400 mb-10 leading-relaxed font-medium">
+                            Questões específicas, simulados semanais, ranking e desempenho detalhado em tempo real.
                             <br className="hidden sm:block" />
-                            Tudo que você precisa para conquistar sua farda.
+                            Tudo que você precisa para conquistar sua aprovação.
                         </p>
 
                         {/* Concursos Glassmorphism */}
-                        <div className="slide-in-d2 flex flex-wrap items-center justify-center gap-3 mb-12">
+                        <div className="slide-in-d2 flex flex-wrap items-center justify-center gap-3 mb-14">
                             {concursos.map((c) => (
-                                <div key={c.name} className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-xl hover:bg-white/10 transition-all group">
-                                    <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 group-hover:scale-110 transition-transform">
-                                        <Anchor size={18} />
+                                <div key={c.name} className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl hover:bg-white/10 hover:border-white/20 hover:scale-105 hover:-translate-y-1 transition-all group cursor-pointer duration-500">
+                                    <div className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-400 group-hover:scale-110 group-hover:rotate-3 transition-transform">
+                                        <Target size={20} />
                                     </div>
                                     <div className="text-left">
-                                        <div className="text-sm font-bold text-white leading-none mb-0.5">{c.name}</div>
-                                        <div className="text-[11px] text-slate-400 font-medium">{c.full}</div>
+                                        <div className="text-base font-black text-white leading-none mb-1">{c.name}</div>
+                                        <div className="text-[12px] text-slate-400 font-bold uppercase tracking-wider">{c.full}</div>
                                     </div>
                                 </div>
                             ))}
@@ -245,14 +260,14 @@ export default function Hero() {
                         {/* CTAs de Alto Impacto */}
                         <div className="slide-in-d3 flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
                             <Link href="/register" className="w-full sm:w-auto">
-                                <button className="group relative flex items-center justify-center gap-3 px-12 h-[64px] rounded-2xl text-[16px] font-bold text-white overflow-hidden shadow-2xl hover:scale-[1.05] transition-all duration-300">
+                                <button className="group relative flex items-center justify-center gap-3 px-12 h-[64px] rounded-2xl text-[16px] font-bold text-white overflow-hidden shadow-[0_20px_40px_-10px_rgba(99,102,241,0.5)] hover:scale-[1.05] hover:shadow-[0_25px_50px_-12px_rgba(99,102,241,0.6)] transition-all duration-500 active:scale-95">
                                     {/* Background animado do botão */}
-                                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-violet-600" />
-                                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 bg-[length:200%_auto] animate-gradient-x" />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
                                     <div className="relative flex items-center gap-3">
-                                        <Rocket size={20} className="group-hover:translate-y-[-2px] transition-transform" />
+                                        <Rocket size={20} className="group-hover:translate-y-[-4px] group-hover:translate-x-[2px] transition-transform duration-500" />
                                         Comece grátis agora
-                                        <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                        <ArrowRight size={18} className="group-hover:translate-x-1.5 transition-transform duration-500" />
                                     </div>
                                 </button>
                             </Link>
@@ -318,7 +333,7 @@ export default function Hero() {
                                     <div className="flex items-center justify-between mb-8">
                                         <div>
                                             <h4 className="text-[15px] font-bold text-white mb-1">Seja um Bizurado! 😎</h4>
-                                            <p className="text-[11px] text-slate-400 font-medium tracking-wide">C-EspFN · PREPARATÓRIO ATIVO</p>
+                                            <p className="text-[11px] text-slate-400 font-medium tracking-wide">C-EspFN · ACESSO PREMIUM</p>
                                         </div>
                                         <div className="flex gap-2">
                                             <div className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] font-bold text-amber-500">🔥 12 DIAS</div>
@@ -347,9 +362,9 @@ export default function Hero() {
                                         </div>
                                         <div className="space-y-4">
                                             {[
-                                                { n: "Org. Militares", p: 88, c: "bg-emerald-500" },
-                                                { n: "Armamentos", p: 74, c: "bg-indigo-500" },
-                                                { n: "Navegação", p: 65, c: "bg-amber-500" },
+                                                { n: "Conhecimentos Específicos", p: 88, c: "bg-emerald-500" },
+                                                { n: "Técnicas de Estudo", p: 74, c: "bg-indigo-500" },
+                                                { n: "Simulados GLO", p: 65, c: "bg-amber-500" },
                                             ].map(s => (
                                                 <div key={s.n}>
                                                     <div className="flex justify-between text-[10px] font-bold mb-2">
@@ -406,7 +421,7 @@ export default function Hero() {
                             {
                                 step: "03",
                                 title: "Conquiste sua vaga",
-                                desc: "Acompanhe seu desempenho, ajuste sua estrategia e passe com confianca.",
+                                desc: "Acompanhe seu desempenho, ajuste sua estratégia e passe dentro das vagas.",
                                 icon: Award,
                                 gradient: "from-purple-500 to-pink-600",
                             },
@@ -596,7 +611,7 @@ export default function Hero() {
                         <span className="gradient-text">bizurados</span>
                     </h2>
                     <p className="text-slate-500 mb-14 max-w-md mx-auto text-lg slide-in-d2">
-                        Concurseiros que ja estao usando o Bizu! para conquistar sua vaga na Marinha.
+                        Concurseiros que já estão usando o Bizu! para conquistar sua aprovação definitiva.
                     </p>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mb-14">
@@ -624,11 +639,11 @@ export default function Hero() {
                     </p>
                     <div className="flex flex-wrap items-center justify-center gap-2.5">
                         {[
-                            { tag: "C-EspFN", desc: "Cabo Fuzileiro Naval" },
-                            { tag: "C-Hab/Ap-SG", desc: "Sargento" },
+                            { tag: "C-EspFN", desc: "Corpo de Fuzileiros" },
+                            { tag: "C-Hab/Ap-SG", desc: "Sargentos" },
                         ].map((c) => (
-                            <div key={c.tag} className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 hover:border-indigo-200 transition-all">
-                                <Anchor size={14} className="text-indigo-600" />
+                            <div key={c.tag} className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 hover:border-indigo-200 transition-all shadow-sm hover:shadow-md">
+                                <Target size={14} className="text-indigo-600" />
                                 <div className="text-left">
                                     <div className="text-xs font-bold text-slate-900">{c.tag}</div>
                                     <div className="text-[10px] text-slate-400">{c.desc}</div>
@@ -685,7 +700,6 @@ export default function Hero() {
                         <BrandLogo size="sm" variant="dark" />
                         <p className="text-xs text-slate-400">© 2025 Bizu! Academy · Todos os direitos reservados</p>
                         <div className="flex gap-5">
-                            <Link href="https://www.mar.mil.br" target="_blank" className="text-xs text-slate-400 hover:text-indigo-500 transition-colors">Marinha do Brasil</Link>
                             <Link href="/termos" className="text-xs text-slate-400 hover:text-indigo-500 transition-colors">Termos</Link>
                             <Link href="/privacidade" className="text-xs text-slate-400 hover:text-indigo-500 transition-colors">Privacidade</Link>
                         </div>

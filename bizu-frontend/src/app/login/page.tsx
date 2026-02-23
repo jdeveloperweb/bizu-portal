@@ -40,136 +40,174 @@ export default function LoginPage() {
         <div className="min-h-screen flex">
 
             {/* ── Left: visual branding ── */}
-            <div className="hidden lg:flex w-[50%] relative overflow-hidden">
+            <div className="hidden lg:flex w-[45%] xl:w-[50%] relative overflow-hidden">
                 <div
                     className="absolute inset-0 bg-cover bg-center"
                     style={{
                         backgroundImage: `url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1470&auto=format&fit=crop')`,
-                        filter: 'brightness(0.7)',
-                        transform: 'scale(1.02)',
-                        animation: 'float-slow 20s ease-in-out infinite alternate',
+                        filter: 'brightness(0.65) contrast(1.1)',
+                        transform: 'scale(1.05)',
+                        animation: 'float-slow 25s ease-in-out infinite alternate',
                     }}
                 />
-                <div className="absolute inset-0 bg-indigo-950/70 mix-blend-multiply" />
-                <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/90 via-indigo-900/40 to-transparent" />
-                <div className="absolute inset-0 opacity-[0.1]" style={{
+                <div className="absolute inset-0 bg-indigo-950/60 mix-blend-multiply" />
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/80 via-indigo-900/40 to-transparent" />
+
+                {/* Decorative Pattern overlay */}
+                <div className="absolute inset-0 opacity-[0.15]" style={{
                     backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
-                    backgroundSize: "32px 32px",
+                    backgroundSize: "40px 40px",
                 }} />
 
-                <div className="relative z-10 flex flex-col justify-end p-14 xl:p-20 w-full h-full">
-                    <div>
-                        <div className="mb-10">
+                <div className="relative z-10 flex flex-col justify-center p-16 xl:p-24 w-full h-full">
+                    <div className="max-w-xl">
+                        <div className="mb-12 animate-in fade-in slide-in-from-left duration-700">
                             <BrandLogo size="hero" variant="light" link={false} />
                         </div>
-                        <h2 className="text-4xl xl:text-5xl font-extrabold text-white leading-[1.1] mb-5">
-                            Estude com
-                            <br />
-                            estrategia.
-                            <br />
-                            <span className="text-indigo-200">Passe com certeza.</span>
-                        </h2>
-                        <p className="text-indigo-200/80 text-sm max-w-sm leading-relaxed mb-8">
-                            A plataforma inteligente que ja ajudou mais de 10.000 concurseiros a conquistar a aprovacao.
-                        </p>
-                        <div className="flex flex-col gap-2.5 mb-10">
-                            {[
-                                "Simulados adaptativos com IA",
-                                "Banco de questoes atualizado",
-                                "Duelos em tempo real",
-                                "Analytics de desempenho",
-                            ].map((p) => (
-                                <div key={p} className="flex items-center gap-2.5 text-sm text-indigo-50">
-                                    <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
-                                    {p}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
 
-                    {/* Social proof */}
-                    <div className="flex items-center gap-3">
-                        <div className="flex -space-x-2.5">
-                            {["MC", "AP", "DS", "JM"].map((init, i) => (
-                                <div key={init} className="w-8 h-8 rounded-full border-2 border-indigo-900 flex items-center justify-center text-[9px] font-bold text-white"
-                                    style={{ background: `hsl(${240 + i * 15}, 60%, ${55 + i * 5}%)`, zIndex: 4 - i }}>
-                                    {init}
-                                </div>
-                            ))}
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-700 delay-200 fill-mode-both">
+                            <h2 className="text-4xl xl:text-6xl font-extrabold text-white leading-[1.05] tracking-tight">
+                                Estude com
+                                <br />
+                                <span className="text-indigo-300">estratégia.</span>
+                                <br />
+                                Passe com certeza.
+                            </h2>
+
+                            <p className="text-indigo-100/70 text-lg xl:text-xl max-w-md leading-relaxed">
+                                A plataforma inteligente que já ajudou mais de <span className="text-white font-bold">10.000</span> concurseiros a conquistar a aprovação.
+                            </p>
+
+                            <div className="grid grid-cols-1 gap-4 py-8">
+                                {[
+                                    "Simulados adaptativos com IA",
+                                    "Banco de questões atualizado",
+                                    "Duelos em tempo real",
+                                    "Analytics de desempenho",
+                                ].map((p, i) => (
+                                    <div key={p} className="flex items-center gap-3 text-indigo-50/90 group" style={{ animationDelay: `${400 + i * 100}ms` }}>
+                                        <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/30 transition-colors">
+                                            <CheckCircle2 size={14} className="text-emerald-400" />
+                                        </div>
+                                        <span className="text-sm xl:text-base font-medium">{p}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                        <div>
-                            <div className="text-xs font-bold text-white">10.000+ aprovados</div>
-                            <div className="text-[10px] text-indigo-200/60">Junte-se a comunidade</div>
+
+                        {/* Social proof */}
+                        <div className="mt-8 flex items-center gap-4 py-6 px-8 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 animate-in fade-in slide-in-from-bottom duration-700 delay-700 fill-mode-both max-w-xs">
+                            <div className="flex -space-x-3">
+                                {["MC", "AP", "DS", "JM"].map((init, i) => (
+                                    <div key={init} className="w-10 h-10 rounded-full border-2 border-indigo-900 shadow-xl flex items-center justify-center text-[10px] font-bold text-white transition-transform hover:scale-110 hover:z-20"
+                                        style={{ background: `hsl(${240 + i * 20}, 70%, ${50 + i * 5}%)`, zIndex: 10 - i }}>
+                                        {init}
+                                    </div>
+                                ))}
+                            </div>
+                            <div>
+                                <div className="text-sm font-bold text-white leading-tight">10.000+ aprovados</div>
+                                <div className="text-[11px] text-indigo-200/60 font-medium">Junte-se à comunidade</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* ── Right: form ── */}
-            <div className="flex-1 flex items-center justify-center px-6 py-12 bg-[#FAFBFF]">
-                <div className="w-full max-w-[400px]">
+            <div className="flex-1 flex flex-col bg-white">
+                <main className="flex-1 flex flex-col justify-center px-8 sm:px-12 lg:px-16 xl:px-24 py-12">
+                    <div className="w-full max-w-[420px] mx-auto">
 
-                    <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-indigo-600 transition-colors mb-8">
-                        <ArrowLeft size={14} /> Voltar
-                    </Link>
-
-                    <div className="lg:hidden mb-8">
-                        <BrandLogo size="md" variant="gradient" />
-                    </div>
-
-                    <h1 className="text-[22px] font-extrabold text-slate-900 mb-1">Entrar na conta</h1>
-                    <p className="text-sm text-slate-500 mb-7">Continue de onde voce parou</p>
-
-                    {/* Google */}
-                    <button className="w-full h-11 rounded-xl font-semibold text-sm text-slate-700 bg-white border border-slate-200 shadow-sm hover:border-slate-300 hover:shadow transition-all flex items-center justify-center gap-2.5 mb-5">
-                        <svg width="18" height="18" viewBox="0 0 24 24">
-                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                        </svg>
-                        Continuar com Google
-                    </button>
-
-                    <div className="flex items-center gap-3 mb-5">
-                        <div className="flex-1 h-px bg-slate-100" />
-                        <span className="text-[11px] text-slate-400">ou</span>
-                        <div className="flex-1 h-px bg-slate-100" />
-                    </div>
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Usuário ou E-mail</label>
-                            <input type="text" required value={form.email}
-                                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                                placeholder="Seu usuário ou e-mail" className="input-field" />
+                        <div className="mb-10">
+                            <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-indigo-600 transition-all group">
+                                <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                                Voltar para o início
+                            </Link>
                         </div>
-                        <div>
-                            <div className="flex justify-between items-center mb-1.5">
-                                <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Senha</label>
-                                <Link href="/forgot-password" className="text-[11px] text-indigo-500 font-semibold hover:text-indigo-700 transition-colors">Esqueceu?</Link>
-                            </div>
-                            <div className="relative">
-                                <input type={show ? "text" : "password"} required value={form.password}
-                                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                                    placeholder="Sua senha" className="input-field pr-10" />
-                                <button type="button" onClick={() => setShow(!show)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                                    {show ? <EyeOff size={15} /> : <Eye size={15} />}
-                                </button>
-                            </div>
+
+                        <div className="lg:hidden mb-12">
+                            <BrandLogo size="lg" variant="gradient" />
                         </div>
-                        <button type="submit" disabled={loading}
-                            className="btn-primary w-full !h-11 !rounded-xl mt-1 disabled:opacity-60 disabled:cursor-not-allowed">
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><LogIn size={15} /> Entrar</>}
+
+                        <div className="mb-10">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[11px] font-bold uppercase tracking-wider mb-4">
+                                <Sparkles size={12} />
+                                Bem-vindo de volta
+                            </div>
+                            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Entrar na conta</h1>
+                            <p className="text-slate-500 font-medium">Continue sua jornada rumo à aprovação.</p>
+                        </div>
+
+                        {/* Google Social Login */}
+                        <button className="w-full h-12 rounded-xl font-bold text-sm text-slate-700 bg-white border border-slate-200 shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center gap-3 mb-8 group">
+                            <svg width="20" height="20" viewBox="0 0 24 24" className="group-hover:scale-110 transition-transform">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                            </svg>
+                            Continuar com Google
                         </button>
-                    </form>
 
-                    <p className="text-center text-sm text-slate-500 mt-6">
-                        Novo por aqui?{" "}
-                        <Link href="/register" className="text-indigo-600 font-bold hover:text-indigo-800 transition-colors">Crie sua conta</Link>
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="flex-1 h-px bg-slate-100" />
+                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">ou use seu e-mail</span>
+                            <div className="flex-1 h-px bg-slate-100" />
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Usuário ou e-mail</label>
+                                <input type="text" required value={form.email}
+                                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                                    placeholder="ex: jaime.vicente@email.com" className="input-field !h-12 !bg-slate-50 border-slate-200 focus:!bg-white" />
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em]">Senha</label>
+                                    <Link href="/forgot-password" title="Recuperar senha" className="text-[11px] text-indigo-500 font-bold hover:text-indigo-700 transition-colors uppercase tracking-wider">Esqueceu?</Link>
+                                </div>
+                                <div className="relative">
+                                    <input type={show ? "text" : "password"} required value={form.password}
+                                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                                        placeholder="••••••••" className="input-field pr-12 !h-12 !bg-slate-50 border-slate-200 focus:!bg-white" />
+                                    <button type="button" onClick={() => setShow(!show)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none">
+                                        {show ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button type="submit" disabled={loading}
+                                className="btn-primary w-full !h-12 !rounded-xl !text-base group shadow-indigo-200 transition-all active:scale-[0.98]">
+                                {loading ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <>
+                                        Entrar na plataforma
+                                        <LogIn size={18} className="group-hover:translate-x-1 transition-transform" />
+                                    </>
+                                )}
+                            </button>
+                        </form>
+
+                        <div className="mt-10 pt-8 border-t border-slate-50 text-center">
+                            <p className="text-slate-500 font-medium">
+                                Novo por aqui?{" "}
+                                <Link href="/register" className="text-indigo-600 font-extrabold hover:text-indigo-800 transition-all hover:underline decoration-2 underline-offset-4">
+                                    Crie sua conta agora
+                                </Link>
+                            </p>
+                        </div>
+                    </div>
+                </main>
+
+                <footer className="py-8 px-12 border-t border-slate-50 text-center lg:text-left">
+                    <p className="text-[11px] text-slate-400 font-medium uppercase tracking-[0.1em]">
+                        &copy; {new Date().getFullYear()} Bizu! Academy. Todos os direitos reservados.
                     </p>
-                </div>
+                </footer>
             </div>
         </div>
     );
