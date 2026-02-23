@@ -26,6 +26,7 @@ export const metadata: Metadata = {
 };
 
 import { NotificationProvider } from "@/components/NotificationProvider";
+import BrandingLoader from "@/components/BrandingLoader";
 
 export default function RootLayout({
   children,
@@ -37,6 +38,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <BrandingLoader />
         <NotificationProvider>
           {children}
         </NotificationProvider>

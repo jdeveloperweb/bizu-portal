@@ -14,7 +14,8 @@ Este arquivo serve para acompanhar o progresso do desenvolvimento do Bizu! Porta
 - [x] **1.3 Design System (Frontend)**
     - [x] Instalar Tailwind CSS 4 e shadcn/ui - **FEITO**
     - [x] Configurar tokens de cores e tipografia (Inter/Roboto) - **FEITO**
-    - [x] Criar layouts base (Aluno/Mobile-first e Admin/Desktop-first) - **FEITO**
+    - [x] Criar layouts base (Aluno e Admin) - **FEITO**
+    - [x] **Branding Dinâmico**: Gestão de logo e cores via Admin com aplicação em tempo real. - **FEITO**
 
 ## 🔐 Fase 2: Identidade e Controle de Acesso (Identity)
 
@@ -35,6 +36,7 @@ Este arquivo serve para acompanhar o progresso do desenvolvimento do Bizu! Porta
     - [x] Entidade `Question` (Suporte a LaTeX/Markdown) - **FEITO**
     - [x] Importação em massa (CSV/Excel) - **FEITO (BACKEND)**
     - [x] Editor rico integrado no Admin (TipTap) - **FEITO (UI + COMPONENT)**
+    - [x] **Temas por Curso**: Possibilidade de definir cores exclusivas para cada curso. - **FEITO**
 - [x] **3.3 Materiais e Flashcards**
     - [x] Gestão de Apostilas (Entidade e Estrutura) - **FEITO**
     - [x] Criação e versionamento de Flashcards - **FEITO (ESTRUTURA + UI)**
@@ -121,8 +123,9 @@ Este arquivo serve para acompanhar o progresso do desenvolvimento do Bizu! Porta
 - [ ] **7.2 Testes e QA**
     - [ ] Cobertura de testes unitários crítica
     - [ ] Testes de carga em simulados
-- [ ] **7.3 Deploy**
-    - [ ] Configuração de Pipelines CI/CD
+- [x] **7.3 Deploy Final**
+    - [x] Configuração de Pipelines CI/CD - **FEITO (GITHUB ACTIONS)**
+    - [x] Guia de implantação Hostinger/Nginx - **FEITO**
     - [ ] Setup do ambiente de Produção (Cloudflare + Cloud)
 
 ---
