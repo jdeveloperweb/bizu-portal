@@ -28,6 +28,9 @@ services:
       - KC_DB_USERNAME=bizu_admin
       - KC_DB_PASSWORD=${DB_PASSWORD:-bizu_pass_2024}
       - KC_HOSTNAME_STRICT=false
+      - KC_PROXY=edge
+      - KC_HOSTNAME_URL=https://bizu.mjolnix.com.br/auth
+      - KC_HTTP_RELATIVE_PATH=/auth
     ports:
       - "8280:8080"
     depends_on:
