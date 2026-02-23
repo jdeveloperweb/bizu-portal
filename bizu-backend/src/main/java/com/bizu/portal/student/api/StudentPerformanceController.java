@@ -25,7 +25,7 @@ public class StudentPerformanceController {
         UUID userId = UUID.fromString(jwt.getSubject());
         
         // In a real app, this would be a custom JPQL query for better performance
-        var allAttempts = attemptRepository.findAllByUserId(userId);
+        var allAttempts = attemptRepository.findAllByUser_Id(userId);
         
         Map<String, List<com.bizu.portal.student.domain.Attempt>> bySubject = allAttempts.stream()
             .collect(Collectors.groupingBy(a -> a.getQuestion().getSubject()));

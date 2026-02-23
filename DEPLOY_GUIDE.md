@@ -47,7 +47,7 @@ sudo sh get-docker.sh
 ```bash
 # Criar pasta e clonar repositório
 mkdir -p ~/bizu-portal && cd ~/bizu-portal
-git clone https://github.com/SEU_USUARIO/bizu-portal.git .
+git clone https://github.com/jdeveloperweb/bizu-portal.git .
 
 # Criar arquivo de variáveis de ambiente
 cp .env.example .env
