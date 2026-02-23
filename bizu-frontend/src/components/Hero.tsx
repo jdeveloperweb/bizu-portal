@@ -112,7 +112,11 @@ export default function Hero() {
         }
         @keyframes float-slow {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50%      { transform: translateY(-12px) rotate(1deg); }
+          50%      { transform: translateY(-20px) rotate(1deg); }
+        }
+        @keyframes float-medium {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50%      { transform: translateY(-10px) rotate(-1deg); }
         }
         @keyframes pulse-glow {
           0%, 100% { opacity: 0.3; transform: scale(1); }
@@ -122,186 +126,242 @@ export default function Hero() {
           from { opacity: 0; transform: translateY(30px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+        @keyframes slow-zoom {
+          0% { transform: scale(1); }
+          100% { transform: scale(1.15); }
+        }
+        @keyframes rotate-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
         .slide-in { animation: slide-in 0.8s ease-out forwards; }
         .slide-in-d1 { animation: slide-in 0.8s ease-out 0.15s forwards; opacity: 0; }
         .slide-in-d2 { animation: slide-in 0.8s ease-out 0.3s forwards; opacity: 0; }
         .slide-in-d3 { animation: slide-in 0.8s ease-out 0.45s forwards; opacity: 0; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .gradient-border {
+            position: relative;
+        }
+        .gradient-border::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            background: linear-gradient(45deg, #6366f1, #a855f7, #ec4899);
+            z-index: -1;
+            border-radius: inherit;
+            opacity: 0.5;
+        }
       `}</style>
 
             {/* ═══════════════════════════
            HERO
          ═══════════════════════════ */}
-            <section className="relative min-h-screen flex items-center overflow-hidden">
-                {/* BG */}
-                <div className="absolute inset-0">
-                    <div className="absolute inset-0" style={{
-                        background: `
-              radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99,102,241,0.1) 0%, transparent 70%),
-              radial-gradient(ellipse 50% 40% at 85% 70%, rgba(139,92,246,0.05) 0%, transparent 55%),
-              radial-gradient(ellipse 40% 30% at 10% 80%, rgba(245,158,11,0.03) 0%, transparent 50%)
-            `,
-                    }} />
-                    <div className="absolute inset-0 opacity-[0.2]" style={{
-                        backgroundImage: `radial-gradient(circle, #CBD5E1 0.8px, transparent 0.8px)`,
-                        backgroundSize: "32px 32px",
+            <section className="relative min-h-screen flex items-center overflow-hidden bg-slate-950">
+                {/* ── BACKGROUND DINAMICO ── */}
+                <div className="absolute inset-0 z-0 overflow-hidden">
+                    <video
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="absolute inset-0 w-full h-full object-cover opacity-60 scale-105"
+                        style={{ animation: 'slow-zoom 25s linear infinite alternate' }}
+                    >
+                        <source src="https://player.vimeo.com/external/400494519.hd.mp4?s=f5e49cf9d414f6b0f945377f3a6a9d700e395562&profile_id=175" type="video/mp4" />
+                    </video>
+                    {/* Overlays para profundidade e legibilidade */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-slate-950/40 to-slate-950/90" />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.15),transparent_50%)]" />
+                    <div className="absolute inset-0 opacity-[0.1]" style={{
+                        backgroundImage: `radial-gradient(circle, #fff 0.5px, transparent 0.5px)`,
+                        backgroundSize: "40px 40px",
                     }} />
                 </div>
 
-                {/* Glow */}
-                <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[400px] blur-[150px] pointer-events-none"
-                    style={{ background: "linear-gradient(180deg, rgba(99,102,241,0.2) 0%, transparent 100%)", animation: "pulse-glow 8s ease-in-out infinite" }} />
+                {/* Elementos flutuantes decorativos */}
+                <div className="absolute top-[15%] left-[10%] w-64 h-64 bg-indigo-600/10 blur-[100px] rounded-full animate-pulse" />
+                <div className="absolute bottom-[20%] right-[10%] w-80 h-80 bg-violet-600/10 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: "2s" }} />
 
-                <div className="relative container mx-auto px-6 pt-28 pb-20">
+                {/* Icones Maritimos Flutuantes */}
+                <div className="absolute top-[20%] right-[15%] text-white/10 hidden lg:block scale-150" style={{ animation: "float-slow 10s ease-in-out infinite" }}>
+                    <Anchor size={40} />
+                </div>
+                <div className="absolute bottom-[25%] left-[15%] text-white/10 hidden lg:block" style={{ animation: "float-medium 12s ease-in-out infinite" }}>
+                    <Shield size={32} />
+                </div>
+
+                <div className="relative container mx-auto px-6 pt-32 pb-20 z-10">
                     <div className="max-w-5xl mx-auto text-center">
 
-                        {/* Badge */}
-                        <div className="slide-in inline-flex items-center gap-2 px-4 py-2 rounded-full mb-10 bg-indigo-50/80 backdrop-blur-sm border border-indigo-100">
-                            <Anchor size={15} className="text-indigo-600" />
-                            <span className="text-[13px] font-semibold text-indigo-600">
-                                Preparatorio Marinha do Brasil
+                        {/* Badge Premium */}
+                        <div className="slide-in inline-flex items-center gap-2 px-4 py-2 rounded-full mb-10 bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl">
+                            <Anchor size={15} className="text-indigo-400" />
+                            <span className="text-[13px] font-semibold text-white/90">
+                                Preparatório Marinha do Brasil
                             </span>
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
                         </div>
 
-                        {/* Logo grande */}
-                        <div className="slide-in-d1 mb-8">
+                        {/* Logo grande com brilho */}
+                        <div className="slide-in-d1 mb-8 relative inline-block">
+                            <div className="absolute -inset-4 bg-indigo-500/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                             <BrandLogo size="hero" variant="gradient" link={false} />
                         </div>
 
-                        {/* Subtitulo */}
-                        <h1 className="slide-in-d1 text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight mb-3">
+                        {/* Subtitulo Cinematográfico */}
+                        <h1 className="slide-in-d1 text-3xl sm:text-4xl md:text-6xl font-black text-white leading-tight mb-4 tracking-tight">
                             O jeito certo de estudar
                             <br />
-                            <span className="gradient-text">para a Marinha</span>
+                            <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-violet-400 to-indigo-400 animate-gradient-x">
+                                para a Marinha
+                            </span>
                         </h1>
 
-                        <p className="slide-in-d2 max-w-2xl mx-auto text-base md:text-lg text-slate-500 mb-5 leading-relaxed">
-                            Questoes especificas, simulados semanais, ranking e desempenho detalhado.
+                        <p className="slide-in-d2 max-w-2xl mx-auto text-base md:text-xl text-slate-300 mb-8 leading-relaxed font-medium">
+                            Questões específicas, simulados semanais, ranking e desempenho detalhado.
                             <br className="hidden sm:block" />
-                            Tudo que voce precisa para conquistar sua vaga.
+                            Tudo que você precisa para conquistar sua farda.
                         </p>
 
-                        {/* Concursos */}
-                        <div className="slide-in-d2 flex flex-wrap items-center justify-center gap-2.5 mb-10">
+                        {/* Concursos Glassmorphism */}
+                        <div className="slide-in-d2 flex flex-wrap items-center justify-center gap-3 mb-12">
                             {concursos.map((c) => (
-                                <div key={c.name} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm">
-                                    <Anchor size={14} className="text-indigo-500" />
+                                <div key={c.name} className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-xl hover:bg-white/10 transition-all group">
+                                    <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 group-hover:scale-110 transition-transform">
+                                        <Anchor size={18} />
+                                    </div>
                                     <div className="text-left">
-                                        <div className="text-xs font-bold text-slate-800">{c.name}</div>
-                                        <div className="text-[10px] text-slate-400">{c.full}</div>
+                                        <div className="text-sm font-bold text-white leading-none mb-0.5">{c.name}</div>
+                                        <div className="text-[11px] text-slate-400 font-medium">{c.full}</div>
                                     </div>
                                 </div>
                             ))}
                         </div>
 
-                        {/* CTAs */}
-                        <div className="slide-in-d3 flex flex-col sm:flex-row items-center justify-center gap-3 mb-5">
-                            <Link href="/register">
-                                <button className="group flex items-center gap-2.5 px-10 h-[56px] rounded-2xl text-[15px] font-bold text-white bg-gradient-to-r from-indigo-600 to-violet-600 shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/35 hover:scale-[1.02] transition-all duration-300">
-                                    <Rocket size={18} />
-                                    Comece gratis agora
-                                    <ArrowRight size={17} className="group-hover:translate-x-1 transition-transform" />
+                        {/* CTAs de Alto Impacto */}
+                        <div className="slide-in-d3 flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+                            <Link href="/register" className="w-full sm:w-auto">
+                                <button className="group relative flex items-center justify-center gap-3 px-12 h-[64px] rounded-2xl text-[16px] font-bold text-white overflow-hidden shadow-2xl hover:scale-[1.05] transition-all duration-300">
+                                    {/* Background animado do botão */}
+                                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-violet-600" />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                                    <div className="relative flex items-center gap-3">
+                                        <Rocket size={20} className="group-hover:translate-y-[-2px] transition-transform" />
+                                        Comece grátis agora
+                                        <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                    </div>
                                 </button>
                             </Link>
-                            <Link href="/pricing">
-                                <button className="flex items-center gap-2 px-7 h-[56px] rounded-2xl text-[15px] font-semibold text-slate-600 bg-white border border-slate-200 shadow-sm hover:border-indigo-200 hover:text-indigo-600 transition-all">
-                                    <Play size={16} />
+                            <Link href="/pricing" className="w-full sm:w-auto">
+                                <button className="flex items-center justify-center gap-2 px-10 h-[64px] rounded-2xl text-[16px] font-semibold text-white bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all shadow-xl">
+                                    <Play size={18} className="fill-white" />
                                     Ver planos
                                 </button>
                             </Link>
                         </div>
 
-                        <p className="slide-in-d3 text-xs text-slate-400 flex items-center justify-center gap-1.5 mb-20">
-                            <Shield size={13} className="text-emerald-500" />
-                            Sem cartao de credito · Cancele quando quiser
+                        <p className="slide-in-d3 text-sm text-slate-400 flex items-center justify-center gap-2 mb-20 drop-shadow-sm">
+                            <Shield size={14} className="text-emerald-400" />
+                            Acesso imediato · Cancele quando quiser
                         </p>
                     </div>
 
-                    {/* ── Dashboard Mockup ── */}
-                    <div className="max-w-5xl mx-auto relative">
-                        <div className="absolute -inset-8 bg-gradient-to-r from-indigo-500/10 via-violet-500/8 to-purple-500/10 rounded-[2.5rem] blur-3xl" />
-                        <div className="relative rounded-2xl overflow-hidden border border-slate-200/80 shadow-2xl shadow-slate-300/40 bg-white" style={{ animation: "float-slow 8s ease-in-out infinite" }}>
+                    {/* ── Dashboard Mockup Premium (Glass) ── */}
+                    <div className="max-w-5xl mx-auto relative px-4">
+                        {/* Brilho atrás do mockup */}
+                        <div className="absolute -inset-10 bg-gradient-to-r from-indigo-500/20 via-violet-500/20 to-purple-500/20 rounded-[3rem] blur-[80px] pointer-events-none" />
+
+                        <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.6)] bg-slate-900/80 backdrop-blur-xl"
+                            style={{ animation: "float-slow 8s ease-in-out infinite" }}>
                             {/* Browser bar */}
-                            <div className="flex items-center gap-2 px-4 py-3 bg-slate-50/80 border-b border-slate-100">
-                                <div className="flex gap-1.5">
-                                    <div className="w-3 h-3 rounded-full bg-[#FF5F57]" />
-                                    <div className="w-3 h-3 rounded-full bg-[#FEBC2E]" />
-                                    <div className="w-3 h-3 rounded-full bg-[#28C840]" />
+                            <div className="flex items-center gap-2 px-4 py-4 bg-white/5 border-b border-white/5">
+                                <div className="flex gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-[#FF5F57] shadow-lg shadow-red-500/20" />
+                                    <div className="w-3 h-3 rounded-full bg-[#FEBC2E] shadow-lg shadow-yellow-500/20" />
+                                    <div className="w-3 h-3 rounded-full bg-[#28C840] shadow-lg shadow-green-500/20" />
                                 </div>
-                                <div className="flex-1 mx-8">
-                                    <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-1.5 border border-slate-200 max-w-xs mx-auto">
-                                        <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                                        <span className="text-[11px] text-slate-400 font-medium">bizu.mjolnix.com.br</span>
+                                <div className="flex-1 mx-8 hidden sm:block">
+                                    <div className="flex items-center gap-2 bg-white/5 rounded-lg px-4 py-1.5 border border-white/10 max-w-sm mx-auto">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.4)]" />
+                                        <span className="text-[11px] text-slate-400 font-medium tracking-tight">bizu.academy.com.br</span>
                                     </div>
                                 </div>
                             </div>
-                            {/* App content */}
-                            <div className="flex">
-                                <div className="w-52 shrink-0 bg-[#FAFBFF] border-r border-slate-100 p-4 hidden md:block">
-                                    <div className="flex items-center gap-1.5 mb-5">
-                                        <span className="text-[18px] leading-none" style={{ fontFamily: "Bobaland, sans-serif" }}>
-                                            <span className="gradient-text">Bizu!</span>
-                                        </span>
-                                        <span className="text-[7px] font-bold tracking-[0.2em] text-slate-400 uppercase border-l border-slate-200 pl-1.5 mt-0.5">Academy</span>
+
+                            {/* App content mockup */}
+                            <div className="flex min-h-[400px]">
+                                <div className="w-56 shrink-0 bg-white/5 border-r border-white/5 p-5 hidden md:block">
+                                    <div className="flex items-center gap-2 mb-8">
+                                        <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+                                        <span className="text-[18px] font-black text-white tracking-tight">Bizu!</span>
                                     </div>
-                                    {[
-                                        { name: "Dashboard", active: true },
-                                        { name: "Quiz Game", active: false },
-                                        { name: "Simulados", active: false },
-                                        { name: "Ranking", active: false },
-                                        { name: "Desempenho", active: false },
-                                        { name: "Pomodoro", active: false },
-                                    ].map((item) => (
-                                        <div key={item.name} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-medium mb-0.5 ${item.active ? "bg-indigo-50 text-indigo-600" : "text-slate-400"
-                                            }`}>
-                                            <div className={`w-1.5 h-1.5 rounded-full ${item.active ? "bg-indigo-500" : "bg-slate-300"}`} />
-                                            {item.name}
-                                        </div>
-                                    ))}
+                                    <div className="space-y-1.5">
+                                        {[
+                                            { name: "Dashboard", active: true },
+                                            { name: "Quiz Game", active: false },
+                                            { name: "Simulados", active: false },
+                                            { name: "Ranking", active: false },
+                                            { name: "Desempenho", active: false },
+                                        ].map((item) => (
+                                            <div key={item.name} className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-[12px] font-semibold transition-all ${item.active ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20" : "text-slate-400 hover:bg-white/5"
+                                                }`}>
+                                                {item.name}
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                                <div className="flex-1 p-5">
-                                    <div className="flex items-center justify-between mb-4">
+                                <div className="flex-1 p-6 sm:p-8">
+                                    <div className="flex items-center justify-between mb-8">
                                         <div>
-                                            <div className="text-[13px] font-bold text-slate-800">Seja um Bizurado! 😎</div>
-                                            <div className="text-[10px] text-slate-400">C-EspFN · Preparatorio ativo</div>
+                                            <h4 className="text-[15px] font-bold text-white mb-1">Seja um Bizurado! 😎</h4>
+                                            <p className="text-[11px] text-slate-400 font-medium tracking-wide">C-EspFN · PREPARATÓRIO ATIVO</p>
                                         </div>
                                         <div className="flex gap-2">
-                                            <div className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-100 text-[10px] font-bold text-amber-600">🔥 12 dias</div>
-                                            <div className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-[10px] font-bold text-indigo-600">🏆 #23</div>
+                                            <div className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] font-bold text-amber-500">🔥 12 DIAS</div>
+                                            <div className="px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-[11px] font-bold text-indigo-400">🏆 #23</div>
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-4 gap-2.5 mb-4">
+
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                                         {[
-                                            { l: "Questoes", v: "1.847", bg: "bg-indigo-50", c: "text-indigo-600" },
-                                            { l: "Acertos", v: "82%", bg: "bg-emerald-50", c: "text-emerald-600" },
-                                            { l: "Simulados", v: "15", bg: "bg-violet-50", c: "text-violet-600" },
-                                            { l: "Ranking", v: "#23", bg: "bg-amber-50", c: "text-amber-600" },
+                                            { l: "Questões", v: "1.847", c: "text-indigo-400" },
+                                            { l: "Acertos", v: "82%", c: "text-emerald-400" },
+                                            { l: "Simulados", v: "15", c: "text-violet-400" },
+                                            { l: "Semanas", v: "12", c: "text-amber-400" },
                                         ].map((c) => (
-                                            <div key={c.l} className={`${c.bg} rounded-xl p-2.5 text-center`}>
-                                                <div className={`text-base font-extrabold ${c.c}`}>{c.v}</div>
-                                                <div className="text-[9px] text-slate-400 font-medium mt-0.5">{c.l}</div>
+                                            <div key={c.l} className="bg-white/5 border border-white/5 rounded-2xl p-4 transition-transform hover:scale-[1.02]">
+                                                <div className={`text-xl font-black ${c.c}`}>{c.v}</div>
+                                                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">{c.l}</div>
                                             </div>
                                         ))}
                                     </div>
-                                    {/* Desempenho mini */}
-                                    <div className="rounded-xl border border-slate-100 p-3.5">
-                                        <div className="text-[10px] font-bold text-slate-600 mb-3">Desempenho por assunto</div>
-                                        {[
-                                            { name: "Org. Militares Navais", pct: 88, color: "#059669" },
-                                            { name: "Armamento", pct: 74, color: "#6366F1" },
-                                            { name: "Navegacao", pct: 65, color: "#F59E0B" },
-                                            { name: "Poder e Funcoes", pct: 91, color: "#8B5CF6" },
-                                        ].map((s) => (
-                                            <div key={s.name} className="mb-2 last:mb-0">
-                                                <div className="flex justify-between text-[9px] mb-1">
-                                                    <span className="text-slate-500 font-medium">{s.name}</span>
-                                                    <span className="font-bold" style={{ color: s.color }}>{s.pct}%</span>
+
+                                    <div className="rounded-2xl bg-white/5 border border-white/5 p-6">
+                                        <div className="flex items-center justify-between mb-6">
+                                            <span className="text-[11px] font-bold text-slate-300 uppercase tracking-widest">Desempenho Geral</span>
+                                            <Zap size={14} className="text-amber-400" />
+                                        </div>
+                                        <div className="space-y-4">
+                                            {[
+                                                { n: "Org. Militares", p: 88, c: "bg-emerald-500" },
+                                                { n: "Armamentos", p: 74, c: "bg-indigo-500" },
+                                                { n: "Navegação", p: 65, c: "bg-amber-500" },
+                                            ].map(s => (
+                                                <div key={s.n}>
+                                                    <div className="flex justify-between text-[10px] font-bold mb-2">
+                                                        <span className="text-slate-400">{s.n}</span>
+                                                        <span className="text-white">{s.p}%</span>
+                                                    </div>
+                                                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                                        <div className={`h-full ${s.c} rounded-full transition-all duration-1000 shadow-lg`} style={{ width: `${s.p}%` }} />
+                                                    </div>
                                                 </div>
-                                                <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                    <div className="h-full rounded-full" style={{ width: `${s.pct}%`, background: s.color }} />
-                                                </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -309,7 +369,6 @@ export default function Hero() {
                     </div>
                 </div>
             </section>
-
             {/* ═══════════════════════════
            COMO FUNCIONA
          ═══════════════════════════ */}

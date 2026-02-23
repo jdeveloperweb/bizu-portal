@@ -7,6 +7,7 @@ import Cookies from "js-cookie";
 interface AuthContextType {
     authenticated: boolean;
     login: () => void;
+    loginDirect: (username: string, password: string) => Promise<boolean>;
     logout: () => void;
     token?: string;
     user?: any;
@@ -43,13 +44,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const login = () => keycloak?.login();
+
+    const loginDirect = async (username: string, password: string) => {
+        const params = new URLSearchParams();
+        params.append("client_id", "bizu-portal-app");
+        params.append("grant_type", "password");
+        params.append("username", username);
+        params.append("password", password);
+        params.append("scope", "openid");
+
+        try {
+            if (!keycloak || !keycloak.authServerUrl || !keycloak.realm) {
+                console.error("Keycloak is not initialized or missing authServerUrl/realm.");
+                return false;
+            }
+
+            const res = await fetch(`${keycloak.authServerUrl}/realms/${keycloak.realm}/protocol/openid-connect/token`, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: params,
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                Cookies.set("token", data.access_token, { expires: 1 });
+                setAuthenticated(true);
+                // Recarregar o Keycloak para ele reconhecer o token
+                keycloak?.init({ token: data.access_token, refreshToken: data.refresh_token });
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error("Login failed", error);
+            return false;
+        }
+    };
+
     const logout = () => {
         Cookies.remove("token");
         keycloak?.logout({ redirectUri: window.location.origin });
     };
 
     return (
-        <AuthContext.Provider value={{ authenticated, login, logout, token: keycloak?.token, user, loading }}>
+        <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading }}>
             {children}
         </AuthContext.Provider>
     );

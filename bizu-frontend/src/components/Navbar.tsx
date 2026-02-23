@@ -23,18 +23,18 @@ export default function Navbar() {
     return (
         <nav
             className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-                    ? "bg-white/80 backdrop-blur-2xl shadow-sm border-b border-slate-100/80"
-                    : "bg-transparent"
+                ? "bg-white/80 backdrop-blur-2xl shadow-sm border-b border-slate-100/80"
+                : "bg-transparent"
                 }`}
         >
             <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-                <BrandLogo size="sm" variant="dark" />
+                <BrandLogo size="sm" variant={scrolled ? "dark" : "light"} />
 
                 {/* Desktop */}
                 <div className="hidden md:flex items-center gap-8">
                     {navLinks.map((l) => (
                         <Link key={l.href} href={l.href}
-                            className="text-[13px] font-semibold text-slate-500 hover:text-slate-900 transition-colors">
+                            className={`text-[13px] font-semibold transition-colors ${scrolled ? "text-slate-500 hover:text-slate-900" : "text-white/80 hover:text-white"}`}>
                             {l.label}
                         </Link>
                     ))}
@@ -42,15 +42,15 @@ export default function Navbar() {
 
                 <div className="hidden md:flex items-center gap-3">
                     <Link href="/login"
-                        className="text-[13px] font-semibold text-slate-600 hover:text-indigo-600 transition-colors px-3 py-2">
+                        className={`text-[13px] font-semibold transition-colors px-3 py-2 ${scrolled ? "text-slate-600 hover:text-indigo-600" : "text-white/80 hover:text-white"}`}>
                         Entrar
                     </Link>
-                    <Link href="/register" className="btn-primary !h-9 !text-xs !rounded-full !px-5">
+                    <Link href="/register" className={`btn-primary !h-9 !text-xs !rounded-full !px-5 ${!scrolled ? "shadow-[0_0_15px_rgba(99,102,241,0.5)]" : ""}`}>
                         Comece gratis
                     </Link>
                 </div>
 
-                <button className="md:hidden text-slate-500" onClick={() => setMobileOpen(!mobileOpen)}>
+                <button className={`md:hidden ${scrolled ? "text-slate-500" : "text-white"}`} onClick={() => setMobileOpen(!mobileOpen)}>
                     {mobileOpen ? <X size={22} /> : <Menu size={22} />}
                 </button>
             </div>

@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function LoginPage() {
-    const { login, authenticated, user } = useAuth();
+    const { login, loginDirect, authenticated, user } = useAuth();
     const router = useRouter();
     const [show, setShow] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -29,7 +29,11 @@ export default function LoginPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        login();
+        const success = await loginDirect(form.email, form.password);
+        if (!success) {
+            alert("Usuário ou senha inválidos.");
+            setLoading(false);
+        }
     };
 
     return (

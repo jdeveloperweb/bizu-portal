@@ -9,7 +9,8 @@ import {
     Layout,
     Palette,
     Eye,
-    ChevronRight
+    ChevronRight,
+    Pencil
 } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
 import { useState, useEffect } from "react";
@@ -21,8 +22,10 @@ export default function AdminCursosPage() {
     const [courses, setCourses] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingCourse, setEditingCourse] = useState<any>(null);
 
-    const [newCourse, setNewCourse] = useState({
+    const [formCourse, setFormCourse] = useState({
         title: "",
         description: "",
         themeColor: "#8b5cf6",
@@ -68,24 +71,40 @@ export default function AdminCursosPage() {
         }
     };
 
-    const handleCreateCourse = async (e: React.FormEvent) => {
+    const handleSubmitCourse = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const res = await apiFetch("/admin/courses", {
-                method: "POST",
+            const method = isEditing ? "PUT" : "POST";
+            const url = isEditing ? `/admin/courses/${editingCourse.id}` : "/admin/courses";
+
+            const res = await apiFetch(url, {
+                method,
                 body: JSON.stringify({
-                    ...newCourse,
+                    ...formCourse,
                     thumbnailUrl: ""
                 })
             });
             if (res.ok) {
                 await fetchCourses();
                 setIsCreating(false);
-                setNewCourse({ title: "", description: "", themeColor: "#8b5cf6", status: "PUBLISHED" });
+                setIsEditing(false);
+                setEditingCourse(null);
+                setFormCourse({ title: "", description: "", themeColor: "#8b5cf6", status: "PUBLISHED" });
             }
         } catch (error) {
-            console.error("Failed to create course", error);
+            console.error(`Failed to ${isEditing ? 'update' : 'create'} course`, error);
         }
+    };
+
+    const handleEditClick = (course: any) => {
+        setEditingCourse(course);
+        setFormCourse({
+            title: course.title,
+            description: course.description || "",
+            themeColor: course.themeColor || course.color || "#8b5cf6",
+            status: course.status || "PUBLISHED"
+        });
+        setIsEditing(true);
     };
 
     const handleDeleteCourse = async (id: string) => {
@@ -110,7 +129,11 @@ export default function AdminCursosPage() {
                 />
                 <Button
                     className="h-14 rounded-2xl font-black px-8 gap-2 shadow-xl shadow-primary/20"
-                    onClick={() => setIsCreating(true)}
+                    onClick={() => {
+                        setIsEditing(false);
+                        setFormCourse({ title: "", description: "", themeColor: "#8b5cf6", status: "PUBLISHED" });
+                        setIsCreating(true);
+                    }}
                 >
                     <Plus className="w-5 h-5" />
                     Novo Curso
@@ -170,10 +193,31 @@ export default function AdminCursosPage() {
                                         </td>
                                         <td className="px-8 py-6 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                <Button variant="ghost" size="sm" className="rounded-xl hover:bg-muted">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="rounded-xl hover:bg-muted"
+                                                    onClick={() => handleEditClick(course)}
+                                                    title="Editar informações"
+                                                >
+                                                    <Pencil className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="rounded-xl hover:bg-primary/10 text-primary"
+                                                    onClick={() => window.location.href = `/admin/cursos/${course.id}`}
+                                                    title="Gerenciar módulos e aulas"
+                                                >
                                                     <Settings className="w-4 h-4" />
                                                 </Button>
-                                                <Button variant="ghost" size="sm" onClick={() => handleDeleteCourse(course.id)} className="rounded-xl text-destructive hover:bg-destructive/10">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleDeleteCourse(course.id)}
+                                                    className="rounded-xl text-destructive hover:bg-destructive/10"
+                                                    title="Excluir curso"
+                                                >
                                                     <Trash2 className="w-4 h-4" />
                                                 </Button>
                                             </div>
@@ -218,19 +262,19 @@ export default function AdminCursosPage() {
                 </div>
             </div>
 
-            {isCreating && (
+            {(isCreating || isEditing) && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                     <div className="bg-card w-full max-w-md rounded-[32px] p-8 shadow-2xl border">
-                        <h2 className="text-2xl font-black mb-6">Novo Curso</h2>
-                        <form onSubmit={handleCreateCourse} className="space-y-6">
+                        <h2 className="text-2xl font-black mb-6">{isEditing ? 'Editar Curso' : 'Novo Curso'}</h2>
+                        <form onSubmit={handleSubmitCourse} className="space-y-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-muted-foreground">Título do Curso</label>
                                 <Input
                                     autoFocus
                                     required
                                     placeholder="Ex: Direito Administrativo"
-                                    value={newCourse.title}
-                                    onChange={e => setNewCourse({ ...newCourse, title: e.target.value })}
+                                    value={formCourse.title}
+                                    onChange={e => setFormCourse({ ...formCourse, title: e.target.value })}
                                     className="h-12 rounded-xl"
                                 />
                             </div>
@@ -239,8 +283,8 @@ export default function AdminCursosPage() {
                                 <label className="text-sm font-bold text-muted-foreground">Descrição</label>
                                 <textarea
                                     placeholder="Breve descrição do curso"
-                                    value={newCourse.description}
-                                    onChange={e => setNewCourse({ ...newCourse, description: e.target.value })}
+                                    value={formCourse.description}
+                                    onChange={e => setFormCourse({ ...formCourse, description: e.target.value })}
                                     className="flex w-full rounded-xl border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 min-h-[100px] resize-none"
                                 />
                             </div>
@@ -250,20 +294,29 @@ export default function AdminCursosPage() {
                                 <div className="flex items-center gap-4">
                                     <input
                                         type="color"
-                                        value={newCourse.themeColor}
-                                        onChange={e => setNewCourse({ ...newCourse, themeColor: e.target.value })}
+                                        value={formCourse.themeColor}
+                                        onChange={e => setFormCourse({ ...formCourse, themeColor: e.target.value })}
                                         className="w-12 h-12 rounded-xl cursor-pointer border-none p-0"
                                     />
-                                    <span className="font-mono font-bold text-lg">{newCourse.themeColor.toUpperCase()}</span>
+                                    <span className="font-mono font-bold text-lg">{formCourse.themeColor.toUpperCase()}</span>
                                 </div>
                             </div>
 
                             <div className="flex gap-4 pt-4">
-                                <Button type="button" variant="outline" className="flex-1 h-12 rounded-xl font-bold" onClick={() => setIsCreating(false)}>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="flex-1 h-12 rounded-xl font-bold"
+                                    onClick={() => {
+                                        setIsCreating(false);
+                                        setIsEditing(false);
+                                        setEditingCourse(null);
+                                    }}
+                                >
                                     Cancelar
                                 </Button>
                                 <Button type="submit" className="flex-1 h-12 rounded-xl font-bold">
-                                    Criar Curso
+                                    {isEditing ? 'Salvar Alterações' : 'Criar Curso'}
                                 </Button>
                             </div>
                         </form>
