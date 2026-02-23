@@ -29,6 +29,7 @@ public class Progress {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
+    @Builder.Default
     @Column(name = "percent_completed")
     private Double percentCompleted = 0.0;
 

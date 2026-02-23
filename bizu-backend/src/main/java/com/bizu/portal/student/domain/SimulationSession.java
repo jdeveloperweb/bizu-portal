@@ -36,15 +36,18 @@ public class SimulationSession {
     @Column(name = "time_limit_minutes")
     private Integer timeLimitMinutes;
 
+    @Builder.Default
     @Column(nullable = false)
     private String status = "IN_PROGRESS"; // IN_PROGRESS, COMPLETED, EXPIRED
 
     @Column(name = "total_questions")
     private Integer totalQuestions;
 
+    @Builder.Default
     @Column(name = "correct_answers")
     private Integer correctAnswers = 0;
 
+    @Builder.Default
     @Column(name = "score_percent")
     private Double scorePercent = 0.0;
 }

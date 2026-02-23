@@ -33,9 +33,11 @@ public class Simulado {
     @Column(name = "end_date")
     private OffsetDateTime endDate;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean active = true;
 
+    @Builder.Default
     @Column(name = "weekly_cycle")
     private boolean weeklyCycle = false;
 

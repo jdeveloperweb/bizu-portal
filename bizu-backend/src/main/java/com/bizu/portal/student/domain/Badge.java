@@ -30,6 +30,7 @@ public class Badge {
     @Column(name = "icon_url")
     private String iconUrl;
 
+    @Builder.Default
     @Column(name = "required_xp")
     private Integer requiredXp = 0;
 }

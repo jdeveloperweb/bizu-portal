@@ -28,12 +28,15 @@ public class Duel {
     @JoinColumn(name = "opponent_id", nullable = false)
     private User opponent;
 
+    @Builder.Default
     @Column(nullable = false)
     private String status = "PENDING"; // PENDING, IN_PROGRESS, COMPLETED, CANCELLED
 
+    @Builder.Default
     @Column(name = "challenger_score")
     private int challengerScore = 0;
 
+    @Builder.Default
     @Column(name = "opponent_score")
     private int opponentScore = 0;
 
@@ -43,6 +46,7 @@ public class Duel {
 
     private String subject;
     
+    @Builder.Default
     @Column(name = "question_count")
     private int questionCount = 10;
 

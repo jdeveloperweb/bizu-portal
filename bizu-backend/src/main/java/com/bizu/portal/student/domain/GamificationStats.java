@@ -19,12 +19,15 @@ public class GamificationStats {
     @Column(name = "user_id")
     private UUID userId;
 
+    @Builder.Default
     @Column(name = "total_xp")
     private Integer totalXp = 0;
 
+    @Builder.Default
     @Column(name = "current_streak")
     private Integer currentStreak = 0;
 
+    @Builder.Default
     @Column(name = "max_streak")
     private Integer max_streak = 0;
 

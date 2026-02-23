@@ -32,6 +32,7 @@ public class Coupon {
     @Column(name = "max_uses")
     private Integer maxUses;
 
+    @Builder.Default
     @Column(name = "used_count")
     private int usedCount = 0;
 
@@ -41,6 +42,7 @@ public class Coupon {
     @Column(name = "valid_until")
     private OffsetDateTime validUntil;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean active = true;
 

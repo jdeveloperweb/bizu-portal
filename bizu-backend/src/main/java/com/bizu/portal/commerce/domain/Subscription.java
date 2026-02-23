@@ -40,6 +40,7 @@ public class Subscription {
     @Column(name = "current_period_end")
     private OffsetDateTime currentPeriodEnd;
 
+    @Builder.Default
     @Column(name = "cancel_at_period_end")
     private boolean cancelAtPeriodEnd = false;
 

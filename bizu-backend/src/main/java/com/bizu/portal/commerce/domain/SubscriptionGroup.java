@@ -46,6 +46,7 @@ public class SubscriptionGroup {
     @Column(name = "expires_at")
     private OffsetDateTime expiresAt;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean active = true;
 

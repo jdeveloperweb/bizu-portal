@@ -35,6 +35,7 @@ public class Device {
     @Column(name = "last_ip")
     private String lastIp;
 
+    @Builder.Default
     @Column(name = "is_trusted")
     private boolean isTrusted = false;
 

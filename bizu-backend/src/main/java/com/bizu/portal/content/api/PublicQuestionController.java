@@ -25,9 +25,10 @@ public class PublicQuestionController {
             @RequestParam(required = false) String subject,
             @RequestParam(required = false) String topic,
             @RequestParam(required = false) String difficulty,
+            @RequestParam(required = false) String category,
             @PageableDefault(size = 20) Pageable pageable) {
         
-        return ResponseEntity.ok(questionService.search(banca, year, subject, topic, difficulty, pageable));
+        return ResponseEntity.ok(questionService.search(banca, year, subject, topic, difficulty, category, pageable));
     }
 
     @GetMapping("/{id}")

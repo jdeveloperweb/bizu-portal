@@ -31,6 +31,7 @@ public class Material {
     @Column(name = "file_type")
     private String fileType; // PDF, VIDEO, DOC
 
+    @Builder.Default
     @Column(name = "is_free")
     private boolean isFree = false;
 

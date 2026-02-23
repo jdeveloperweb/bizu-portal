@@ -33,6 +33,7 @@ public class Branding {
     @Column(name = "favicon_url")
     private String faviconUrl;
 
+    @Builder.Default
     @Column(name = "active", nullable = false)
     private boolean active = true;
 }
