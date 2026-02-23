@@ -4,7 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ─── Fonte Bobaland local ─── */
+/* ─── Fonte Bobaland (apenas para logo) ─── */
 @font-face {
   font-family: "Bobaland";
   src: url("/fonts/bobaland.otf") format("opentype"),
@@ -15,9 +15,9 @@
 }
 
 @theme {
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
-  --font-brand: "Bobaland", sans-serif;
+  /* Tipografia: Inter via CSS var injetado pelo layout */
+  --font-sans: var(--font-inter), "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), "Fira Code", monospace;
 
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
@@ -39,9 +39,9 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --color-success: #10B981;
-  --color-danger: #EF4444;
-  --color-surface: #0F172A;
+  --color-success: #059669;
+  --color-danger: #DC2626;
+  --color-surface: #F8FAFF;
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
@@ -50,8 +50,6 @@
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
   --animate-float: float 6s ease-in-out infinite;
-  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
-  --animate-gradient: gradient-shift 8s ease infinite;
 
   @keyframes accordion-down {
     from {
@@ -81,182 +79,95 @@
     }
 
     50% {
-      transform: translateY(-20px);
-    }
-  }
-
-  @keyframes pulse-glow {
-
-    0%,
-    100% {
-      box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-    }
-
-    50% {
-      box-shadow: 0 0 60px rgba(99, 102, 241, 0.8), 0 0 100px rgba(99, 102, 241, 0.3);
-    }
-  }
-
-  @keyframes gradient-shift {
-
-    0%,
-    100% {
-      background-position: 0% 50%;
-    }
-
-    50% {
-      background-position: 100% 50%;
-    }
-  }
-
-  @keyframes shimmer {
-    0% {
-      background-position: -200% center;
-    }
-
-    100% {
-      background-position: 200% center;
-    }
-  }
-
-  @keyframes spin-slow {
-    from {
-      transform: rotate(0deg);
-    }
-
-    to {
-      transform: rotate(360deg);
+      transform: translateY(-14px);
     }
   }
 }
 
-/* ─── Paleta principal (dark by default) ─── */
+/* ─── Paleta LIGHT (padrão) ─── */
 :root {
-  /* Dark profundo, estilo curso premium */
-  --background: #080B14;
-  --foreground: #F0F4FF;
+  --background: #FFFFFF;
+  --foreground: #0F172A;
 
-  --card: #0E1525;
-  --card-foreground: #F0F4FF;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
 
-  --popover: #0E1525;
-  --popover-foreground: #F0F4FF;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
 
-  /* Azul-índigo vibrante */
+  /* Índigo vibrante */
   --primary: #6366F1;
   --primary-dark: #4F46E5;
   --primary-foreground: #FFFFFF;
 
-  /* Roxo médio */
-  --secondary: #1E2845;
-  --secondary-foreground: #A5B4FC;
+  --secondary: #EEF2FF;
+  --secondary-foreground: #4338CA;
 
-  --muted: #131B30;
+  --muted: #F1F5F9;
   --muted-foreground: #64748B;
 
-  /* Dourado/amber para destaque */
+  /* Âmbar para destaque */
   --accent: #F59E0B;
-  --accent-foreground: #000000;
+  --accent-foreground: #FFFFFF;
 
-  --destructive: #EF4444;
+  --destructive: #DC2626;
   --destructive-foreground: #FFFFFF;
 
-  --border: rgba(99, 102, 241, 0.15);
-  --input: #1E2845;
+  --border: #E2E8F0;
+  --input: #F8FAFC;
   --ring: #6366F1;
 
   --radius: 0.75rem;
 }
 
-/* ─── Utilitários premium ─── */
+/* ─── Classes utilitárias ─── */
 .font-brand {
   font-family: "Bobaland", sans-serif;
 }
 
-.glass {
-  background: rgba(14, 21, 37, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(99, 102, 241, 0.12);
+/* Card com sombra suave estilo light */
+.card-light {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04);
 }
 
-.glass-light {
-  background: rgba(99, 102, 241, 0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+.card-light:hover {
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.12), 0 8px 32px rgba(99, 102, 241, 0.06);
+  border-color: rgba(99, 102, 241, 0.25);
 }
 
-.glow-primary {
-  box-shadow: 0 0 30px rgba(99, 102, 241, 0.35), 0 0 60px rgba(99, 102, 241, 0.15);
-}
-
-.glow-accent {
-  box-shadow: 0 0 30px rgba(245, 158, 11, 0.35), 0 0 60px rgba(245, 158, 11, 0.15);
-}
-
+/* Gradiente de texto */
 .gradient-text {
-  background: linear-gradient(135deg, #6366F1 0%, #A78BFA 40%, #F59E0B 100%);
+  background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.gradient-bg {
-  background: linear-gradient(135deg, #6366F1 0%, #4F46E5 50%, #7C3AED 100%);
+/* Pill / badge */
+.pill-primary {
+  background: #EEF2FF;
+  color: #4F46E5;
+  border: 1px solid #C7D2FE;
 }
 
-.gradient-border {
-  background: linear-gradient(var(--card), var(--card)) padding-box,
-    linear-gradient(135deg, #6366F1, #A78BFA, #F59E0B) border-box;
-  border: 1px solid transparent;
-}
-
-.shimmer {
-  background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.05) 50%,
-      transparent 100%);
-  background-size: 200% auto;
-  animation: shimmer 3s linear infinite;
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-spin-slow {
-  animation: spin-slow 20s linear infinite;
-}
-
-.perspective-1000 {
-  perspective: 1000px;
-}
-
-.preserve-3d {
-  transform-style: preserve-3d;
-}
-
-.backface-hidden {
-  backface-visibility: hidden;
-}
-
-/* ─── Scrollbar custom ─── */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--background);
+  background: #F1F5F9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.4);
+  background: #C7D2FE;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.7);
+  background: #6366F1;
 }
 
 @layer base {
@@ -267,6 +178,7 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
   }
 
   h1,
@@ -275,6 +187,7 @@
   h4,
   h5,
   h6 {
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
+    font-weight: 700;
   }
 }

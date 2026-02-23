@@ -1,243 +1,203 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, BookOpen, Target, Award, Zap, Star, Users } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { ArrowRight, BookOpen, Target, Award, Users, Zap, Star } from "lucide-react";
 
 const stats = [
     { icon: BookOpen, value: "50k+", label: "Questões", color: "#6366F1" },
-    { icon: Users, value: "10k+", label: "Alunos Aprovados", color: "#F59E0B" },
-    { icon: Target, value: "98%", label: "Satisfação", color: "#10B981" },
-    { icon: Award, value: "500+", label: "Concursos Cobertos", color: "#A78BFA" },
+    { icon: Users, value: "10k+", label: "Aprovados", color: "#F59E0B" },
+    { icon: Target, value: "98%", label: "Satisfação", color: "#059669" },
+    { icon: Award, value: "500+", label: "Concursos", color: "#4F46E5" },
 ];
 
 const features = [
-    { icon: "⚡", title: "Simulados Inteligentes", desc: "IA que adapta as questões ao seu nível de conhecimento em tempo real." },
-    { icon: "🎯", title: "Banco de Questões", desc: "Mais de 50 mil questões comentadas e atualizadas de todas as bancas." },
-    { icon: "🃏", title: "Flashcards Dinâmicos", desc: "Sistema de repetição espaçada para fixar o conteúdo de forma definitiva." },
-    { icon: "🏆", title: "Arena PVP", desc: "Duelhe com outros candidatos em tempo real e suba no ranking nacional." },
-    { icon: "📊", title: "Análise de Desempenho", desc: "Relatórios detalhados apontando seus pontos fracos com precisão cirúrgica." },
-    { icon: "🎓", title: "Provas Comentadas", desc: "Resoluções passo a passo das principais provas dos últimos 10 anos." },
+    { icon: "⚡", title: "Simulados com IA", desc: "A plataforma adapta as questões ao seu nível em tempo real." },
+    { icon: "📚", title: "Banco de Questões", desc: "50 mil questões comentadas de todas as bancas, sempre atualizadas." },
+    { icon: "🃏", title: "Flashcards Inteligentes", desc: "Repetição espaçada para fixar o conteúdo de forma definitiva." },
+    { icon: "🏆", title: "Arena PVP", desc: "Duelhe com outros candidatos ao vivo e suba no ranking nacional." },
+    { icon: "📊", title: "Análise de Desempenho", desc: "Relatórios que apontam seus pontos fracos com precisão." },
+    { icon: "🎓", title: "Provas Comentadas", desc: "Resoluções passo a passo das provas dos últimos 10 anos." },
 ];
 
 export default function Hero() {
     return (
-        <div className="relative min-h-screen overflow-hidden bg-[#080B14]">
+        <div className="relative bg-white overflow-hidden">
 
-            {/* ── Fundo animado ── */}
+            {/* ── Decoração de fundo leve ── */}
             <div className="absolute inset-0 pointer-events-none">
-                {/* Orbe principal */}
+                {/* Blob superior esquerdo */}
                 <div
-                    className="absolute top-[-20%] left-[10%] w-[600px] h-[600px] rounded-full blur-[120px] opacity-30 animate-float"
+                    className="absolute -top-32 -left-32 w-[560px] h-[560px] rounded-full opacity-[0.07]"
                     style={{ background: "radial-gradient(circle, #6366F1 0%, transparent 70%)" }}
                 />
-                {/* Orbe secundário */}
+                {/* Blob inferior direito */}
                 <div
-                    className="absolute bottom-[-10%] right-[5%] w-[500px] h-[500px] rounded-full blur-[100px] opacity-20 animate-float"
-                    style={{ background: "radial-gradient(circle, #F59E0B 0%, transparent 70%)", animationDelay: "-3s" }}
+                    className="absolute -bottom-32 -right-16 w-[480px] h-[480px] rounded-full opacity-[0.06]"
+                    style={{ background: "radial-gradient(circle, #F59E0B 0%, transparent 70%)" }}
                 />
-                {/* Grade */}
+                {/* Grade pontilhada */}
                 <div
-                    className="absolute inset-0 opacity-[0.03]"
+                    className="absolute inset-0 opacity-[0.04]"
                     style={{
-                        backgroundImage: `linear-gradient(rgba(99,102,241,1) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(99,102,241,1) 1px, transparent 1px)`,
-                        backgroundSize: "80px 80px",
+                        backgroundImage: `radial-gradient(circle at 1px 1px, #6366F1 1px, transparent 0)`,
+                        backgroundSize: "40px 40px",
                     }}
                 />
             </div>
 
             {/* ── Hero principal ── */}
-            <div className="relative container mx-auto px-4 pt-36 pb-20 text-center">
+            <div className="relative container mx-auto px-6 pt-32 pb-20 text-center">
 
                 {/* Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8"
-                    style={{
-                        background: "rgba(99,102,241,0.1)",
-                        border: "1px solid rgba(99,102,241,0.3)",
-                    }}
-                >
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8 pill-primary text-sm font-semibold">
                     <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6366F1] opacity-75" />
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6366F1] opacity-60" />
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-[#6366F1]" />
                     </span>
-                    <span className="text-sm font-bold text-[#A5B4FC] tracking-wide">
-                        Nova versão 2.0 — Aprovação garantida ou seu dinheiro de volta
-                    </span>
+                    Nova versão 2.0 — Aprovação garantida ou devolvemos seu dinheiro
                 </div>
 
-                {/* Título principal */}
-                <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-6 leading-none">
-                    <span className="block text-white mb-2">Sua Aprovação</span>
+                {/* Título */}
+                <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-[1.05]">
+                    <span className="block text-slate-900 mb-1">Sua Aprovação</span>
+                    {/* "Comeca Aqui" em Inter bold para evitar problema de caracteres especiais */}
+                    <span className="block gradient-text">Começa Aqui</span>
+                    {/* Logo "Bizu!" em Bobaland, sem acento, só onde a fonte suporta */}
                     <span
-                        className="block"
-                        style={{
-                            fontFamily: "Bobaland, sans-serif",
-                            background: "linear-gradient(135deg, #6366F1 0%, #A78BFA 50%, #F59E0B 100%)",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                            backgroundClip: "text",
-                        }}
+                        className="block text-4xl md:text-5xl mt-1 text-[#6366F1]"
+                        style={{ fontFamily: "Bobaland, sans-serif" }}
                     >
-                        Começa Aqui!
+                        com Bizu!
                     </span>
                 </h1>
 
-                <p className="max-w-2xl mx-auto text-lg md:text-xl text-[#64748B] mb-10 leading-relaxed">
+                <p className="max-w-2xl mx-auto text-lg md:text-xl text-slate-500 mb-10 leading-relaxed">
                     A plataforma definitiva para quem leva concurso a sério.
-                    Simulados com IA, duelhe em tempo real e trilhas personalizadas
-                    para a sua{" "}
-                    <span className="text-[#6366F1] font-semibold">aprovação certa</span>.
+                    Simulados com IA, banco de questões atualizado e trilhas personalizadas para a sua{" "}
+                    <strong className="text-[#6366F1] font-semibold">aprovação garantida</strong>.
                 </p>
 
                 {/* CTAs */}
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
                     <Link href="/register">
                         <button
-                            className="group relative px-8 h-14 rounded-full text-lg font-bold text-white overflow-hidden transition-transform hover:scale-105"
+                            className="group flex items-center gap-2 px-8 h-14 rounded-full text-base font-bold text-white transition-all hover:scale-105 hover:shadow-xl"
                             style={{
                                 background: "linear-gradient(135deg, #6366F1, #4F46E5)",
-                                boxShadow: "0 0 40px rgba(99,102,241,0.5), 0 8px 32px rgba(99,102,241,0.3)",
+                                boxShadow: "0 4px 20px rgba(99,102,241,0.35)",
                             }}
                         >
-                            <span className="relative z-10 flex items-center gap-2">
-                                Começar Grátis
-                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </span>
-                            <span className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors" />
+                            Começar Grátis
+                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </button>
                     </Link>
                     <Link href="/pricing">
-                        <button
-                            className="px-8 h-14 rounded-full text-lg font-bold text-[#A5B4FC] hover:text-white transition-all duration-300 hover:scale-105"
-                            style={{
-                                border: "1px solid rgba(99,102,241,0.3)",
-                                background: "rgba(99,102,241,0.05)",
-                            }}
-                        >
-                            Ver Planos & Preços
+                        <button className="flex items-center gap-2 px-8 h-14 rounded-full text-base font-semibold text-slate-700 border border-slate-200 hover:border-[#6366F1] hover:text-[#6366F1] transition-all hover:scale-105">
+                            Ver Planos &amp; Preços
                         </button>
                     </Link>
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-32">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
                     {stats.map(({ icon: Icon, value, label, color }) => (
-                        <div
-                            key={label}
-                            className="group p-6 rounded-2xl text-center transition-all duration-300 hover:-translate-y-1 cursor-default"
-                            style={{
-                                background: "rgba(14,21,37,0.8)",
-                                border: "1px solid rgba(99,102,241,0.12)",
-                            }}
-                        >
+                        <div key={label} className="card-light rounded-2xl p-5 text-center transition-all duration-200 cursor-default">
                             <Icon className="w-7 h-7 mx-auto mb-3" style={{ color }} />
-                            <div className="text-2xl font-black text-white mb-1">{value}</div>
-                            <div className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">{label}</div>
+                            <div className="text-2xl font-extrabold text-slate-900 mb-0.5">{value}</div>
+                            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{label}</div>
                         </div>
                     ))}
                 </div>
             </div>
 
-            {/* ── Seção Features ── */}
-            <section className="relative py-24" style={{ background: "rgba(14,21,37,0.6)" }}>
-                <div
-                    className="absolute inset-0 opacity-[0.04]"
-                    style={{
-                        backgroundImage: `radial-gradient(circle at 1px 1px, rgba(99,102,241,1) 1px, transparent 0)`,
-                        backgroundSize: "40px 40px",
-                    }}
-                />
-                <div className="container mx-auto px-4 relative">
-                    <div className="text-center mb-16">
-                        <span
-                            className="inline-block text-xs font-bold uppercase tracking-[0.3em] mb-4 px-4 py-1.5 rounded-full"
-                            style={{ background: "rgba(99,102,241,0.1)", color: "#A5B4FC", border: "1px solid rgba(99,102,241,0.2)" }}
-                        >
-                            FUNCIONALIDADES
+            {/* ── Seção Funcionalidades ── */}
+            <section id="funcionalidades" className="bg-[#F8FAFF] py-24">
+                <div className="container mx-auto px-6">
+                    <div className="text-center mb-14">
+                        <span className="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[#6366F1] mb-3 pill-primary px-4 py-1.5 rounded-full">
+                            Funcionalidades
                         </span>
-                        <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-4">
-                            Tudo que você precisa para
-                            <span
-                                style={{
-                                    background: "linear-gradient(135deg, #6366F1, #A78BFA)",
-                                    WebkitBackgroundClip: "text",
-                                    WebkitTextFillColor: "transparent",
-                                    backgroundClip: "text",
-                                }}
-                            >
-                                {" "}passar
-                            </span>
+                        <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">
+                            Tudo para você{" "}
+                            <span className="gradient-text">passar</span>
                         </h2>
-                        <p className="text-[#64748B] max-w-xl mx-auto">
-                            Tecnologia de ponta combinada com metodologia aprovada por milhares de aprovados.
+                        <p className="text-slate-500 max-w-lg mx-auto">
+                            Tecnologia de ponta combinada com metodologia aprovada por milhares de concurseiros.
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {features.map((f, i) => (
+                        {features.map((f) => (
                             <div
                                 key={f.title}
-                                className="group p-6 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_60px_rgba(99,102,241,0.15)] cursor-default"
-                                style={{
-                                    background: "rgba(14,21,37,0.9)",
-                                    border: "1px solid rgba(99,102,241,0.1)",
-                                    animationDelay: `${i * 0.1}s`,
-                                }}
+                                className="card-light rounded-2xl p-6 transition-all duration-200 cursor-default group"
                             >
-                                <div
-                                    className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-5 transition-transform group-hover:scale-110"
-                                    style={{ background: "rgba(99,102,241,0.12)" }}
-                                >
+                                <div className="w-11 h-11 rounded-xl flex items-center justify-center text-2xl mb-4 bg-[#EEF2FF] group-hover:scale-110 transition-transform">
                                     {f.icon}
                                 </div>
-                                <h3 className="text-lg font-bold text-white mb-2">{f.title}</h3>
-                                <p className="text-sm text-[#64748B] leading-relaxed">{f.desc}</p>
+                                <h3 className="text-base font-bold text-slate-900 mb-2">{f.title}</h3>
+                                <p className="text-sm text-slate-500 leading-relaxed">{f.desc}</p>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* ── CTA final ── */}
-            <section className="relative py-24 overflow-hidden">
-                <div
-                    className="absolute inset-0 opacity-20"
-                    style={{ background: "radial-gradient(ellipse at center, rgba(99,102,241,0.5) 0%, transparent 70%)" }}
-                />
-                <div className="container mx-auto px-4 text-center relative">
-                    <h2
-                        className="text-5xl md:text-6xl font-extrabold text-white mb-6"
-                        style={{ fontFamily: "Bobaland, sans-serif" }}
-                    >
-                        Pronto para passar?
+            {/* ── Depoimento / Social Proof ── */}
+            <section className="py-20 bg-white">
+                <div className="container mx-auto px-6 text-center">
+                    <div className="flex justify-center gap-1 mb-4">
+                        {[1, 2, 3, 4, 5].map(i => <Star key={i} className="w-5 h-5 fill-[#F59E0B] text-[#F59E0B]" />)}
+                    </div>
+                    <p className="text-xl font-medium text-slate-700 max-w-2xl mx-auto mb-6 leading-relaxed">
+                        "Aprovei para o TRF2 depois de 8 meses usando o Bizu! Portal.
+                        Os simulados adaptativos identificaram exatamente onde eu precisava melhorar."
+                    </p>
+                    <div className="flex items-center justify-center gap-3">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                            style={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)" }}>
+                            MC
+                        </div>
+                        <div className="text-left">
+                            <div className="text-sm font-bold text-slate-900">Marcos C.</div>
+                            <div className="text-xs text-slate-400">Aprovado · TRF2 2024</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* ── CTA Final ── */}
+            <section className="py-20 bg-[#F8FAFF]">
+                <div className="container mx-auto px-6 text-center">
+                    <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">
+                        Pronto para{" "}
+                        <span className="gradient-text">passar?</span>
                     </h2>
-                    <p className="text-[#64748B] text-lg mb-10 max-w-md mx-auto">
-                        Junte-se a mais de 10.000 aprovados que escolheram o Bizu! Portal.
+                    <p className="text-slate-500 mb-10 max-w-md mx-auto">
+                        Junte-se a mais de 10.000 aprovados. 7 dias grátis, sem cartão de crédito.
                     </p>
                     <Link href="/register">
                         <button
-                            className="group px-10 h-16 rounded-full text-xl font-bold text-white relative overflow-hidden transition-transform hover:scale-105"
+                            className="flex items-center gap-2 mx-auto px-10 h-14 rounded-full text-lg font-bold text-white transition-all hover:scale-105 hover:shadow-xl"
                             style={{
                                 background: "linear-gradient(135deg, #6366F1, #4F46E5)",
-                                boxShadow: "0 0 60px rgba(99,102,241,0.6), 0 8px 32px rgba(99,102,241,0.3)",
+                                boxShadow: "0 4px 24px rgba(99,102,241,0.35)",
                             }}
                         >
-                            <span className="relative z-10 flex items-center gap-3">
-                                <Zap className="w-6 h-6" />
-                                Criar Conta Grátis
-                            </span>
+                            <Zap className="w-5 h-5" />
+                            Criar Conta Grátis
                         </button>
                     </Link>
                 </div>
             </section>
 
-            {/* Footer simples */}
-            <footer
-                className="py-8 text-center text-sm text-[#64748B]"
-                style={{ borderTop: "1px solid rgba(99,102,241,0.1)" }}
-            >
-                © 2025 Bizu! Portal · Feito com 💜 para concurseiros
+            {/* Footer */}
+            <footer className="py-8 text-center text-sm text-slate-400 border-t border-slate-100">
+                © 2025{" "}
+                <span style={{ fontFamily: "Bobaland, sans-serif" }} className="text-[#6366F1]">
+                    Bizu!
+                </span>{" "}
+                Portal · Todos os direitos reservados
             </footer>
         </div>
     );
