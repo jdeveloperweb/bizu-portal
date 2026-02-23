@@ -298,6 +298,19 @@ export default function AdminPlanosPage() {
                                 />
                             </div>
 
+                            <div className="space-y-4 md:col-span-2">
+                                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Benefícios (Um por linha)</label>
+                                <textarea
+                                    className="flex w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring min-h-[120px]"
+                                    value={editingPlan.features ? JSON.parse(editingPlan.features).join('\n') : ""}
+                                    onChange={e => {
+                                        const lines = e.target.value.split('\n').filter(l => l.trim() !== "");
+                                        setEditingPlan({ ...editingPlan, features: JSON.stringify(lines) });
+                                    }}
+                                    placeholder="Ex: Banco de questões&#10;Simulados ilimitados"
+                                />
+                            </div>
+
                             <div className="flex flex-wrap gap-6 md:col-span-2 py-4">
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input
