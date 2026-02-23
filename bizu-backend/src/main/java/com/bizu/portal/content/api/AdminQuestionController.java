@@ -22,6 +22,29 @@ public class AdminQuestionController {
     private final QuestionService questionService;
     private final QuestionImportService questionImportService;
 
+    @GetMapping
+    public ResponseEntity<com.bizu.portal.shared.pagination.PageResponse<Question>> listQuestions(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String search,
+            @org.springframework.data.web.PageableDefault(size = 20) org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(questionService.searchByCategory(category, search, pageable));
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<java.util.Map<String, Object>> getStats(@RequestParam String category) {
+        return ResponseEntity.ok(questionService.getStats(category));
+    }
+
+    @GetMapping("/subjects")
+    public ResponseEntity<java.util.List<String>> getSubjects(@RequestParam String category) {
+        return ResponseEntity.ok(questionService.getSubjects(category));
+    }
+
+    @GetMapping("/bancas")
+    public ResponseEntity<java.util.List<String>> getBancas(@RequestParam String category) {
+        return ResponseEntity.ok(questionService.getBancas(category));
+    }
+
     @PostMapping("/import")
     public ResponseEntity<Map<String, Object>> importQuestions(@RequestParam("file") MultipartFile file) {
         int count = questionImportService.importFromCsv(file);
@@ -41,5 +64,11 @@ public class AdminQuestionController {
         Question existing = questionService.findById(id);
         question.setId(existing.getId());
         return ResponseEntity.ok(questionService.save(question));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteQuestion(@PathVariable UUID id) {
+        questionService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,0 +1,73 @@
+package com.bizu.portal.admin.api;
+
+import com.bizu.portal.identity.domain.User;
+import com.bizu.portal.identity.infrastructure.UserRepository;
+import com.bizu.portal.student.domain.GamificationStats;
+import com.bizu.portal.student.infrastructure.GamificationRepository;
+import lombok.Builder;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/v1/admin/users")
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
+public class AdminUserController {
+
+    private final UserRepository userRepository;
+    private final GamificationRepository gamificationRepository;
+
+    @GetMapping
+    public ResponseEntity<List<AdminUserDto>> listUsers() {
+        List<AdminUserDto> users = userRepository.findAll().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(users);
+    }
+
+    private AdminUserDto toDto(User user) {
+        String xp = "0";
+        Optional<GamificationStats> statsOpt = gamificationRepository.findById(user.getId());
+        if (statsOpt.isPresent()) {
+            Integer totalXp = statsOpt.get().getTotalXp();
+            if (totalXp != null) {
+                if (totalXp >= 1000) {
+                    xp = String.format("%.1fk", totalXp / 1000.0).replace(".0k", "k");
+                } else {
+                    xp = String.valueOf(totalXp);
+                }
+            }
+        }
+
+        return AdminUserDto.builder()
+                .id(user.getId().toString())
+                .name(user.getName())
+                .email(user.getEmail() != null ? user.getEmail() : "")
+                .status(user.getStatus())
+                .plan("FREE") // TODO: Implementar integração com assinaturas depois
+                .joined(user.getCreatedAt().toString())
+                .xp(xp)
+                .build();
+    }
+
+    @Data
+    @Builder
+    public static class AdminUserDto {
+        private String id;
+        private String name;
+        private String email;
+        private String status;
+        private String plan;
+        private String joined;
+        private String xp;
+    }
+}

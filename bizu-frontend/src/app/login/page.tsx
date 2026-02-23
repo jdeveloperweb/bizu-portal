@@ -25,9 +25,11 @@ export default function LoginPage() {
                 <div
                     className="absolute inset-0 bg-cover bg-center"
                     style={{
-                        backgroundImage: `url('https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&q=80')`,
-                        filter: 'blur(10px)',
-                        transform: 'scale(1.1)',
+                        backgroundImage: `url('/images/hero-sailor.png')`,
+                        filter: 'blur(1px)',
+                        transform: 'scale(1.02) translateY(0)',
+                        animation: 'float-slow 15s ease-in-out infinite',
+                        backgroundPosition: 'center 20%',
                     }}
                 />
                 <div className="absolute inset-0 bg-indigo-950/70 mix-blend-multiply" />

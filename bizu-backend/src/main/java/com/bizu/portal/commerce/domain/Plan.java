@@ -1,5 +1,6 @@
 package com.bizu.portal.commerce.domain;
 
+import com.bizu.portal.content.domain.Course;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -48,4 +49,20 @@ public class Plan {
 
     @Column(name = "devices_per_user")
     private int devicesPerUser = 3;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "course_id")
+    private Course course;
+
+    @Column(columnDefinition = "TEXT")
+    private String features; // JSON array string: ["feat1","feat2"]
+
+    @Column
+    private boolean highlight = false;
+
+    @Column
+    private String badge;
+
+    @Column(name = "sort_order")
+    private int sortOrder = 0;
 }

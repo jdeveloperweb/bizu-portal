@@ -44,6 +44,10 @@ public class Question {
     @Column(name = "question_type")
     private String questionType; // MULTIPLE_CHOICE, TRUE_FALSE
 
+    @Column(name = "category", nullable = false)
+    @Builder.Default
+    private String category = "SIMULADO"; // SIMULADO, QUIZ
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "module_id")
     private Module module;

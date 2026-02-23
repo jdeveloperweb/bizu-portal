@@ -39,9 +39,10 @@ export default function RegisterPage() {
                 <div
                     className="absolute inset-0 bg-cover bg-center"
                     style={{
-                        backgroundImage: `url('https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&q=80')`,
-                        filter: 'blur(10px)',
-                        transform: 'scale(1.1)',
+                        backgroundImage: `url('/images/navy-ship.png')`,
+                        filter: 'blur(2px)',
+                        transform: 'scale(1.05)',
+                        animation: 'float-slow 20s ease-in-out infinite alternate',
                     }}
                 />
                 <div className="absolute inset-0 bg-indigo-950/70 mix-blend-multiply" />

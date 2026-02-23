@@ -134,6 +134,16 @@ export default function Hero() {
             <section className="relative min-h-screen flex items-center overflow-hidden">
                 {/* BG */}
                 <div className="absolute inset-0">
+                    <div className="absolute inset-0 transition-transform duration-1000 origin-center" style={{
+                        backgroundImage: "url('/images/navy-ship.png')",
+                        backgroundSize: "cover",
+                        backgroundPosition: "top center",
+                        opacity: 0.12,
+                        filter: "blur(2px) grayscale(50%)",
+                        animation: "float-slow 30s ease-in-out infinite alternate",
+                        transform: "scale(1.05)"
+                    }} />
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-white/80 to-white" />
                     <div className="absolute inset-0" style={{
                         background: `
               radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99,102,241,0.15) 0%, transparent 70%),
@@ -419,14 +429,26 @@ export default function Hero() {
                         <div className="flex-1 w-full">
                             <div className="relative">
                                 <div className="absolute -inset-4 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-3xl blur-2xl" />
-                                <div className="relative bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-8 text-white overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3 blur-2xl" />
-                                    <div className="absolute inset-0 opacity-[0.06]" style={{
+                                <div className="relative bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-8 text-white overflow-hidden shadow-2xl shadow-emerald-900/20" style={{
+                                    transform: "perspective(1000px) rotateY(-5deg) rotateX(5deg)",
+                                    transition: "transform 0.5s ease"
+                                }} onMouseEnter={(e) => e.currentTarget.style.transform = "perspective(1000px) rotateY(0deg) rotateX(0deg)"} onMouseLeave={(e) => e.currentTarget.style.transform = "perspective(1000px) rotateY(-5deg) rotateX(5deg)"}>
+
+                                    {/* ── IMAGEM DE FUNDO ESPETACULAR ── */}
+                                    <div className="absolute inset-0 mix-blend-overlay opacity-50" style={{
+                                        backgroundImage: "url('/images/student-victory.png')",
+                                        backgroundSize: "cover",
+                                        backgroundPosition: "center top",
+                                        filter: "grayscale(20%) contrast(1.2)"
+                                    }} />
+
+                                    <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-2xl" />
+                                    <div className="absolute inset-0 opacity-[0.15]" style={{
                                         backgroundImage: `radial-gradient(circle, white 0.8px, transparent 0.8px)`,
                                         backgroundSize: "20px 20px",
                                     }} />
-                                    <div className="relative z-10">
-                                        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-emerald-200 mb-6">
+                                    <div className="relative z-10 backdrop-blur-[2px]">
+                                        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-emerald-100 mb-6 drop-shadow-md">
                                             <ClipboardList size={14} />
                                             Simulado Semanal
                                         </div>
@@ -450,8 +472,8 @@ export default function Hero() {
                                                 <div key={r.pos}
                                                     className={`flex items-center gap-3 px-4 py-2.5 rounded-xl ${r.you ? "bg-white/15 border border-white/20" : "bg-white/5"}`}>
                                                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-extrabold ${r.pos === 1 ? "bg-amber-400 text-amber-900" :
-                                                            r.pos === 2 ? "bg-slate-300 text-slate-700" :
-                                                                "bg-amber-600 text-amber-100"
+                                                        r.pos === 2 ? "bg-slate-300 text-slate-700" :
+                                                            "bg-amber-600 text-amber-100"
                                                         }`}>
                                                         {r.pos}
                                                     </div>
@@ -505,22 +527,37 @@ export default function Hero() {
             {/* ═══════════════════════════
            SOCIAL PROOF - mural
          ═══════════════════════════ */}
-            <section className="py-20 overflow-hidden relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-violet-950" />
+            <section className="py-24 overflow-hidden relative border-t border-slate-900/10 shadow-inner">
+                {/* BG CINEMATICO */}
+                <div className="absolute inset-0" style={{
+                    backgroundImage: "url('/images/hero-sailor.png')",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center 30%",
+                    transform: "scale(1.05)",
+                    animation: "float-slow 25s ease-in-out infinite alternate"
+                }} />
+
+                {/* OVERLAYS PODEROSOS */}
+                <div className="absolute inset-0 bg-indigo-950/85 mix-blend-multiply" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-indigo-950/80 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-transparent to-transparent opacity-60" />
+
                 <div className="absolute inset-0 opacity-20" style={{
-                    backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+                    backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)`,
                     backgroundSize: "28px 28px",
                 }} />
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-indigo-500/10 rounded-full blur-[120px]" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-500/20 rounded-full blur-[150px] mix-blend-screen" />
 
-                <div className="relative container mx-auto px-6 text-center">
-                    <BrandLogo size="lg" variant="light" link={false} />
-                    <h2 className="text-3xl md:text-4xl font-extrabold text-white mt-6 mb-4">
+                <div className="relative container mx-auto px-6 text-center z-10">
+                    <div className="inline-block hover:scale-105 transition-transform duration-500">
+                        <BrandLogo size="lg" variant="light" link={false} />
+                    </div>
+                    <h2 className="text-4xl md:text-5xl font-extrabold text-white mt-8 mb-5 slide-in-d1 drop-shadow-lg">
                         Junte-se a milhares de
                         <br />
-                        <span className="text-indigo-300">bizurados</span>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-violet-300">bizurados</span>
                     </h2>
-                    <p className="text-indigo-300/50 mb-12 max-w-md mx-auto">
+                    <p className="text-indigo-200/70 mb-14 max-w-md mx-auto text-lg slide-in-d2">
                         Concurseiros que ja estao usando o Bizu! para conquistar sua vaga na Marinha.
                     </p>
 
