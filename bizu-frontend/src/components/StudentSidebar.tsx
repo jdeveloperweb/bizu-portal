@@ -7,20 +7,32 @@ import BrandLogo from "@/components/BrandLogo";
 import {
     LayoutDashboard, BookOpen, ClipboardList, Layers,
     Swords, TrendingUp, User, Trophy, LogOut,
-    ChevronRight, Search, Flame,
+    ChevronRight, Search, Flame, Timer, CheckSquare,
+    StickyNote, Settings, BarChart3,
 } from "lucide-react";
 
 const studyNav = [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/cursos", icon: BookOpen, label: "Cursos" },
+    { href: "/questoes/treino", icon: BookOpen, label: "Quiz" },
     { href: "/simulados", icon: ClipboardList, label: "Simulados" },
+    { href: "/pomodoro", icon: Timer, label: "Pomodoro" },
     { href: "/flashcards", icon: Layers, label: "Flashcards" },
     { href: "/arena", icon: Swords, label: "Arena PVP" },
 ];
 
+const planNav = [
+    { href: "/tarefas", icon: CheckSquare, label: "Tarefas" },
+    { href: "/anotacoes", icon: StickyNote, label: "Anotacoes" },
+];
+
 const trackNav = [
     { href: "/desempenho", icon: TrendingUp, label: "Desempenho" },
+    { href: "/ranking", icon: BarChart3, label: "Ranking" },
     { href: "/conquistas", icon: Trophy, label: "Conquistas" },
+];
+
+const bottomNav = [
+    { href: "/configuracoes", icon: Settings, label: "Configuracoes" },
     { href: "/perfil", icon: User, label: "Meu Perfil" },
 ];
 
@@ -56,18 +68,25 @@ export default function StudentSidebar() {
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-slate-400 text-[11px] cursor-pointer hover:border-slate-200 transition-colors">
                     <Search size={13} />
                     <span>Buscar...</span>
-                    <span className="ml-auto bg-white border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-mono">⌘K</span>
+                    <span className="ml-auto bg-white border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-mono">&#8984;K</span>
                 </div>
             </div>
 
             <nav className="flex-1 px-2.5 overflow-y-auto">
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] px-3 mb-1.5 mt-1">Estudar</p>
-                <div className="space-y-px mb-4">
+                <div className="space-y-px mb-3">
                     {studyNav.map((i) => <Item key={i.href} {...i} />)}
                 </div>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] px-3 mb-1.5">Planejar</p>
+                <div className="space-y-px mb-3">
+                    {planNav.map((i) => <Item key={i.href} {...i} />)}
+                </div>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] px-3 mb-1.5">Acompanhar</p>
-                <div className="space-y-px">
+                <div className="space-y-px mb-3">
                     {trackNav.map((i) => <Item key={i.href} {...i} />)}
+                </div>
+                <div className="border-t border-slate-50 pt-2 space-y-px">
+                    {bottomNav.map((i) => <Item key={i.href} {...i} />)}
                 </div>
             </nav>
 
