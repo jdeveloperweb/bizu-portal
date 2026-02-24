@@ -19,7 +19,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
-        return createErrorResponse("Erro interno no servidor", HttpStatus.INTERNAL_SERVER_ERROR);
+        ex.printStackTrace(); // Added for debugging
+        return createErrorResponse("Erro interno no servidor: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private ResponseEntity<Map<String, Object>> createErrorResponse(String message, HttpStatus status) {
