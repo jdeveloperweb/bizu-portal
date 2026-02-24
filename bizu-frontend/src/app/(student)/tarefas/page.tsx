@@ -42,6 +42,7 @@ const sourceLabels: Record<TaskSource, string> = {
 };
 
 import { useEffect } from "react";
+import { useAuth } from "@/components/AuthProvider";
 import { apiFetch } from "@/lib/api";
 
 export default function TarefasPage() {
@@ -49,6 +50,7 @@ export default function TarefasPage() {
     const [courses, setCourses] = useState<any[]>([]);
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const { selectedCourseId } = useAuth();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -65,10 +67,11 @@ export default function TarefasPage() {
                 if (resCourses.ok) {
                     const coursesData = await resCourses.json();
                     setCourses(coursesData);
-                    if (coursesData.length > 0) {
-                        setSelectedCourse(coursesData[0].id);
-                        if (coursesData[0].modules?.length > 0) {
-                            setSelectedModule(coursesData[0].modules[0].id);
+                    const selCourse = coursesData.find((c: any) => c.id === selectedCourseId) || coursesData[0];
+                    if (selCourse) {
+                        setSelectedCourse(selCourse.id);
+                        if (selCourse.modules?.length > 0) {
+                            setSelectedModule(selCourse.modules[0].id);
                         }
                     }
                 }
@@ -255,8 +258,8 @@ export default function TarefasPage() {
                                         }
                                     }}
                                         className="input-field !h-9 text-[12px] flex-1">
-                                        {courses.length === 0 ? <option value="">Nenhum curso dispon&iacute;vel</option> : null}
-                                        {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                                        {courses.filter(c => c.id === selectedCourseId).map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                                        {courses.filter(c => c.id === selectedCourseId).length === 0 && <option value="">Nenhum curso dispon&iacute;vel</option>}
                                     </select>
                                     <select value={newPriority} onChange={e => setNewPriority(e.target.value as Priority)}
                                         className="input-field !w-auto !h-9 text-[12px]">

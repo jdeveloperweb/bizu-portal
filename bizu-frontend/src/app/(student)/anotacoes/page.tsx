@@ -8,6 +8,7 @@ import {
     X,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
 
 interface Note {
     id: string;
@@ -41,6 +42,8 @@ export default function AnotacoesPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedNote, setSelectedNote] = useState<Note | null>(null);
     const [isEditing, setIsEditing] = useState(false);
+
+    const { selectedCourseId } = useAuth();
 
     // Edit States
     const [editTitle, setEditTitle] = useState("");
@@ -77,8 +80,10 @@ export default function AnotacoesPage() {
         }
     };
 
+    const displayCourses = courses.filter(c => c.id === selectedCourseId);
+
     // Derived subject list from courses modules + Geral
-    const SUBJECTS = ["Todos", "Geral", ...Array.from(new Set(courses.flatMap(c => c.modules.map(m => m.title))))];
+    const SUBJECTS = ["Todos", "Geral", ...Array.from(new Set(displayCourses.flatMap(c => c.modules.map(m => m.title))))];
 
     const filteredNotes = notes.filter(n => {
         const matchSubject = selectedSubject === "Todos" || n.subject === selectedSubject;
@@ -364,7 +369,7 @@ export default function AnotacoesPage() {
                                                 className="input-field !text-[13px] bg-slate-50"
                                             >
                                                 <option value="">Geral / Nenhum módulo</option>
-                                                {courses.map(course => (
+                                                {displayCourses.map(course => (
                                                     <optgroup key={course.id} label={course.title}>
                                                         {course.modules.map(module => (
                                                             <option key={module.id} value={module.id}>{module.title}</option>

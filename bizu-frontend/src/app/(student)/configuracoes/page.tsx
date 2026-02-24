@@ -40,9 +40,11 @@ const sections: SettingsSection[] = [
 
 export default function ConfiguracoesPage() {
     const { theme, setTheme, compactMode, setCompactMode } = useAppearance();
-    const { selectedCourseId } = useAuth();
+    const { selectedCourseId, user, refreshUserProfile } = useAuth();
     const [activeSection, setActiveSection] = useState("pomodoro");
     const [saved, setSaved] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [settingsLoaded, setSettingsLoaded] = useState(false);
 
     // Pomodoro settings
     const [focusTime, setFocusTime] = useState(25);
@@ -58,6 +60,49 @@ export default function ConfiguracoesPage() {
     const [dailyGoal, setDailyGoal] = useState(50);
     const [weeklySimulados, setWeeklySimulados] = useState(2);
     const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (user && !settingsLoaded) {
+            const metadataSettings = (user.metadata as any)?.settings || {};
+
+            if (metadataSettings.pomodoro) {
+                setFocusTime(metadataSettings.pomodoro.focusTime ?? 25);
+                setShortBreak(metadataSettings.pomodoro.shortBreak ?? 5);
+                setLongBreak(metadataSettings.pomodoro.longBreak ?? 15);
+                setLongBreakInterval(metadataSettings.pomodoro.longBreakInterval ?? 4);
+                setAutoStartBreak(metadataSettings.pomodoro.autoStartBreak ?? true);
+                setAutoStartFocus(metadataSettings.pomodoro.autoStartFocus ?? false);
+                setPomodoroSound(metadataSettings.pomodoro.pomodoroSound ?? true);
+            }
+
+            if (metadataSettings.estudos) {
+                setDailyGoal(metadataSettings.estudos.dailyGoal ?? 50);
+                setWeeklySimulados(metadataSettings.estudos.weeklySimulados ?? 2);
+                setQuestionDifficulty(metadataSettings.estudos.questionDifficulty ?? "mista");
+                setShowResolution(metadataSettings.estudos.showResolution ?? true);
+                if (metadataSettings.estudos.selectedSubjects) {
+                    setSelectedSubjects(metadataSettings.estudos.selectedSubjects);
+                }
+            }
+
+            if (metadataSettings.notificacoes) {
+                setEmailNotifications(metadataSettings.notificacoes.emailNotifications ?? true);
+                setStudyReminder(metadataSettings.notificacoes.studyReminder ?? true);
+                setReminderTime(metadataSettings.notificacoes.reminderTime ?? "09:00");
+                setWeeklyReport(metadataSettings.notificacoes.weeklyReport ?? true);
+                setTaskReminders(metadataSettings.notificacoes.taskReminders ?? true);
+                setAchievementNotif(metadataSettings.notificacoes.achievementNotif ?? true);
+            }
+
+            if (metadataSettings.ranking) {
+                setRankingType(metadataSettings.ranking.rankingType ?? "geral");
+                setShowInRanking(metadataSettings.ranking.showInRanking ?? true);
+                setShowRealName(metadataSettings.ranking.showRealName ?? false);
+            }
+
+            setSettingsLoaded(true);
+        }
+    }, [user, settingsLoaded]);
 
     const modules = useMemo(
         () => {
@@ -80,7 +125,7 @@ export default function ConfiguracoesPage() {
                     const allModules = data.flatMap((c: Course) => c.modules);
                     if (allModules.length > 0) {
                         const uniqueModules = Array.from(new Map(allModules.map((m: Module) => [m.id, m])).values()) as Module[];
-                        setSelectedSubjects(uniqueModules.slice(0, 5).map(m => m.id));
+                        setSelectedSubjects(prev => prev.length > 0 ? prev : uniqueModules.slice(0, 5).map(m => m.id));
                     }
                 }
             } catch (error) {
@@ -113,14 +158,36 @@ export default function ConfiguracoesPage() {
         );
     };
 
-    const handleSave = () => {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+    const handleSave = async () => {
+        setIsSaving(true);
+        const settingsPayload = {
+            pomodoro: { focusTime, shortBreak, longBreak, longBreakInterval, autoStartBreak, autoStartFocus, pomodoroSound },
+            estudos: { dailyGoal, weeklySimulados, questionDifficulty, showResolution, selectedSubjects },
+            notificacoes: { emailNotifications, studyReminder, reminderTime, weeklyReport, taskReminders, achievementNotif },
+            ranking: { rankingType, showInRanking, showRealName },
+        };
+
+        try {
+            const response = await apiFetch("/users/me/settings", {
+                method: "PUT",
+                body: JSON.stringify(settingsPayload),
+            });
+
+            if (response.ok) {
+                await refreshUserProfile();
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2000);
+            }
+        } catch (error) {
+            console.error("Failed to save settings", error);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const Toggle = ({ enabled, onChange }: { enabled: boolean; onChange: (v: boolean) => void }) => (
         <button onClick={() => onChange(!enabled)}
-            className={`w-10 h-[22px] rounded-full transition-all relative ${enabled ? "bg-indigo-500" : "bg-slate-200"
+            className={`w-10 h-[22px] rounded-full transition-all relative ${enabled ? "bg-indigo-500" : "bg-muted"
                 }`}>
             <div className={`w-[18px] h-[18px] rounded-full bg-white shadow-sm absolute top-[2px] transition-all ${enabled ? "left-[20px]" : "left-[2px]"
                 }`} />
@@ -133,7 +200,7 @@ export default function ConfiguracoesPage() {
         <div className="flex items-center gap-3">
             <input type="range" min={min} max={max} step={step} value={value}
                 onChange={e => onChange(Number(e.target.value))}
-                className="flex-1 h-1.5 bg-slate-200 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 [&::-webkit-slider-thumb]:shadow-md" />
+                className="flex-1 h-1.5 bg-muted rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 [&::-webkit-slider-thumb]:shadow-md" />
             <span className="text-[13px] font-bold text-slate-900 w-16 text-right">{value}{unit}</span>
         </div>
     );
@@ -146,14 +213,14 @@ export default function ConfiguracoesPage() {
                     <div className="flex items-center gap-2 mb-1">
                         <span className="pill pill-primary text-[10px] font-bold uppercase tracking-[0.15em]">Sistema</span>
                     </div>
-                    <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-0.5">
+                    <h1 className="text-2xl font-extrabold text-foreground tracking-tight mb-0.5">
                         Configuracoes
                     </h1>
-                    <p className="text-sm text-slate-500">Ajuste o comportamento do app ao seu estilo de estudo.</p>
+                    <p className="text-sm text-muted-foreground">Ajuste o comportamento do app ao seu estilo de estudo.</p>
                 </div>
-                <button onClick={handleSave}
-                    className={`btn-primary !h-10 !text-[12px] !px-5 ${saved ? "!bg-emerald-500" : ""}`}>
-                    {saved ? <><CheckCircle2 size={15} /> Salvo!</> : <><Save size={15} /> Salvar Alteracoes</>}
+                <button onClick={handleSave} disabled={isSaving}
+                    className={`btn-primary !h-10 !text-[12px] !px-5 ${saved ? "!bg-emerald-500" : ""} ${isSaving ? "opacity-75 cursor-not-allowed" : ""}`}>
+                    {isSaving ? "Salvando..." : saved ? <><CheckCircle2 size={15} /> Salvo!</> : <><Save size={15} /> Salvar Alteracoes</>}
                 </button>
             </div>
 
@@ -167,10 +234,10 @@ export default function ConfiguracoesPage() {
                             return (
                                 <button key={section.id} onClick={() => setActiveSection(section.id)}
                                     className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[12px] font-medium transition-all ${active
-                                        ? "bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-700 font-bold"
-                                        : "text-slate-500 hover:bg-slate-50"
+                                        ? "bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-500/10 dark:to-violet-500/10 text-indigo-700 dark:text-indigo-400 font-bold"
+                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                         }`}>
-                                    <Icon size={15} className={active ? "text-indigo-600" : "text-slate-400"} />
+                                    <Icon size={15} className={active ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground opacity-70 group-hover:opacity-100"} />
                                     {section.label}
                                     {active && <ChevronRight size={11} className="ml-auto text-indigo-400" />}
                                 </button>
@@ -185,52 +252,52 @@ export default function ConfiguracoesPage() {
                     {activeSection === "pomodoro" && (
                         <>
                             <div className="card-elevated !rounded-2xl p-6 hover:!transform-none">
-                                <h3 className="text-[15px] font-bold text-slate-800 mb-1 flex items-center gap-2">
+                                <h3 className="text-[15px] font-bold text-foreground mb-1 flex items-center gap-2">
                                     <Timer size={16} className="text-indigo-500" /> Tempos do Pomodoro
                                 </h3>
-                                <p className="text-[12px] text-slate-400 mb-6">Configure a duracao dos ciclos de foco e pausa.</p>
+                                <p className="text-[12px] text-muted-foreground mb-6">Configure a duracao dos ciclos de foco e pausa.</p>
 
                                 <div className="space-y-5">
                                     <div>
-                                        <label className="text-[12px] font-bold text-slate-700 mb-2 block">Tempo de Foco</label>
+                                        <label className="text-[12px] font-bold text-foreground mb-2 block">Tempo de Foco</label>
                                         <Slider value={focusTime} onChange={setFocusTime} min={5} max={90} step={5} unit=" min" />
                                     </div>
                                     <div>
-                                        <label className="text-[12px] font-bold text-slate-700 mb-2 block">Pausa Curta</label>
+                                        <label className="text-[12px] font-bold text-foreground mb-2 block">Pausa Curta</label>
                                         <Slider value={shortBreak} onChange={setShortBreak} min={1} max={30} step={1} unit=" min" />
                                     </div>
                                     <div>
-                                        <label className="text-[12px] font-bold text-slate-700 mb-2 block">Pausa Longa</label>
+                                        <label className="text-[12px] font-bold text-foreground mb-2 block">Pausa Longa</label>
                                         <Slider value={longBreak} onChange={setLongBreak} min={5} max={45} step={5} unit=" min" />
                                     </div>
                                     <div>
-                                        <label className="text-[12px] font-bold text-slate-700 mb-2 block">Ciclos ate Pausa Longa</label>
+                                        <label className="text-[12px] font-bold text-foreground mb-2 block">Ciclos ate Pausa Longa</label>
                                         <Slider value={longBreakInterval} onChange={setLongBreakInterval} min={2} max={8} step={1} />
                                     </div>
                                 </div>
                             </div>
 
                             <div className="card-elevated !rounded-2xl p-6 hover:!transform-none">
-                                <h3 className="text-[15px] font-bold text-slate-800 mb-5">Comportamento</h3>
+                                <h3 className="text-[15px] font-bold text-foreground mb-5">Comportamento</h3>
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <div className="text-[13px] font-medium text-slate-700">Iniciar pausa automaticamente</div>
-                                            <div className="text-[11px] text-slate-400">A pausa comeca assim que o foco terminar</div>
+                                            <div className="text-[13px] font-medium text-foreground">Iniciar pausa automaticamente</div>
+                                            <div className="text-[11px] text-muted-foreground">A pausa comeca assim que o foco terminar</div>
                                         </div>
                                         <Toggle enabled={autoStartBreak} onChange={setAutoStartBreak} />
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <div className="text-[13px] font-medium text-slate-700">Iniciar foco automaticamente</div>
-                                            <div className="text-[11px] text-slate-400">O foco comeca assim que a pausa terminar</div>
+                                            <div className="text-[13px] font-medium text-foreground">Iniciar foco automaticamente</div>
+                                            <div className="text-[11px] text-muted-foreground">O foco comeca assim que a pausa terminar</div>
                                         </div>
                                         <Toggle enabled={autoStartFocus} onChange={setAutoStartFocus} />
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <div className="text-[13px] font-medium text-slate-700">Som de alerta</div>
-                                            <div className="text-[11px] text-slate-400">Toque sonoro ao fim de cada ciclo</div>
+                                            <div className="text-[13px] font-medium text-foreground">Som de alerta</div>
+                                            <div className="text-[11px] text-muted-foreground">Toque sonoro ao fim de cada ciclo</div>
                                         </div>
                                         <Toggle enabled={pomodoroSound} onChange={setPomodoroSound} />
                                     </div>
@@ -243,28 +310,28 @@ export default function ConfiguracoesPage() {
                     {activeSection === "estudos" && (
                         <>
                             <div className="card-elevated !rounded-2xl p-6 hover:!transform-none">
-                                <h3 className="text-[15px] font-bold text-slate-800 mb-1 flex items-center gap-2">
+                                <h3 className="text-[15px] font-bold text-foreground mb-1 flex items-center gap-2">
                                     <BookOpen size={16} className="text-indigo-500" /> Metas de Estudo
                                 </h3>
-                                <p className="text-[12px] text-slate-400 mb-6">Defina suas metas diarias e semanais.</p>
+                                <p className="text-[12px] text-muted-foreground mb-6">Defina suas metas diarias e semanais.</p>
 
                                 <div className="space-y-5">
                                     <div>
-                                        <label className="text-[12px] font-bold text-slate-700 mb-2 block">Meta diaria de questoes</label>
+                                        <label className="text-[12px] font-bold text-foreground mb-2 block">Meta diaria de questoes</label>
                                         <Slider value={dailyGoal} onChange={setDailyGoal} min={10} max={200} step={10} unit=" questoes" />
                                     </div>
                                     <div>
-                                        <label className="text-[12px] font-bold text-slate-700 mb-2 block">Simulados por semana</label>
+                                        <label className="text-[12px] font-bold text-foreground mb-2 block">Simulados por semana</label>
                                         <Slider value={weeklySimulados} onChange={setWeeklySimulados} min={1} max={7} step={1} />
                                     </div>
                                     <div>
-                                        <label className="text-[12px] font-bold text-slate-700 mb-2 block">Dificuldade preferida</label>
+                                        <label className="text-[12px] font-bold text-foreground mb-2 block">Dificuldade preferida</label>
                                         <div className="grid grid-cols-4 gap-2">
                                             {(["mista", "facil", "media", "dificil"] as const).map(d => (
                                                 <button key={d} onClick={() => setQuestionDifficulty(d)}
                                                     className={`py-2.5 rounded-xl text-[12px] font-bold border-2 transition-all capitalize ${questionDifficulty === d
                                                         ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                                                        : "border-slate-200 text-slate-500 hover:border-slate-300"
+                                                        : "border-border text-muted-foreground hover:border-border"
                                                         }`}>
                                                     {d === "facil" ? "Facil" : d === "media" ? "Media" : d === "dificil" ? "Dificil" : "Mista"}
                                                 </button>
@@ -273,8 +340,8 @@ export default function ConfiguracoesPage() {
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <div className="text-[13px] font-medium text-slate-700">Mostrar resolucao apos responder</div>
-                                            <div className="text-[11px] text-slate-400">Exibir explicacao detalhada apos cada questao</div>
+                                            <div className="text-[13px] font-medium text-foreground">Mostrar resolucao apos responder</div>
+                                            <div className="text-[11px] text-muted-foreground">Exibir explicacao detalhada apos cada questao</div>
                                         </div>
                                         <Toggle enabled={showResolution} onChange={setShowResolution} />
                                     </div>
@@ -282,20 +349,20 @@ export default function ConfiguracoesPage() {
                             </div>
 
                             <div className="card-elevated !rounded-2xl p-6 hover:!transform-none">
-                                <h3 className="text-[15px] font-bold text-slate-800 mb-5">Materias de Interesse</h3>
+                                <h3 className="text-[15px] font-bold text-foreground mb-5">Materias de Interesse</h3>
                                 <div className="grid grid-cols-2 gap-2">
                                     {modules.map(s => (
                                         <button key={s.id} onClick={() => toggleSubject(s.id)}
                                             className={`flex items-center gap-2 py-2.5 px-3 rounded-xl text-[12px] font-medium border transition-all ${selectedSubjects.includes(s.id)
                                                 ? "border-indigo-300 bg-indigo-50 text-indigo-700"
-                                                : "border-slate-200 text-slate-500 hover:border-slate-300"
+                                                : "border-border text-muted-foreground hover:border-border"
                                                 }`}>
                                             <CheckCircle2 size={14} className={selectedSubjects.includes(s.id) ? "text-indigo-500" : "text-slate-300"} />
                                             {s.title}
                                         </button>
                                     ))}
                                     {modules.length === 0 && (
-                                        <div className="col-span-2 text-center text-[12px] py-4 text-slate-500">
+                                        <div className="col-span-2 text-center text-[12px] py-4 text-muted-foreground">
                                             Carregando matérias...
                                         </div>
                                     )}
@@ -308,51 +375,51 @@ export default function ConfiguracoesPage() {
                     {/* Notification Settings */}
                     {activeSection === "notificacoes" && (
                         <div className="card-elevated !rounded-2xl p-6 hover:!transform-none">
-                            <h3 className="text-[15px] font-bold text-slate-800 mb-1 flex items-center gap-2">
+                            <h3 className="text-[15px] font-bold text-foreground mb-1 flex items-center gap-2">
                                 <Bell size={16} className="text-indigo-500" /> Notificacoes
                             </h3>
-                            <p className="text-[12px] text-slate-400 mb-6">Controle como e quando receber lembretes.</p>
+                            <p className="text-[12px] text-muted-foreground mb-6">Controle como e quando receber lembretes.</p>
 
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-[13px] font-medium text-slate-700">Notificacoes por e-mail</div>
-                                        <div className="text-[11px] text-slate-400">Receber atualizacoes importantes por e-mail</div>
+                                        <div className="text-[13px] font-medium text-foreground">Notificacoes por e-mail</div>
+                                        <div className="text-[11px] text-muted-foreground">Receber atualizacoes importantes por e-mail</div>
                                     </div>
                                     <Toggle enabled={emailNotifications} onChange={setEmailNotifications} />
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-[13px] font-medium text-slate-700">Lembrete de estudo diario</div>
-                                        <div className="text-[11px] text-slate-400">Receber lembrete para estudar</div>
+                                        <div className="text-[13px] font-medium text-foreground">Lembrete de estudo diario</div>
+                                        <div className="text-[11px] text-muted-foreground">Receber lembrete para estudar</div>
                                     </div>
                                     <Toggle enabled={studyReminder} onChange={setStudyReminder} />
                                 </div>
                                 {studyReminder && (
                                     <div className="ml-8 flex items-center gap-3">
-                                        <label className="text-[12px] text-slate-500">Horario:</label>
+                                        <label className="text-[12px] text-muted-foreground">Horario:</label>
                                         <input type="time" value={reminderTime} onChange={e => setReminderTime(e.target.value)}
                                             className="input-field !w-auto !h-9 text-[12px]" />
                                     </div>
                                 )}
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-[13px] font-medium text-slate-700">Relatorio semanal</div>
-                                        <div className="text-[11px] text-slate-400">Resumo do seu progresso toda segunda-feira</div>
+                                        <div className="text-[13px] font-medium text-foreground">Relatorio semanal</div>
+                                        <div className="text-[11px] text-muted-foreground">Resumo do seu progresso toda segunda-feira</div>
                                     </div>
                                     <Toggle enabled={weeklyReport} onChange={setWeeklyReport} />
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-[13px] font-medium text-slate-700">Lembretes de tarefas</div>
-                                        <div className="text-[11px] text-slate-400">Avisar sobre tarefas com prazo proximo</div>
+                                        <div className="text-[13px] font-medium text-foreground">Lembretes de tarefas</div>
+                                        <div className="text-[11px] text-muted-foreground">Avisar sobre tarefas com prazo proximo</div>
                                     </div>
                                     <Toggle enabled={taskReminders} onChange={setTaskReminders} />
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-[13px] font-medium text-slate-700">Conquistas e badges</div>
-                                        <div className="text-[11px] text-slate-400">Notificar ao desbloquear conquistas</div>
+                                        <div className="text-[13px] font-medium text-foreground">Conquistas e badges</div>
+                                        <div className="text-[11px] text-muted-foreground">Notificar ao desbloquear conquistas</div>
                                     </div>
                                     <Toggle enabled={achievementNotif} onChange={setAchievementNotif} />
                                 </div>
@@ -363,14 +430,14 @@ export default function ConfiguracoesPage() {
                     {/* Ranking Settings */}
                     {activeSection === "ranking" && (
                         <div className="card-elevated !rounded-2xl p-6 hover:!transform-none">
-                            <h3 className="text-[15px] font-bold text-slate-800 mb-1 flex items-center gap-2">
+                            <h3 className="text-[15px] font-bold text-foreground mb-1 flex items-center gap-2">
                                 <BarChart3 size={16} className="text-indigo-500" /> Ranking
                             </h3>
-                            <p className="text-[12px] text-slate-400 mb-6">Configure como voce aparece e visualiza o ranking.</p>
+                            <p className="text-[12px] text-muted-foreground mb-6">Configure como voce aparece e visualiza o ranking.</p>
 
                             <div className="space-y-5">
                                 <div>
-                                    <label className="text-[12px] font-bold text-slate-700 mb-2 block">Ranking padrao</label>
+                                    <label className="text-[12px] font-bold text-foreground mb-2 block">Ranking padrao</label>
                                     <div className="grid grid-cols-3 gap-2">
                                         {([
                                             { key: "geral" as const, label: "Geral" },
@@ -380,7 +447,7 @@ export default function ConfiguracoesPage() {
                                             <button key={r.key} onClick={() => setRankingType(r.key)}
                                                 className={`py-2.5 rounded-xl text-[12px] font-bold border-2 transition-all ${rankingType === r.key
                                                     ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                                                    : "border-slate-200 text-slate-500 hover:border-slate-300"
+                                                    : "border-border text-muted-foreground hover:border-border"
                                                     }`}>
                                                 {r.label}
                                             </button>
@@ -389,15 +456,15 @@ export default function ConfiguracoesPage() {
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-[13px] font-medium text-slate-700">Aparecer no ranking publico</div>
-                                        <div className="text-[11px] text-slate-400">Outros usuarios podem ver sua posicao</div>
+                                        <div className="text-[13px] font-medium text-foreground">Aparecer no ranking publico</div>
+                                        <div className="text-[11px] text-muted-foreground">Outros usuarios podem ver sua posicao</div>
                                     </div>
                                     <Toggle enabled={showInRanking} onChange={setShowInRanking} />
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-[13px] font-medium text-slate-700">Mostrar nome real</div>
-                                        <div className="text-[11px] text-slate-400">Exibir seu nome completo ou apenas iniciais</div>
+                                        <div className="text-[13px] font-medium text-foreground">Mostrar nome real</div>
+                                        <div className="text-[11px] text-muted-foreground">Exibir seu nome completo ou apenas iniciais</div>
                                     </div>
                                     <Toggle enabled={showRealName} onChange={setShowRealName} />
                                 </div>
@@ -408,14 +475,14 @@ export default function ConfiguracoesPage() {
                     {/* Appearance Settings */}
                     {activeSection === "aparencia" && (
                         <div className="card-elevated !rounded-2xl p-6 hover:!transform-none">
-                            <h3 className="text-[15px] font-bold text-slate-800 mb-1 flex items-center gap-2">
+                            <h3 className="text-[15px] font-bold text-foreground mb-1 flex items-center gap-2">
                                 <Palette size={16} className="text-indigo-500" /> Aparencia
                             </h3>
-                            <p className="text-[12px] text-slate-400 mb-6">Personalize a aparencia do aplicativo.</p>
+                            <p className="text-[12px] text-muted-foreground mb-6">Personalize a aparencia do aplicativo.</p>
 
                             <div className="space-y-5">
                                 <div>
-                                    <label className="text-[12px] font-bold text-slate-700 mb-3 block">Tema</label>
+                                    <label className="text-[12px] font-bold text-foreground mb-3 block">Tema</label>
                                     <div className="grid grid-cols-3 gap-3">
                                         {([
                                             { key: "light" as const, label: "Claro", icon: Sun },
@@ -427,7 +494,7 @@ export default function ConfiguracoesPage() {
                                                 <button key={t.key} onClick={() => setTheme(t.key)}
                                                     className={`flex flex-col items-center gap-2 py-4 rounded-xl border-2 transition-all ${theme === t.key
                                                         ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                                                        : "border-slate-200 text-slate-500 hover:border-slate-300"
+                                                        : "border-border text-muted-foreground hover:border-border"
                                                         }`}>
                                                     <Icon size={20} />
                                                     <span className="text-[11px] font-bold">{t.label}</span>
@@ -438,8 +505,8 @@ export default function ConfiguracoesPage() {
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-[13px] font-medium text-slate-700">Modo compacto</div>
-                                        <div className="text-[11px] text-slate-400">Reduzir espacamento para ver mais conteudo</div>
+                                        <div className="text-[13px] font-medium text-foreground">Modo compacto</div>
+                                        <div className="text-[11px] text-muted-foreground">Reduzir espacamento para ver mais conteudo</div>
                                     </div>
                                     <Toggle enabled={compactMode} onChange={setCompactMode} />
                                 </div>
@@ -450,23 +517,23 @@ export default function ConfiguracoesPage() {
                     {/* Privacy Settings */}
                     {activeSection === "privacidade" && (
                         <div className="card-elevated !rounded-2xl p-6 hover:!transform-none">
-                            <h3 className="text-[15px] font-bold text-slate-800 mb-1 flex items-center gap-2">
+                            <h3 className="text-[15px] font-bold text-foreground mb-1 flex items-center gap-2">
                                 <Shield size={16} className="text-indigo-500" /> Privacidade
                             </h3>
-                            <p className="text-[12px] text-slate-400 mb-6">Gerencie suas configuracoes de privacidade.</p>
+                            <p className="text-[12px] text-muted-foreground mb-6">Gerencie suas configuracoes de privacidade.</p>
 
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-[13px] font-medium text-slate-700">Perfil publico</div>
-                                        <div className="text-[11px] text-slate-400">Permitir que outros vejam seu perfil</div>
+                                        <div className="text-[13px] font-medium text-foreground">Perfil publico</div>
+                                        <div className="text-[11px] text-muted-foreground">Permitir que outros vejam seu perfil</div>
                                     </div>
                                     <Toggle enabled={showInRanking} onChange={setShowInRanking} />
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-[13px] font-medium text-slate-700">Compartilhar desempenho no grupo</div>
-                                        <div className="text-[11px] text-slate-400">Mostrar seu progresso para membros do grupo</div>
+                                        <div className="text-[13px] font-medium text-foreground">Compartilhar desempenho no grupo</div>
+                                        <div className="text-[11px] text-muted-foreground">Mostrar seu progresso para membros do grupo</div>
                                     </div>
                                     <Toggle enabled={showRealName} onChange={setShowRealName} />
                                 </div>

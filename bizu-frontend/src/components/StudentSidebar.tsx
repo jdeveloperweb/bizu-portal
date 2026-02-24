@@ -68,10 +68,10 @@ export default function StudentSidebar() {
         return (
             <Link href={href}
                 className={`group flex items-center gap-2.5 px-3 py-[7px] rounded-lg text-[13px] font-medium transition-all ${active
-                    ? "bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-700 font-semibold"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                    ? "bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-500/10 dark:to-violet-500/10 text-indigo-700 dark:text-indigo-400 font-semibold"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}>
-                <Icon size={16} className={active ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-500"} />
+                <Icon size={16} className={active ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground opacity-70 group-hover:opacity-100"} />
                 <span className="flex-1">{label}</span>
                 {active && <ChevronRight size={12} className="text-indigo-400" />}
             </Link>
@@ -81,9 +81,9 @@ export default function StudentSidebar() {
     return (
         <>
             {/* Menu Mobile Topo */}
-            <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-slate-100 flex items-center justify-between px-4 z-40">
+            <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-background border-b border-border flex items-center justify-between px-4 z-40">
                 <BrandLogo size="sm" variant="dark" />
-                <button onClick={() => setIsOpen(!isOpen)} className="p-2 -mr-2 text-slate-500 hover:text-indigo-600 transition-colors">
+                <button onClick={() => setIsOpen(!isOpen)} className="p-2 -mr-2 text-muted-foreground hover:text-indigo-600 transition-colors">
                     {isOpen ? <X size={20} /> : <Menu size={20} />}
                 </button>
             </div>
@@ -97,11 +97,11 @@ export default function StudentSidebar() {
             )}
 
             <aside className={`
-                w-[230px] shrink-0 h-[100dvh] bg-white border-r border-slate-100/80 flex flex-col
+                w-[230px] shrink-0 h-[100dvh] bg-card border-r border-border flex flex-col
                 fixed md:sticky top-0 z-50 transition-transform duration-300 ease-in-out
                 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             `}>
-                <div className="h-14 flex items-center justify-between px-4 border-b border-slate-50 shrink-0">
+                <div className="h-14 flex items-center justify-between px-4 border-b border-border shrink-0">
                     <BrandLogo size="sm" variant="dark" />
                     <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
                         <Flame size={10} /> {streak}
@@ -109,32 +109,32 @@ export default function StudentSidebar() {
                 </div>
 
                 <div className="px-3 py-2.5">
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-slate-400 text-[11px] cursor-pointer hover:border-slate-200 transition-colors">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted border border-border text-muted-foreground text-[11px] cursor-pointer hover:border-border transition-colors">
                         <Search size={13} />
                         <span>Buscar...</span>
-                        <span className="ml-auto bg-white border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-mono">&#8984;K</span>
+                        <span className="ml-auto bg-card border border-border px-1.5 py-0.5 rounded text-[9px] font-mono">&#8984;K</span>
                     </div>
                 </div>
 
                 <nav className="flex-1 px-2.5 overflow-y-auto">
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] px-3 mb-1.5 mt-1">Estudar</p>
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] px-3 mb-1.5 mt-1">Estudar</p>
                     <div className="space-y-px mb-3">
                         {studyNav.map((i) => <Item key={i.href} {...i} />)}
                     </div>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] px-3 mb-1.5">Planejar</p>
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] px-3 mb-1.5">Planejar</p>
                     <div className="space-y-px mb-3">
                         {planNav.map((i) => <Item key={i.href} {...i} />)}
                     </div>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] px-3 mb-1.5">Acompanhar</p>
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] px-3 mb-1.5">Acompanhar</p>
                     <div className="space-y-px mb-3">
                         {trackNav.map((i) => <Item key={i.href} {...i} />)}
                     </div>
-                    <div className="border-t border-slate-50 pt-2 space-y-px">
+                    <div className="border-t border-border pt-2 space-y-px">
                         {bottomNav.map((i) => <Item key={i.href} {...i} />)}
                     </div>
                 </nav>
 
-                <div className="px-2.5 py-3 border-t border-slate-50 space-y-2">
+                <div className="px-2.5 py-3 border-t border-border space-y-2">
                     <div className="rounded-lg bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-100 px-3.5 py-3">
                         <p className="text-[11px] font-bold text-indigo-700 mb-0.5">Plano Free</p>
                         <p className="text-[10px] text-indigo-500/70 mb-2">Faca upgrade para desbloquear tudo</p>
@@ -144,7 +144,7 @@ export default function StudentSidebar() {
                     </div>
                     <button
                         onClick={logout}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all">
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium text-muted-foreground hover:bg-red-50 hover:text-red-500 transition-all">
                         <LogOut size={15} /> Sair
                     </button>
                 </div>

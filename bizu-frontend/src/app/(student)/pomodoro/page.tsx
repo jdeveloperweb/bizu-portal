@@ -39,17 +39,30 @@ export default function PomodoroPage() {
     const [completedCycles, setCompletedCycles] = useState(0);
     const [selectedSubject, setSelectedSubject] = useState("Selecione um módulo");
     const [availableModules, setAvailableModules] = useState<string[]>([]);
-    const [totalFocusToday, setTotalFocusToday] = useState(47);
+    const [totalFocusToday, setTotalFocusToday] = useState(0);
 
     const [soundEnabled, setSoundEnabled] = useState(true);
     const [showSubjectPicker, setShowSubjectPicker] = useState(false);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    const [recentSessions] = useState<PomodoroSession[]>([
-        { id: "1", subject: "Direito Constitucional", focusMinutes: 25, completedAt: "Ha 1h", cycles: 2 },
-        { id: "2", subject: "Direito Administrativo", focusMinutes: 50, completedAt: "Ha 3h", cycles: 4 },
-        { id: "3", subject: "Processo Civil", focusMinutes: 25, completedAt: "Ontem", cycles: 2 },
-    ]);
+    const [recentSessions, setRecentSessions] = useState<PomodoroSession[]>([]);
+
+    useEffect(() => {
+        const fetchSummary = async () => {
+            try {
+                const res = await apiFetch('/student/pomodoro/summary');
+                if (res.ok) {
+                    const data = await res.json();
+                    setTotalFocusToday(data.totalFocusToday || 0);
+                    setCompletedCycles(data.completedCycles || 0);
+                    setRecentSessions(data.recentSessions || []);
+                }
+            } catch (error) {
+                console.error("Error fetching pomodoro summary:", error);
+            }
+        };
+        fetchSummary();
+    }, []);
 
     const getCurrentDuration = useCallback(() => {
         switch (sessionType) {
@@ -96,9 +109,31 @@ export default function PomodoroPage() {
     }, []);
 
 
+    const saveSession = async () => {
+        try {
+            const selectedCourseId = localStorage.getItem("selectedCourseId");
+            const res = await apiFetch('/student/pomodoro/session', {
+                method: "POST",
+                body: JSON.stringify({
+                    subject: selectedSubject,
+                    focusMinutes: focusDuration,
+                    cycles: 1,
+                    courseId: selectedCourseId || null
+                })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setRecentSessions(prev => [data, ...prev].slice(0, 10));
+            }
+        } catch (error) {
+            console.error("Error saving pomodoro session:", error);
+        }
+    };
+
     const handleSessionComplete = () => {
         setIsRunning(false);
         if (sessionType === "focus") {
+            saveSession();
             const newCycles = completedCycles + 1;
             setCompletedCycles(newCycles);
             setTotalFocusToday(prev => prev + focusDuration);

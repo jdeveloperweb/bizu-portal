@@ -71,4 +71,20 @@ public class MeController {
 
     public record SelectedCourseRequest(UUID courseId) {}
     public record UpdateMeRequest(String name, String phone) {}
+
+    @PutMapping("/me/settings")
+    public ResponseEntity<User> updateSettings(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, Object> settingsRequest) {
+        String email = jwt.getClaim("email");
+
+        return userRepository.findByEmail(email)
+            .map(user -> {
+                Map<String, Object> metadata = user.getMetadata() != null
+                    ? new HashMap<>(user.getMetadata())
+                    : new HashMap<>();
+                metadata.put("settings", settingsRequest);
+                user.setMetadata(metadata);
+                return ResponseEntity.ok(userRepository.save(user));
+            })
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 }
