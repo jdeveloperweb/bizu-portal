@@ -62,7 +62,7 @@ export default function RankingStudentPage() {
     };
 
     return (
-        <div className="p-6 lg:p-8 max-w-[1100px]">
+        <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
@@ -95,9 +95,8 @@ export default function RankingStudentPage() {
                     const active = activeTab === tab.key;
                     return (
                         <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[12px] font-bold transition-all ${
-                                active ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"
-                            }`}>
+                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[12px] font-bold transition-all ${active ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"
+                                }`}>
                             <Icon size={14} /> {tab.label}
                         </button>
                     );
@@ -109,11 +108,10 @@ export default function RankingStudentPage() {
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-5 scrollbar-hide">
                     {SUBJECTS.map(s => (
                         <button key={s} onClick={() => setSelectedSubject(s)}
-                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all ${
-                                selectedSubject === s
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all ${selectedSubject === s
                                     ? "bg-indigo-50 text-indigo-700 border border-indigo-100"
                                     : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
-                            }`}>
+                                }`}>
                             {s === "Todas" ? s : s.replace("Direito ", "D. ").replace("Processo ", "P. ")}
                         </button>
                     ))}
@@ -156,12 +154,11 @@ export default function RankingStudentPage() {
                         <div className="divide-y divide-slate-50">
                             {topUsers.map(user => (
                                 <div key={user.rank} className={`flex items-center gap-3 px-5 py-3 hover:bg-slate-50/50 transition-colors ${user.rank <= 3 ? "bg-indigo-50/30" : ""}`}>
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-extrabold text-[12px] ${
-                                        user.rank === 1 ? "bg-amber-100 text-amber-700" :
-                                        user.rank === 2 ? "bg-slate-200 text-slate-600" :
-                                        user.rank === 3 ? "bg-orange-100 text-orange-700" :
-                                        "bg-slate-100 text-slate-500"
-                                    }`}>
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-extrabold text-[12px] ${user.rank === 1 ? "bg-amber-100 text-amber-700" :
+                                            user.rank === 2 ? "bg-slate-200 text-slate-600" :
+                                                user.rank === 3 ? "bg-orange-100 text-orange-700" :
+                                                    "bg-slate-100 text-slate-500"
+                                        }`}>
                                         {user.rank}
                                     </div>
                                     <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center text-[11px] font-bold text-indigo-700">

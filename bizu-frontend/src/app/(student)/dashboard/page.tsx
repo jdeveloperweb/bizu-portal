@@ -9,6 +9,9 @@ import {
     StickyNote, Brain, Star, Crown, MoreHorizontal,
     Search
 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/components/AuthProvider";
+import { apiFetch } from "@/lib/api";
 
 const quickActions = [
     { icon: Target, label: "Quiz", desc: "Questões personalizadas", href: "/questoes/treino" },
@@ -17,34 +20,65 @@ const quickActions = [
     { icon: Timer, label: "Foco", desc: "Sessões de estudo", href: "/pomodoro" },
 ];
 
-const recentActivity = [
-    { text: "Direito Administrativo", desc: "25 questões resolvidas", time: "Hoje, 09:41", icon: Target, score: "85%" },
-    { text: "Simulado Geral", desc: "120 questões", time: "Ontem", icon: CheckCircle2, score: "72%" },
-    { text: "Direito Civil", desc: "Revisão de flashcards", time: "Ontem", icon: Layers, score: "100%" },
-];
-
-const subjects = [
-    { label: "Direito Constitucional", pct: 91 },
-    { label: "Direito Penal", pct: 85 },
-    { label: "Direito Administrativo", pct: 85 },
-    { label: "Processo Civil", pct: 78 },
-    { label: "Direito Civil", pct: 70 },
-];
-
-const pendingTasks = [
-    { title: "Revisar Atos Administrativos", subject: "D. Admin.", type: "Revisão", priority: "high" },
-    { title: "Resolver 30 questões de D. Const.", subject: "D. Const.", type: "Prática", priority: "medium" },
-    { title: "Anotar jurisprudência de P. Civil", subject: "P. Civil", type: "Leitura", priority: "low" },
-];
-
 export default function DashboardPage() {
+    const { user } = useAuth();
+    const [performance, setPerformance] = useState<any>(null);
+    const [gamification, setGamification] = useState<any>(null);
+    const [badges, setBadges] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                const [perfRes, gamiRes, badgeRes] = await Promise.all([
+                    apiFetch("/student/performance/summary"),
+                    apiFetch("/student/gamification/me"),
+                    apiFetch("/student/badges/me")
+                ]);
+
+                if (perfRes.ok) setPerformance(await perfRes.json());
+                if (gamiRes.ok) setGamification(await gamiRes.json());
+                if (badgeRes.ok) setBadges(await badgeRes.json());
+            } catch (err) {
+                console.error("Failed to fetch dashboard stats", err);
+            }
+        };
+        fetchDashboardData();
+    }, []);
+
+    const subjects = performance?.bySubject || [];
+    const recentActivity: any[] = []; // Not implemented yet functionally
+    const pendingTasks: any[] = []; // Not implemented yet functionally
+
+    const totalResolved = performance?.totalAttempted || 0;
+    const accuracy = performance?.overallAccuracy ? parseFloat(performance.overallAccuracy).toFixed(1) + "%" : "0%";
+    const totalXp = gamification?.totalXp || 0;
+    const streak = gamification?.currentStreak || 0;
+
+    const achivementsData = [
+        { icon: Flame, unlocked: badges.some(b => b.badgeId === 'first_blood'), color: "from-orange-400 to-rose-500", shadow: "shadow-orange-500/40", anim: "group-hover:rotate-12 group-hover:scale-125" },
+        { icon: Target, unlocked: badges.some(b => b.badgeId === 'sharpshooter'), color: "from-blue-400 to-indigo-500", shadow: "shadow-blue-500/40", anim: "group-hover:scale-125" },
+        { icon: Swords, unlocked: badges.some(b => b.badgeId === 'arena_master'), color: "from-emerald-400 to-teal-500", shadow: "shadow-emerald-500/40", anim: "group-hover:-rotate-12 group-hover:scale-125" },
+        { icon: Star, unlocked: badges.some(b => b.badgeId === 'dedication'), color: "from-amber-300 to-orange-400", shadow: "shadow-amber-500/40", anim: "group-hover:rotate-45 group-hover:scale-125" },
+        { icon: Brain, unlocked: badges.some(b => b.badgeId === 'genius') },
+        { icon: Crown, unlocked: badges.some(b => b.badgeId === 'champion') },
+        { icon: Layers, unlocked: badges.some(b => b.badgeId === 'flashcard_pro') },
+        { icon: BookOpen, unlocked: badges.some(b => b.badgeId === 'bookworm') },
+    ];
+
+    // Fallback se não bater nomes de badges
+    if (badges.length > 0) {
+        achivementsData.forEach((ach, index) => {
+            if (index < badges.length) ach.unlocked = true;
+        });
+    }
+
     return (
         <div className="p-6 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto min-h-screen font-sans">
             {/* Header Area */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
                 <div>
                     <h1 className="text-3xl font-light text-slate-800 tracking-tight mb-1.5">
-                        Bom dia, <span className="font-semibold text-slate-900">Aluno</span>
+                        Bom dia, <span className="font-semibold text-slate-900">{user?.name || "Aluno"}</span>
                     </h1>
                     <p className="text-sm text-slate-500 font-medium tracking-wide">
                         Visão Geral do seu Desempenho
@@ -61,10 +95,10 @@ export default function DashboardPage() {
                         />
                     </div>
                     <div className="flex items-center gap-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 px-3.5 py-2 rounded-full shadow-sm">
-                        <Flame size={15} className="text-orange-500" /> 7 dias
+                        <Flame size={15} className="text-orange-500" /> {streak} dias
                     </div>
                     <div className="flex items-center gap-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 px-3.5 py-2 rounded-full shadow-sm">
-                        <Trophy size={15} className="text-indigo-600" /> 1.247 XP
+                        <Trophy size={15} className="text-indigo-600" /> {totalXp} XP
                     </div>
                     <button className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all relative shadow-sm">
                         <Bell size={17} />
@@ -76,17 +110,17 @@ export default function DashboardPage() {
             {/* Top Stats Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
                 {[
-                    { label: "Questões Resolvidas", val: "2.847", delta: "+124", icon: BarChart3 },
-                    { label: "Taxa de Acerto", val: "78%", delta: "+3%", icon: Target },
-                    { label: "Simulados", val: "23", delta: "+3", icon: TrendingUp },
-                    { label: "Ranking Geral", val: "#142", delta: "+18", icon: Trophy },
+                    { label: "Questões Resolvidas", val: totalResolved.toString(), delta: "", icon: BarChart3 },
+                    { label: "Taxa de Acerto", val: accuracy, delta: "", icon: Target },
+                    { label: "Nível", val: (gamification?.level || 1).toString(), delta: "", icon: TrendingUp },
+                    { label: "Ranking", val: "-", delta: "", icon: Trophy },
                 ].map((s) => (
                     <div key={s.label} className="bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] flex flex-col justify-between hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 group">
                         <div className="flex items-start justify-between mb-5">
                             <div className="w-10 h-10 rounded-xl bg-slate-50 group-hover:bg-indigo-50 flex items-center justify-center border border-slate-100 group-hover:border-indigo-100 transition-colors">
                                 <s.icon size={18} className="text-slate-600 group-hover:text-indigo-600 transition-colors" />
                             </div>
-                            <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50/80 px-2 py-1 rounded-md">{s.delta}</span>
+                            {s.delta && <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50/80 px-2 py-1 rounded-md">{s.delta}</span>}
                         </div>
                         <div>
                             <div className="text-2xl font-bold text-slate-900 tracking-tight">{s.val}</div>
@@ -113,16 +147,13 @@ export default function DashboardPage() {
                                 <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-indigo-400 mb-4 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
                                     <Rocket size={13} /> Continue evoluindo
                                 </div>
-                                <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Sessão de Revisão Pendente</h2>
+                                <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Sessão de Treino Diário</h2>
                                 <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-md mx-auto md:mx-0">
-                                    Você tem 23 flashcards de Direito Constitucional agendados para hoje. Mantenha sua constância para fixar o conteúdo.
+                                    A constância é a chave para a aprovação. Mantenha seu streak ativo fazendo pelo menos 10 questões hoje.
                                 </p>
                                 <div className="flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start">
                                     <Link href="/questoes/treino" className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white text-slate-900 px-6 py-3 rounded-xl text-sm font-bold hover:bg-slate-100 transition-all hover:scale-[1.02] shadow-lg shadow-white/10">
-                                        <PlayCircle size={18} /> Iniciar Revisão
-                                    </Link>
-                                    <Link href="/simulados" className="w-full sm:w-auto flex items-center justify-center gap-1.5 text-sm font-semibold text-slate-300 hover:text-white px-6 py-3 rounded-xl hover:bg-white/5 transition-colors">
-                                        Simulado Rápido <ArrowUpRight size={15} />
+                                        <PlayCircle size={18} /> Iniciar Treino
                                     </Link>
                                 </div>
                             </div>
@@ -133,8 +164,8 @@ export default function DashboardPage() {
                                 <div className="absolute inset-0 border-[6px] border-indigo-500 rounded-full" style={{ clipPath: 'polygon(50% 0, 100% 0, 100% 100%, 50% 100%)' }} />
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <div className="text-center">
-                                        <span className="block text-2xl font-bold text-white tracking-tighter">78%</span>
-                                        <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Meta Diária</span>
+                                        <span className="block text-2xl font-bold text-white tracking-tighter">{gamification?.nextLevelProgress || 0}%</span>
+                                        <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">P/ Próximo Nível</span>
                                     </div>
                                 </div>
                             </div>
@@ -171,24 +202,30 @@ export default function DashboardPage() {
                                 <h3 className="text-[15px] font-bold text-slate-800">Plano de Estudo</h3>
                                 <Link href="/tarefas" className="text-xs font-bold text-indigo-600 hover:text-indigo-700">Ver tudo</Link>
                             </div>
-                            <div className="space-y-1">
-                                {pendingTasks.map((t, i) => (
-                                    <Link key={i} href="/tarefas" className="flex items-center gap-3.5 p-3 rounded-xl hover:bg-slate-50 transition-colors group">
-                                        <div className={`w-5 h-5 rounded-[6px] border-2 transition-colors shrink-0 flex items-center justify-center
-                                            ${t.priority === 'high' ? 'border-rose-300 group-hover:border-rose-400' :
-                                                t.priority === 'medium' ? 'border-amber-300 group-hover:border-amber-400' :
-                                                    'border-slate-300 group-hover:border-slate-400'}`} />
-                                        <div className="flex-1 min-w-0">
-                                            <div className="text-[13px] font-semibold text-slate-800 truncate mb-1">{t.title}</div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mix-blend-multiply">{t.subject}</span>
-                                                <span className="w-1 h-1 rounded-full bg-slate-300" />
-                                                <span className="text-[10px] font-medium text-slate-500">{t.type}</span>
+                            {pendingTasks.length > 0 ? (
+                                <div className="space-y-1">
+                                    {pendingTasks.map((t, i) => (
+                                        <Link key={i} href="/tarefas" className="flex items-center gap-3.5 p-3 rounded-xl hover:bg-slate-50 transition-colors group">
+                                            <div className={`w-5 h-5 rounded-[6px] border-2 transition-colors shrink-0 flex items-center justify-center
+                                                ${t.priority === 'high' ? 'border-rose-300 group-hover:border-rose-400' :
+                                                    t.priority === 'medium' ? 'border-amber-300 group-hover:border-amber-400' :
+                                                        'border-slate-300 group-hover:border-slate-400'}`} />
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-[13px] font-semibold text-slate-800 truncate mb-1">{t.title}</div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mix-blend-multiply">{t.subject}</span>
+                                                    <span className="w-1 h-1 rounded-full bg-slate-300" />
+                                                    <span className="text-[10px] font-medium text-slate-500">{t.type}</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-6">
+                                    <p className="text-xs text-slate-400">Nenhum plano pendente.</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Activity */}
@@ -196,23 +233,29 @@ export default function DashboardPage() {
                             <div className="flex items-center justify-between mb-5">
                                 <h3 className="text-[15px] font-bold text-slate-800">Últimas Atividades</h3>
                             </div>
-                            <div className="space-y-1">
-                                {recentActivity.map((a, i) => (
-                                    <div key={i} className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors">
-                                        <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
-                                            <a.icon size={16} className="text-slate-500" />
+                            {recentActivity.length > 0 ? (
+                                <div className="space-y-1">
+                                    {recentActivity.map((a, i) => (
+                                        <div key={i} className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors">
+                                            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+                                                <a.icon size={16} className="text-slate-500" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-[13px] font-semibold text-slate-800 truncate mb-0.5">{a.text}</div>
+                                                <div className="text-[11px] font-medium text-slate-500 truncate">{a.desc}</div>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <div className="text-[13px] font-bold text-slate-800">{a.score}</div>
+                                                <div className="text-[10px] font-medium text-slate-400">{a.time}</div>
+                                            </div>
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="text-[13px] font-semibold text-slate-800 truncate mb-0.5">{a.text}</div>
-                                            <div className="text-[11px] font-medium text-slate-500 truncate">{a.desc}</div>
-                                        </div>
-                                        <div className="text-right shrink-0">
-                                            <div className="text-[13px] font-bold text-slate-800">{a.score}</div>
-                                            <div className="text-[10px] font-medium text-slate-400">{a.time}</div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-6">
+                                    <p className="text-xs text-slate-400">Nenhuma atividade recente.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -233,20 +276,26 @@ export default function DashboardPage() {
                                 </div>
                             </div>
 
-                            <div className="space-y-6">
-                                {subjects.map((s) => (
-                                    <div key={s.label} className="group cursor-pointer">
-                                        <div className="flex justify-between items-end mb-2.5">
-                                            <span className="text-[13px] font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">{s.label}</span>
-                                            <span className="text-[13px] font-bold text-slate-800">{s.pct}%</span>
+                            {subjects.length > 0 ? (
+                                <div className="space-y-6">
+                                    {subjects.slice(0, 5).map((s: any) => (
+                                        <div key={s.subject} className="group cursor-pointer">
+                                            <div className="flex justify-between items-end mb-2.5">
+                                                <span className="text-[13px] font-semibold text-slate-600 group-hover:text-slate-900 transition-colors truncate max-w-[150px]">{s.subject}</span>
+                                                <span className="text-[13px] font-bold text-slate-800">{parseFloat(s.accuracy).toFixed(0)}%</span>
+                                            </div>
+                                            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                <div className="h-full bg-slate-800 rounded-full transition-all duration-1000 ease-out"
+                                                    style={{ width: `${s.accuracy}%` }} />
+                                            </div>
                                         </div>
-                                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                            <div className="h-full bg-slate-800 rounded-full transition-all duration-1000 ease-out"
-                                                style={{ width: `${s.pct}%` }} />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-6">
+                                    <p className="text-xs text-slate-400">Resolva questões para ver seu desempenho aqui.</p>
+                                </div>
+                            )}
 
                             <Link href="/desempenho" className="mt-8 flex items-center justify-center gap-1.5 text-[13px] font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 border border-slate-200 w-full py-3.5 rounded-xl transition-all">
                                 Relatório Completo <ArrowUpRight size={14} />
@@ -258,32 +307,23 @@ export default function DashboardPage() {
                     <div className="bg-white border border-slate-200 rounded-3xl p-6 lg:p-8 shadow-sm">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-[15px] font-bold text-slate-800">Conquistas</h3>
-                            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-full uppercase tracking-wider">4 Bloqueadas</span>
+                            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-full uppercase tracking-wider">{badges.length} Desbloqueadas</span>
                         </div>
                         <div className="grid grid-cols-4 gap-3">
-                            {[
-                                { icon: Flame, unlocked: true, color: "from-orange-400 to-rose-500", shadow: "shadow-orange-500/40", anim: "group-hover:rotate-12 group-hover:scale-125" },
-                                { icon: Target, unlocked: true, color: "from-blue-400 to-indigo-500", shadow: "shadow-blue-500/40", anim: "group-hover:scale-125" },
-                                { icon: Swords, unlocked: true, color: "from-emerald-400 to-teal-500", shadow: "shadow-emerald-500/40", anim: "group-hover:-rotate-12 group-hover:scale-125" },
-                                { icon: Star, unlocked: true, color: "from-amber-300 to-orange-400", shadow: "shadow-amber-500/40", anim: "group-hover:rotate-45 group-hover:scale-125" },
-                                { icon: Brain, unlocked: false },
-                                { icon: Crown, unlocked: false },
-                                { icon: Layers, unlocked: false },
-                                { icon: BookOpen, unlocked: false },
-                            ].map((c, i) => (
-                                <div key={i} className="relative group cursor-pointer">
-                                    {c.unlocked && (
+                            {achivementsData.map((c, i) => (
+                                <div key={i} className="relative group cursor-pointer" title={c.unlocked ? "Desbloqueado" : "Bloqueado"}>
+                                    {c.unlocked && c.color && (
                                         <div className={`absolute -inset-0.5 bg-gradient-to-r ${c.color} rounded-2xl blur opacity-30 group-hover:opacity-70 transition duration-500 group-hover:duration-200 animate-pulse`} />
                                     )}
                                     <div
-                                        className={`relative aspect-square rounded-2xl flex items-center justify-center transition-all duration-500 ${c.unlocked
+                                        className={`relative aspect-square rounded-2xl flex items-center justify-center transition-all duration-500 ${c.unlocked && c.color
                                             ? `bg-gradient-to-br ${c.color} shadow-lg ${c.shadow} group-hover:scale-105 group-hover:-translate-y-1`
                                             : "bg-slate-50 border border-slate-100"
                                             }`}>
                                         <div className={`transition-all duration-300 ${c.unlocked ? c.anim : ""}`}>
                                             <c.icon
-                                                size={c.unlocked ? 24 : 18}
-                                                className={`${c.unlocked ? "text-white drop-shadow-md" : "text-slate-300"}`}
+                                                size={c.unlocked && c.color ? 24 : 18}
+                                                className={`${c.unlocked && c.color ? "text-white drop-shadow-md" : "text-slate-300"}`}
                                             />
                                         </div>
                                     </div>

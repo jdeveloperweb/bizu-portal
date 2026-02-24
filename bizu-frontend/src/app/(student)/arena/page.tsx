@@ -69,7 +69,7 @@ export default function ArenaPage() {
     const myStats = { wins: 25, losses: 10, winRate: 71, streak: 3 };
 
     return (
-        <div className="p-6 lg:p-8 max-w-[1100px]">
+        <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
@@ -154,9 +154,8 @@ export default function ArenaPage() {
                     const active = activeTab === tab.key;
                     return (
                         <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[12px] font-bold transition-all ${
-                                active ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"
-                            }`}>
+                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[12px] font-bold transition-all ${active ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"
+                                }`}>
                             <Icon size={14} /> {tab.label}
                         </button>
                     );
@@ -173,9 +172,8 @@ export default function ArenaPage() {
                                     <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center text-[12px] font-bold text-indigo-700">
                                         {user.avatar}
                                     </div>
-                                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
-                                        user.status === "online" ? "bg-emerald-400" : "bg-amber-400"
-                                    }`} />
+                                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${user.status === "online" ? "bg-emerald-400" : "bg-amber-400"
+                                        }`} />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
@@ -191,11 +189,10 @@ export default function ArenaPage() {
                                     </div>
                                 </div>
                                 <button disabled={user.status === "em_duelo"}
-                                    className={`px-4 py-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-all ${
-                                        user.status === "em_duelo"
+                                    className={`px-4 py-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-all ${user.status === "em_duelo"
                                             ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                                             : "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm hover:shadow-md"
-                                    }`}>
+                                        }`}>
                                     <Swords size={13} /> Desafiar
                                 </button>
                             </div>
@@ -213,12 +210,11 @@ export default function ArenaPage() {
                             <div className="divide-y divide-slate-50">
                                 {duelRanking.map(user => (
                                     <div key={user.pos} className={`flex items-center gap-3 px-5 py-3.5 hover:bg-slate-50/50 transition-colors ${user.pos <= 3 ? "bg-indigo-50/30" : ""}`}>
-                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-extrabold text-[12px] ${
-                                            user.pos === 1 ? "bg-amber-100 text-amber-700" :
-                                            user.pos === 2 ? "bg-slate-200 text-slate-600" :
-                                            user.pos === 3 ? "bg-orange-100 text-orange-700" :
-                                            "bg-slate-100 text-slate-500"
-                                        }`}>
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-extrabold text-[12px] ${user.pos === 1 ? "bg-amber-100 text-amber-700" :
+                                                user.pos === 2 ? "bg-slate-200 text-slate-600" :
+                                                    user.pos === 3 ? "bg-orange-100 text-orange-700" :
+                                                        "bg-slate-100 text-slate-500"
+                                            }`}>
                                             {user.pos}
                                         </div>
                                         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center text-[11px] font-bold text-indigo-700">
@@ -237,9 +233,8 @@ export default function ArenaPage() {
 
                     {/* History */}
                     {activeTab === "historico" && duelHistory.map(duel => (
-                        <div key={duel.id} className={`card-elevated !rounded-2xl p-4 hover:!transform-none border-l-4 ${
-                            duel.result === "vitoria" ? "!border-l-emerald-400" : "!border-l-red-400"
-                        }`}>
+                        <div key={duel.id} className={`card-elevated !rounded-2xl p-4 hover:!transform-none border-l-4 ${duel.result === "vitoria" ? "!border-l-emerald-400" : "!border-l-red-400"
+                            }`}>
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center text-[11px] font-bold text-indigo-700">
                                     {duel.avatar}
@@ -247,9 +242,8 @@ export default function ArenaPage() {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-0.5">
                                         <span className="text-[13px] font-bold text-slate-800">vs {duel.opponent}</span>
-                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                                            duel.result === "vitoria" ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"
-                                        }`}>
+                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${duel.result === "vitoria" ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"
+                                            }`}>
                                             {duel.result === "vitoria" ? "Vitoria" : "Derrota"}
                                         </span>
                                     </div>
@@ -280,11 +274,10 @@ export default function ArenaPage() {
                                 <div className="flex flex-wrap gap-1.5">
                                     {SUBJECTS.map(s => (
                                         <button key={s} onClick={() => setSelectedSubject(s)}
-                                            className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
-                                                selectedSubject === s
+                                            className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all ${selectedSubject === s
                                                     ? "bg-indigo-50 text-indigo-700 border border-indigo-100"
                                                     : "text-slate-400 hover:text-slate-600 bg-slate-50 border border-slate-100"
-                                            }`}>
+                                                }`}>
                                             {s === "Aleatorio" ? s : s.replace("Direito ", "D. ").replace("Processo ", "P. ")}
                                         </button>
                                     ))}

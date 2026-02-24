@@ -54,7 +54,7 @@ export default function DesempenhoPage() {
     const weeklyTotal = weeklyData.reduce((a, d) => a + d.questions, 0);
 
     return (
-        <div className="p-6 lg:p-8 max-w-[1100px]">
+        <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
@@ -111,9 +111,8 @@ export default function DesempenhoPage() {
                     const active = activeTab === tab.key;
                     return (
                         <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[12px] font-bold transition-all ${
-                                active ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"
-                            }`}>
+                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[12px] font-bold transition-all ${active ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"
+                                }`}>
                             <Icon size={14} /> {tab.label}
                         </button>
                     );

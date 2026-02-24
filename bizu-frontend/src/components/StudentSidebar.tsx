@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"; import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import BrandLogo from "@/components/BrandLogo";
+import { apiFetch } from "@/lib/api";
 import {
     LayoutDashboard, BookOpen, ClipboardList, Layers,
     Swords, TrendingUp, User, Trophy, LogOut,
@@ -40,6 +41,22 @@ export default function StudentSidebar() {
     const pathname = usePathname();
     const { logout } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
+    const [streak, setStreak] = useState(0);
+
+    useEffect(() => {
+        const fetchGamification = async () => {
+            try {
+                const res = await apiFetch("/student/gamification/me");
+                if (res.ok) {
+                    const data = await res.json();
+                    setStreak(data.currentStreak || 0);
+                }
+            } catch (err) {
+                console.error("Failed to fetch streak", err);
+            }
+        };
+        fetchGamification();
+    }, []);
 
     // Close sidebar on path change (mobile)
     useEffect(() => {
@@ -87,7 +104,7 @@ export default function StudentSidebar() {
                 <div className="h-14 flex items-center justify-between px-4 border-b border-slate-50 shrink-0">
                     <BrandLogo size="sm" variant="dark" />
                     <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
-                        <Flame size={10} /> 7
+                        <Flame size={10} /> {streak}
                     </div>
                 </div>
 
@@ -121,8 +138,8 @@ export default function StudentSidebar() {
                     <div className="rounded-lg bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-100 px-3.5 py-3">
                         <p className="text-[11px] font-bold text-indigo-700 mb-0.5">Plano Free</p>
                         <p className="text-[10px] text-indigo-500/70 mb-2">Faca upgrade para desbloquear tudo</p>
-                        <Link href="/pricing" className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5">
-                            Ver planos <ChevronRight size={11} />
+                        <Link href="/ranking" className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5">
+                            Ver metas <ChevronRight size={11} />
                         </Link>
                     </div>
                     <button

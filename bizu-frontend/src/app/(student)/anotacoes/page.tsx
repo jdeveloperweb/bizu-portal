@@ -133,7 +133,7 @@ export default function AnotacoesPage() {
     };
 
     return (
-        <div className="p-6 lg:p-8 max-w-[1200px]">
+        <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <div>
@@ -168,11 +168,10 @@ export default function AnotacoesPage() {
                     <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
                         {SUBJECTS.map(s => (
                             <button key={s} onClick={() => setSelectedSubject(s)}
-                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all ${
-                                    selectedSubject === s
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all ${selectedSubject === s
                                         ? "bg-indigo-50 text-indigo-700 border border-indigo-100"
                                         : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
-                                }`}>
+                                    }`}>
                                 {s === "Todos" ? s : s.replace("Direito ", "D. ").replace("Processo ", "P. ")}
                             </button>
                         ))}
@@ -182,9 +181,8 @@ export default function AnotacoesPage() {
                     <div className="space-y-2 overflow-y-auto" style={{ maxHeight: "calc(100vh - 320px)" }}>
                         {filteredNotes.map(note => (
                             <button key={note.id} onClick={() => { setSelectedNote(note); setIsEditing(false); }}
-                                className={`w-full text-left card-elevated !rounded-xl p-3.5 hover:!transform-none transition-all ${
-                                    selectedNote?.id === note.id ? "!border-indigo-300 !shadow-[0_0_0_2px_rgba(99,102,241,0.1)]" : ""
-                                }`}>
+                                className={`w-full text-left card-elevated !rounded-xl p-3.5 hover:!transform-none transition-all ${selectedNote?.id === note.id ? "!border-indigo-300 !shadow-[0_0_0_2px_rgba(99,102,241,0.1)]" : ""
+                                    }`}>
                                 <div className="flex items-start gap-2">
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-1.5 mb-1">
@@ -242,15 +240,13 @@ export default function AnotacoesPage() {
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                     <button onClick={() => togglePin(selectedNote.id)}
-                                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                                            selectedNote.pinned ? "bg-indigo-50 text-indigo-600" : "text-slate-400 hover:bg-slate-50"
-                                        }`}>
+                                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${selectedNote.pinned ? "bg-indigo-50 text-indigo-600" : "text-slate-400 hover:bg-slate-50"
+                                            }`}>
                                         <Pin size={14} />
                                     </button>
                                     <button onClick={() => toggleStar(selectedNote.id)}
-                                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                                            selectedNote.starred ? "bg-amber-50 text-amber-600" : "text-slate-400 hover:bg-slate-50"
-                                        }`}>
+                                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${selectedNote.starred ? "bg-amber-50 text-amber-600" : "text-slate-400 hover:bg-slate-50"
+                                            }`}>
                                         <Star size={14} className={selectedNote.starred ? "fill-amber-500" : ""} />
                                     </button>
                                     {!isEditing ? (

@@ -22,24 +22,27 @@ const statusConfig: Record<string, any> = {
 export default function SimuladosPage() {
     const [activeTab, setActiveTab] = useState<SimuladoTab>("disponiveis");
     const [realSimulados, setRealSimulados] = useState<any[]>([]);
+    const [performance, setPerformance] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const fetchSimulados = async () => {
+        const fetchDados = async () => {
             setIsLoading(true);
             try {
-                const res = await apiFetch("/simulados/disponiveis");
-                if (res.ok) {
-                    const data = await res.json();
-                    setRealSimulados(data);
-                }
+                const [simRes, perfRes] = await Promise.all([
+                    apiFetch("/simulados/disponiveis"),
+                    apiFetch("/student/performance/summary")
+                ]);
+
+                if (simRes.ok) setRealSimulados(await simRes.json());
+                if (perfRes.ok) setPerformance(await perfRes.json());
             } catch (error) {
-                console.error("Failed to fetch student simulados", error);
+                console.error("Failed to fetch student data", error);
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchSimulados();
+        fetchDados();
     }, []);
 
     const mappedSimulados = realSimulados.map(sim => {
@@ -48,7 +51,7 @@ export default function SimuladosPage() {
 
         let status = "disponivel";
         if (isFuture) status = "bloqueado";
-        if (isPast) status = "concluido"; // Simplified logic
+        if (isPast) status = "concluido";
 
         return {
             id: sim.id,
@@ -56,13 +59,13 @@ export default function SimuladosPage() {
             description: sim.description,
             questions: sim.questions?.length || 0,
             status: status,
-            date: sim.startDate ? new Date(sim.startDate).toLocaleDateString() : "-",
+            date: sim.startDate ? new Date(sim.startDate).toLocaleDateString('pt-BR') : "-",
             course: sim.course?.title || "Geral"
         };
     });
 
     const completed = mappedSimulados.filter(s => s.status === "concluido");
-    const avgScore = 0; // Not implemented yet
+    const avgScore = performance?.overallAccuracy ? parseFloat(performance.overallAccuracy).toFixed(1) : "0";
 
     const displayedSimulados = activeTab === "concluidos"
         ? mappedSimulados.filter(s => s.status === "concluido")
@@ -71,7 +74,7 @@ export default function SimuladosPage() {
             : mappedSimulados;
 
     return (
-        <div className="p-6 lg:p-8 max-w-[1100px]">
+        <div className="p-6 lg:p-8 w-full max-w-[1100px] mx-auto">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>

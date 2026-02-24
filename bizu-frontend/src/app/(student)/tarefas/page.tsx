@@ -107,7 +107,7 @@ export default function TarefasPage() {
     const completedCount = tasks.filter(t => t.status === "concluida").length;
 
     return (
-        <div className="p-6 lg:p-8 max-w-[1100px]">
+        <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
@@ -158,9 +158,8 @@ export default function TarefasPage() {
                             { key: "concluida" as const, label: "Concluidas" },
                         ]).map(f => (
                             <button key={f.key} onClick={() => setFilter(f.key)}
-                                className={`px-3.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
-                                    filter === f.key ? "bg-indigo-50 text-indigo-700 border border-indigo-100" : "text-slate-400 hover:text-slate-600"
-                                }`}>
+                                className={`px-3.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${filter === f.key ? "bg-indigo-50 text-indigo-700 border border-indigo-100" : "text-slate-400 hover:text-slate-600"
+                                    }`}>
                                 {f.label}
                             </button>
                         ))}
@@ -201,9 +200,8 @@ export default function TarefasPage() {
                             const pConfig = priorityConfig[task.priority];
                             return (
                                 <div key={task.id}
-                                    className={`card-elevated !rounded-2xl p-4 hover:!transform-none ${
-                                        task.status === "concluida" ? "opacity-60" : ""
-                                    }`}>
+                                    className={`card-elevated !rounded-2xl p-4 hover:!transform-none ${task.status === "concluida" ? "opacity-60" : ""
+                                        }`}>
                                     <div className="flex items-start gap-3">
                                         <button onClick={() => toggleStatus(task.id)} className="mt-0.5 shrink-0">
                                             {task.status === "concluida" ? (

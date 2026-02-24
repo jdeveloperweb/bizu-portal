@@ -75,7 +75,7 @@ export default function PomodoroPage() {
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isRunning, timeLeft]);
 
     const handleSessionComplete = () => {
@@ -146,7 +146,7 @@ export default function PomodoroPage() {
     const colors = sessionColors[sessionType];
 
     return (
-        <div className="p-6 lg:p-8 max-w-[1100px]">
+        <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
@@ -182,9 +182,8 @@ export default function PomodoroPage() {
                             const active = sessionType === tab.type;
                             return (
                                 <button key={tab.type} onClick={() => switchSession(tab.type)}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[12px] font-bold transition-all ${
-                                        active ? `bg-gradient-to-r ${sessionColors[tab.type].bg} text-white shadow-sm` : "text-slate-500 hover:bg-slate-50"
-                                    }`}>
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[12px] font-bold transition-all ${active ? `bg-gradient-to-r ${sessionColors[tab.type].bg} text-white shadow-sm` : "text-slate-500 hover:bg-slate-50"
+                                        }`}>
                                     <Icon size={14} /> {tab.label}
                                 </button>
                             );
@@ -203,9 +202,8 @@ export default function PomodoroPage() {
                                 <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-lg z-10 p-1.5 min-w-[240px]">
                                     {SUBJECTS.map(s => (
                                         <button key={s} onClick={() => { setSelectedSubject(s); setShowSubjectPicker(false); }}
-                                            className={`w-full text-left px-3 py-2 rounded-lg text-[12px] font-medium transition-all ${
-                                                s === selectedSubject ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"
-                                            }`}>
+                                            className={`w-full text-left px-3 py-2 rounded-lg text-[12px] font-medium transition-all ${s === selectedSubject ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"
+                                                }`}>
                                             {s}
                                         </button>
                                     ))}
@@ -256,9 +254,8 @@ export default function PomodoroPage() {
                         {/* Cycle Indicators */}
                         <div className="flex items-center gap-2 mt-6">
                             {[1, 2, 3, 4].map(i => (
-                                <div key={i} className={`w-3 h-3 rounded-full transition-all ${
-                                    i <= (completedCycles % 4) ? `bg-gradient-to-br ${colors.bg}` : "bg-slate-200"
-                                }`} />
+                                <div key={i} className={`w-3 h-3 rounded-full transition-all ${i <= (completedCycles % 4) ? `bg-gradient-to-br ${colors.bg}` : "bg-slate-200"
+                                    }`} />
                             ))}
                             <span className="text-[10px] text-slate-400 font-semibold ml-1">
                                 {completedCycles % 4}/4 ate pausa longa

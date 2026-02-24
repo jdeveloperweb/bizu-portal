@@ -79,12 +79,10 @@ export default function ConfiguracoesPage() {
 
     const Toggle = ({ enabled, onChange }: { enabled: boolean; onChange: (v: boolean) => void }) => (
         <button onClick={() => onChange(!enabled)}
-            className={`w-10 h-[22px] rounded-full transition-all relative ${
-                enabled ? "bg-indigo-500" : "bg-slate-200"
-            }`}>
-            <div className={`w-[18px] h-[18px] rounded-full bg-white shadow-sm absolute top-[2px] transition-all ${
-                enabled ? "left-[20px]" : "left-[2px]"
-            }`} />
+            className={`w-10 h-[22px] rounded-full transition-all relative ${enabled ? "bg-indigo-500" : "bg-slate-200"
+                }`}>
+            <div className={`w-[18px] h-[18px] rounded-full bg-white shadow-sm absolute top-[2px] transition-all ${enabled ? "left-[20px]" : "left-[2px]"
+                }`} />
         </button>
     );
 
@@ -100,7 +98,7 @@ export default function ConfiguracoesPage() {
     );
 
     return (
-        <div className="p-6 lg:p-8 max-w-[1000px]">
+        <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
@@ -127,11 +125,10 @@ export default function ConfiguracoesPage() {
                             const active = activeSection === section.id;
                             return (
                                 <button key={section.id} onClick={() => setActiveSection(section.id)}
-                                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[12px] font-medium transition-all ${
-                                        active
+                                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[12px] font-medium transition-all ${active
                                             ? "bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-700 font-bold"
                                             : "text-slate-500 hover:bg-slate-50"
-                                    }`}>
+                                        }`}>
                                     <Icon size={15} className={active ? "text-indigo-600" : "text-slate-400"} />
                                     {section.label}
                                     {active && <ChevronRight size={11} className="ml-auto text-indigo-400" />}
@@ -224,11 +221,10 @@ export default function ConfiguracoesPage() {
                                         <div className="grid grid-cols-4 gap-2">
                                             {(["mista", "facil", "media", "dificil"] as const).map(d => (
                                                 <button key={d} onClick={() => setQuestionDifficulty(d)}
-                                                    className={`py-2.5 rounded-xl text-[12px] font-bold border-2 transition-all capitalize ${
-                                                        questionDifficulty === d
+                                                    className={`py-2.5 rounded-xl text-[12px] font-bold border-2 transition-all capitalize ${questionDifficulty === d
                                                             ? "border-indigo-500 bg-indigo-50 text-indigo-700"
                                                             : "border-slate-200 text-slate-500 hover:border-slate-300"
-                                                    }`}>
+                                                        }`}>
                                                     {d === "facil" ? "Facil" : d === "media" ? "Media" : d === "dificil" ? "Dificil" : "Mista"}
                                                 </button>
                                             ))}
@@ -249,11 +245,10 @@ export default function ConfiguracoesPage() {
                                 <div className="grid grid-cols-2 gap-2">
                                     {SUBJECTS.map(s => (
                                         <button key={s} onClick={() => toggleSubject(s)}
-                                            className={`flex items-center gap-2 py-2.5 px-3 rounded-xl text-[12px] font-medium border transition-all ${
-                                                selectedSubjects.includes(s)
+                                            className={`flex items-center gap-2 py-2.5 px-3 rounded-xl text-[12px] font-medium border transition-all ${selectedSubjects.includes(s)
                                                     ? "border-indigo-300 bg-indigo-50 text-indigo-700"
                                                     : "border-slate-200 text-slate-500 hover:border-slate-300"
-                                            }`}>
+                                                }`}>
                                             <CheckCircle2 size={14} className={selectedSubjects.includes(s) ? "text-indigo-500" : "text-slate-300"} />
                                             {s}
                                         </button>
@@ -336,11 +331,10 @@ export default function ConfiguracoesPage() {
                                             { key: "semanal" as const, label: "Semanal" },
                                         ]).map(r => (
                                             <button key={r.key} onClick={() => setRankingType(r.key)}
-                                                className={`py-2.5 rounded-xl text-[12px] font-bold border-2 transition-all ${
-                                                    rankingType === r.key
+                                                className={`py-2.5 rounded-xl text-[12px] font-bold border-2 transition-all ${rankingType === r.key
                                                         ? "border-indigo-500 bg-indigo-50 text-indigo-700"
                                                         : "border-slate-200 text-slate-500 hover:border-slate-300"
-                                                }`}>
+                                                    }`}>
                                                 {r.label}
                                             </button>
                                         ))}
@@ -384,11 +378,10 @@ export default function ConfiguracoesPage() {
                                             const Icon = t.icon;
                                             return (
                                                 <button key={t.key} onClick={() => setTheme(t.key)}
-                                                    className={`flex flex-col items-center gap-2 py-4 rounded-xl border-2 transition-all ${
-                                                        theme === t.key
+                                                    className={`flex flex-col items-center gap-2 py-4 rounded-xl border-2 transition-all ${theme === t.key
                                                             ? "border-indigo-500 bg-indigo-50 text-indigo-700"
                                                             : "border-slate-200 text-slate-500 hover:border-slate-300"
-                                                    }`}>
+                                                        }`}>
                                                     <Icon size={20} />
                                                     <span className="text-[11px] font-bold">{t.label}</span>
                                                 </button>

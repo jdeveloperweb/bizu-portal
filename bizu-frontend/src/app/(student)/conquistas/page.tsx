@@ -56,7 +56,7 @@ export default function ConquistasPage() {
     const totalXP = badges.filter(b => b.earned).reduce((a, b) => a + b.xp, 0);
 
     return (
-        <div className="p-6 lg:p-8 max-w-[1100px]">
+        <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
@@ -108,8 +108,8 @@ export default function ConquistasPage() {
                     return (
                         <button key={key} onClick={() => setActiveCategory(key)}
                             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all ${activeCategory === key
-                                    ? "bg-indigo-50 text-indigo-700 border border-indigo-100"
-                                    : "text-slate-400 hover:text-slate-600"
+                                ? "bg-indigo-50 text-indigo-700 border border-indigo-100"
+                                : "text-slate-400 hover:text-slate-600"
                                 }`}>
                             <Icon size={12} /> {config.label}
                         </button>
@@ -130,8 +130,8 @@ export default function ConquistasPage() {
                                         <div className={`absolute -inset-0.5 bg-gradient-to-r ${badge.color} rounded-xl blur opacity-30 group-hover:opacity-70 transition duration-500 group-hover:duration-200 animate-pulse`} />
                                     )}
                                     <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-500 ${badge.earned
-                                            ? `bg-gradient-to-br ${badge.color} shadow-md group-hover:scale-110 group-hover:-translate-y-0.5`
-                                            : "bg-slate-100 border border-slate-200"
+                                        ? `bg-gradient-to-br ${badge.color} shadow-md group-hover:scale-110 group-hover:-translate-y-0.5`
+                                        : "bg-slate-100 border border-slate-200"
                                         }`}>
                                         <div className={`transition-all duration-300 ${badge.earned ? "group-hover:rotate-12 hover:scale-110" : ""}`}>
                                             <Icon size={20} className={`${badge.earned ? "text-white drop-shadow-md" : "text-slate-400"}`} />

@@ -70,7 +70,7 @@ export default function NovaQuestaoPage() {
             <div className="absolute top-0 right-0 -z-10 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-40 left-0 -z-10 w-[400px] h-[400px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-            <div className="container mx-auto px-6 py-12 max-w-7xl relative">
+            <div className="container mx-auto px-6 py-12 max-w-[1600px] relative">
                 {/* Header Section */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}

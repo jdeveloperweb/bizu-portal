@@ -84,7 +84,7 @@ function TreinoContent() {
     };
 
     return (
-        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-5xl">
+        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full max-w-[1600px]">
             <div className="flex flex-wrap items-center justify-between mb-6 md:mb-8 gap-3">
                 <Link href="/simulados">
                     <Button variant="ghost" className="rounded-xl flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 -ml-2 sm:ml-0">
