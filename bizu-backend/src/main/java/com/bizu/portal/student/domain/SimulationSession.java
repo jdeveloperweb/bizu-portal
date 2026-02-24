@@ -4,7 +4,6 @@ import com.bizu.portal.identity.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -49,6 +48,6 @@ public class SimulationSession {
     private Integer correctAnswers = 0;
 
     @Builder.Default
-    @Column(name = "score_percent", precision = 5, scale = 2)
-    private BigDecimal scorePercent = BigDecimal.ZERO;
+    @Column(name = "score_percent")
+    private Double scorePercent = 0.0;
 }

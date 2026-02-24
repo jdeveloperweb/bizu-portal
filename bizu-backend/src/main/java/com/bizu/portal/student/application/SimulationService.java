@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -42,8 +41,7 @@ public class SimulationService {
         
         // Final score calculation would be done here based on linked attempts
         if (session.getTotalQuestions() > 0) {
-            double score = (double) session.getCorrectAnswers() / session.getTotalQuestions() * 100;
-            session.setScorePercent(BigDecimal.valueOf(score));
+            session.setScorePercent((double) session.getCorrectAnswers() / session.getTotalQuestions() * 100);
         }
 
         return simulationRepository.save(session);
