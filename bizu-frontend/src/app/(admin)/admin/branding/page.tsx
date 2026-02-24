@@ -14,11 +14,10 @@ import {
 } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import { apiFetch } from "@/lib/api";
 
 export default function AdminBrandingPage() {
-    const { data: session } = useSession();
     const [siteName, setSiteName] = useState("Bizu! Portal");
     const [primaryColor, setPrimaryColor] = useState("#3b82f6");
     const [secondaryColor, setSecondaryColor] = useState("#1e40af");
@@ -32,7 +31,7 @@ export default function AdminBrandingPage() {
         const fetchBranding = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/admin/branding/active`);
+                const res = await apiFetch(`/admin/branding/active`);
                 if (res.ok) {
                     const data = await res.json();
                     setSiteName(data.siteName || "Bizu! Portal");
@@ -52,18 +51,10 @@ export default function AdminBrandingPage() {
     }, []);
 
     const handleSave = async () => {
-        if (!session?.accessToken) {
-            toast.error("Você precisa estar logado");
-            return;
-        }
         setSaving(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/admin/branding`, {
+            const res = await apiFetch(`/admin/branding`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${session.accessToken}`
-                },
                 body: JSON.stringify({
                     siteName,
                     primaryColor,

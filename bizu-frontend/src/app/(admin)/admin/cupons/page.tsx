@@ -31,6 +31,13 @@ interface Coupon {
 }
 
 export default function AdminCuponsPage() {
+    const [coupons, setCoupons] = useState<Coupon[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [newCoupon, setNewCoupon] = useState({ code: "", type: "PERCENTAGE", value: "", maxUses: "", validUntil: "" });
+
     const fetchCoupons = async () => {
         setLoading(true);
         try {

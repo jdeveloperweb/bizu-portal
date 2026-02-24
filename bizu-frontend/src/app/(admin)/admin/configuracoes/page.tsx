@@ -11,11 +11,10 @@ import {
 } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import { apiFetch } from "@/lib/api";
 
 export default function AdminConfiguracoesPage() {
-    const { data: session } = useSession();
     const [activeTab, setActiveTab] = useState("pagamento");
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -49,14 +48,9 @@ export default function AdminConfiguracoesPage() {
 
     useEffect(() => {
         const fetchSettings = async () => {
-            if (!session?.accessToken) return;
             setLoading(true);
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/admin/settings`, {
-                    headers: {
-                        Authorization: `Bearer ${session.accessToken}`
-                    }
-                });
+                const res = await apiFetch(`/admin/settings`);
                 if (res.ok) {
                     const data = await res.json();
                     setSettings(prev => ({ ...prev, ...data }));
@@ -71,21 +65,14 @@ export default function AdminConfiguracoesPage() {
             }
         };
 
-        if (session?.accessToken) {
-            fetchSettings();
-        }
-    }, [session]);
+        fetchSettings();
+    }, []);
 
     const handleSave = async () => {
-        if (!session?.accessToken) return;
         setSaving(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/admin/settings`, {
+            const res = await apiFetch(`/admin/settings`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${session.accessToken}`
-                },
                 body: JSON.stringify(settings)
             });
 
