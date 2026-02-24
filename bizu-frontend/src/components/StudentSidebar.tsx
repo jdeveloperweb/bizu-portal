@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useState, useEffect } from "react"; import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import BrandLogo from "@/components/BrandLogo";
@@ -8,7 +8,7 @@ import {
     LayoutDashboard, BookOpen, ClipboardList, Layers,
     Swords, TrendingUp, User, Trophy, LogOut,
     ChevronRight, Search, Flame, Timer, CheckSquare,
-    StickyNote, Settings, BarChart3,
+    StickyNote, Settings, BarChart3, Menu, X,
 } from "lucide-react";
 
 const studyNav = [
@@ -39,6 +39,12 @@ const bottomNav = [
 export default function StudentSidebar() {
     const pathname = usePathname();
     const { logout } = useAuth();
+    const [isOpen, setIsOpen] = useState(false);
+
+    // Close sidebar on path change (mobile)
+    useEffect(() => {
+        setIsOpen(false);
+    }, [pathname]);
 
     const Item = ({ href, icon: Icon, label }: { href: string; icon: typeof LayoutDashboard; label: string }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
@@ -56,54 +62,76 @@ export default function StudentSidebar() {
     };
 
     return (
-        <aside className="w-[230px] shrink-0 h-screen sticky top-0 flex flex-col bg-white border-r border-slate-100/80">
-            <div className="h-14 flex items-center justify-between px-4 border-b border-slate-50">
+        <>
+            {/* Menu Mobile Topo */}
+            <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-slate-100 flex items-center justify-between px-4 z-40">
                 <BrandLogo size="sm" variant="dark" />
-                <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
-                    <Flame size={10} /> 7
-                </div>
-            </div>
-
-            <div className="px-3 py-2.5">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-slate-400 text-[11px] cursor-pointer hover:border-slate-200 transition-colors">
-                    <Search size={13} />
-                    <span>Buscar...</span>
-                    <span className="ml-auto bg-white border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-mono">&#8984;K</span>
-                </div>
-            </div>
-
-            <nav className="flex-1 px-2.5 overflow-y-auto">
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] px-3 mb-1.5 mt-1">Estudar</p>
-                <div className="space-y-px mb-3">
-                    {studyNav.map((i) => <Item key={i.href} {...i} />)}
-                </div>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] px-3 mb-1.5">Planejar</p>
-                <div className="space-y-px mb-3">
-                    {planNav.map((i) => <Item key={i.href} {...i} />)}
-                </div>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] px-3 mb-1.5">Acompanhar</p>
-                <div className="space-y-px mb-3">
-                    {trackNav.map((i) => <Item key={i.href} {...i} />)}
-                </div>
-                <div className="border-t border-slate-50 pt-2 space-y-px">
-                    {bottomNav.map((i) => <Item key={i.href} {...i} />)}
-                </div>
-            </nav>
-
-            <div className="px-2.5 py-3 border-t border-slate-50 space-y-2">
-                <div className="rounded-lg bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-100 px-3.5 py-3">
-                    <p className="text-[11px] font-bold text-indigo-700 mb-0.5">Plano Free</p>
-                    <p className="text-[10px] text-indigo-500/70 mb-2">Faca upgrade para desbloquear tudo</p>
-                    <Link href="/pricing" className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5">
-                        Ver planos <ChevronRight size={11} />
-                    </Link>
-                </div>
-                <button
-                    onClick={logout}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all">
-                    <LogOut size={15} /> Sair
+                <button onClick={() => setIsOpen(!isOpen)} className="p-2 -mr-2 text-slate-500 hover:text-indigo-600 transition-colors">
+                    {isOpen ? <X size={20} /> : <Menu size={20} />}
                 </button>
             </div>
-        </aside>
+
+            {/* Overlay Mobile */}
+            {isOpen && (
+                <div
+                    className="md:hidden fixed inset-0 bg-slate-900/20 z-40 backdrop-blur-sm"
+                    onClick={() => setIsOpen(false)}
+                />
+            )}
+
+            <aside className={`
+                w-[230px] shrink-0 h-[100dvh] bg-white border-r border-slate-100/80 flex flex-col
+                fixed md:sticky top-0 z-50 transition-transform duration-300 ease-in-out
+                ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+            `}>
+                <div className="h-14 flex items-center justify-between px-4 border-b border-slate-50 shrink-0">
+                    <BrandLogo size="sm" variant="dark" />
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
+                        <Flame size={10} /> 7
+                    </div>
+                </div>
+
+                <div className="px-3 py-2.5">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-slate-400 text-[11px] cursor-pointer hover:border-slate-200 transition-colors">
+                        <Search size={13} />
+                        <span>Buscar...</span>
+                        <span className="ml-auto bg-white border border-slate-200 px-1.5 py-0.5 rounded text-[9px] font-mono">&#8984;K</span>
+                    </div>
+                </div>
+
+                <nav className="flex-1 px-2.5 overflow-y-auto">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] px-3 mb-1.5 mt-1">Estudar</p>
+                    <div className="space-y-px mb-3">
+                        {studyNav.map((i) => <Item key={i.href} {...i} />)}
+                    </div>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] px-3 mb-1.5">Planejar</p>
+                    <div className="space-y-px mb-3">
+                        {planNav.map((i) => <Item key={i.href} {...i} />)}
+                    </div>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] px-3 mb-1.5">Acompanhar</p>
+                    <div className="space-y-px mb-3">
+                        {trackNav.map((i) => <Item key={i.href} {...i} />)}
+                    </div>
+                    <div className="border-t border-slate-50 pt-2 space-y-px">
+                        {bottomNav.map((i) => <Item key={i.href} {...i} />)}
+                    </div>
+                </nav>
+
+                <div className="px-2.5 py-3 border-t border-slate-50 space-y-2">
+                    <div className="rounded-lg bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-100 px-3.5 py-3">
+                        <p className="text-[11px] font-bold text-indigo-700 mb-0.5">Plano Free</p>
+                        <p className="text-[10px] text-indigo-500/70 mb-2">Faca upgrade para desbloquear tudo</p>
+                        <Link href="/pricing" className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5">
+                            Ver planos <ChevronRight size={11} />
+                        </Link>
+                    </div>
+                    <button
+                        onClick={logout}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all">
+                        <LogOut size={15} /> Sair
+                    </button>
+                </div>
+            </aside>
+        </>
     );
 }
