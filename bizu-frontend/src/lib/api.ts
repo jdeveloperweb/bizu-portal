@@ -5,9 +5,12 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://bizu.mjolnix.com.br/
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     const token = Cookies.get("token");
 
+    const selectedCourseId = typeof window !== "undefined" ? window.localStorage.getItem("selectedCourseId") : null;
+
     const headers = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(selectedCourseId ? { "X-Selected-Course-Id": selectedCourseId } : {}),
         ...options.headers,
     };
 
