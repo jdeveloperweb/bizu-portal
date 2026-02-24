@@ -27,7 +27,7 @@ export default function LoginPage() {
             if (isAdmin) {
                 router.push("/admin");
             } else {
-                router.push("/");
+                router.push("/dashboard");
             }
         }
     }, [authenticated, user, router]);
