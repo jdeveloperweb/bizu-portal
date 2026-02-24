@@ -38,6 +38,7 @@ export const metadata: Metadata = {
 import { AuthProvider } from "@/components/AuthProvider";
 import { NotificationProvider } from "@/components/NotificationProvider";
 import BrandingLoader from "@/components/BrandingLoader";
+import CourseSelectionGate from "@/components/CourseSelectionGate";
 
 export default function RootLayout({
   children,
@@ -49,7 +50,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <BrandingLoader />
-          <NotificationProvider>{children}</NotificationProvider>
+          <NotificationProvider><CourseSelectionGate>{children}</CourseSelectionGate></NotificationProvider>
         </AuthProvider>
       </body>
     </html>

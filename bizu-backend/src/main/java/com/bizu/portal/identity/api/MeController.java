@@ -1,13 +1,18 @@
 package com.bizu.portal.identity.api;
 
 import com.bizu.portal.analytics.application.AnalyticsService;
+import com.bizu.portal.content.infrastructure.CourseRepository;
 import com.bizu.portal.identity.domain.User;
 import com.bizu.portal.identity.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MeController {
 
     private final UserRepository userRepository;
+    private final CourseRepository courseRepository;
     private final AnalyticsService analyticsService;
 
     @GetMapping("/me")
@@ -30,4 +36,26 @@ public class MeController {
             })
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    @PutMapping("/me/selected-course")
+    public ResponseEntity<User> updateSelectedCourse(@AuthenticationPrincipal Jwt jwt, @RequestBody SelectedCourseRequest request) {
+        String email = jwt.getClaim("email");
+
+        if (request == null || request.courseId() == null || !courseRepository.existsById(request.courseId())) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return userRepository.findByEmail(email)
+            .map(user -> {
+                Map<String, Object> metadata = user.getMetadata() != null
+                    ? new HashMap<>(user.getMetadata())
+                    : new HashMap<>();
+                metadata.put("selectedCourseId", request.courseId().toString());
+                user.setMetadata(metadata);
+                return ResponseEntity.ok(userRepository.save(user));
+            })
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    public record SelectedCourseRequest(UUID courseId) {}
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import keycloak from "@/lib/auth";
 import Cookies from "js-cookie";
 
@@ -10,9 +10,17 @@ interface AuthContextType {
     loginDirect: (username: string, password: string) => Promise<boolean>;
     logout: () => void;
     token?: string;
-    user?: any;
+    user?: AuthUser;
     loading: boolean;
     register: (name: string, email: string, password: string) => Promise<boolean>;
+    selectedCourseId?: string;
+    setSelectedCourseId: (courseId?: string) => void;
+    refreshUserProfile: () => Promise<void>;
+}
+
+interface AuthUser {
+    metadata?: Record<string, unknown>;
+    [key: string]: unknown;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,7 +28,44 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [authenticated, setAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<AuthUser | null>(null);
+    const [selectedCourseId, setSelectedCourseIdState] = useState<string | undefined>(undefined);
+
+    const applySelectedCourseId = (nextUser: AuthUser) => {
+        const nextSelectedCourseId = typeof nextUser?.metadata?.selectedCourseId === "string" ? nextUser.metadata.selectedCourseId : undefined;
+        setSelectedCourseIdState(nextSelectedCourseId);
+
+        if (typeof window !== "undefined") {
+            if (nextSelectedCourseId) {
+                window.localStorage.setItem("selectedCourseId", nextSelectedCourseId);
+            } else {
+                window.localStorage.removeItem("selectedCourseId");
+            }
+        }
+    };
+
+    const refreshUserProfile = useCallback(async () => {
+        const token = Cookies.get("token");
+        if (!token) return;
+
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+        const endpoint = apiBase.endsWith('/api/v1')
+            ? `${apiBase}/users/me`
+            : `${apiBase}/api/v1/users/me`;
+
+        const res = await fetch(endpoint, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (res.ok) {
+            const me = await res.json();
+            setUser(me);
+            applySelectedCourseId(me);
+        }
+    }, []);
 
     useEffect(() => {
         if (!keycloak) return;
@@ -31,18 +76,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 silentCheckSsoRedirectUri: typeof window !== "undefined" ? window.location.origin + "/silent-check-sso.html" : undefined,
                 pkceMethod: "S256",
             })
-            .then((auth) => {
+            .then(async (auth) => {
                 setAuthenticated(auth);
                 if (auth && keycloak) {
                     Cookies.set("token", keycloak.token || "", { expires: 1 });
                     setUser(keycloak.tokenParsed);
+                    await refreshUserProfile();
                 }
                 setLoading(false);
             })
             .catch(() => {
                 setLoading(false);
             });
-    }, []);
+    }, [refreshUserProfile]);
 
     const login = () => keycloak?.login();
 
@@ -70,7 +116,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const data = await res.json();
                 Cookies.set("token", data.access_token, { expires: 1 });
 
-                // Decodifica o token manualmente para atualizar o estado do usuário imediatamente
                 try {
                     const base64Url = data.access_token.split('.')[1];
                     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -81,6 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
 
                 setAuthenticated(true);
+                await refreshUserProfile();
                 return true;
             } else if (res.status === 401 || res.status === 400) {
                 console.warn("Invalid credentials");
@@ -95,15 +141,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const setSelectedCourseId = (courseId?: string) => {
+        setSelectedCourseIdState(courseId);
+        if (typeof window !== "undefined") {
+            if (courseId) {
+                window.localStorage.setItem("selectedCourseId", courseId);
+            } else {
+                window.localStorage.removeItem("selectedCourseId");
+            }
+        }
+    };
+
     const logout = () => {
         Cookies.remove("token");
+        if (typeof window !== "undefined") {
+            window.localStorage.removeItem("selectedCourseId");
+        }
         keycloak?.logout({ redirectUri: window.location.origin });
     };
 
     const register = async (name: string, email: string, password: string) => {
         try {
             const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
-            // Se apiBase já termina com /api/v1, não adicionamos novamente
             const endpoint = apiBase.endsWith('/api/v1')
                 ? `${apiBase}/public/auth/register`
                 : `${apiBase}/api/v1/public/auth/register`;
@@ -121,7 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register }}>
+        <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register, selectedCourseId, setSelectedCourseId, refreshUserProfile }}>
             {children}
         </AuthContext.Provider>
     );
