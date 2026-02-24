@@ -21,7 +21,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
     if (response.status === 401) {
         // Se o token expirou, podemos redirecionar para o login
-        if (typeof window !== "undefined") {
+        if (typeof window !== "undefined" && window.location.pathname !== "/login") {
             window.location.href = "/login";
         }
     }
