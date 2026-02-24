@@ -56,6 +56,17 @@ export default function CourseManagementPage() {
     const [editingModule, setEditingModule] = useState<Module | null>(null);
     const [moduleForm, setModuleForm] = useState({ title: "", description: "" });
 
+    const [isMaterialModalOpen, setIsMaterialModalOpen] = useState(false);
+    const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
+    const [activeModuleIdForMaterial, setActiveModuleIdForMaterial] = useState<string | null>(null);
+    const [materialForm, setMaterialForm] = useState({
+        title: "",
+        description: "",
+        fileUrl: "",
+        fileType: "PDF",
+        isFree: false
+    });
+
     const fetchCourse = async () => {
         setIsLoading(true);
         try {
@@ -108,6 +119,41 @@ export default function CourseManagementPage() {
             if (res.ok) fetchCourse();
         } catch (error) {
             console.error("Failed to delete module", error);
+        }
+    };
+
+    const handleSaveMaterial = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const method = editingMaterial ? "PUT" : "POST";
+            const url = editingMaterial ? `/admin/materials/${editingMaterial.id}` : "/admin/materials";
+
+            const res = await apiFetch(url, {
+                method,
+                body: JSON.stringify({
+                    ...materialForm,
+                    module: { id: activeModuleIdForMaterial }
+                })
+            });
+
+            if (res.ok) {
+                await fetchCourse();
+                setIsMaterialModalOpen(false);
+                setEditingMaterial(null);
+                setMaterialForm({ title: "", description: "", fileUrl: "", fileType: "PDF", isFree: false });
+            }
+        } catch (error) {
+            console.error("Failed to save material", error);
+        }
+    };
+
+    const handleDeleteMaterial = async (materialId: string) => {
+        if (!confirm("Remover este material?")) return;
+        try {
+            const res = await apiFetch(`/admin/materials/${materialId}`, { method: "DELETE" });
+            if (res.ok) fetchCourse();
+        } catch (error) {
+            console.error("Failed to delete material", error);
         }
     };
 
@@ -222,8 +268,33 @@ export default function CourseManagementPage() {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                                                <Button variant="ghost" size="sm" className="w-8 h-8 p-0 rounded-lg"><Pencil className="w-3.5 h-3.5" /></Button>
-                                                <Button variant="ghost" size="sm" className="w-8 h-8 p-0 rounded-lg text-destructive hover:bg-destructive/10"><Trash2 className="w-3.5 h-3.5" /></Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="w-8 h-8 p-0 rounded-lg"
+                                                    onClick={() => {
+                                                        setEditingMaterial(material);
+                                                        setMaterialForm({
+                                                            title: material.title,
+                                                            description: material.description || "",
+                                                            fileUrl: material.fileUrl,
+                                                            fileType: material.fileType,
+                                                            isFree: material.isFree
+                                                        });
+                                                        setActiveModuleIdForMaterial(module.id);
+                                                        setIsMaterialModalOpen(true);
+                                                    }}
+                                                >
+                                                    <Pencil className="w-3.5 h-3.5" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="w-8 h-8 p-0 rounded-lg text-destructive hover:bg-destructive/10"
+                                                    onClick={() => handleDeleteMaterial(material.id)}
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </Button>
                                             </div>
                                         </div>
                                     ))
@@ -231,6 +302,12 @@ export default function CourseManagementPage() {
                                 <Button
                                     variant="ghost"
                                     className="w-full justify-start gap-2 h-12 rounded-2xl text-xs font-black uppercase text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all border-2 border-dashed border-transparent hover:border-primary/20"
+                                    onClick={() => {
+                                        setEditingMaterial(null);
+                                        setMaterialForm({ title: "", description: "", fileUrl: "", fileType: "PDF", isFree: false });
+                                        setActiveModuleIdForMaterial(module.id);
+                                        setIsMaterialModalOpen(true);
+                                    }}
                                 >
                                     <Plus className="w-4 h-4" />
                                     Adicionar Material Didático
@@ -279,6 +356,78 @@ export default function CourseManagementPage() {
                                 </Button>
                                 <Button type="submit" className="flex-1 h-12 rounded-xl font-bold">
                                     {editingModule ? 'Salvar Alterações' : 'Adicionar Módulo'}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {isMaterialModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-card w-full max-w-md rounded-[32px] p-8 shadow-2xl border">
+                        <h2 className="text-2xl font-black mb-6">{editingMaterial ? 'Editar Material' : 'Novo Material'}</h2>
+                        <form onSubmit={handleSaveMaterial} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-muted-foreground">Título do Material</label>
+                                <Input
+                                    autoFocus
+                                    required
+                                    placeholder="Ex: Apostila de Direito Administrativo"
+                                    value={materialForm.title}
+                                    onChange={e => setMaterialForm({ ...materialForm, title: e.target.value })}
+                                    className="h-12 rounded-xl"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-muted-foreground">URL do Arquivo</label>
+                                <Input
+                                    required
+                                    placeholder="Link para o PDF ou Vídeo"
+                                    value={materialForm.fileUrl}
+                                    onChange={e => setMaterialForm({ ...materialForm, fileUrl: e.target.value })}
+                                    className="h-12 rounded-xl"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-muted-foreground">Tipo</label>
+                                    <select
+                                        className="w-full h-12 px-4 rounded-xl border bg-transparent text-sm font-bold"
+                                        value={materialForm.fileType}
+                                        onChange={e => setMaterialForm({ ...materialForm, fileType: e.target.value })}
+                                    >
+                                        <option value="PDF">PDF</option>
+                                        <option value="VIDEO">Vídeo</option>
+                                        <option value="AUDIO">Áudio</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-muted-foreground">Acesso</label>
+                                    <select
+                                        className="w-full h-12 px-4 rounded-xl border bg-transparent text-sm font-bold"
+                                        value={materialForm.isFree ? "true" : "false"}
+                                        onChange={e => setMaterialForm({ ...materialForm, isFree: e.target.value === "true" })}
+                                    >
+                                        <option value="false">Premium</option>
+                                        <option value="true">Gratuito</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4 pt-4">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="flex-1 h-12 rounded-xl font-bold"
+                                    onClick={() => setIsMaterialModalOpen(false)}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button type="submit" className="flex-1 h-12 rounded-xl font-bold">
+                                    {editingMaterial ? 'Salvar Alterações' : 'Adicionar Material'}
                                 </Button>
                             </div>
                         </form>

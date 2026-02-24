@@ -29,6 +29,8 @@ public class FlashcardDeck {
 
     private String icon; // Icon name for Lucide
 
+    private String color; // Tailind gradient classes or hex
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 

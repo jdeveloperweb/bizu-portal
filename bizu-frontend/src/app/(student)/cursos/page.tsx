@@ -1,43 +1,39 @@
+"use client";
+
 import CourseCard from "@/components/courses/CourseCard";
 import PageHeader from "@/components/PageHeader";
 import { Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
+import { apiFetch } from "@/lib/api";
 
 export default function CoursesPage() {
-    const mockCourses = [
-        {
-            id: "1",
-            title: "Magistratura Federal - Completo",
-            description: "Preparação de alto nível para o concurso de Juiz Federal com foco total no edital unificado.",
-            lessonsCount: 24,
-            studentsCount: 1250,
-            rating: 4.9,
-        },
-        {
-            id: "2",
-            title: "Ministério Público Estadual",
-            description: "Curso focado nas carreiras de Promotor de Justiça, abrangendo todas as disciplinas do certame.",
-            lessonsCount: 18,
-            studentsCount: 840,
-            rating: 4.8,
-        },
-        {
-            id: "3",
-            title: "Delegado de Polícia Civil",
-            description: "Foco total em Direito Penal, Processo Penal e Legislação Especial para Delegados.",
-            lessonsCount: 12,
-            studentsCount: 2100,
-            rating: 4.7,
-        },
-        {
-            id: "4",
-            title: "Analista Judiciário - TRFs",
-            description: "Curso voltado para quem busca estabilidade nos tribunais federais brasileiros.",
-            lessonsCount: 15,
-            studentsCount: 3200,
-            rating: 4.6,
-        },
-    ];
+    const [courses, setCourses] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState("");
+
+    useEffect(() => {
+        const fetchCourses = async () => {
+            setIsLoading(true);
+            try {
+                const res = await apiFetch("/public/courses");
+                if (res.ok) {
+                    const data = await res.json();
+                    setCourses(data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch courses", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchCourses();
+    }, []);
+
+    const filteredCourses = courses.filter(c =>
+        c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.description && c.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
 
     return (
         <div className="container mx-auto px-4 py-12">
@@ -52,6 +48,8 @@ export default function CoursesPage() {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                         placeholder="Buscar cursos..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10 h-12 rounded-2xl bg-card border-none shadow-sm focus-visible:ring-primary"
                     />
                 </div>
@@ -61,11 +59,27 @@ export default function CoursesPage() {
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {mockCourses.map((course) => (
-                    <CourseCard key={course.id} {...course} />
-                ))}
-            </div>
+            {isLoading ? (
+                <div className="text-center py-20">Carregando cursos...</div>
+            ) : filteredCourses.length === 0 ? (
+                <div className="text-center py-20 bg-muted/20 rounded-[40px] border border-dashed">
+                    Nenhum curso encontrado.
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {filteredCourses.map((course) => (
+                        <CourseCard
+                            key={course.id}
+                            title={course.title}
+                            description={course.description}
+                            thumbnail={course.thumbnailUrl}
+                            lessonsCount={course.modules?.length || 0}
+                            themeColor={course.themeColor}
+                            textColor={course.textColor}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

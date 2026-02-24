@@ -60,7 +60,9 @@ export default function SimuladosPage() {
             questions: sim.questions?.length || 0,
             status: status,
             date: sim.startDate ? new Date(sim.startDate).toLocaleDateString('pt-BR') : "-",
-            course: sim.course?.title || "Geral"
+            course: sim.course?.title || "Geral",
+            themeColor: sim.course?.themeColor,
+            textColor: sim.course?.textColor,
         };
     });
 
@@ -152,7 +154,8 @@ export default function SimuladosPage() {
                                         <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${sConfig.bg} ${sConfig.color} ${sConfig.border} border`}>
                                             {sConfig.label}
                                         </span>
-                                        <span className="text-[9px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                                        <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full"
+                                            style={sim.themeColor ? { backgroundColor: sim.themeColor + '15', color: sim.themeColor } : { backgroundColor: '#f1f5f9', color: '#64748b' }}>
                                             {sim.course}
                                         </span>
                                     </div>
@@ -166,7 +169,8 @@ export default function SimuladosPage() {
                                 <div className="flex items-center gap-2 shrink-0">
                                     {sim.status === "disponivel" && (
                                         <Link href={`/simulados/${sim.id}`}
-                                            className="btn-primary !h-9 !text-[12px] !px-5">
+                                            className="btn-primary !h-9 !text-[12px] !px-5"
+                                            style={sim.themeColor ? { backgroundColor: sim.themeColor, color: sim.textColor || "#ffffff" } : {}}>
                                             <PlayCircle size={14} /> Iniciar
                                         </Link>
                                     )}

@@ -11,22 +11,20 @@ import {
     FileText,
     Dumbbell,
     PlusCircle,
+    Sparkles,
     Trash2,
     MinusCircle
 } from "lucide-react";
 import { Button } from "../../../../../components/ui/button";
-import { useState, useEffect, Suspense } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { apiFetch } from "@/lib/api";
 
-function QuestionFormContainer() {
+export default function NovaQuestaoPage() {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const editId = searchParams.get("id");
-
     const [content, setContent] = useState("");
     const [category, setCategory] = useState<"SIMULADO" | "QUIZ">("QUIZ");
     const [difficulty, setDifficulty] = useState<"EASY" | "MEDIUM" | "HARD">("EASY");
@@ -40,35 +38,11 @@ function QuestionFormContainer() {
         D: ""
     });
     const [correctOption, setCorrectOption] = useState("A");
-    const [isLoading, setIsLoading] = useState(false);
-
-    useEffect(() => {
-        if (editId) {
-            setIsLoading(true);
-            apiFetch(`/admin/questions/${editId}`)
-                .then(res => res.json())
-                .then(data => {
-                    setContent(data.statement || "");
-                    setCategory(data.category || "QUIZ");
-                    setDifficulty(data.difficulty || "EASY");
-                    setSubject(data.subject || "Direito Administrativo");
-                    setBanca(data.banca || "");
-                    setYear(data.year || new Date().getFullYear());
-                    setOptions(data.options || { A: "", B: "", C: "", D: "" });
-                    setCorrectOption(data.correctOption || "A");
-                })
-                .catch(err => console.error("Error fetching question", err))
-                .finally(() => setIsLoading(false));
-        }
-    }, [editId]);
 
     const handleSave = async () => {
         try {
-            const method = editId ? "PUT" : "POST";
-            const url = editId ? `/admin/questions/${editId}` : "/admin/questions";
-
-            const res = await apiFetch(url, {
-                method,
+            const res = await apiFetch("/admin/questions", {
+                method: "POST",
                 body: JSON.stringify({
                     statement: content,
                     category,
@@ -89,8 +63,6 @@ function QuestionFormContainer() {
             console.error("Failed to save question", error);
         }
     };
-
-    if (isLoading) return <div className="p-12 text-center font-bold">Carregando dados da questão...</div>;
 
     return (
         <div className="relative min-h-screen">
@@ -117,36 +89,26 @@ function QuestionFormContainer() {
                         </Link>
                         <div className="relative">
                             <PageHeader
-                                title={editId ? "Editar Questão" : "Cadastrar Questão"}
-                                description={category === "QUIZ" ? "Crie perguntas rápidas para treino livre." : "Crie questões oficiais para simulados."}
+                                title="Cadastrar Questão (Quick Quiz)"
+                                description="Crie perguntas rápidas para treino livre."
                                 badge="CMS PLATFORM"
                             />
                             <div className="absolute -left-12 top-10 w-1 h-12 bg-primary/20 rounded-full hidden lg:block" />
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        <div className="flex bg-muted/20 p-1.5 rounded-2xl border border-muted/50 mr-4">
-                            <button
-                                onClick={() => setCategory("QUIZ")}
-                                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${category === "QUIZ" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-                            >
-                                <Dumbbell className="w-4 h-4" />
-                                Treino
-                            </button>
-                            <button
-                                onClick={() => setCategory("SIMULADO")}
-                                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${category === "SIMULADO" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-                            >
-                                <FileText className="w-4 h-4" />
-                                Simulado
-                            </button>
-                        </div>
+                        <Button
+                            variant="outline"
+                            className="h-14 rounded-2xl font-black px-8 border-2 hover:bg-muted transition-all active:scale-95"
+                        >
+                            Salvar Rascunho
+                        </Button>
                         <Button
                             onClick={handleSave}
                             className="h-14 rounded-2xl font-black px-12 gap-3 shadow-2xl shadow-primary/30 bg-gradient-to-r from-primary to-primary-dark border-none hover:opacity-90 active:scale-95 transition-all"
                         >
                             <Save className="w-5 h-5" />
-                            {editId ? "Salvar Alterações" : "Publicar Questão"}
+                            Publicar Questão
                         </Button>
                     </div>
                 </motion.div>
@@ -357,13 +319,5 @@ function QuestionFormContainer() {
                 </div>
             </div>
         </div>
-    );
-}
-
-export default function NovaQuestaoPage() {
-    return (
-        <Suspense fallback={<div className="p-12 text-center font-bold">Carregando editor...</div>}>
-            <QuestionFormContainer />
-        </Suspense>
     );
 }

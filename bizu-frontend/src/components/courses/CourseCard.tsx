@@ -9,6 +9,8 @@ interface CourseCardProps {
     studentsCount?: number;
     rating?: number;
     lessonsCount?: number;
+    themeColor?: string;
+    textColor?: string;
 }
 
 export default function CourseCard({
@@ -18,6 +20,8 @@ export default function CourseCard({
     studentsCount = 0,
     rating = 5.0,
     lessonsCount = 0,
+    themeColor,
+    textColor,
 }: CourseCardProps) {
     return (
         <div className="group relative bg-card border rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
@@ -30,8 +34,8 @@ export default function CourseCard({
                         className="object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                 ) : (
-                    <div className="w-full h-full bg-primary/5 flex items-center justify-center">
-                        <BookOpen className="w-12 h-12 text-primary/20" />
+                    <div className="w-full h-full bg-primary/5 flex items-center justify-center" style={themeColor ? { backgroundColor: themeColor + '10' } : {}}>
+                        <BookOpen className="w-12 h-12" style={themeColor ? { color: themeColor } : { color: 'var(--primary-20)' }} />
                     </div>
                 )}
                 <div className="absolute top-4 right-4 px-2 py-1 rounded-lg bg-background/80 backdrop-blur-md text-xs font-bold flex items-center gap-1">
@@ -41,7 +45,7 @@ export default function CourseCard({
             </div>
 
             <div className="p-6">
-                <h3 className="text-xl font-bold mb-2 line-clamp-1 group-hover:text-primary transition-colors">
+                <h3 className="text-xl font-bold mb-2 line-clamp-1 group-hover:text-primary transition-colors" style={themeColor ? { '--primary': themeColor } as any : {}}>
                     {title}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-6 line-clamp-2">
@@ -59,7 +63,10 @@ export default function CourseCard({
                     </div>
                 </div>
 
-                <Button className="w-full rounded-xl font-bold py-6 group-hover:bg-primary transition-all">
+                <Button
+                    className="w-full rounded-xl font-bold py-6 transition-all"
+                    style={themeColor ? { backgroundColor: themeColor, color: textColor || "#ffffff" } : {}}
+                >
                     Acessar Curso
                 </Button>
             </div>

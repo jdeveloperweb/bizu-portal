@@ -237,10 +237,12 @@ export default function AdminQuestoesPage() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end" className="w-48 rounded-2xl p-2 shadow-2xl border-muted/50">
-                                                <DropdownMenuItem className="rounded-xl font-bold gap-2 focus:bg-primary focus:text-white cursor-pointer h-10">
-                                                    <Edit2 className="w-4 h-4" />
-                                                    Editar Questão
-                                                </DropdownMenuItem>
+                                                <Link href={`/admin/questoes/nova?id=${q.id}`}>
+                                                    <DropdownMenuItem className="rounded-xl font-bold gap-2 focus:bg-primary focus:text-white cursor-pointer h-10">
+                                                        <Edit2 className="w-4 h-4" />
+                                                        Editar Questão
+                                                    </DropdownMenuItem>
+                                                </Link>
                                                 <DropdownMenuItem
                                                     onClick={() => handleDelete(q.id)}
                                                     className="rounded-xl font-bold gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer h-10"
