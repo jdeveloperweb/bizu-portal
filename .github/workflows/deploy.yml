@@ -29,7 +29,7 @@ jobs:
             git pull origin main
 
             echo "🐳 Atualizando Backend e Banco de Dados (Docker)..."
-            docker compose up -d --build bizu-db bizu-backend
+            docker compose up -d --build bizu-db keycloak bizu-backend
             docker image prune -f
 
             echo "📦 Instalando dependências do Frontend..."
@@ -37,7 +37,9 @@ jobs:
             npm install --legacy-peer-deps
 
             echo "🔨 Buildando o Frontend (Next.js)..."
-            NEXT_PUBLIC_API_URL=https://bizu.mjolnix.com.br/api/v1 npm run build
+            NEXT_PUBLIC_API_URL=https://bizu.mjolnix.com.br/api/v1 \
+            NEXT_PUBLIC_KEYCLOAK_URL=https://bizu.mjolnix.com.br/auth \
+            npm run build
 
             echo "♻️ Reiniciando Frontend com PM2..."
             cd ..

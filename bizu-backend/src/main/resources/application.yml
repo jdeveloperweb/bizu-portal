@@ -20,7 +20,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8080/realms/bizu-portal}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8080/auth/realms/bizu-portal}
 
 server:
   port: 8080
