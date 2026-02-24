@@ -6,6 +6,19 @@ import { Menu, X, LogOut, LayoutDashboard } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import { useAuth } from "@/components/AuthProvider";
 
+
+const getRealmRoles = (user: unknown): string[] => {
+    if (!user || typeof user !== "object") return [];
+
+    const realmAccess = (user as { realm_access?: unknown }).realm_access;
+    if (!realmAccess || typeof realmAccess !== "object") return [];
+
+    const roles = (realmAccess as { roles?: unknown }).roles;
+    if (!Array.isArray(roles)) return [];
+
+    return roles.filter((role): role is string => typeof role === "string");
+};
+
 const navLinks = [
     { href: "/#funcionalidades", label: "Funcionalidades" },
     { href: "/pricing", label: "Planos" },
@@ -16,7 +29,7 @@ export default function Navbar() {
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
 
-    const isAdmin = user?.realm_access?.roles?.some((r: string) => r.toUpperCase() === "ADMIN");
+    const isAdmin = getRealmRoles(user).some((role) => role.toUpperCase() === "ADMIN");
     const dashboardHref = isAdmin ? "/admin" : "/dashboard";
 
     useEffect(() => {
