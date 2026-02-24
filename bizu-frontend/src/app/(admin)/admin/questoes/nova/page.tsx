@@ -43,8 +43,10 @@ function QuestionFormContainer() {
 
     const [courses, setCourses] = useState<any[]>([]);
     const [modules, setModules] = useState<any[]>([]);
+    const [simulados, setSimulados] = useState<any[]>([]);
     const [selectedCourseId, setSelectedCourseId] = useState<string>("");
     const [selectedModuleId, setSelectedModuleId] = useState<string>("");
+    const [selectedSimuladoId, setSelectedSimuladoId] = useState<string>("");
 
     const [isLoading, setIsLoading] = useState(!!editId);
 
@@ -96,6 +98,17 @@ function QuestionFormContainer() {
                 }
             })
             .catch(err => console.error("Error fetching courses", err));
+
+        apiFetch("/admin/simulados")
+            .then(res => res.json())
+            .then(data => {
+                // If it's a PageResponse, it might be in data.content
+                const list = data.content || data;
+                if (Array.isArray(list)) {
+                    setSimulados(list);
+                }
+            })
+            .catch(err => console.error("Error fetching simulados", err));
     }, []);
 
     useEffect(() => {
@@ -108,16 +121,37 @@ function QuestionFormContainer() {
                     }
                 })
                 .catch(err => console.error("Error fetching modules", err));
+
+            // Check if current simulado still belongs to this course
+            const currentSimulado = simulados.find(s => s.id === selectedSimuladoId);
+            if (currentSimulado && currentSimulado.course && currentSimulado.course.id !== selectedCourseId) {
+                setSelectedSimuladoId("");
+            }
         } else {
             setModules([]);
             setSelectedModuleId("");
+            setSelectedSimuladoId("");
         }
-    }, [selectedCourseId]);
+    }, [selectedCourseId, simulados]);
+
+    useEffect(() => {
+        if (category === "QUIZ") {
+            setSelectedSimuladoId("");
+        }
+    }, [category]);
 
     const handleSave = async () => {
         try {
             const method = editId ? "PUT" : "POST";
-            const url = editId ? `/admin/questions/${editId}` : "/admin/questions";
+            let url = editId ? `/admin/questions/${editId}` : "/admin/questions";
+
+            // If it's a new question for a specific Simulado, use the dedicated endpoint
+            if (!editId && category === "SIMULADO" && selectedSimuladoId) {
+                url = `/admin/simulados/${selectedSimuladoId}/questions`;
+            }
+
+            const selectedModule = modules.find(m => m.id === selectedModuleId);
+            const finalSubject = selectedModule ? selectedModule.title : subject;
 
             const res = await apiFetch(url, {
                 method,
@@ -125,7 +159,7 @@ function QuestionFormContainer() {
                     statement: content,
                     category,
                     difficulty,
-                    subject,
+                    subject: finalSubject,
                     banca,
                     year,
                     options,
@@ -320,33 +354,6 @@ function QuestionFormContainer() {
                             </div>
 
                             <div className="space-y-6">
-                                {/* Subject Selector */}
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Disciplina</label>
-                                    <div className="relative group">
-                                        <select
-                                            className="w-full h-14 px-5 pr-10 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/30 focus:bg-white font-bold text-sm outline-none appearance-none transition-all cursor-pointer"
-                                            value={subject}
-                                            onChange={(e) => setSubject(e.target.value)}
-                                        >
-                                            <option value="Direito Administrativo">Direito Administrativo</option>
-                                            <option value="Direito Constitucional">Direito Constitucional</option>
-                                            <option value="Português">Português</option>
-                                            <option value="Raciocínio Lógico">Raciocínio Lógico</option>
-                                            <option value="Atualidades">Atualidades</option>
-                                            {/* Suporte para valores em maiúsculo do banco */}
-                                            <option value="DIREITO ADMINISTRATIVO">DIREITO ADMINISTRATIVO</option>
-                                            <option value="DIREITO CONSTITUCIONAL">DIREITO CONSTITUCIONAL</option>
-                                            <option value="PORTUGUÊS">PORTUGUÊS</option>
-                                            <option value="RACIOCÍNIO LÓGICO">RACIOCÍNIO LÓGICO</option>
-                                            <option value="ATUALIDADES">ATUALIDADES</option>
-                                        </select>
-                                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                                            <PlusCircle className="w-4 h-4 rotate-45" />
-                                        </div>
-                                    </div>
-                                </div>
-
                                 {/* Course Selector */}
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1 text-primary">Curso Vinculado</label>
@@ -387,6 +394,31 @@ function QuestionFormContainer() {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Simulado Selector - Only if category is SIMULADO */}
+                                {category === "SIMULADO" && (
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1 text-primary">Simulado Vinculado</label>
+                                        <div className="relative group">
+                                            <select
+                                                className="w-full h-14 px-5 pr-10 rounded-2xl bg-amber-500/5 border-2 border-amber-500/10 focus:border-amber-500/30 focus:bg-white font-bold text-sm outline-none appearance-none transition-all cursor-pointer"
+                                                value={selectedSimuladoId}
+                                                onChange={(e) => setSelectedSimuladoId(e.target.value)}
+                                            >
+                                                <option value="">Selecione um simulado...</option>
+                                                {simulados
+                                                    .filter(s => !selectedCourseId || (s.course && s.course.id === selectedCourseId))
+                                                    .map(simulado => (
+                                                        <option key={simulado.id} value={simulado.id}>{simulado.title}</option>
+                                                    ))
+                                                }
+                                            </select>
+                                            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground group-focus-within:text-amber-500 transition-colors">
+                                                <FileText className="w-4 h-4" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Banca Input */}
                                 <div className="space-y-3">

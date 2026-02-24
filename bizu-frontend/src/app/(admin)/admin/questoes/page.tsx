@@ -214,7 +214,7 @@ export default function AdminQuestoesPage() {
                                             />
                                             <div className="flex items-center gap-2">
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 px-2 py-0.5 rounded">
-                                                    {q.subject}
+                                                    {q.module?.title || q.subject}
                                                 </span>
                                                 <span className="text-[10px] font-bold text-muted-foreground">
                                                     {q.topic}

@@ -17,7 +17,7 @@ public class ModuleService {
     private final ModuleRepository moduleRepository;
 
     public List<Module> findByCourseId(UUID courseId) {
-        return moduleRepository.findByCourseIdOrderByOrderIndexAsc(courseId);
+        return moduleRepository.findByCourse_IdOrderByOrderIndexAsc(courseId);
     }
 
     public Module findById(UUID id) {

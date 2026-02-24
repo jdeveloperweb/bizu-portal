@@ -141,6 +141,9 @@ export default function SimuladoProvaPage() {
         options: formattedOptions,
         correctOptionId: currentQuestion.correctOption,
         resolution: currentQuestion.resolution || "Resolução não disponível.",
+        banca: currentQuestion.banca,
+        year: currentQuestion.year,
+        subject: currentQuestion.module?.title || currentQuestion.subject,
     };
 
     return (

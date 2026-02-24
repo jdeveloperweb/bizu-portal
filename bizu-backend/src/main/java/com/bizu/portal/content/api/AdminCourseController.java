@@ -25,8 +25,13 @@ public class AdminCourseController {
     @PutMapping("/{id}")
     public ResponseEntity<Course> updateCourse(@PathVariable UUID id, @RequestBody Course course) {
         Course existing = courseService.findById(id);
-        course.setId(existing.getId());
-        return ResponseEntity.ok(courseService.save(course));
+        existing.setTitle(course.getTitle());
+        existing.setDescription(course.getDescription());
+        existing.setThemeColor(course.getThemeColor());
+        existing.setTextColor(course.getTextColor());
+        existing.setStatus(course.getStatus());
+        existing.setThumbnailUrl(course.getThumbnailUrl());
+        return ResponseEntity.ok(courseService.save(existing));
     }
 
     @GetMapping

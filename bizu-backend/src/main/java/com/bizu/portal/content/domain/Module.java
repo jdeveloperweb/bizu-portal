@@ -31,7 +31,7 @@ public class Module {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("modules")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"modules", "hibernateLazyInitializer", "handler"})
     private Course course;
 
     @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)

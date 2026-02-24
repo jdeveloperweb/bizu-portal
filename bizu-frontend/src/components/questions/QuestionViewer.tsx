@@ -18,6 +18,9 @@ interface QuestionProps {
     resolution?: string;
     onNext?: () => void;
     isSimuladoMode?: boolean;
+    subject?: string;
+    banca?: string;
+    year?: number | string;
 }
 
 export default function QuestionViewer({
@@ -27,6 +30,9 @@ export default function QuestionViewer({
     resolution,
     onNext,
     isSimuladoMode = false,
+    subject,
+    banca,
+    year,
 }: QuestionProps) {
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -43,7 +49,7 @@ export default function QuestionViewer({
         <div className="bg-card border rounded-2xl md:rounded-3xl p-5 md:p-8 shadow-sm">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4 sm:gap-0">
                 <div className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest break-words w-full sm:w-auto pr-8 sm:pr-0">
-                    Questão de Prova • TRF4 • 2024
+                    Questão de Prova • {banca || "Bizu Academy"} • {year || "2026"} • <span className="text-primary">{subject || "Geral"}</span>
                 </div>
                 <div className="flex items-center gap-1 sm:gap-2 absolute sm:relative top-5 right-5 sm:top-0 sm:right-0">
                     <Button variant="ghost" size="icon" className="rounded-full w-8 h-8 sm:w-10 sm:h-10">
