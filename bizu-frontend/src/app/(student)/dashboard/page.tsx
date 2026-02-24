@@ -5,30 +5,44 @@ import {
     Trophy, Flame, Target, Clock, TrendingUp,
     ArrowUpRight, BookOpen, Swords, Layers,
     BarChart3, Zap, ChevronRight, Bell, Rocket,
-    PlayCircle, CheckCircle2,
+    PlayCircle, CheckCircle2, Timer, CheckSquare,
+    StickyNote, Brain, Star, Crown,
 } from "lucide-react";
 
 const quickActions = [
-    { icon: Target, label: "Resolver questoes", desc: "Questoes personalizadas pela IA", href: "/questoes", color: "from-indigo-500 to-violet-600" },
-    { icon: Layers, label: "Flashcards", desc: "Revisar cartoes de hoje", href: "/flashcards", color: "from-amber-500 to-orange-500" },
+    { icon: Target, label: "Quiz", desc: "Questoes personalizadas pela IA", href: "/questoes/treino", color: "from-indigo-500 to-violet-600" },
+    { icon: Layers, label: "Flashcards", desc: "Revisar cartoes pendentes", href: "/flashcards", color: "from-amber-500 to-orange-500" },
     { icon: Swords, label: "Arena PVP", desc: "Entrar em uma partida", href: "/arena", color: "from-rose-500 to-pink-600" },
-    { icon: BookOpen, label: "Estudar", desc: "Explorar materiais", href: "/cursos", color: "from-emerald-500 to-teal-600" },
+    { icon: Timer, label: "Pomodoro", desc: "Sessao de foco", href: "/pomodoro", color: "from-emerald-500 to-teal-600" },
 ];
 
 const recentActivity = [
-    { text: "Resolveu 25 questoes", time: "Ha 1h", icon: Target, badge: "+35 XP" },
-    { text: "Revisou 30 flashcards", time: "Ha 3h", icon: Layers, badge: "+20 XP" },
-    { text: "Venceu duelo na Arena", time: "Ha 5h", icon: Swords, badge: "+30 XP" },
-    { text: "Completou simulado geral", time: "Ontem", icon: CheckCircle2, badge: "+50 XP" },
+    { text: "Resolveu 25 questoes de D. Administrativo", time: "Ha 1h", icon: Target, badge: "+35 XP" },
+    { text: "Completou sessao Pomodoro (50min)", time: "Ha 2h", icon: Timer, badge: "+20 XP" },
+    { text: "Venceu duelo na Arena vs Maria Silva", time: "Ha 5h", icon: Swords, badge: "+30 XP" },
+    { text: "Completou simulado geral - nota 85%", time: "Ontem", icon: CheckCircle2, badge: "+50 XP" },
+    { text: "Revisou 30 flashcards de D. Civil", time: "Ontem", icon: Layers, badge: "+15 XP" },
 ];
 
 const subjects = [
-    { label: "Direito Constitucional", pct: 92, color: "#059669" },
-    { label: "Direito Penal", pct: 85, color: "#6366F1" },
-    { label: "Direito Civil", pct: 72, color: "#F59E0B" },
-    { label: "Direito Administrativo", pct: 58, color: "#DC2626" },
-    { label: "Processo Civil", pct: 68, color: "#8B5CF6" },
+    { label: "Direito Constitucional", pct: 91, color: "#6366F1" },
+    { label: "Direito Penal", pct: 85, color: "#059669" },
+    { label: "Direito Administrativo", pct: 85, color: "#8B5CF6" },
+    { label: "Processo Civil", pct: 78, color: "#EC4899" },
+    { label: "Direito Civil", pct: 70, color: "#F59E0B" },
 ];
+
+const pendingTasks = [
+    { title: "Revisar Atos Administrativos", subject: "D. Admin.", priority: "alta" },
+    { title: "Resolver 30 questoes de D. Const.", subject: "D. Const.", priority: "media" },
+    { title: "Anotar jurisprudencia de P. Civil", subject: "P. Civil", priority: "media" },
+];
+
+const priorityColor: Record<string, string> = {
+    alta: "text-red-600 bg-red-50",
+    media: "text-amber-600 bg-amber-50",
+    baixa: "text-emerald-600 bg-emerald-50",
+};
 
 export default function DashboardPage() {
     return (
@@ -37,9 +51,9 @@ export default function DashboardPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
                     <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-0.5">
-                        Bom dia! 👋
+                        Bom dia!
                     </h1>
-                    <p className="text-sm text-slate-500">Voce tem 3 revisoes pendentes hoje. Vamos estudar?</p>
+                    <p className="text-sm text-slate-500">Voce tem 3 tarefas pendentes e 23 flashcards para revisar. Vamos estudar?</p>
                 </div>
                 <div className="flex items-center gap-2.5">
                     <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-full">
@@ -99,7 +113,7 @@ export default function DashboardPage() {
                                 Voce esta no caminho certo! Mantenha a constancia e resolva mais questoes para subir no ranking.
                             </p>
                             <div className="flex items-center gap-3">
-                                <Link href="/questoes" className="btn-primary !bg-white !text-indigo-700 !shadow-none hover:!bg-indigo-50 !h-9 !text-xs !px-5">
+                                <Link href="/questoes/treino" className="btn-primary !bg-white !text-indigo-700 !shadow-none hover:!bg-indigo-50 !h-9 !text-xs !px-5">
                                     <PlayCircle size={14} /> Resolver questoes
                                 </Link>
                                 <Link href="/simulados" className="text-xs font-semibold text-white/80 hover:text-white flex items-center gap-1 transition-colors">
@@ -109,7 +123,7 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    {/* Acoes rapidas */}
+                    {/* Quick Actions */}
                     <div>
                         <h3 className="text-sm font-bold text-slate-800 mb-3">O que voce quer fazer?</h3>
                         <div className="grid grid-cols-2 gap-3">
@@ -134,7 +148,34 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    {/* Atividade recente */}
+                    {/* Pending Tasks */}
+                    <div className="card-elevated !rounded-2xl p-5 hover:!transform-none">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                <CheckSquare size={14} className="text-indigo-500" /> Tarefas pendentes
+                            </h3>
+                            <Link href="/tarefas" className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5">
+                                Ver todas <ChevronRight size={11} />
+                            </Link>
+                        </div>
+                        <div className="space-y-2">
+                            {pendingTasks.map((t, i) => (
+                                <Link key={i} href="/tarefas"
+                                    className="flex items-center gap-3 py-2 px-3 rounded-xl hover:bg-slate-50 transition-all">
+                                    <div className="w-5 h-5 rounded-md border-2 border-slate-200 shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-[12px] font-medium text-slate-700 truncate">{t.title}</div>
+                                    </div>
+                                    <span className="text-[9px] font-semibold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded-full">{t.subject}</span>
+                                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${priorityColor[t.priority]}`}>
+                                        {t.priority}
+                                    </span>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Recent Activity */}
                     <div className="card-elevated !rounded-2xl p-5 hover:!transform-none">
                         <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                             <Clock size={14} className="text-slate-400" /> Atividade recente
@@ -161,9 +202,9 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* Coluna lateral */}
+                {/* Right sidebar */}
                 <div className="space-y-5">
-                    {/* Desempenho */}
+                    {/* Subject Performance */}
                     <div className="card-elevated !rounded-2xl p-5 hover:!transform-none">
                         <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                             <TrendingUp size={14} className="text-indigo-500" /> Suas materias
@@ -187,30 +228,33 @@ export default function DashboardPage() {
                         </Link>
                     </div>
 
-                    {/* Conquistas */}
+                    {/* Achievements */}
                     <div className="card-elevated !rounded-2xl p-5 hover:!transform-none">
                         <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
                             <Trophy size={14} className="text-amber-500" /> Conquistas
                         </h3>
                         <div className="grid grid-cols-4 gap-2">
                             {[
-                                { emoji: "🔥", unlocked: true },
-                                { emoji: "🎯", unlocked: true },
-                                { emoji: "⚔️", unlocked: true },
-                                { emoji: "🏆", unlocked: true },
-                                { emoji: "📚", unlocked: false },
-                                { emoji: "💎", unlocked: false },
-                                { emoji: "🌟", unlocked: false },
-                                { emoji: "👑", unlocked: false },
-                            ].map((c, i) => (
-                                <div key={i}
-                                    className={`aspect-square rounded-xl flex items-center justify-center text-base transition-all ${c.unlocked
-                                            ? "bg-amber-50 border border-amber-100 hover:scale-110 cursor-pointer"
-                                            : "bg-slate-50 border border-slate-100 grayscale opacity-30"
-                                        }`}>
-                                    {c.emoji}
-                                </div>
-                            ))}
+                                { icon: Flame, unlocked: true, color: "from-red-400 to-rose-500" },
+                                { icon: Target, unlocked: true, color: "from-emerald-400 to-teal-500" },
+                                { icon: Swords, unlocked: true, color: "from-violet-500 to-purple-600" },
+                                { icon: Star, unlocked: true, color: "from-amber-400 to-orange-500" },
+                                { icon: Brain, unlocked: false, color: "" },
+                                { icon: Crown, unlocked: false, color: "" },
+                                { icon: Layers, unlocked: false, color: "" },
+                                { icon: BookOpen, unlocked: false, color: "" },
+                            ].map((c, i) => {
+                                const Icon = c.icon;
+                                return (
+                                    <div key={i}
+                                        className={`aspect-square rounded-xl flex items-center justify-center transition-all ${c.unlocked
+                                                ? `bg-gradient-to-br ${c.color} shadow-sm hover:scale-110 cursor-pointer`
+                                                : "bg-slate-50 border border-slate-100 opacity-30"
+                                            }`}>
+                                        <Icon size={16} className={c.unlocked ? "text-white" : "text-slate-400"} />
+                                    </div>
+                                );
+                            })}
                         </div>
                         <Link href="/conquistas" className="btn-ghost text-[11px] mt-3 w-full justify-center">
                             Ver todas <ChevronRight size={11} />
@@ -230,11 +274,29 @@ export default function DashboardPage() {
                         </div>
                         <div className="flex items-baseline gap-1 mb-3">
                             <span className="text-2xl font-extrabold text-indigo-700">#142</span>
-                            <span className="text-[11px] text-emerald-600 font-semibold">↑18</span>
+                            <span className="text-[11px] text-emerald-600 font-semibold">+18</span>
                         </div>
                         <Link href="/ranking" className="btn-primary !h-8 !text-[11px] w-full">
                             Ver ranking
                         </Link>
+                    </div>
+
+                    {/* Study Tools */}
+                    <div className="card-elevated !rounded-2xl p-5 hover:!transform-none">
+                        <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <Zap size={14} className="text-amber-500" /> Ferramentas
+                        </h3>
+                        <div className="space-y-2">
+                            <Link href="/pomodoro" className="flex items-center gap-2.5 py-2 px-3 rounded-xl text-[12px] font-medium text-slate-600 hover:bg-slate-50 transition-all">
+                                <Timer size={14} className="text-slate-400" /> Pomodoro
+                            </Link>
+                            <Link href="/tarefas" className="flex items-center gap-2.5 py-2 px-3 rounded-xl text-[12px] font-medium text-slate-600 hover:bg-slate-50 transition-all">
+                                <CheckSquare size={14} className="text-slate-400" /> Tarefas
+                            </Link>
+                            <Link href="/anotacoes" className="flex items-center gap-2.5 py-2 px-3 rounded-xl text-[12px] font-medium text-slate-600 hover:bg-slate-50 transition-all">
+                                <StickyNote size={14} className="text-slate-400" /> Anotacoes
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>

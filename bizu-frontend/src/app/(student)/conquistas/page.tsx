@@ -1,72 +1,172 @@
-import PageHeader from "@/components/PageHeader";
-import BadgeCard from "@/components/gamification/BadgeCard";
-import { Star, Trophy, Sparkles } from "lucide-react";
+"use client";
 
-export default function AchievementsPage() {
-    const categories = [
-        {
-            title: "Consistência",
-            badges: [
-                { name: "Madrugador", description: "Resolveu questões antes das 6h da manhã.", icon: "sunrise", earned: true },
-                { name: "Fogo Amigo", description: "Manteve uma ofensiva de 7 dias.", icon: "flame", earned: true },
-                { name: "Maratonista", description: "Estudou por mais de 4 horas seguidas.", icon: "flame", earned: false },
-            ]
-        },
-        {
-            title: "Performance",
-            badges: [
-                { name: "Centenário", description: "Resolveu 100 questões com aproveitamento > 80%.", icon: "target", earned: true },
-                { name: "Sniper", description: "Acertou 10 questões seguidas de nível difícil.", icon: "target", earned: false },
-                { name: "Primeiro Passo", description: "Concluiu seu primeiro simulado completo.", icon: "play", earned: true },
-            ]
-        }
-    ];
+import { useState } from "react";
+import Link from "next/link";
+import {
+    Trophy, Star, Flame, Target, Zap, Sparkles,
+    Crown, Sunrise, Play, Shield, Swords,
+    CheckCircle2, BookOpen, Clock, TrendingUp,
+    Layers, Brain, Award,
+} from "lucide-react";
+
+type BadgeCategory = "todas" | "consistencia" | "performance" | "social" | "especial";
+
+interface Badge {
+    id: string;
+    name: string;
+    description: string;
+    icon: typeof Trophy;
+    earned: boolean;
+    category: BadgeCategory;
+    xp: number;
+    earnedDate?: string;
+    progress?: number;
+    requirement?: string;
+    color: string;
+}
+
+const badges: Badge[] = [
+    { id: "1", name: "Madrugador", description: "Resolveu questoes antes das 6h da manha.", icon: Sunrise, earned: true, category: "consistencia", xp: 50, earnedDate: "15 Fev", color: "from-amber-400 to-orange-500" },
+    { id: "2", name: "Fogo Amigo", description: "Manteve ofensiva de 7 dias seguidos.", icon: Flame, earned: true, category: "consistencia", xp: 100, earnedDate: "20 Fev", color: "from-red-400 to-rose-500" },
+    { id: "3", name: "Maratonista", description: "Estudou por mais de 4 horas seguidas.", icon: Clock, earned: false, category: "consistencia", xp: 150, progress: 65, requirement: "3h20min / 4h", color: "from-indigo-400 to-violet-500" },
+    { id: "4", name: "Centenario", description: "Resolveu 100 questoes com aproveitamento > 80%.", icon: Target, earned: true, category: "performance", xp: 200, earnedDate: "18 Fev", color: "from-emerald-400 to-teal-500" },
+    { id: "5", name: "Sniper", description: "Acertou 10 questoes seguidas de nivel dificil.", icon: Target, earned: false, category: "performance", xp: 300, progress: 40, requirement: "4/10 consecutivas", color: "from-red-500 to-pink-600" },
+    { id: "6", name: "Primeiro Passo", description: "Concluiu seu primeiro simulado completo.", icon: Play, earned: true, category: "performance", xp: 75, earnedDate: "10 Fev", color: "from-blue-400 to-indigo-500" },
+    { id: "7", name: "Gladiador", description: "Venceu 10 duelos na Arena PVP.", icon: Swords, earned: true, category: "social", xp: 150, earnedDate: "22 Fev", color: "from-violet-500 to-purple-600" },
+    { id: "8", name: "Top 10%", description: "Alcancou o Top 10% do ranking geral.", icon: Crown, earned: false, category: "social", xp: 500, progress: 78, requirement: "Ranking #142 / Top 100", color: "from-amber-500 to-yellow-500" },
+    { id: "9", name: "Estudioso", description: "Criou 50 flashcards.", icon: Layers, earned: false, category: "especial", xp: 100, progress: 56, requirement: "28/50 flashcards", color: "from-teal-400 to-cyan-500" },
+    { id: "10", name: "Mestre", description: "Acertou 90%+ em 3 materias diferentes.", icon: Brain, earned: false, category: "especial", xp: 400, progress: 33, requirement: "1/3 materias", color: "from-indigo-600 to-violet-700" },
+    { id: "11", name: "Dedicacao Total", description: "Manteve ofensiva de 30 dias.", icon: Flame, earned: false, category: "consistencia", xp: 500, progress: 23, requirement: "7/30 dias", color: "from-orange-500 to-red-600" },
+    { id: "12", name: "1000 Questoes", description: "Resolveu 1000 questoes na plataforma.", icon: CheckCircle2, earned: false, category: "performance", xp: 250, progress: 85, requirement: "847/1000", color: "from-emerald-500 to-green-600" },
+];
+
+const categoryConfig: Record<BadgeCategory, { label: string; icon: typeof Trophy }> = {
+    todas: { label: "Todas", icon: Award },
+    consistencia: { label: "Consistencia", icon: Flame },
+    performance: { label: "Performance", icon: Target },
+    social: { label: "Social", icon: Swords },
+    especial: { label: "Especial", icon: Sparkles },
+};
+
+export default function ConquistasPage() {
+    const [activeCategory, setActiveCategory] = useState<BadgeCategory>("todas");
+
+    const filteredBadges = activeCategory === "todas" ? badges : badges.filter(b => b.category === activeCategory);
+    const earnedCount = badges.filter(b => b.earned).length;
+    const totalXP = badges.filter(b => b.earned).reduce((a, b) => a + b.xp, 0);
 
     return (
-        <div className="container mx-auto px-4 py-12">
-            <div className="flex flex-col lg:flex-row gap-12 mb-16">
-                <div className="flex-1">
-                    <PageHeader
-                        title="Minhas Conquistas"
-                        description="Cada selo representa um degrau na sua jornada rumo à aprovação."
-                        badge="GAMIFICAÇÃO"
-                    />
-                </div>
-
-                <div className="flex gap-4">
-                    <div className="p-8 rounded-[40px] bg-primary text-primary-foreground shadow-2xl shadow-primary/30 flex flex-col items-center justify-center min-w-[200px]">
-                        <Star className="w-8 h-8 mb-4 fill-primary-foreground/20" />
-                        <div className="text-3xl font-black">12.500</div>
-                        <div className="text-xs font-bold uppercase tracking-widest opacity-80">XP Total</div>
+        <div className="p-6 lg:p-8 max-w-[1100px]">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="pill pill-primary text-[10px] font-bold uppercase tracking-[0.15em]">Gamificacao</span>
                     </div>
-                    <div className="p-8 rounded-[40px] bg-accent text-accent-foreground shadow-2xl shadow-accent/30 flex flex-col items-center justify-center min-w-[200px]">
-                        <Trophy className="w-8 h-8 mb-4 fill-accent-foreground/20" />
-                        <div className="text-3xl font-black">Lv. 14</div>
-                        <div className="text-xs font-bold uppercase tracking-widest opacity-80">Nível Atual</div>
+                    <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-0.5">
+                        Minhas Conquistas
+                    </h1>
+                    <p className="text-sm text-slate-500">Cada selo representa um degrau na sua jornada rumo a aprovacao.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-full">
+                        <Trophy size={13} /> {earnedCount}/{badges.length}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full">
+                        <Zap size={13} /> {totalXP} XP ganhos
                     </div>
                 </div>
             </div>
 
-            <div className="space-y-16">
-                {categories.map((cat) => (
-                    <section key={cat.title}>
-                        <h2 className="text-2xl font-black mb-8 flex items-center gap-3">
-                            <Sparkles className="w-6 h-6 text-primary" />
-                            {cat.title}
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {cat.badges.map((badge) => (
-                                <BadgeCard
-                                    key={badge.name}
-                                    name={badge.name}
-                                    description={badge.description}
-                                    icon={badge.icon as any}
-                                    earned={badge.earned}
-                                />
-                            ))}
+            {/* Stats */}
+            <div className="grid grid-cols-4 gap-3 mb-6">
+                {[
+                    { label: "Badges obtidos", val: `${earnedCount}/${badges.length}`, icon: Trophy, bg: "bg-amber-50", text: "text-amber-600" },
+                    { label: "XP de badges", val: String(totalXP), icon: Zap, bg: "bg-indigo-50", text: "text-indigo-600" },
+                    { label: "Nivel atual", val: "Lv. 14", icon: Star, bg: "bg-violet-50", text: "text-violet-600" },
+                    { label: "Proximo badge", val: "85%", icon: Target, bg: "bg-emerald-50", text: "text-emerald-600" },
+                ].map(s => {
+                    const Icon = s.icon;
+                    return (
+                        <div key={s.label} className="card-elevated p-4 hover:!transform-none">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className={`w-7 h-7 rounded-lg ${s.bg} flex items-center justify-center`}>
+                                    <Icon size={13} className={s.text} />
+                                </div>
+                            </div>
+                            <div className="text-xl font-extrabold text-slate-900">{s.val}</div>
+                            <div className="text-[11px] text-slate-400">{s.label}</div>
                         </div>
-                    </section>
-                ))}
+                    );
+                })}
+            </div>
+
+            {/* Category Tabs */}
+            <div className="flex items-center gap-2 mb-6 overflow-x-auto scrollbar-hide">
+                {(Object.entries(categoryConfig) as [BadgeCategory, typeof categoryConfig.todas][]).map(([key, config]) => {
+                    const Icon = config.icon;
+                    return (
+                        <button key={key} onClick={() => setActiveCategory(key)}
+                            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all ${
+                                activeCategory === key
+                                    ? "bg-indigo-50 text-indigo-700 border border-indigo-100"
+                                    : "text-slate-400 hover:text-slate-600"
+                            }`}>
+                            <Icon size={12} /> {config.label}
+                        </button>
+                    );
+                })}
+            </div>
+
+            {/* Badge Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {filteredBadges.map(badge => {
+                    const Icon = badge.icon;
+                    return (
+                        <div key={badge.id} className={`card-elevated !rounded-2xl p-5 hover:!transform-none transition-all ${
+                            !badge.earned ? "opacity-70" : ""
+                        }`}>
+                            <div className="flex items-start gap-3">
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                                    badge.earned
+                                        ? `bg-gradient-to-br ${badge.color} shadow-sm`
+                                        : "bg-slate-100"
+                                }`}>
+                                    <Icon size={20} className={badge.earned ? "text-white" : "text-slate-400"} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-0.5">
+                                        <span className="text-[13px] font-bold text-slate-800">{badge.name}</span>
+                                        {badge.earned && (
+                                            <CheckCircle2 size={12} className="text-emerald-500" />
+                                        )}
+                                    </div>
+                                    <p className="text-[11px] text-slate-400 mb-2">{badge.description}</p>
+
+                                    {badge.earned ? (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                                                <Zap size={8} /> +{badge.xp} XP
+                                            </span>
+                                            <span className="text-[10px] text-slate-400">{badge.earnedDate}</span>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1.5">
+                                                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div className={`h-full rounded-full bg-gradient-to-r ${badge.color}`}
+                                                        style={{ width: `${badge.progress}%` }} />
+                                                </div>
+                                                <span className="text-[10px] font-bold text-slate-500">{badge.progress}%</span>
+                                            </div>
+                                            <span className="text-[10px] text-slate-400">{badge.requirement}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
