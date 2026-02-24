@@ -1,5 +1,6 @@
 package com.bizu.portal.student.api;
 
+import com.bizu.portal.identity.application.UserService;
 import com.bizu.portal.student.application.CreateStudentTaskDTO;
 import com.bizu.portal.student.application.StudentTaskDTO;
 import com.bizu.portal.student.application.StudentTaskService;
@@ -20,28 +21,33 @@ import java.util.UUID;
 public class StudentTaskController {
 
     private final StudentTaskService studentTaskService;
+    private final UserService userService;
 
     @GetMapping
     public ResponseEntity<List<StudentTaskDTO>> getUserTasks(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getSubject());
+        syncUser(jwt, userId);
         return ResponseEntity.ok(studentTaskService.getUserTasks(userId));
     }
 
     @GetMapping("/suggestions")
     public ResponseEntity<List<TaskSuggestionDTO>> getSuggestions(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getSubject());
+        syncUser(jwt, userId);
         return ResponseEntity.ok(studentTaskService.generateSuggestions(userId));
     }
 
     @PostMapping
     public ResponseEntity<StudentTaskDTO> createTask(@AuthenticationPrincipal Jwt jwt, @RequestBody CreateStudentTaskDTO createDTO) {
         UUID userId = UUID.fromString(jwt.getSubject());
+        syncUser(jwt, userId);
         return ResponseEntity.ok(studentTaskService.createTask(userId, createDTO));
     }
 
     @PatchMapping("/{taskId}/status")
     public ResponseEntity<Void> updateTaskStatus(@PathVariable UUID taskId, @AuthenticationPrincipal Jwt jwt, @RequestBody UpdateStudentTaskStatusDTO dto) {
         UUID userId = UUID.fromString(jwt.getSubject());
+        syncUser(jwt, userId);
         studentTaskService.updateTaskStatus(taskId, userId, dto.getStatus());
         return ResponseEntity.ok().build();
     }
@@ -49,7 +55,14 @@ public class StudentTaskController {
     @DeleteMapping("/{taskId}")
     public ResponseEntity<Void> deleteTask(@PathVariable UUID taskId, @AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getSubject());
+        syncUser(jwt, userId);
         studentTaskService.deleteTask(taskId, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    private void syncUser(Jwt jwt, UUID userId) {
+        String email = jwt.getClaimAsString("email");
+        String name = jwt.getClaimAsString("name");
+        userService.syncUser(userId, email, name);
     }
 }
