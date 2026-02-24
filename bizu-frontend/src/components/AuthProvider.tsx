@@ -69,7 +69,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const data = await res.json();
                 Cookies.set("token", data.access_token, { expires: 1 });
                 setAuthenticated(true);
-                keycloak?.init({ token: data.access_token, refreshToken: data.refresh_token });
                 return true;
             } else if (res.status === 401 || res.status === 400) {
                 console.warn("Invalid credentials");
