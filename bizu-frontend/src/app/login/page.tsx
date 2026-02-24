@@ -9,6 +9,19 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useNotification } from "@/components/NotificationProvider";
 
+
+const getRealmRoles = (user: unknown): string[] => {
+    if (!user || typeof user !== "object") return [];
+
+    const realmAccess = (user as { realm_access?: unknown }).realm_access;
+    if (!realmAccess || typeof realmAccess !== "object") return [];
+
+    const roles = (realmAccess as { roles?: unknown }).roles;
+    if (!Array.isArray(roles)) return [];
+
+    return roles.filter((role): role is string => typeof role === "string");
+};
+
 export default function LoginPage() {
     const { loginDirect, authenticated, user } = useAuth();
     const { notify } = useNotification();
@@ -19,7 +32,7 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (authenticated && user) {
-            const roles = user?.realm_access?.roles || [];
+            const roles = getRealmRoles(user);
             console.log("Roles detectadas:", roles);
 
             const isAdmin = roles.some((role: string) => role.toUpperCase() === "ADMIN");

@@ -53,6 +53,7 @@ export default function DashboardPage() {
     const accuracy = performance?.overallAccuracy ? parseFloat(performance.overallAccuracy).toFixed(1) + "%" : "0%";
     const totalXp = gamification?.totalXp || 0;
     const streak = gamification?.currentStreak || 0;
+    const userName = typeof user?.name === "string" && user.name.trim().length > 0 ? user.name : "Aluno";
 
     const achivementsData = [
         { icon: Flame, unlocked: badges.some(b => b.badgeId === 'first_blood'), color: "from-orange-400 to-rose-500", shadow: "shadow-orange-500/40", anim: "group-hover:rotate-12 group-hover:scale-125" },
@@ -78,7 +79,7 @@ export default function DashboardPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
                 <div>
                     <h1 className="text-3xl font-light text-slate-800 tracking-tight mb-1.5">
-                        Bom dia, <span className="font-semibold text-slate-900">{user?.name || "Aluno"}</span>
+                        Bom dia, <span className="font-semibold text-slate-900">{userName}</span>
                     </h1>
                     <p className="text-sm text-slate-500 font-medium tracking-wide">
                         Visão Geral do seu Desempenho
