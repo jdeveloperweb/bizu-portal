@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
 import BrandLogo from "@/components/BrandLogo";
 import {
     LayoutDashboard, BookOpen, ClipboardList, Layers,
@@ -25,14 +26,15 @@ const trackNav = [
 
 export default function StudentSidebar() {
     const pathname = usePathname();
+    const { logout } = useAuth();
 
     const Item = ({ href, icon: Icon, label }: { href: string; icon: typeof LayoutDashboard; label: string }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
         return (
             <Link href={href}
                 className={`group flex items-center gap-2.5 px-3 py-[7px] rounded-xl text-[13px] font-medium transition-all ${active
-                        ? "bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-700 font-semibold"
-                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                    ? "bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-700 font-semibold"
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
                     }`}>
                 <Icon size={16} className={active ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-500"} />
                 <span className="flex-1">{label}</span>
@@ -77,7 +79,9 @@ export default function StudentSidebar() {
                         Ver planos <ChevronRight size={11} />
                     </Link>
                 </div>
-                <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[12px] font-medium text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all">
+                <button
+                    onClick={logout}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[12px] font-medium text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all">
                     <LogOut size={15} /> Sair
                 </button>
             </div>

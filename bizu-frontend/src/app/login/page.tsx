@@ -16,9 +16,13 @@ export default function LoginPage() {
     const [form, setForm] = useState({ email: "", password: "" });
 
     useEffect(() => {
-        if (authenticated) {
+        if (authenticated && user) {
             const roles = user?.realm_access?.roles || [];
-            if (roles.includes("ADMIN")) {
+            console.log("Roles detectadas:", roles);
+
+            const isAdmin = roles.some((role: string) => role.toUpperCase() === "ADMIN");
+
+            if (isAdmin) {
                 router.push("/admin");
             } else {
                 router.push("/");

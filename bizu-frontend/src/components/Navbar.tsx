@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
+import { useAuth } from "@/components/AuthProvider";
 
 const navLinks = [
     { href: "/#funcionalidades", label: "Funcionalidades" },
@@ -11,8 +12,12 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+    const { authenticated, logout, user } = useAuth();
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+
+    const isAdmin = user?.realm_access?.roles?.some((r: string) => r.toUpperCase() === "ADMIN");
+    const dashboardHref = isAdmin ? "/admin" : "/dashboard";
 
     useEffect(() => {
         const fn = () => setScrolled(window.scrollY > 20);
@@ -41,13 +46,34 @@ export default function Navbar() {
                 </div>
 
                 <div className="hidden md:flex items-center gap-3">
-                    <Link href="/login"
-                        className={`text-[13px] font-semibold transition-colors px-3 py-2 ${scrolled ? "text-slate-600 hover:text-indigo-600" : "text-white/80 hover:text-white"}`}>
-                        Entrar
-                    </Link>
-                    <Link href="/register" className={`btn-primary !h-9 !text-xs !rounded-full !px-5 ${!scrolled ? "shadow-[0_0_15px_rgba(99,102,241,0.5)]" : ""}`}>
-                        Comece gratis
-                    </Link>
+                    {authenticated ? (
+                        <>
+                            <Link href={dashboardHref}
+                                className={`flex items-center gap-2 text-[13px] font-bold transition-all px-4 py-2 rounded-full ${scrolled
+                                        ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+                                        : "bg-white/10 text-white hover:bg-white/20 backdrop-blur-md"
+                                    }`}>
+                                <LayoutDashboard size={14} />
+                                Painel
+                            </Link>
+                            <button
+                                onClick={logout}
+                                className={`p-2 rounded-full transition-colors ${scrolled ? "text-slate-400 hover:text-red-500 hover:bg-red-50" : "text-white/60 hover:text-white hover:bg-white/10"}`}
+                                title="Sair">
+                                <LogOut size={18} />
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <Link href="/login"
+                                className={`text-[13px] font-semibold transition-colors px-3 py-2 ${scrolled ? "text-slate-600 hover:text-indigo-600" : "text-white/80 hover:text-white"}`}>
+                                Entrar
+                            </Link>
+                            <Link href="/register" className={`btn-primary !h-9 !text-xs !rounded-full !px-5 ${!scrolled ? "shadow-[0_0_15px_rgba(99,102,241,0.5)]" : ""}`}>
+                                Comece gratis
+                            </Link>
+                        </>
+                    )}
                 </div>
 
                 <button className={`md:hidden ${scrolled ? "text-slate-500" : "text-white"}`} onClick={() => setMobileOpen(!mobileOpen)}>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
 import BrandLogo from "@/components/BrandLogo";
 import {
     PieChart, Users, BookOpen, CreditCard, Ticket,
@@ -11,6 +12,7 @@ import {
 
 export default function AdminSidebar() {
     const pathname = usePathname();
+    const { logout } = useAuth();
 
     const navItems = [
         { href: "/admin", icon: PieChart, label: "Visao Geral" },
@@ -34,8 +36,8 @@ export default function AdminSidebar() {
         return (
             <Link href={item.href}
                 className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${active
-                        ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                     }`}>
                 <item.icon size={18} className={active ? "text-white" : "text-slate-400 group-hover:text-slate-600"} />
                 <span className="flex-1">{item.label}</span>
@@ -78,7 +80,9 @@ export default function AdminSidebar() {
                         <div className="text-sm font-bold text-slate-900 truncate">Admin Geral</div>
                         <div className="text-[11px] text-slate-500">Sessao ativa</div>
                     </div>
-                    <button className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                    <button
+                        onClick={logout}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors">
                         <LogOut size={16} />
                     </button>
                 </div>

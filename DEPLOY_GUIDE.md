@@ -108,9 +108,8 @@ pm2 logs bizu-frontend
 ## ✅ Passo 5: Configurar o Nginx (Proxy Reverso)
 
 ```bash
-sudo nano /etc/nginx/sites-available/bizu-portal
+sudo nano /etc/nginx/conf.d/bizu-portal.conf
 ```
-sudo nano /etc/nginx/conf.d/bizu-portal
 Cole o seguinte (configuração **HTTP temporária**, antes do HTTPS):
 
 ```nginx
@@ -136,14 +135,23 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
+
+    # Keycloak — porta 8280
+    location /auth {
+        proxy_pass http://localhost:8280;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffer_size 128k;
+        proxy_buffers 4 256k;
+        proxy_busy_buffers_size 256k;
+    }
 }
 ```
 
 Ativar o site:
 ```bash
-# Criar link simbólico
-sudo ln -s /etc/nginx/conf.d/bizu-portal /etc/nginx/sites-enabled/
-
 # Testar configuração (sem erros = ok)
 sudo nginx -t
 
@@ -153,10 +161,21 @@ sudo systemctl reload nginx
 
 ---
 
-## ✅ Passo 6: Gerar Certificado HTTPS com Certbot
+## ✅ Passo 6: Instalar e Configurar Certificado SSL (Certbot)
 
+Se o Certbot não estiver instalado ou estiver com erro:
 ```bash
-# Gerar certificado SSL para o domínio (o Certbot edita o Nginx automaticamente)
+# Remover versões antigas e instalar via Snap (recomendado)
+sudo apt-get remove certbot
+sudo apt install snapd -y
+sudo snap install core; sudo snap refresh core
+sudo snap install --classic certbot
+sudo ln -s /snap/bin/certbot /usr/bin/certbot
+```
+
+Gerar o certificado:
+```bash
+# Gerar certificado SSL (o Certbot edita o Nginx automaticamente)
 sudo certbot --nginx -d bizu.mjolnix.com.br
 ```
 
