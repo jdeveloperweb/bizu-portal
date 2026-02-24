@@ -150,8 +150,8 @@ public class NoteService {
                 .linkedTo(linkedTo)
                 .pinned(note.isPinned())
                 .starred(note.isStarred())
-                .createdAt(note.getCreatedAt().format(formatter))
-                .updatedAt(note.getUpdatedAt().format(formatter))
+                .createdAt(note.getCreatedAt() != null ? note.getCreatedAt().format(formatter) : "")
+                .updatedAt(note.getUpdatedAt() != null ? note.getUpdatedAt().format(formatter) : "")
                 .build();
     }
 }

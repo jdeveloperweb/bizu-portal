@@ -161,7 +161,7 @@ export default function CourseManagementPage() {
     if (!course) return <div className="p-12 text-center font-bold text-destructive">Curso não encontrado.</div>;
 
     return (
-        <div className="container mx-auto px-4 py-12 max-w-5xl">
+        <div className="w-full px-8 py-12">
             <Button
                 variant="ghost"
                 className="mb-8 gap-2 rounded-xl text-muted-foreground hover:text-foreground"

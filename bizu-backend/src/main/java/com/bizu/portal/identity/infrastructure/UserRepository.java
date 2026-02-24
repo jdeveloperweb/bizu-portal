@@ -11,4 +11,5 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
     long countByCreatedAtAfter(java.time.OffsetDateTime date);
+    java.util.List<User> findTop10ByOrderByUpdatedAtDesc();
 }

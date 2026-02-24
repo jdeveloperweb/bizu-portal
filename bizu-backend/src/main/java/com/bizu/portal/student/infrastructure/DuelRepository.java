@@ -12,10 +12,16 @@ import java.util.UUID;
 public interface DuelRepository extends JpaRepository<Duel, UUID> {
     List<Duel> findAllByOpponentIdAndStatus(UUID opponentId, String status);
 
-    @Query(value = "SELECT u.id, u.full_name as name, COUNT(d.id) as wins " +
+    @Query(value = "SELECT u.id, u.name as name, COUNT(d.id) as wins " +
                    "FROM identity.users u " +
                    "JOIN student.duels d ON u.id = d.winner_id " +
-                   "GROUP BY u.id, u.full_name " +
+                   "GROUP BY u.id, u.name " +
                    "ORDER BY wins DESC LIMIT 10", nativeQuery = true)
     List<Object[]> getRanking();
+
+    @Query(value = "SELECT " +
+                   "(SELECT COUNT(*) FROM student.duels WHERE winner_id = :userId AND status = 'COMPLETED') as wins, " +
+                   "(SELECT COUNT(*) FROM student.duels WHERE (challenger_id = :userId OR opponent_id = :userId) AND (winner_id != :userId OR winner_id IS NULL) AND status = 'COMPLETED') as losses",
+            nativeQuery = true)
+    java.util.Map<String, Object> getMyDuelStats(@org.springframework.data.repository.query.Param("userId") java.util.UUID userId);
 }

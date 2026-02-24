@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { apiFetch } from "@/lib/api";
 import {
     TrendingUp, Target, BarChart3, PieChart, AlertCircle,
     ChevronRight, Flame, Trophy, BookOpen, CheckCircle2,
@@ -13,45 +14,98 @@ type DesempenhoTab = "geral" | "materias" | "evolucao";
 
 interface SubjectStat {
     subject: string;
-    shortName: string;
-    total: number;
-    correct: number;
+    totalQuestions: number;
+    correctAnswers: number;
     accuracy: number;
-    trend: number;
-    color: string;
-    weakTopics: string[];
+    trend?: number;
+    color?: string;
+    weakTopics?: string[];
 }
 
-const subjectStats: SubjectStat[] = [
-    { subject: "Direito Constitucional", shortName: "D. Const.", total: 320, correct: 290, accuracy: 91, trend: 3, color: "#6366F1", weakTopics: ["Controle de Constitucionalidade", "Ordem Social"] },
-    { subject: "Direito Administrativo", shortName: "D. Admin.", total: 450, correct: 382, accuracy: 85, trend: -2, color: "#8B5CF6", weakTopics: ["Atos Administrativos", "Licitacoes"] },
-    { subject: "Direito Penal", shortName: "D. Penal", total: 280, correct: 238, accuracy: 85, trend: 5, color: "#059669", weakTopics: ["Crimes contra o Patrimonio"] },
-    { subject: "Direito Civil", shortName: "D. Civil", total: 200, correct: 140, accuracy: 70, trend: -4, color: "#F59E0B", weakTopics: ["Contratos", "Responsabilidade Civil", "Obrigacoes"] },
-    { subject: "Processo Civil", shortName: "P. Civil", total: 180, correct: 140, accuracy: 78, trend: 1, color: "#EC4899", weakTopics: ["Recursos", "Tutela Provisoria"] },
-    { subject: "Processo Penal", shortName: "P. Penal", total: 150, correct: 110, accuracy: 73, trend: 2, color: "#14B8A6", weakTopics: ["Provas em Especie", "Nulidades"] },
-];
+interface PerformanceData {
+    totalAttempted: number;
+    overallAccuracy: number;
+    totalTimeSpentSeconds: number;
+    weeklyTimeSpentSeconds: number;
+    bySubject: SubjectStat[];
+    weeklyData: {
+        day: string;
+        questions: number;
+        accuracy: number;
+    }[];
+}
 
-const weeklyData = [
-    { day: "Seg", questions: 32, accuracy: 81 },
-    { day: "Ter", questions: 45, accuracy: 78 },
-    { day: "Qua", questions: 28, accuracy: 85 },
-    { day: "Qui", questions: 52, accuracy: 82 },
-    { day: "Sex", questions: 38, accuracy: 79 },
-    { day: "Sab", questions: 15, accuracy: 87 },
-    { day: "Dom", questions: 20, accuracy: 90 },
+const dayMap: Record<string, string> = {
+    MONDAY: "Seg",
+    TUESDAY: "Ter",
+    WEDNESDAY: "Qua",
+    THURSDAY: "Qui",
+    FRIDAY: "Sex",
+    SATURDAY: "Sab",
+    SUNDAY: "Dom",
+};
+
+const colors = [
+    "#6366F1", "#8B5CF6", "#059669", "#F59E0B", "#EC4899", "#14B8A6",
+    "#F43F5E", "#0EA5E9", "#10B981", "#64748B"
 ];
 
 export default function DesempenhoPage() {
     const [activeTab, setActiveTab] = useState<DesempenhoTab>("geral");
     const [selectedSubject, setSelectedSubject] = useState<SubjectStat | null>(null);
+    const [data, setData] = useState<PerformanceData | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    const totalQuestions = subjectStats.reduce((a, s) => a + s.total, 0);
-    const totalCorrect = subjectStats.reduce((a, s) => a + s.correct, 0);
-    const overallAccuracy = Math.round((totalCorrect / totalQuestions) * 100);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await apiFetch("/student/performance/summary");
+                if (response.ok) {
+                    const result = await response.json();
+                    setData(result);
+                }
+            } catch (error) {
+                console.error("Error fetching performance data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            </div>
+        );
+    }
+
+    if (!data) return null;
+
+    const subjectStats = data.bySubject.map((s, i) => ({
+        ...s,
+        color: colors[i % colors.length],
+        shortName: s.subject.length > 8 ? s.subject.substring(0, 8) + "." : s.subject,
+        weakTopics: [] as string[],
+        trend: 0
+    }));
+
+    const weeklyData = data.weeklyData.map(d => ({
+        ...d,
+        day: dayMap[d.day] || d.day
+    }));
+
+    const totalQuestions = data.totalAttempted;
+    const overallAccuracy = Math.round(data.overallAccuracy);
     const weakSubjects = subjectStats.filter(s => s.accuracy < 75).sort((a, b) => a.accuracy - b.accuracy);
     const strongSubjects = subjectStats.filter(s => s.accuracy >= 85).sort((a, b) => b.accuracy - a.accuracy);
-    const maxWeeklyQuestions = Math.max(...weeklyData.map(d => d.questions));
+    const maxWeeklyQuestions = Math.max(...weeklyData.map(d => d.questions), 1);
     const weeklyTotal = weeklyData.reduce((a, d) => a + d.questions, 0);
+    const totalHours = Math.floor(data.totalTimeSpentSeconds / 3600);
+    const weeklyHours = Math.floor(data.weeklyTimeSpentSeconds / 3600);
+
 
     return (
         <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
@@ -79,10 +133,10 @@ export default function DesempenhoPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
                 {[
-                    { label: "Questoes resolvidas", val: totalQuestions.toLocaleString(), icon: BarChart3, bg: "bg-indigo-50", text: "text-indigo-600", delta: "+124 esta semana" },
-                    { label: "Taxa de acerto", val: `${overallAccuracy}%`, icon: Target, bg: "bg-emerald-50", text: "text-emerald-600", delta: "+3% vs anterior" },
-                    { label: "Tempo de estudo", val: "47h", icon: Clock, bg: "bg-violet-50", text: "text-violet-600", delta: "8h esta semana" },
-                    { label: "Ranking geral", val: "#142", icon: Trophy, bg: "bg-amber-50", text: "text-amber-600", delta: "Subiu 18 pos." },
+                    { label: "Questoes resolvidas", val: totalQuestions.toLocaleString(), icon: BarChart3, bg: "bg-indigo-50", text: "text-indigo-600", delta: `+${weeklyTotal} esta semana` },
+                    { label: "Taxa de acerto", val: `${overallAccuracy}%`, icon: Target, bg: "bg-emerald-50", text: "text-emerald-600", delta: "vs anterior" },
+                    { label: "Tempo de estudo", val: `${totalHours}h`, icon: Clock, bg: "bg-violet-50", text: "text-violet-600", delta: `${weeklyHours}h esta semana` },
+                    { label: "Ranking geral", val: "#--", icon: Trophy, bg: "bg-amber-50", text: "text-amber-600", delta: "Em breve" },
                 ].map(s => {
                     const Icon = s.icon;
                     return (
@@ -139,13 +193,13 @@ export default function DesempenhoPage() {
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-[10px] text-slate-400">{stat.correct}/{stat.total}</span>
+                                                <span className="text-[10px] text-slate-400">{stat.correctAnswers}/{stat.totalQuestions}</span>
                                                 <span className="text-[13px] font-extrabold" style={{ color: stat.color }}>{stat.accuracy}%</span>
-                                                {stat.trend > 0 ? (
+                                                {stat.trend && stat.trend > 0 ? (
                                                     <span className="text-[9px] font-bold text-emerald-600 flex items-center"><ArrowUp size={8} />{stat.trend}%</span>
-                                                ) : (
+                                                ) : stat.trend ? (
                                                     <span className="text-[9px] font-bold text-red-500 flex items-center"><ArrowDown size={8} />{Math.abs(stat.trend)}%</span>
-                                                )}
+                                                ) : null}
                                             </div>
                                         </div>
                                         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -170,20 +224,20 @@ export default function DesempenhoPage() {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span className="text-[20px] font-extrabold" style={{ color: stat.color }}>{stat.accuracy}%</span>
-                                            {stat.trend > 0 ? (
+                                            {stat.trend && stat.trend > 0 ? (
                                                 <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full flex items-center gap-0.5"><ArrowUp size={8} />{stat.trend}%</span>
-                                            ) : (
+                                            ) : stat.trend ? (
                                                 <span className="text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-full flex items-center gap-0.5"><ArrowDown size={8} />{Math.abs(stat.trend)}%</span>
-                                            )}
+                                            ) : null}
                                         </div>
                                     </div>
                                     <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-3">
                                         <div className="h-full rounded-full transition-all" style={{ width: `${stat.accuracy}%`, backgroundColor: stat.color }} />
                                     </div>
                                     <div className="flex items-center gap-4 text-[11px] text-slate-400 mb-3">
-                                        <span>{stat.total} questoes</span>
-                                        <span>{stat.correct} acertos</span>
-                                        <span>{stat.total - stat.correct} erros</span>
+                                        <span>{stat.totalQuestions} questoes</span>
+                                        <span>{stat.correctAnswers} acertos</span>
+                                        <span>{stat.totalQuestions - stat.correctAnswers} erros</span>
                                     </div>
                                     {stat.weakTopics.length > 0 && (
                                         <div>

@@ -44,7 +44,7 @@ export default function GroupManagementPage() {
     };
 
     return (
-        <div className="container mx-auto px-4 py-12 max-w-5xl">
+        <div className="w-full px-8 py-12">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                 <PageHeader
                     title="Gestão do Grupo"

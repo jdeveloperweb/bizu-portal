@@ -49,6 +49,9 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
     @Query(value = "SELECT * FROM content.questions WHERE module_id = :moduleId AND category = :category ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
     java.util.List<Question> findRandomByModuleAndCategory(@Param("moduleId") UUID moduleId, @Param("category") String category, @Param("limit") int limit);
 
+    @Query(value = "SELECT * FROM content.questions WHERE module_id IN (:moduleIds) AND category = :category ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
+    java.util.List<Question> findRandomByModulesAndCategory(@Param("moduleIds") java.util.List<UUID> moduleIds, @Param("category") String category, @Param("limit") int limit);
+
     long countByCategory(String category);
 
     long countByCategoryAndDifficulty(String category, String difficulty);

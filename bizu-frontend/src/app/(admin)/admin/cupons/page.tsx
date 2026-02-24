@@ -108,8 +108,8 @@ export default function AdminCuponsPage() {
     };
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-7xl relative">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+        <div className="w-full px-8 py-12 relative">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                 <PageHeader
                     title="Gestão de Cupons"
                     description="Crie e gerencie códigos de desconto para campanhas de marketing."
@@ -117,14 +117,14 @@ export default function AdminCuponsPage() {
                 />
                 <Button
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="h-12 rounded-xl font-bold text-base gap-2 shadow-lg shadow-primary/20"
+                    className="h-14 rounded-2xl font-black text-base gap-2 shadow-lg shadow-primary/20"
                 >
                     <Plus className="w-5 h-5" />
                     Novo Cupom
                 </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                 <div className="bg-card border border-border rounded-2xl p-6 flex items-center gap-6 shadow-sm">
                     <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
                         <Ticket className="w-7 h-7" />
@@ -159,31 +159,31 @@ export default function AdminCuponsPage() {
                     <table className="w-full text-left whitespace-nowrap">
                         <thead className="bg-muted/30 border-b border-border">
                             <tr>
-                                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Código</th>
-                                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Desconto</th>
-                                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Uso</th>
-                                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">Expiração</th>
-                                <th className="px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider text-right">Ações</th>
+                                <th className="px-8 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Código</th>
+                                <th className="px-8 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Desconto</th>
+                                <th className="px-8 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Uso</th>
+                                <th className="px-8 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Expiração</th>
+                                <th className="px-8 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest text-right">Ações</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
-                                        <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                                    <td colSpan={5} className="px-8 py-12 text-center text-muted-foreground">
+                                        <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
                                         Carregando cupons...
                                     </td>
                                 </tr>
                             ) : coupons.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground font-medium">
+                                    <td colSpan={5} className="px-8 py-12 text-center text-muted-foreground font-medium">
                                         Nenhum cupom encontrado.
                                     </td>
                                 </tr>
                             ) : (
                                 coupons.map((coupon) => (
                                     <tr key={coupon.id} className="hover:bg-muted/20 transition-colors group">
-                                        <td className="px-6 py-4">
+                                        <td className="px-8 py-6">
                                             <div className="flex items-center gap-3">
                                                 <div className="p-2 bg-muted/50 rounded-lg">
                                                     <Hash className="w-4 h-4 text-primary" />
@@ -194,7 +194,7 @@ export default function AdminCuponsPage() {
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-8 py-6">
                                             <div className="font-semibold text-sm">
                                                 {coupon.type === 'PERCENTAGE' ? `${coupon.value}%` : `R$ ${coupon.value.toFixed(2)}`}
                                             </div>
@@ -202,10 +202,10 @@ export default function AdminCuponsPage() {
                                                 {coupon.type === 'PERCENTAGE' ? 'PERCENTUAL' : 'VALOR FIXO'}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-8 py-6">
                                             <div className="w-full max-w-[120px] h-1.5 bg-muted rounded-full overflow-hidden mb-1.5">
                                                 <div
-                                                    className="h-full bg-primary rounded-full transition-all"
+                                                    className="h-full bg-primary rounded-full transition-all shadow-[0_0_8px_rgba(var(--primary),0.3)]"
                                                     style={{ width: `${(coupon.usedCount / (coupon.maxUses || Math.max(1, coupon.usedCount))) * 100}%` }}
                                                 />
                                             </div>
@@ -213,21 +213,24 @@ export default function AdminCuponsPage() {
                                                 {coupon.usedCount} / {coupon.maxUses || '∞'} usos
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-8 py-6">
                                             <div className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
                                                 <Calendar className="w-4 h-4" />
                                                 {coupon.validUntil ? format(new Date(coupon.validUntil), "dd/MM/yyyy") : "Sem expiração"}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <Button
-                                                onClick={() => handleDelete(coupon.id)}
-                                                variant="ghost"
-                                                size="sm"
-                                                className="rounded-lg hover:bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100 transition-all h-8 w-8 p-0"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
+                                        <td className="px-8 py-6 text-right">
+                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                                <Button
+                                                    onClick={() => handleDelete(coupon.id)}
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="rounded-xl h-10 w-10 p-0 hover:bg-destructive/10 text-destructive"
+                                                    title="Excluir Cupom"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -238,99 +241,101 @@ export default function AdminCuponsPage() {
             </div>
 
             {/* Create Coupon Modal */}
-            {isCreateModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-                    <div className="bg-card w-full max-w-lg rounded-2xl p-6 shadow-xl relative border border-border animate-in zoom-in-95 duration-200">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-4 right-4 rounded-xl hover:bg-muted"
-                            onClick={() => setIsCreateModalOpen(false)}
-                        >
-                            <X className="w-5 h-5" />
-                        </Button>
-                        <div className="mb-6">
-                            <h2 className="text-xl font-bold flex items-center gap-2">
-                                <Ticket className="w-5 h-5 text-primary" />
-                                Novo Cupom
-                            </h2>
-                            <p className="text-muted-foreground mt-1 text-sm">Configure as regras de uso e duração do seu desconto.</p>
+            {
+                isCreateModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                        <div className="bg-card w-full max-w-lg rounded-2xl p-6 shadow-xl relative border border-border animate-in zoom-in-95 duration-200">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="absolute top-4 right-4 rounded-xl hover:bg-muted"
+                                onClick={() => setIsCreateModalOpen(false)}
+                            >
+                                <X className="w-5 h-5" />
+                            </Button>
+                            <div className="mb-6">
+                                <h2 className="text-xl font-bold flex items-center gap-2">
+                                    <Ticket className="w-5 h-5 text-primary" />
+                                    Novo Cupom
+                                </h2>
+                                <p className="text-muted-foreground mt-1 text-sm">Configure as regras de uso e duração do seu desconto.</p>
+                            </div>
+
+                            <form onSubmit={handleCreate} className="space-y-5">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block">Código do Cupom</label>
+                                    <div className="relative">
+                                        <Hash className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                        <input
+                                            required
+                                            type="text"
+                                            value={newCoupon.code}
+                                            onChange={(e) => setNewCoupon({ ...newCoupon, code: e.target.value })}
+                                            className="w-full h-11 pl-9 pr-3 bg-background border border-border rounded-xl font-semibold uppercase text-sm focus:ring-2 focus:ring-primary/20 appearance-none outline-none transition-all placeholder:normal-case placeholder:font-normal"
+                                            placeholder="Ex: BIZU2025"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block">Tipo de Desconto</label>
+                                        <select
+                                            value={newCoupon.type}
+                                            onChange={(e) => setNewCoupon({ ...newCoupon, type: e.target.value as any })}
+                                            className="w-full h-11 px-3 bg-background border border-border rounded-xl font-medium text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                        >
+                                            <option value="PERCENTAGE">Percentual (%)</option>
+                                            <option value="FIXED_AMOUNT">Valor Fixo (R$)</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block">Valor</label>
+                                        <input
+                                            required
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            value={newCoupon.value}
+                                            onChange={(e) => setNewCoupon({ ...newCoupon, value: e.target.value })}
+                                            className="w-full h-11 px-3 bg-background border border-border rounded-xl font-medium text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                            placeholder={newCoupon.type === "PERCENTAGE" ? "Ex: 50" : "Ex: 100"}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block">Limite de Usos (Opcional)</label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={newCoupon.maxUses}
+                                            onChange={(e) => setNewCoupon({ ...newCoupon, maxUses: e.target.value })}
+                                            className="w-full h-11 px-3 bg-background border border-border rounded-xl font-medium text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                            placeholder="Ex: 100"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block">Expiração (Opcional)</label>
+                                        <input
+                                            type="date"
+                                            value={newCoupon.validUntil}
+                                            onChange={(e) => setNewCoupon({ ...newCoupon, validUntil: e.target.value })}
+                                            className="w-full h-11 px-3 bg-background border border-border rounded-xl font-medium text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="pt-2">
+                                    <Button disabled={submitting} type="submit" className="w-full h-14 rounded-2xl font-black gap-2">
+                                        {submitting ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : <Save className="w-4 h-4" />}
+                                        {submitting ? 'Criando...' : 'Criar Cupom'}
+                                    </Button>
+                                </div>
+                            </form>
                         </div>
-
-                        <form onSubmit={handleCreate} className="space-y-5">
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">Código do Cupom</label>
-                                <div className="relative">
-                                    <Hash className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                                    <input
-                                        required
-                                        type="text"
-                                        value={newCoupon.code}
-                                        onChange={(e) => setNewCoupon({ ...newCoupon, code: e.target.value })}
-                                        className="w-full h-11 pl-9 pr-3 bg-background border border-border rounded-xl font-semibold uppercase text-sm focus:ring-2 focus:ring-primary/20 appearance-none outline-none transition-all placeholder:normal-case placeholder:font-normal"
-                                        placeholder="Ex: BIZU2025"
-                                    />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">Tipo de Desconto</label>
-                                    <select
-                                        value={newCoupon.type}
-                                        onChange={(e) => setNewCoupon({ ...newCoupon, type: e.target.value as any })}
-                                        className="w-full h-11 px-3 bg-background border border-border rounded-xl font-medium text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                    >
-                                        <option value="PERCENTAGE">Percentual (%)</option>
-                                        <option value="FIXED_AMOUNT">Valor Fixo (R$)</option>
-                                    </select>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">Valor</label>
-                                    <input
-                                        required
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        value={newCoupon.value}
-                                        onChange={(e) => setNewCoupon({ ...newCoupon, value: e.target.value })}
-                                        className="w-full h-11 px-3 bg-background border border-border rounded-xl font-medium text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                        placeholder={newCoupon.type === "PERCENTAGE" ? "Ex: 50" : "Ex: 100"}
-                                    />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">Limite de Usos (Opcional)</label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        value={newCoupon.maxUses}
-                                        onChange={(e) => setNewCoupon({ ...newCoupon, maxUses: e.target.value })}
-                                        className="w-full h-11 px-3 bg-background border border-border rounded-xl font-medium text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                        placeholder="Ex: 100"
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">Expiração (Opcional)</label>
-                                    <input
-                                        type="date"
-                                        value={newCoupon.validUntil}
-                                        onChange={(e) => setNewCoupon({ ...newCoupon, validUntil: e.target.value })}
-                                        className="w-full h-11 px-3 bg-background border border-border rounded-xl font-medium text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="pt-2">
-                                <Button disabled={submitting} type="submit" className="w-full h-11 rounded-xl font-bold gap-2">
-                                    {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                    {submitting ? 'Criando...' : 'Criar Cupom'}
-                                </Button>
-                            </div>
-                        </form>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }

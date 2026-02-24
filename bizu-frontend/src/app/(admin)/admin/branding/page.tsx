@@ -16,6 +16,7 @@ import { Button } from "../../../../components/ui/button";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
+import { hexToHsl } from "@/lib/utils";
 
 export default function AdminBrandingPage() {
     const [siteName, setSiteName] = useState("Bizu! Portal");
@@ -50,6 +51,14 @@ export default function AdminBrandingPage() {
         fetchBranding();
     }, []);
 
+    // Aplicar cor em tempo real no preview (CSS Variables)
+    useEffect(() => {
+        if (typeof document !== 'undefined') {
+            document.documentElement.style.setProperty('--primary', hexToHsl(primaryColor));
+            document.documentElement.style.setProperty('--secondary', hexToHsl(secondaryColor));
+        }
+    }, [primaryColor, secondaryColor]);
+
     const handleSave = async () => {
         setSaving(true);
         try {
@@ -66,7 +75,9 @@ export default function AdminBrandingPage() {
             });
             if (res.ok) {
                 toast.success("Branding atualizado com sucesso!");
-                // Opcional: Atualizar janela para refletir nova cor no localStorage, caso implementado
+                // Forçar atualização global
+                document.documentElement.style.setProperty('--primary', hexToHsl(primaryColor));
+                document.documentElement.style.setProperty('--secondary', hexToHsl(secondaryColor));
             } else {
                 toast.error("Falha ao atualizar marca");
             }
@@ -86,14 +97,14 @@ export default function AdminBrandingPage() {
 
     if (loading) {
         return (
-            <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[50vh]">
+            <div className="w-full px-8 py-12 flex items-center justify-center min-h-[50vh]">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
         );
     }
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <div className="w-full px-4 py-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
                 <PageHeader
                     title="Personalização (Branding)"

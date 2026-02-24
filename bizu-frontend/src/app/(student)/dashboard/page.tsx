@@ -29,15 +29,20 @@ export default function DashboardPage() {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const [perfRes, gamiRes, badgeRes] = await Promise.all([
+                const [perfRes, gamiRes, badgeRes, rankRes] = await Promise.all([
                     apiFetch("/student/performance/summary"),
                     apiFetch("/student/gamification/me"),
-                    apiFetch("/student/badges/me")
+                    apiFetch("/student/badges/me"),
+                    apiFetch("/student/ranking/me")
                 ]);
 
                 if (perfRes.ok) setPerformance(await perfRes.json());
                 if (gamiRes.ok) setGamification(await gamiRes.json());
                 if (badgeRes.ok) setBadges(await badgeRes.json());
+                if (rankRes.ok) {
+                    const rankData = await rankRes.json();
+                    setGamification((prev: any) => ({ ...prev, rank: rankData.rank }));
+                }
             } catch (err) {
                 console.error("Failed to fetch dashboard stats", err);
             }
@@ -114,7 +119,7 @@ export default function DashboardPage() {
                     { label: "Questões Resolvidas", val: totalResolved.toString(), delta: "", icon: BarChart3 },
                     { label: "Taxa de Acerto", val: accuracy, delta: "", icon: Target },
                     { label: "Nível", val: (gamification?.level || 1).toString(), delta: "", icon: TrendingUp },
-                    { label: "Ranking", val: "-", delta: "", icon: Trophy },
+                    { label: "Ranking", val: gamification?.rank ? `#${gamification.rank}` : "-", delta: "", icon: Trophy },
                 ].map((s) => (
                     <div key={s.label} className="bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] flex flex-col justify-between hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 group">
                         <div className="flex items-start justify-between mb-5">

@@ -1,5 +1,7 @@
 package com.bizu.portal.student.api;
 
+import com.bizu.portal.identity.domain.User;
+import com.bizu.portal.identity.infrastructure.UserRepository;
 import com.bizu.portal.student.application.DuelService;
 import com.bizu.portal.student.domain.Duel;
 import com.bizu.portal.student.infrastructure.DuelRepository;
@@ -10,6 +12,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -19,12 +22,18 @@ public class DuelController {
 
     private final DuelRepository duelRepository;
     private final DuelService duelService;
+    private final UserRepository userRepository;
     private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     @GetMapping("/online")
-    public ResponseEntity<List<String>> getOnlineUsers() {
-        // Mock list for now
-        return ResponseEntity.ok(List.of("Usuário 1", "Usuário 2", "Você"));
+    public ResponseEntity<List<User>> getOnlineUsers() {
+        return ResponseEntity.ok(userRepository.findTop10ByOrderByUpdatedAtDesc());
+    }
+
+    @GetMapping("/me/stats")
+    public ResponseEntity<Map<String, Object>> getMyStats(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(duelRepository.getMyDuelStats(userId));
     }
 
     @GetMapping("/pendentes")

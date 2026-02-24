@@ -29,15 +29,17 @@ public class SimuladoController {
     }
 
     @GetMapping("/quiz/rapido")
-    public ResponseEntity<Simulado> getQuickQuiz(@RequestParam(defaultValue = "10") int count) {
-        return ResponseEntity.ok(studentSimuladoService.generateQuickQuiz(count));
+    public ResponseEntity<Simulado> getQuickQuiz(
+            @RequestParam(defaultValue = "10") int count,
+            @RequestParam(required = false) List<UUID> moduleIds) {
+        return ResponseEntity.ok(studentSimuladoService.generateQuickQuiz(count, moduleIds));
     }
 
     @PostMapping("/personalizado")
     public ResponseEntity<Simulado> createCustomSimulado(
-            @RequestParam List<String> subjects,
+            @RequestParam List<UUID> moduleIds,
             @RequestParam int count,
             @RequestParam String difficulty) {
-        return ResponseEntity.ok(studentSimuladoService.generateQuickQuiz(count));
+        return ResponseEntity.ok(studentSimuladoService.generateQuickQuiz(count, moduleIds));
     }
 }

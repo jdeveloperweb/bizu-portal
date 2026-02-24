@@ -37,6 +37,18 @@ public class MeController {
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @PutMapping("/me")
+    public ResponseEntity<User> updateMe(@AuthenticationPrincipal Jwt jwt, @RequestBody UpdateMeRequest request) {
+        String email = jwt.getClaim("email");
+        return userRepository.findByEmail(email)
+            .map(user -> {
+                if (request.name() != null) user.setName(request.name());
+                if (request.phone() != null) user.setPhone(request.phone());
+                return ResponseEntity.ok(userRepository.save(user));
+            })
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @PutMapping("/me/selected-course")
     public ResponseEntity<User> updateSelectedCourse(@AuthenticationPrincipal Jwt jwt, @RequestBody SelectedCourseRequest request) {
         String email = jwt.getClaim("email");
@@ -58,4 +70,5 @@ public class MeController {
     }
 
     public record SelectedCourseRequest(UUID courseId) {}
+    public record UpdateMeRequest(String name, String phone) {}
 }

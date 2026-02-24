@@ -94,14 +94,14 @@ export default function AdminConfiguracoesPage() {
 
     if (loading) {
         return (
-            <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[50vh]">
+            <div className="w-full px-8 py-12 flex items-center justify-center min-h-[50vh]">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
         );
     }
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <div className="w-full px-8 py-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
                 <PageHeader
                     title="Configurações do Sistema"

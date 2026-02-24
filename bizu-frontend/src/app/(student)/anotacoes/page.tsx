@@ -62,8 +62,14 @@ export default function AnotacoesPage() {
                 apiFetch("/student/notes"),
                 apiFetch("/public/courses")
             ]);
-            if (notesRes.ok) setNotes(await notesRes.json());
-            if (coursesRes.ok) setCourses(await coursesRes.json());
+            if (notesRes.ok) {
+                const data = await notesRes.json();
+                setNotes(Array.isArray(data) ? data : []);
+            }
+            if (coursesRes.ok) {
+                const data = await coursesRes.json();
+                setCourses(Array.isArray(data) ? data : []);
+            }
         } catch (e) {
             console.error(e);
         } finally {
@@ -146,23 +152,31 @@ export default function AnotacoesPage() {
         };
 
         try {
+            let res;
             if (selectedNote && selectedNote.id !== "new") {
-                await apiFetch(`/student/notes/${selectedNote.id}`, {
+                res = await apiFetch(`/student/notes/${selectedNote.id}`, {
                     method: "PUT",
                     body: JSON.stringify(payload)
                 });
             } else {
-                await apiFetch(`/student/notes`, {
+                res = await apiFetch(`/student/notes`, {
                     method: "POST",
                     body: JSON.stringify(payload)
                 });
             }
-            setIsEditing(false);
-            setSelectedNote(null);
-            fetchData();
+
+            if (res.ok) {
+                setIsEditing(false);
+                setSelectedNote(null);
+                fetchData();
+            } else {
+                const errorData = await res.json().catch(() => ({}));
+                console.error("Erro ao salvar:", errorData);
+                alert(`Erro ao salvar anotação: ${errorData.message || res.statusText}`);
+            }
         } catch (e) {
             console.error(e);
-            alert("Erro ao salvar anotação.");
+            alert("Erro de conexão ao salvar anotação.");
         }
     };
 

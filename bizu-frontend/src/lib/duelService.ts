@@ -80,6 +80,7 @@ export const DuelService = {
 
     getRanking: async () => {
         const res = await apiFetch("/duelos/ranking");
+        if (!res.ok) return [];
         return res.json();
     }
 };

@@ -8,6 +8,7 @@ import {
     Shield, CheckCircle2, XCircle,
     BarChart3, Clock,
 } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 import { DuelService, Duel } from "@/lib/duelService";
 import ArenaDuelScreen from "@/components/arena/ArenaDuelScreen";
 import Cookies from "js-cookie";
@@ -36,9 +37,9 @@ export default function ArenaPage() {
     const [pendingDuels, setPendingDuels] = useState<Duel[]>([]);
     const [activeDuelId, setActiveDuelId] = useState<string | null>(null);
     const [currentUserId, setCurrentUserId] = useState<string>("");
+    const [myStats, setMyStats] = useState({ wins: 0, losses: 0, winRate: 0, streak: 0 });
 
     useEffect(() => {
-        // Simple token decoder fallback or just use a state if we have a profile hook
         const token = Cookies.get("token");
         if (token) {
             try {
@@ -50,23 +51,41 @@ export default function ArenaPage() {
         }
 
         const loadData = async () => {
-            const users = await DuelService.getRanking(); // Assuming ranking gives us users for now
-            setOnlineUsers(users.map((u: any, i: number) => ({
-                id: u.id || String(i),
-                name: u.name || "Usuário",
-                avatar: u.name?.substring(0, 2).toUpperCase() || "US",
-                level: u.level || 1,
-                xp: u.xp || 0,
-                winRate: u.winRate || 0,
-                status: "online"
-            })));
+            try {
+                const res = await apiFetch("/duelos/online");
+                if (res.ok) {
+                    const users = await res.json();
+                    setOnlineUsers(users.map((u: any) => ({
+                        id: u.id,
+                        name: u.name || "Usuário",
+                        avatar: u.name?.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || "US",
+                        level: 1, // Need separate gamification call per user or include in DTO
+                        xp: 0,
+                        winRate: 0,
+                        status: "online"
+                    })));
+                }
 
-            const pending = await DuelService.getPendingDuels();
-            setPendingDuels(pending);
+                const pending = await DuelService.getPendingDuels();
+                setPendingDuels(pending);
+
+                const statsRes = await apiFetch("/duelos/me/stats");
+                if (statsRes.ok) {
+                    const data = await statsRes.json();
+                    setMyStats({
+                        wins: data.wins || 0,
+                        losses: data.losses || 0,
+                        winRate: data.wins + data.losses > 0 ? Math.round((data.wins / (data.wins + data.losses)) * 100) : 0,
+                        streak: 0
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to load arena data", error);
+            }
         };
 
         loadData();
-        const interval = setInterval(loadData, 10000);
+        const interval = setInterval(loadData, 15000);
         return () => clearInterval(interval);
     }, []);
 
@@ -96,8 +115,6 @@ export default function ArenaPage() {
             console.error(error);
         }
     };
-
-    const myStats = { wins: 25, losses: 10, winRate: 71, streak: 3 };
 
     return (
         <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">

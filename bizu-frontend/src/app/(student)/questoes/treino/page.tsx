@@ -2,8 +2,16 @@
 
 import QuestionViewer from "@/components/questions/QuestionViewer";
 import PageHeader from "@/components/PageHeader";
-import { Timer, LayoutGrid, ChevronLeft, Sparkles, SlidersHorizontal } from "lucide-react";
+import { Timer, LayoutGrid, ChevronLeft, Sparkles, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuCheckboxItem,
+    DropdownMenuTrigger,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense, useMemo } from "react";
@@ -50,7 +58,7 @@ function TreinoContent() {
 
     const [simulado, setSimulado] = useState<SimuladoData | null>(null);
     const [courses, setCourses] = useState<Course[]>([]);
-    const [selectedModuleId, setSelectedModuleId] = useState("all");
+    const [selectedModuleIds, setSelectedModuleIds] = useState<string[]>([]);
     const [questionCount, setQuestionCount] = useState(10);
     const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
@@ -61,12 +69,24 @@ function TreinoContent() {
         [courses]
     );
 
-    const selectedModuleTitle = modules.find(module => module.id === selectedModuleId)?.title || "Todos os módulos";
+    const selectedModulesText = useMemo(() => {
+        if (selectedModuleIds.length === 0) return "Todos os módulos";
+        if (selectedModuleIds.length === 1) {
+            return modules.find(m => m.id === selectedModuleIds[0])?.title || "1 módulo selecionado";
+        }
+        return `${selectedModuleIds.length} módulos selecionados`;
+    }, [selectedModuleIds, modules]);
 
     const fetchSimulado = async (count = questionCount) => {
         setIsLoading(true);
         try {
             let url = `/simulados/quiz/rapido?count=${count}`;
+
+            // Se existem módulos selecionados, passamos para o backend para uma busca otimizada
+            if (selectedModuleIds.length > 0) {
+                url += `&moduleIds=${selectedModuleIds.join(",")}`;
+            }
+
             if (simuladoId) {
                 url = `/simulados/${simuladoId}`;
             }
@@ -105,23 +125,23 @@ function TreinoContent() {
     const filteredQuestions = useMemo(() => {
         if (!simulado?.questions) return [];
 
-        const byModule = selectedModuleId === "all"
+        const byModule = selectedModuleIds.length === 0
             ? simulado.questions
-            : simulado.questions.filter((question) => question.module?.id === selectedModuleId);
+            : simulado.questions.filter((question) => question.module?.id && selectedModuleIds.includes(question.module.id));
 
         return byModule.slice(0, questionCount);
-    }, [simulado, selectedModuleId, questionCount]);
+    }, [simulado, selectedModuleIds, questionCount]);
 
     useEffect(() => {
         setCurrentQuestionIdx(0);
-    }, [selectedModuleId, questionCount]);
+    }, [selectedModuleIds, questionCount]);
 
     const handleApplyConfig = async () => {
         if (simuladoId) return;
 
         setIsApplyingConfig(true);
-        const requestedCount = selectedModuleId === "all" ? questionCount : Math.max(questionCount * 5, 30);
-        await fetchSimulado(requestedCount);
+        // Agora o backend filtra corretamente, então buscamos exatamente a quantidade desejada
+        await fetchSimulado(questionCount);
         setIsApplyingConfig(false);
     };
 
@@ -245,29 +265,73 @@ function TreinoContent() {
                     </div>
 
                     <div className="mt-5 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr_auto] gap-3 items-end">
-                        <label className="space-y-2">
-                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Assunto / módulo</span>
-                            <select
-                                value={selectedModuleId}
-                                onChange={(event) => setSelectedModuleId(event.target.value)}
-                                className="h-11 w-full rounded-2xl border bg-background px-4 text-sm font-medium"
-                            >
-                                <option value="all">Todos os módulos</option>
-                                {modules.map((module) => (
-                                    <option key={module.id} value={module.id}>{module.title}</option>
-                                ))}
-                            </select>
-                        </label>
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Assunto / módulo</span>
+                                <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-full">
+                                    {modules.length} MÓDULOS NO TOTAL
+                                </span>
+                            </div>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        className="h-11 w-full rounded-2xl border bg-background px-4 text-sm font-medium justify-between hover:bg-background/80"
+                                    >
+                                        <span className="truncate mr-2">{selectedModulesText}</span>
+                                        <ChevronDown className="w-4 h-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[300px] overflow-y-auto rounded-xl border-muted/30 p-2 shadow-2xl">
+                                    <DropdownMenuLabel className="flex items-center justify-between py-2 px-3">
+                                        <span>Selecionar Módulos</span>
+                                        {selectedModuleIds.length > 0 && (
+                                            <button
+                                                onClick={(e) => { e.preventDefault(); setSelectedModuleIds([]); }}
+                                                className="text-[10px] font-bold text-primary hover:underline"
+                                            >
+                                                LIMPAR TODOS
+                                            </button>
+                                        )}
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuCheckboxItem
+                                        checked={selectedModuleIds.length === 0}
+                                        onCheckedChange={() => setSelectedModuleIds([])}
+                                        className="rounded-lg mb-1"
+                                    >
+                                        Todos os módulos
+                                    </DropdownMenuCheckboxItem>
+                                    <DropdownMenuSeparator />
+                                    {modules.map((module) => (
+                                        <DropdownMenuCheckboxItem
+                                            key={module.id}
+                                            className="rounded-lg mb-1"
+                                            checked={selectedModuleIds.includes(module.id)}
+                                            onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                    setSelectedModuleIds(prev => [...prev, module.id]);
+                                                } else {
+                                                    setSelectedModuleIds(prev => prev.filter(id => id !== module.id));
+                                                }
+                                            }}
+                                        >
+                                            {module.title}
+                                        </DropdownMenuCheckboxItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
 
                         <label className="space-y-2">
                             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quantidade</span>
                             <div className="grid grid-cols-3 gap-2">
-                                {[10, 20, 30].map((value) => (
+                                {[10, 50, 100].map((value) => (
                                     <button
                                         type="button"
                                         key={value}
                                         onClick={() => setQuestionCount(value)}
-                                        className={`h-11 rounded-xl border text-sm font-extrabold transition ${questionCount === value ? "border-primary bg-primary/10 text-primary" : "hover:border-primary/40"}`}
+                                        className={`h-11 rounded-xl border text-sm font-extrabold transition ${questionCount === value ? "border-primary bg-primary/10 text-primary" : "hover:border-primary/40 text-muted-foreground"}`}
                                     >
                                         {value}
                                     </button>
@@ -285,7 +349,7 @@ function TreinoContent() {
                     </div>
 
                     <p className="text-xs text-muted-foreground mt-3">
-                        Filtro atual: <span className="font-bold text-foreground">{selectedModuleTitle}</span>
+                        Filtro atual: <span className="font-bold text-foreground">{selectedModulesText}</span>
                     </p>
                 </motion.div>
             )}

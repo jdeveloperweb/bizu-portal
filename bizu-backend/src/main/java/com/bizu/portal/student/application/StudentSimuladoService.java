@@ -32,12 +32,18 @@ public class StudentSimuladoService {
     }
 
     @Transactional(readOnly = true)
-    public Simulado generateQuickQuiz(int count) {
-        List<Question> questions = questionRepository.findRandomByCategory("QUIZ", count);
-        
-        if (questions.isEmpty()) {
-            // Fallback se não tiver questões QUIZ, pega do SIMULADO
-            questions = questionRepository.findRandomByCategory("SIMULADO", count);
+    public Simulado generateQuickQuiz(int count, List<UUID> moduleIds) {
+        List<Question> questions;
+        if (moduleIds != null && !moduleIds.isEmpty()) {
+            questions = questionRepository.findRandomByModulesAndCategory(moduleIds, "QUIZ", count);
+            if (questions.isEmpty()) {
+                questions = questionRepository.findRandomByModulesAndCategory(moduleIds, "SIMULADO", count);
+            }
+        } else {
+            questions = questionRepository.findRandomByCategory("QUIZ", count);
+            if (questions.isEmpty()) {
+                questions = questionRepository.findRandomByCategory("SIMULADO", count);
+            }
         }
 
         Simulado quiz = new Simulado();
