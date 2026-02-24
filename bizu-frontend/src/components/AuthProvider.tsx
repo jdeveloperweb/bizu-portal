@@ -12,6 +12,7 @@ interface AuthContextType {
     token?: string;
     user?: any;
     loading: boolean;
+    register: (name: string, email: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -99,8 +100,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         keycloak?.logout({ redirectUri: window.location.origin });
     };
 
+    const register = async (name: string, email: string) => {
+        try {
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+            const res = await fetch(`${apiBase}/api/v1/public/auth/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email }),
+            });
+            return res.ok;
+        } catch (error) {
+            console.error("Registration failed", error);
+            return false;
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading }}>
+        <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register }}>
             {children}
         </AuthContext.Provider>
     );

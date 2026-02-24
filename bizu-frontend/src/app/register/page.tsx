@@ -4,10 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2, UserPlus, ArrowLeft, CheckCircle2, Rocket } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
+import { useAuth } from "@/components/AuthProvider";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
     const [show, setShow] = useState(false);
     const [loading, setLoading] = useState(false);
+    const { register } = useAuth();
+    const router = useRouter();
     const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
 
     const strength = (() => {
@@ -28,8 +32,20 @@ export default function RegisterPage() {
         e.preventDefault();
         if (mismatch) return;
         setLoading(true);
-        await new Promise((r) => setTimeout(r, 1500));
-        setLoading(false);
+
+        try {
+            const success = await register(form.name, form.email);
+            if (success) {
+                alert("Conta criada com sucesso! Você já pode entrar.");
+                router.push("/login");
+            } else {
+                alert("Erro ao criar conta. Verifique os dados ou tente novamente mais tarde.");
+            }
+        } catch (error) {
+            alert("Ocorreu um erro inesperado.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
