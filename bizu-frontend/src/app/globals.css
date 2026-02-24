@@ -223,9 +223,9 @@
 }
 
 .pill-primary {
-  background: var(--secondary);
-  color: var(--primary);
-  border: 1px solid var(--border);
+  background: var(--secondary, #EEF2FF);
+  color: var(--primary, #6366F1);
+  border: 1px solid var(--border, #E2E8F0);
 }
 
 .pill-success {
@@ -250,8 +250,10 @@
   border-radius: 0.75rem;
   font-weight: 700;
   font-size: 0.875rem;
-  color: var(--primary-foreground);
-  background: linear-gradient(135deg, var(--primary), var(--ring));
+  color: var(--primary-foreground, #FFFFFF);
+  background-color: var(--primary, #6366F1);
+  background-image: linear-gradient(135deg, var(--primary, #6366F1), var(--ring, #4F46E5));
+  border: 1px solid color-mix(in srgb, var(--primary, #6366F1) 70%, #000 10%);
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
   transition: all 0.2s ease;
 }
