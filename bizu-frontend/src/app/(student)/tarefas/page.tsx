@@ -22,7 +22,9 @@ interface Task {
     status: TaskStatus;
     source: TaskSource;
     dueDate: string;
-    linkedAction?: { type: "quiz" | "pomodoro" | "anotacao"; label: string; href: string };
+    linkedActionType?: string;
+    linkedActionLabel?: string;
+    linkedActionHref?: string;
 }
 
 const priorityConfig = {
@@ -44,34 +46,28 @@ const SUBJECTS = [
     "Direito Penal", "Processo Civil", "Processo Penal",
 ];
 
+import { useEffect } from "react";
+import { apiFetch } from "@/lib/api";
+
 export default function TarefasPage() {
-    const [tasks, setTasks] = useState<Task[]>([
-        {
-            id: "1", title: "Revisar Atos Administrativos", description: "Foco em vinculacao e discricionariedade. Taxa de acerto baixa no ultimo simulado.",
-            subject: "Direito Administrativo", priority: "alta", status: "pendente", source: "simulado", dueDate: "Hoje",
-            linkedAction: { type: "quiz", label: "Resolver questoes", href: "/questoes/treino" },
-        },
-        {
-            id: "2", title: "Estudar Contratos - Parte Geral", description: "Revisao completa de formacao, classificacao e extincao dos contratos.",
-            subject: "Direito Civil", priority: "alta", status: "em_progresso", source: "desempenho", dueDate: "Hoje",
-            linkedAction: { type: "pomodoro", label: "Iniciar Pomodoro", href: "/pomodoro" },
-        },
-        {
-            id: "3", title: "Resolver 30 questoes de D. Constitucional", description: "Meta semanal para manter posicao no ranking. Foco em direitos fundamentais.",
-            subject: "Direito Constitucional", priority: "media", status: "pendente", source: "ranking", dueDate: "Amanha",
-            linkedAction: { type: "quiz", label: "Iniciar quiz", href: "/questoes/treino" },
-        },
-        {
-            id: "4", title: "Anotar jurisprudencia sobre Processo Civil", description: "Consolidar anotacoes sobre competencia e recursos.",
-            subject: "Processo Civil", priority: "media", status: "pendente", source: "manual", dueDate: "Qui, 27",
-            linkedAction: { type: "anotacao", label: "Abrir anotacoes", href: "/anotacoes" },
-        },
-        {
-            id: "5", title: "Revisar questoes erradas de D. Penal", description: "15 questoes marcadas para revisao na ultima sessao de estudo.",
-            subject: "Direito Penal", priority: "baixa", status: "concluida", source: "questao_errada", dueDate: "Ontem",
-            linkedAction: { type: "quiz", label: "Quiz de revisao", href: "/questoes/treino" },
-        },
-    ]);
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                const res = await apiFetch("/student/tasks");
+                if (res.ok) {
+                    setTasks(await res.json());
+                }
+            } catch (error) {
+                console.error("Failed to fetch tasks", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchTasks();
+    }, []);
 
     const [filter, setFilter] = useState<"todas" | "pendente" | "em_progresso" | "concluida">("todas");
     const [showNewTask, setShowNewTask] = useState(false);
@@ -79,26 +75,62 @@ export default function TarefasPage() {
     const [newSubject, setNewSubject] = useState(SUBJECTS[0]);
     const [newPriority, setNewPriority] = useState<Priority>("media");
 
-    const toggleStatus = (id: string) => {
-        setTasks(prev => prev.map(t => {
-            if (t.id !== id) return t;
-            const next: TaskStatus = t.status === "pendente" ? "em_progresso" : t.status === "em_progresso" ? "concluida" : "pendente";
-            return { ...t, status: next };
-        }));
+    const toggleStatus = async (id: string) => {
+        const task = tasks.find(t => t.id === id);
+        if (!task) return;
+        const next: TaskStatus = task.status === "pendente" ? "em_progresso" : task.status === "em_progresso" ? "concluida" : "pendente";
+
+        try {
+            const res = await apiFetch(`/student/tasks/${id}/status`, {
+                method: "PATCH",
+                body: JSON.stringify({ status: next })
+            });
+            if (res.ok) {
+                setTasks(prev => prev.map(t => t.id === id ? { ...t, status: next } : t));
+            }
+        } catch (error) {
+            console.error("Error updating task status", error);
+        }
     };
 
-    const deleteTask = (id: string) => setTasks(prev => prev.filter(t => t.id !== id));
+    const deleteTask = async (id: string) => {
+        try {
+            const res = await apiFetch(`/student/tasks/${id}`, { method: "DELETE" });
+            if (res.ok) {
+                setTasks(prev => prev.filter(t => t.id !== id));
+            }
+        } catch (error) {
+            console.error("Error deleting task", error);
+        }
+    };
 
-    const addTask = () => {
+    const addTask = async () => {
         if (!newTitle.trim()) return;
-        const task: Task = {
-            id: Date.now().toString(), title: newTitle, description: "",
-            subject: newSubject, priority: newPriority, status: "pendente",
-            source: "manual", dueDate: "Sem prazo",
+
+        const newTaskData = {
+            title: newTitle,
+            subject: newSubject,
+            priority: newPriority,
+            status: "pendente",
+            source: "manual",
+            dueDate: "Sem prazo"
         };
-        setTasks(prev => [task, ...prev]);
-        setNewTitle("");
-        setShowNewTask(false);
+
+        try {
+            const res = await apiFetch("/student/tasks", {
+                method: "POST",
+                body: JSON.stringify(newTaskData)
+            });
+
+            if (res.ok) {
+                const savedTask = await res.json();
+                setTasks(prev => [savedTask, ...prev]);
+                setNewTitle("");
+                setShowNewTask(false);
+            }
+        } catch (error) {
+            console.error("Error creating task", error);
+        }
     };
 
     const filteredTasks = tasks.filter(t => filter === "todas" || t.status === filter);
@@ -235,10 +267,10 @@ export default function TarefasPage() {
                                                     <Calendar size={9} /> {task.dueDate}
                                                 </span>
                                             </div>
-                                            {task.linkedAction && task.status !== "concluida" && (
-                                                <Link href={task.linkedAction.href}
+                                            {task.linkedActionHref && task.status !== "concluida" && (
+                                                <Link href={task.linkedActionHref}
                                                     className="inline-flex items-center gap-1 mt-2.5 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
-                                                    {task.linkedAction.label} <ChevronRight size={11} />
+                                                    {task.linkedActionLabel} <ChevronRight size={11} />
                                                 </Link>
                                             )}
                                         </div>
