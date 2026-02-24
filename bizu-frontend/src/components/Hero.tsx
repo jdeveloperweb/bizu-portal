@@ -3,11 +3,11 @@
 import Link from "next/link";
 import BrandLogo from "@/components/BrandLogo";
 import {
-    ArrowRight, Award, Zap,
+    Activity, Award, Zap,
     Brain, BarChart3, Timer,
     ChevronRight, Play, CheckCircle2, Sparkles, Shield,
     ClipboardList, ListChecks, StickyNote, Settings,
-    Trophy, Rocket,
+    Trophy, Rocket, BookOpen, Target, GraduationCap
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 
@@ -17,339 +17,274 @@ const features = [
         icon: Brain,
         title: "Quiz Game",
         desc: "Milhares de questões dos principais concursos, elaboradas por especialistas e atualizadas constantemente.",
-        gradient: "from-indigo-500 to-violet-600",
+        bg: "bg-indigo-50",
+        text: "text-indigo-600"
     },
     {
         icon: ClipboardList,
         title: "Simulado Semanal",
-        desc: "Simulados ineditos todo sabado as 10h. Simule o ambiente real de prova e confira seu ranking.",
-        gradient: "from-emerald-500 to-teal-500",
+        desc: "Simulados inéditos todo sábado às 10h. Simule o ambiente real de prova e confira seu ranking.",
+        bg: "bg-emerald-50",
+        text: "text-emerald-600"
     },
     {
         icon: Trophy,
         title: "Ranking",
-        desc: "Compare seu desempenho com outros candidatos e ajuste sua estrategia para ficar no topo.",
-        gradient: "from-amber-500 to-orange-500",
+        desc: "Compare seu desempenho com outros candidatos e ajuste sua estratégia para ficar no topo.",
+        bg: "bg-amber-50",
+        text: "text-amber-600"
     },
     {
         icon: BarChart3,
         title: "Desempenho Detalhado",
         desc: "Visualize acertos e erros por assunto. Saiba exatamente onde focar seus estudos.",
-        gradient: "from-blue-500 to-cyan-500",
+        bg: "bg-blue-50",
+        text: "text-blue-600"
     },
     {
         icon: Timer,
         title: "Pomodoro Integrado",
         desc: "Otimize foco e produtividade com ciclos de estudo e descanso direto no app.",
-        gradient: "from-rose-500 to-pink-600",
+        bg: "bg-rose-50",
+        text: "text-rose-600"
     },
     {
         icon: ListChecks,
         title: "Criador de Tarefas",
         desc: "Organize sua rotina, crie prazos e acompanhe tudo que precisa estudar.",
-        gradient: "from-purple-500 to-violet-600",
+        bg: "bg-purple-50",
+        text: "text-purple-600"
     },
     {
         icon: StickyNote,
-        title: "Anotacoes",
-        desc: "Registre insights e informacoes importantes enquanto estuda. Tudo em um so lugar.",
-        gradient: "from-sky-500 to-blue-600",
+        title: "Anotações",
+        desc: "Registre insights e informações importantes enquanto estuda. Tudo em um só lugar.",
+        bg: "bg-sky-50",
+        text: "text-sky-600"
     },
     {
         icon: Settings,
-        title: "Configuracoes Personalizaveis",
+        title: "Configurações Personalizáveis",
         desc: "Ajuste tempo, filtre por assunto e configure o app do seu jeito.",
-        gradient: "from-slate-500 to-gray-600",
+        bg: "bg-slate-100",
+        text: "text-slate-600"
     },
 ];
 
-
-
-/* ── Counter ── */
-function Counter({ target }: { target: string }) {
-    const [val, setVal] = useState("0");
-    const ref = useRef<HTMLDivElement>(null);
-    const numeric = target.replace(/[^\d]/g, "");
-    const suffix = target.replace(/[\d]/g, "");
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    const end = parseInt(numeric);
-                    const dur = 2000;
-                    const inc = end / (dur / 16);
-                    let cur = 0;
-                    const t = setInterval(() => {
-                        cur += inc;
-                        if (cur >= end) { cur = end; clearInterval(t); }
-                        setVal(Math.floor(cur).toLocaleString("pt-BR") + suffix);
-                    }, 16);
-                    observer.disconnect();
-                }
-            },
-            { threshold: 0.3 }
-        );
-        if (ref.current) observer.observe(ref.current);
-        return () => observer.disconnect();
-    }, [numeric, suffix]);
-
-    return <div ref={ref}>{val}</div>;
-}
-
 export default function Hero() {
     return (
-        <div className="relative bg-white overflow-hidden">
+        <div className="relative bg-slate-50 overflow-hidden font-sans selection:bg-indigo-100 selection:text-indigo-900">
 
             <style jsx>{`
-        @keyframes marquee-left {
-          0%   { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        @keyframes float-slow {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50%      { transform: translateY(-20px) rotate(1deg); }
-        }
-        @keyframes float-medium {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50%      { transform: translateY(-10px) rotate(-1deg); }
-        }
-        @keyframes pulse-glow {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50%      { opacity: 0.6; transform: scale(1.08); }
-        }
-        @keyframes slide-in {
-          from { opacity: 0; transform: translateY(30px); }
+        @keyframes fade-in-up {
+          from { opacity: 0; transform: translateY(20px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        @keyframes slow-zoom {
-          0% { transform: scale(1); }
-          100% { transform: scale(1.15); }
+        @keyframes float-subtle {
+          0%, 100% { transform: translateY(0px); }
+          50%      { transform: translateY(-10px); }
         }
-        @keyframes rotate-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        @keyframes pulse-soft {
+          0%, 100% { opacity: 0.5; transform: scale(1); }
+          50%      { opacity: 0.8; transform: scale(1.05); }
         }
-        @keyframes aurora {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        .animate-fade-in-up {
+            animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
         }
-        .aurora {
-          position: absolute;
-          top: -50%;
-          left: -50%;
-          width: 200%;
-          height: 200%;
-          background: conic-gradient(from 0deg at 50% 50%, #6366f1 0deg, #a855f7 90deg, #ec4899 180deg, #6366f1 270deg);
-          filter: blur(100px);
-          opacity: 0.15;
-          animation: aurora 20s linear infinite;
-          z-index: -1;
-        }
-        .noise {
-            position: absolute;
-            inset: 0;
-            opacity: 0.03;
-            pointer-events: none;
-            z-index: 10;
-            background-image: url('https://grainy-gradients.vercel.app/noise.svg');
-        }
-        .slide-in { animation: slide-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .slide-in-d1 { animation: slide-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards; opacity: 0; }
-        .slide-in-d2 { animation: slide-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards; opacity: 0; }
-        .slide-in-d3 { animation: slide-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards; opacity: 0; }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-400 { animation-delay: 400ms; }
+        
+        .bg-grid-pattern {
+            background-image: 
+                linear-gradient(to right, rgba(0,0,0,0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,0,0,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
         }
       `}</style>
 
             {/* ═══════════════════════════
-           HERO
+           HERO - LEVE E CLEAN
          ═══════════════════════════ */}
-            <section className="relative min-h-screen flex items-center overflow-hidden bg-slate-950">
-                {/* ── BACKGROUND DINAMICO ── */}
-                <div className="absolute inset-0 z-0 overflow-hidden">
-                    <div className="aurora" />
-                    <div className="noise" />
-                    <video
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        className="absolute inset-0 w-full h-full object-cover opacity-40 scale-105 contrast-125"
-                        style={{ animation: 'slow-zoom 30s linear infinite alternate' }}
-                    >
-                        <source src="https://player.vimeo.com/external/400494519.hd.mp4?s=f5e49cf9d414f6b0f945377f3a6a9d700e395562&profile_id=175" type="video/mp4" />
-                    </video>
-                    {/* Overlays para profundidade e legibilidade */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-slate-950/90 via-slate-950/50 to-slate-950/95" />
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.2),transparent_60%)]" />
-                    <div className="absolute inset-0 opacity-[0.05]" style={{
-                        backgroundImage: `radial-gradient(circle, #fff 1px, transparent 1px)`,
-                        backgroundSize: "60px 60px",
-                    }} />
-                </div>
+            <section className="relative min-h-screen pt-32 pb-24 flex flex-col items-center justify-center overflow-hidden">
+                {/* Background Decorativo */}
+                <div className="absolute inset-0 z-0 bg-grid-pattern [mask-image:radial-gradient(ellipse_at_center,white,transparent_80%)]" />
 
-                {/* Elementos flutuantes decorativos */}
-                <div className="absolute top-[15%] left-[10%] w-64 h-64 bg-indigo-600/10 blur-[100px] rounded-full animate-pulse" />
-                <div className="absolute bottom-[20%] right-[10%] w-80 h-80 bg-violet-600/10 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: "2s" }} />
+                {/* Efeitos de Luz Sutis */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[500px] bg-indigo-50/50 rounded-full blur-3xl opacity-70 pointer-events-none" />
+                <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-100/40 rounded-full blur-[100px] pointer-events-none" />
+                <div className="absolute top-48 -right-32 w-96 h-96 bg-violet-100/40 rounded-full blur-[100px] pointer-events-none animate-pulse-soft" />
 
-                {/* Icones Decorativos Flutuantes */}
-                <div className="absolute top-[20%] right-[15%] text-indigo-400/20 hidden lg:block scale-150" style={{ animation: "float-slow 10s ease-in-out infinite" }}>
-                    <Sparkles size={40} />
-                </div>
-                <div className="absolute bottom-[25%] left-[15%] text-indigo-400/20 hidden lg:block" style={{ animation: "float-medium 12s ease-in-out infinite" }}>
-                    <Shield size={32} />
-                </div>
+                <div className="relative container mx-auto px-6 z-10 flex flex-col items-center">
 
-                <div className="relative container mx-auto px-6 pt-32 pb-20 z-10">
-                    <div className="max-w-5xl mx-auto text-center">
+                    <div className="max-w-4xl mx-auto text-center flex flex-col items-center mb-16">
 
-
-                        {/* Logo grande com brilho */}
-                        <div className="slide-in-d1 mb-6 relative inline-block">
-                            <div className="absolute -inset-4 bg-indigo-500/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <BrandLogo size="xl" variant="gradient" link={false} />
+                        {/* Badge Academy */}
+                        <div className="animate-fade-in-up inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm mb-8">
+                            <span className="flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+                            <span className="text-xs font-semibold text-slate-600 tracking-wide uppercase">Bizu Academy Elite</span>
                         </div>
 
-                        {/* Subtitulo Cinematográfico */}
-                        <h1 className="slide-in-d1 text-3xl sm:text-4xl md:text-6xl font-black text-white leading-[1.1] mb-6 tracking-tighter">
-                            O jeito certo de estudar
-                            <br />
-                            <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-violet-400 to-indigo-400 animate-gradient-x drop-shadow-[0_0_15px_rgba(99,102,241,0.3)]">
-                                para o seu concurso
+                        {/* Title */}
+                        <h1 className="animate-fade-in-up delay-100 text-4xl sm:text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-6">
+                            A excelência na sua <br className="hidden md:block" />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-500">
+                                preparação diária
                             </span>
                         </h1>
 
-                        <p className="slide-in-d2 max-w-2xl mx-auto text-base md:text-lg text-slate-400 mb-10 leading-relaxed font-medium">
-                            Questões específicas, simulados semanais, ranking e desempenho detalhado em tempo real.
-                            <br className="hidden sm:block" />
-                            Tudo que você precisa para conquistar sua aprovação.
+                        <p className="animate-fade-in-up delay-200 max-w-2xl text-lg md:text-xl text-slate-600 mb-10 leading-relaxed font-medium">
+                            Conquiste sua aprovação com uma plataforma moderna, inteligente e focada em resultados reais. Questões, simulados e métricas avançadas em um só lugar.
                         </p>
 
-
-
-                        {/* CTAs de Alto Impacto */}
-                        <div className="slide-in-d3 flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+                        {/* CTAs */}
+                        <div className="animate-fade-in-up delay-300 flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
                             <Link href="/register" className="w-full sm:w-auto">
-                                <button className="group relative flex items-center justify-center gap-3 px-12 h-[56px] rounded-2xl text-[15px] font-bold text-white overflow-hidden shadow-[0_20px_40px_-10px_rgba(99,102,241,0.5)] hover:scale-[1.05] hover:shadow-[0_25px_50px_-12px_rgba(99,102,241,0.6)] transition-all duration-500 active:scale-95">
-                                    {/* Background animado do botão */}
-                                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 bg-[length:200%_auto] animate-gradient-x" />
-                                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
-                                    <div className="relative flex items-center gap-3">
-                                        <Rocket size={18} className="group-hover:translate-y-[-4px] group-hover:translate-x-[2px] transition-transform duration-500" />
-                                        Comece grátis agora
-                                        <ArrowRight size={16} className="group-hover:translate-x-1.5 transition-transform duration-500" />
-                                    </div>
+                                <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 h-14 rounded-xl text-[15px] font-bold text-white bg-slate-900 hover:bg-slate-800 shadow-[0_8px_20px_-6px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_25px_-8px_rgba(0,0,0,0.4)] transition-all hover:-translate-y-0.5">
+                                    <GraduationCap size={18} />
+                                    Começar minha jornada
                                 </button>
                             </Link>
                             <Link href="/pricing" className="w-full sm:w-auto">
-                                <button className="flex items-center justify-center gap-2 px-10 h-[56px] rounded-2xl text-[15px] font-semibold text-white bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all shadow-xl">
-                                    <Play size={16} className="fill-white" />
-                                    Ver planos
+                                <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 h-14 rounded-xl text-[15px] font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 shadow-sm transition-all">
+                                    Conhecer a plataforma
                                 </button>
                             </Link>
                         </div>
-
-                        <p className="slide-in-d3 text-sm text-slate-400 flex items-center justify-center gap-2 mb-20 drop-shadow-sm">
-                            <Shield size={14} className="text-emerald-400" />
-                            Acesso imediato · Cancele quando quiser
-                        </p>
                     </div>
 
-                    {/* ── Dashboard Mockup Premium (Glass) ── */}
-                    <div className="max-w-5xl mx-auto relative px-4">
-                        {/* Brilho atrás do mockup */}
-                        <div className="absolute -inset-10 bg-gradient-to-r from-indigo-500/20 via-violet-500/20 to-purple-500/20 rounded-[3rem] blur-[80px] pointer-events-none" />
+                    {/* ── Dashboard Mockup Light & Clean ── */}
+                    <div className="animate-fade-in-up delay-400 w-full max-w-5xl mx-auto relative perspective-[2000px]">
 
-                        <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.6)] bg-slate-900/80 backdrop-blur-xl"
-                            style={{ animation: "float-slow 8s ease-in-out infinite" }}>
+                        {/* Shadow Backing para destacar o vidro */}
+                        <div className="absolute -inset-1 bg-gradient-to-b from-slate-200/50 to-transparent rounded-[2.5rem] blur-xl opacity-60" />
+
+                        <div className="relative rounded-[2rem] overflow-hidden border border-white/60 bg-white/70 backdrop-blur-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05),0_0_20px_rgba(255,255,255,0.8)]"
+                            style={{ animation: "float-subtle 6s ease-in-out infinite" }}>
+
                             {/* Browser bar */}
-                            <div className="flex items-center gap-2 px-4 py-4 bg-white/5 border-b border-white/5">
-                                <div className="flex gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-[#FF5F57] shadow-lg shadow-red-500/20" />
-                                    <div className="w-3 h-3 rounded-full bg-[#FEBC2E] shadow-lg shadow-yellow-500/20" />
-                                    <div className="w-3 h-3 rounded-full bg-[#28C840] shadow-lg shadow-green-500/20" />
+                            <div className="flex items-center gap-2 px-5 py-4 bg-white/40 border-b border-white/50">
+                                <div className="flex gap-2.5">
+                                    <div className="w-3 h-3 rounded-full bg-slate-200 border border-slate-300/50" />
+                                    <div className="w-3 h-3 rounded-full bg-slate-200 border border-slate-300/50" />
+                                    <div className="w-3 h-3 rounded-full bg-slate-200 border border-slate-300/50" />
                                 </div>
-                                <div className="flex-1 mx-8 hidden sm:block">
-                                    <div className="flex items-center gap-2 bg-white/5 rounded-lg px-4 py-1.5 border border-white/10 max-w-sm mx-auto">
-                                        <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.4)]" />
-                                        <span className="text-[11px] text-slate-400 font-medium tracking-tight">bizu.academy.com.br</span>
+                                <div className="flex-1 mx-8 flex justify-center hidden sm:flex">
+                                    <div className="flex items-center gap-2 bg-white/60 rounded-lg px-4 py-1.5 border border-slate-200/50 shadow-sm">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                                        <span className="text-[11px] text-slate-500 font-medium tracking-tight">bizu.academy.com.br/dashboard</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* App content mockup */}
-                            <div className="flex min-h-[400px]">
-                                <div className="w-56 shrink-0 bg-white/5 border-r border-white/5 p-5 hidden md:block">
-                                    <div className="flex items-center gap-2 mb-8">
-                                        <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
-                                        <span className="text-[18px] font-black text-white tracking-tight">Bizu!</span>
+                            {/* App content mockup - Light Mode */}
+                            <div className="flex h-[450px]">
+                                {/* Sidebar */}
+                                <div className="w-60 bg-white/40 border-r border-slate-100 p-6 hidden md:flex flex-col">
+                                    <div className="flex items-center gap-3 mb-10">
+                                        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-indigo-600/20">B!</div>
+                                        <span className="text-[16px] font-bold text-slate-800 tracking-tight">Academy.</span>
                                     </div>
-                                    <div className="space-y-1.5">
+                                    <div className="space-y-1.5 flex-1">
                                         {[
-                                            { name: "Dashboard", active: true },
-                                            { name: "Quiz Game", active: false },
-                                            { name: "Simulados", active: false },
-                                            { name: "Ranking", active: false },
-                                            { name: "Desempenho", active: false },
-                                        ].map((item) => (
-                                            <div key={item.name} className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-[12px] font-semibold transition-all ${item.active ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20" : "text-slate-400 hover:bg-white/5"
-                                                }`}>
-                                                {item.name}
+                                            { name: "Visão Geral", icon: BarChart3, active: true },
+                                            { name: "Trilha de Estudo", icon: BookOpen, active: false },
+                                            { name: "Simulados", icon: ClipboardList, active: false },
+                                            { name: "Ranking Elite", icon: Trophy, active: false },
+                                            { name: "Metas", icon: Target, active: false },
+                                        ].map((item) => {
+                                            const Icon = item.icon;
+                                            return (
+                                                <div key={item.name} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all cursor-pointer ${item.active ? "bg-indigo-50 text-indigo-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                                                    }`}>
+                                                    <Icon size={16} className={item.active ? "text-indigo-600" : "text-slate-400"} />
+                                                    {item.name}
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                    {/* User Profiling */}
+                                    <div className="mt-auto pt-4 border-t border-slate-200">
+                                        <div className="flex items-center gap-3 px-2 py-2">
+                                            <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs ring-2 ring-white shadow-sm">JV</div>
+                                            <div>
+                                                <div className="text-[12px] font-bold text-slate-800">Jaime Vicente</div>
+                                                <div className="text-[10px] text-slate-400 font-medium">Plano Elite</div>
                                             </div>
-                                        ))}
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="flex-1 p-6 sm:p-8">
-                                    <div className="flex items-center justify-between mb-8">
+
+                                {/* Main Content */}
+                                <div className="flex-1 bg-slate-50/50 p-6 sm:p-8 overflow-y-auto">
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
                                         <div>
-                                            <h4 className="text-[15px] font-bold text-white mb-1">Seja um Bizurado! 😎</h4>
-                                            <p className="text-[11px] text-slate-400 font-medium tracking-wide">FOCADO NA APROVAÇÃO · ACESSO PREMIUM</p>
+                                            <h4 className="text-xl font-bold text-slate-800 mb-1">Bom dia, Jaime! ☕</h4>
+                                            <p className="text-[13px] text-slate-500 font-medium">Aqui está o seu progresso de hoje. Continue focado.</p>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <div className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] font-bold text-amber-500">🔥 12 DIAS</div>
-                                            <div className="px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-[11px] font-bold text-indigo-400">🏆 #23</div>
+                                        <div className="flex gap-3">
+                                            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-sm text-[12px] font-bold text-slate-600">
+                                                <span className="text-amber-500 text-lg leading-none">🔥</span> 12 Dias de Foco
+                                            </div>
                                         </div>
                                     </div>
 
+                                    {/* Status Cards */}
                                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                                         {[
-                                            { l: "Questões", v: "1.847", c: "text-indigo-400" },
-                                            { l: "Acertos", v: "82%", c: "text-emerald-400" },
-                                            { l: "Simulados", v: "15", c: "text-violet-400" },
-                                            { l: "Semanas", v: "12", c: "text-amber-400" },
+                                            { l: "Questões Resolvidas", v: "1.847", inc: "+24 hoje", c: "text-indigo-600", bg: "bg-indigo-50" },
+                                            { l: "Taxa de Acerto", v: "82%", inc: "+2.1% ref", c: "text-emerald-600", bg: "bg-emerald-50" },
+                                            { l: "Horas de Estudo", v: "45h", inc: "Esta semana", c: "text-violet-600", bg: "bg-violet-50" },
+                                            { l: "Posição Geral", v: "#23", inc: "Top 5%", c: "text-amber-600", bg: "bg-amber-50" },
                                         ].map((c) => (
-                                            <div key={c.l} className="bg-white/5 border border-white/5 rounded-2xl p-4 transition-transform hover:scale-[1.02]">
-                                                <div className={`text-xl font-black ${c.c}`}>{c.v}</div>
-                                                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">{c.l}</div>
+                                            <div key={c.l} className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] transition-transform hover:-translate-y-1">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className={`w-8 h-8 rounded-lg ${c.bg} flex items-center justify-center`}>
+                                                        <Activity size={16} className={c.c} />
+                                                    </div>
+                                                </div>
+                                                <div className="text-2xl font-extrabold text-slate-800 mb-1">{c.v}</div>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[10px] sm:text-[11px] text-slate-400 font-semibold uppercase tracking-wider">{c.l}</span>
+                                                    <span className={`text-[10px] font-bold ${c.c}`}>{c.inc}</span>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
 
-                                    <div className="rounded-2xl bg-white/5 border border-white/5 p-6">
-                                        <div className="flex items-center justify-between mb-6">
-                                            <span className="text-[11px] font-bold text-slate-300 uppercase tracking-widest">Desempenho Geral</span>
-                                            <Zap size={14} className="text-amber-400" />
+                                    {/* Progress Panel */}
+                                    <div className="flex flex-col lg:flex-row gap-6">
+                                        <div className="flex-1 rounded-2xl bg-white border border-slate-100 p-6 shadow-sm">
+                                            <div className="text-[13px] font-bold text-slate-800 mb-6">Desempenho por Disciplina</div>
+                                            <div className="space-y-5">
+                                                {[
+                                                    { n: "Língua Portuguesa", p: 88, c: "bg-emerald-500", text: "text-emerald-700" },
+                                                    { n: "Direito Constitucional", p: 74, c: "bg-indigo-500", text: "text-indigo-700" },
+                                                    { n: "Raciocínio Lógico", p: 65, c: "bg-amber-500", text: "text-amber-700" },
+                                                ].map(s => (
+                                                    <div key={s.n}>
+                                                        <div className="flex justify-between text-[12px] font-bold mb-2.5">
+                                                            <span className="text-slate-600">{s.n}</span>
+                                                            <span className={s.text}>{s.p}%</span>
+                                                        </div>
+                                                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                            <div className={`h-full ${s.c} rounded-full`} style={{ width: `${s.p}%` }} />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                        <div className="space-y-4">
-                                            {[
-                                                { n: "Conhecimentos Específicos", p: 88, c: "bg-emerald-500" },
-                                                { n: "Técnicas de Estudo", p: 74, c: "bg-indigo-500" },
-                                                { n: "Simulados de Elite", p: 65, c: "bg-amber-500" },
-                                            ].map(s => (
-                                                <div key={s.n}>
-                                                    <div className="flex justify-between text-[10px] font-bold mb-2">
-                                                        <span className="text-slate-400">{s.n}</span>
-                                                        <span className="text-white">{s.p}%</span>
-                                                    </div>
-                                                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                                                        <div className={`h-full ${s.c} rounded-full transition-all duration-1000 shadow-lg`} style={{ width: `${s.p}%` }} />
-                                                    </div>
-                                                </div>
-                                            ))}
+                                        <div className="w-full lg:w-1/3 rounded-2xl bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-6 shadow-lg shadow-indigo-900/10 flex flex-col justify-between">
+                                            <div>
+                                                <div className="text-[13px] font-bold text-indigo-300 mb-2">Próximo Simulado</div>
+                                                <div className="text-xl font-bold mb-1">Elite Policial #24</div>
+                                                <div className="text-[12px] text-indigo-200/80 mb-6 lg:mb-0">Disponível no sábado às 10h</div>
+                                            </div>
+                                            <button className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-sm font-bold transition-colors mt-auto">
+                                                Ativar Lembrete
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -358,61 +293,53 @@ export default function Hero() {
                     </div>
                 </div>
             </section>
+
             {/* ═══════════════════════════
-           COMO FUNCIONA
+           COMO FUNCIONA - ACADEMY STYLE
          ═══════════════════════════ */}
-            <section className="py-24 bg-white border-t border-slate-100">
+            <section className="py-24 bg-white border-y border-slate-100 flex items-center justify-center">
                 <div className="container mx-auto px-6">
                     <div className="text-center mb-16">
-                        <span className="pill pill-primary text-[10px] font-bold uppercase tracking-[0.2em] mb-4 inline-flex">
-                            Como funciona
+                        <span className="text-indigo-600 text-[11px] font-bold uppercase tracking-[0.2em] mb-4 inline-block">
+                            Metodologia Comprovada
                         </span>
-                        <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">
-                            Sua preparacao em{" "}
-                            <span className="gradient-text">3 passos</span>
+                        <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6">
+                            Sua jornada até a <span className="font-light italic text-slate-500">aprovação</span>
                         </h2>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-4xl mx-auto relative">
-                        {/* Linha conectora */}
-                        <div className="hidden md:block absolute top-16 left-[17%] right-[17%] h-px bg-gradient-to-r from-indigo-200 via-violet-200 to-purple-200" />
-
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
                         {[
                             {
-                                step: "01",
-                                title: "Crie sua conta",
-                                desc: "Cadastre-se gratuitamente e escolha o foco dos seus estudos.",
-                                icon: Rocket,
-                                gradient: "from-indigo-500 to-violet-600",
+                                step: "1",
+                                title: "Fundação",
+                                desc: "Construa sua base de conhecimento com milhares de questões organizadas e comentadas.",
+                                icon: BookOpen,
                             },
                             {
-                                step: "02",
-                                title: "Estude com o Quiz",
-                                desc: "Resolva questoes por assunto, faca simulados semanais e suba no ranking.",
+                                step: "2",
+                                title: "Prática",
+                                desc: "Teste seus limites com simulados semanais que replicam o ambiente real de prova.",
                                 icon: Brain,
-                                gradient: "from-violet-500 to-purple-600",
                             },
                             {
-                                step: "03",
-                                title: "Conquiste sua vaga",
-                                desc: "Acompanhe seu desempenho, ajuste sua estratégia e passe dentro das vagas.",
-                                icon: Award,
-                                gradient: "from-purple-500 to-pink-600",
+                                step: "3",
+                                title: "Evolução",
+                                desc: "Acompanhe métricas precisas para lapidar seus pontos fracos e dominar o edital.",
+                                icon: Target,
                             },
                         ].map((s) => {
                             const Icon = s.icon;
                             return (
-                                <div key={s.step} className="relative text-center group">
-                                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[90px] font-extrabold text-slate-50 leading-none select-none pointer-events-none">
-                                        {s.step}
+                                <div key={s.step} className="group p-8 rounded-[2rem] bg-slate-50/50 border border-slate-100 hover:bg-white hover:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] transition-all duration-300">
+                                    <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center mb-6 group-hover:-translate-y-1 transition-transform">
+                                        <Icon size={24} className="text-slate-800" />
                                     </div>
-                                    <div className="relative pt-14">
-                                        <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${s.gradient} flex items-center justify-center shadow-lg shadow-indigo-500/15 group-hover:scale-110 transition-transform`}>
-                                            <Icon size={28} className="text-white" />
-                                        </div>
-                                        <h3 className="text-lg font-bold text-slate-900 mb-2">{s.title}</h3>
-                                        <p className="text-sm text-slate-500 leading-relaxed max-w-[260px] mx-auto">{s.desc}</p>
-                                    </div>
+                                    <h3 className="text-xl font-bold text-slate-900 mb-3 flex items-center gap-3">
+                                        <span className="text-indigo-300 font-light text-2xl">0{s.step}.</span>
+                                        {s.title}
+                                    </h3>
+                                    <p className="text-[15px] text-slate-600 leading-relaxed">{s.desc}</p>
                                 </div>
                             );
                         })}
@@ -421,35 +348,29 @@ export default function Hero() {
             </section>
 
             {/* ═══════════════════════════
-           FUNCIONALIDADES
+           FUNCIONALIDADES - ELEGANCIA
          ═══════════════════════════ */}
-            <section id="funcionalidades" className="py-24 bg-slate-50/60">
+            <section id="funcionalidades" className="py-24 bg-slate-50 flex items-center justify-center">
                 <div className="container mx-auto px-6">
                     <div className="text-center mb-16">
-                        <span className="pill pill-primary text-[10px] font-bold uppercase tracking-[0.2em] mb-4 inline-flex">
-                            <Sparkles size={12} />
-                            Tudo que voce precisa
-                        </span>
-                        <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-4">
-                            Ferramentas pensadas
-                            <br />
-                            <span className="gradient-text">para sua aprovacao</span>
+                        <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6">
+                            Ecossistema Completo
                         </h2>
-                        <p className="text-slate-500 max-w-lg mx-auto">
-                            Do quiz ao ranking, cada recurso foi projetado para maximizar seu tempo de estudo e suas chances de passar.
+                        <p className="text-slate-600 max-w-2xl mx-auto text-lg">
+                            Diga adeus às dezenas de abas abertas. Tudo que você precisa para uma preparação de elite, orquestrado em uma única plataforma.
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
                         {features.map((f) => {
                             const Icon = f.icon;
                             return (
-                                <div key={f.title} className="group card-elevated !rounded-2xl p-5">
-                                    <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${f.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-sm`}>
-                                        <Icon size={20} className="text-white" />
+                                <div key={f.title} className="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.03)] hover:shadow-lg transition-all duration-300 group">
+                                    <div className={`w-12 h-12 rounded-xl ${f.bg} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
+                                        <Icon size={22} className={f.text} />
                                     </div>
-                                    <h3 className="text-[14px] font-bold text-slate-900 mb-1.5">{f.title}</h3>
-                                    <p className="text-[13px] text-slate-500 leading-relaxed">{f.desc}</p>
+                                    <h3 className="text-[16px] font-bold text-slate-900 mb-2">{f.title}</h3>
+                                    <p className="text-[14px] text-slate-500 leading-relaxed">{f.desc}</p>
                                 </div>
                             );
                         })}
@@ -458,143 +379,24 @@ export default function Hero() {
             </section>
 
             {/* ═══════════════════════════
-           SIMULADO SEMANAL - destaque
+           CTA FINAL - ACADEMY
          ═══════════════════════════ */}
-            <section className="py-24 bg-white">
-                <div className="container mx-auto px-6">
-                    <div className="max-w-5xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-                        {/* Visual esquerda */}
-                        <div className="flex-1 w-full">
-                            <div className="relative">
-                                <div className="absolute -inset-4 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-3xl blur-2xl" />
-                                <div className="relative bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-8 text-white overflow-hidden shadow-2xl shadow-emerald-900/20" style={{
-                                    transform: "perspective(1000px) rotateY(-5deg) rotateX(5deg)",
-                                    transition: "transform 0.5s ease"
-                                }} onMouseEnter={(e) => e.currentTarget.style.transform = "perspective(1000px) rotateY(0deg) rotateX(0deg)"} onMouseLeave={(e) => e.currentTarget.style.transform = "perspective(1000px) rotateY(-5deg) rotateX(5deg)"}>
-
-                                    {/* ── IMAGEM DE FUNDO REALISTA ── */}
-                                    <div className="absolute inset-0 mix-blend-overlay opacity-30" style={{
-                                        backgroundImage: "url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1470&auto=format&fit=crop')",
-                                        backgroundSize: "cover",
-                                        backgroundPosition: "center",
-                                        filter: "grayscale(100%)"
-                                    }} />
-
-                                    <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-2xl" />
-                                    <div className="absolute inset-0 opacity-[0.15]" style={{
-                                        backgroundImage: `radial-gradient(circle, white 0.8px, transparent 0.8px)`,
-                                        backgroundSize: "20px 20px",
-                                    }} />
-                                    <div className="relative z-10 backdrop-blur-[2px]">
-                                        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-emerald-100 mb-6 drop-shadow-md">
-                                            <ClipboardList size={14} />
-                                            Simulado Semanal
-                                        </div>
-                                        <div className="flex items-center justify-between mb-8">
-                                            <div>
-                                                <div className="text-3xl font-extrabold mb-1">Simulado #24</div>
-                                                <div className="text-sm text-emerald-200">40 questoes · 3h de prova</div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="text-[10px] text-emerald-200 font-medium mb-1">Disponivel</div>
-                                                <div className="text-sm font-bold">Sab 10h → Dom 10h</div>
-                                            </div>
-                                        </div>
-                                        {/* Ranking simulado */}
-                                        <div className="space-y-2">
-                                            {[
-                                                { pos: 1, name: "Lucas M.", score: "38/40", you: false },
-                                                { pos: 2, name: "Ana P.", score: "37/40", you: false },
-                                                { pos: 3, name: "Voce", score: "36/40", you: true },
-                                            ].map((r) => (
-                                                <div key={r.pos}
-                                                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl ${r.you ? "bg-white/15 border border-white/20" : "bg-white/5"}`}>
-                                                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-extrabold ${r.pos === 1 ? "bg-amber-400 text-amber-900" :
-                                                        r.pos === 2 ? "bg-slate-300 text-slate-700" :
-                                                            "bg-amber-600 text-amber-100"
-                                                        }`}>
-                                                        {r.pos}
-                                                    </div>
-                                                    <span className={`flex-1 text-sm font-semibold ${r.you ? "text-white" : "text-emerald-100"}`}>{r.name}</span>
-                                                    <span className="text-sm font-bold">{r.score}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Texto direita */}
-                        <div className="flex-1">
-                            <span className="pill pill-success text-[10px] font-bold uppercase tracking-[0.2em] mb-4 inline-flex">
-                                <ClipboardList size={12} />
-                                Destaque
-                            </span>
-                            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4 leading-tight">
-                                Simulado semanal
-                                <br />
-                                <span className="gradient-text">com ranking real</span>
-                            </h2>
-                            <p className="text-slate-500 mb-6 leading-relaxed">
-                                Todo sabado as 10h um novo simulado inedito e liberado. Voce tem ate domingo as 10h para responder. Na segunda, confira sua posicao no ranking e compare com outros candidatos.
-                            </p>
-                            <ul className="space-y-3 mb-8">
-                                {[
-                                    "Questoes ineditas elaboradas por especialistas",
-                                    "Simula o ambiente e tempo real de prova",
-                                    "Ranking atualizado toda semana",
-                                    "Analise detalhada dos seus acertos e erros",
-                                ].map((t) => (
-                                    <li key={t} className="flex items-start gap-2.5 text-sm text-slate-600">
-                                        <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
-                                        {t}
-                                    </li>
-                                ))}
-                            </ul>
-                            <Link href="/register">
-                                <button className="btn-primary !h-12 !px-8">
-                                    <Rocket size={16} /> Quero participar
-                                </button>
-                            </Link>
-                        </div>
+            <section className="py-32 bg-white relative overflow-hidden flex items-center justify-center">
+                <div className="container mx-auto px-6 text-center relative z-10 max-w-3xl">
+                    <div className="w-20 h-20 mx-auto bg-slate-900 rounded-[2rem] flex items-center justify-center mb-8 shadow-xl shadow-slate-900/20 rotate-3 cursor-default hover:rotate-0 transition-transform">
+                        <GraduationCap size={40} className="text-white" />
                     </div>
-                </div>
-            </section>
-
-
-
-            {/* ═══════════════════════════
-           CTA FINAL
-         ═══════════════════════════ */}
-            <section className="py-28 bg-white relative overflow-hidden">
-                <div className="absolute inset-0" style={{
-                    background: "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(99,102,241,0.08) 0%, transparent 70%)",
-                }} />
-
-                <div className="container mx-auto px-6 text-center relative z-10">
-                    <BrandLogo size="xl" variant="gradient" link={false} />
-                    <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mt-8 mb-4">
-                        Pronto para ser
-                        <br />
-                        <span className="gradient-text">um Bizurado?</span>
+                    <h2 className="text-4xl md:text-6xl font-extrabold text-slate-900 mb-6 tracking-tight">
+                        Seu futuro começa <span className="text-indigo-600">agora</span>
                     </h2>
-                    <p className="text-slate-500 text-lg mb-10 max-w-md mx-auto">
-                        Comece agora. Sem compromisso.
-                        <br />
-                        A aprovacao esta a um clique de distancia.
+                    <p className="text-slate-600 text-lg md:text-xl mb-12 max-w-xl mx-auto leading-relaxed">
+                        Junte-se à elite dos aprovados. Experimente o Bizu Academy e transforme sua forma de estudar hoje mesmo.
                     </p>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Link href="/register">
-                            <button className="group flex items-center gap-2.5 px-10 h-[56px] rounded-2xl text-[15px] font-bold text-white bg-gradient-to-r from-indigo-600 to-violet-600 shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/35 hover:scale-[1.02] transition-all">
-                                <Zap size={18} />
-                                Criar conta gratis
-                                <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
-                            </button>
-                        </Link>
-                        <Link href="/pricing">
-                            <button className="px-7 h-[56px] rounded-2xl text-[15px] font-semibold text-slate-600 border border-slate-200 hover:border-indigo-200 hover:text-indigo-600 transition-all">
-                                Ver planos
+                            <button className="flex items-center justify-center gap-2 px-10 h-[60px] rounded-xl text-[16px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-600/25 hover:shadow-xl hover:shadow-indigo-600/40 hover:-translate-y-1 transition-all w-full sm:w-auto">
+                                <Rocket size={20} />
+                                Criar conta gratuita
                             </button>
                         </Link>
                     </div>
@@ -602,16 +404,20 @@ export default function Hero() {
             </section>
 
             {/* ═══════════════════════════
-           FOOTER
+           FOOTER - MINIMAL
          ═══════════════════════════ */}
-            <footer className="py-10 bg-slate-50 border-t border-slate-100">
+            <footer className="py-12 bg-white border-t border-slate-100 flex items-center justify-center">
                 <div className="container mx-auto px-6">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                        <BrandLogo size="sm" variant="dark" />
-                        <p className="text-xs text-slate-400">© 2025 Bizu! Academy · Todos os direitos reservados</p>
-                        <div className="flex gap-5">
-                            <Link href="/termos" className="text-xs text-slate-400 hover:text-indigo-500 transition-colors">Termos</Link>
-                            <Link href="/privacidade" className="text-xs text-slate-400 hover:text-indigo-500 transition-colors">Privacidade</Link>
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 max-w-6xl mx-auto">
+                        <div className="flex items-center gap-2">
+                            <BrandLogo size="sm" variant="dark" link={false} />
+                            <span className="text-slate-300">|</span>
+                            <span className="text-sm font-medium text-slate-500">Academy</span>
+                        </div>
+                        <p className="text-sm text-slate-400">© 2026 Bizu! Academy · O padrão de excelência.</p>
+                        <div className="flex gap-6">
+                            <Link href="/termos" className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">Termos</Link>
+                            <Link href="/privacidade" className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">Privacidade</Link>
                         </div>
                     </div>
                 </div>
