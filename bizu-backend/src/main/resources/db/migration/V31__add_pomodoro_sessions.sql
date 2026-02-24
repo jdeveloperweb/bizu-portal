@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS student.pomodoro_sessions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES identity.users(id),
     course_id UUID REFERENCES content.courses(id),
     subject VARCHAR(255) NOT NULL,
