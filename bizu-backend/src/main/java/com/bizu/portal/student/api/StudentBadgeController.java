@@ -13,16 +13,19 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+import com.bizu.portal.student.application.GamificationService;
+import com.bizu.portal.student.application.BadgeDTO;
+
 @RestController
 @RequestMapping("/api/v1/student/badges")
 @RequiredArgsConstructor
 public class StudentBadgeController {
 
-    private final UserBadgeRepository userBadgeRepository;
+    private final GamificationService gamificationService;
 
     @GetMapping("/me")
-    public ResponseEntity<List<UserBadge>> getMyBadges(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<List<BadgeDTO>> getMyBadges(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getSubject());
-        return ResponseEntity.ok(userBadgeRepository.findAllByUserId(userId));
+        return ResponseEntity.ok(gamificationService.getBadgesWithProgress(userId));
     }
 }

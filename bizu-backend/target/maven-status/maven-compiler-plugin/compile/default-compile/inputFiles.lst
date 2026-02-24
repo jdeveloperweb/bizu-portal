@@ -2,9 +2,12 @@ C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bi
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\admin\api\AdminUserController.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\admin\api\BrandingController.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\admin\application\BrandingService.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\admin\application\SystemSettingsService.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\admin\domain\AdminActionLog.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\admin\domain\Branding.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\admin\domain\SystemSettings.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\admin\infrastructure\BrandingRepository.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\admin\infrastructure\SystemSettingsRepository.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\analytics\application\AnalyticsService.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\analytics\domain\DailyActivity.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\analytics\infrastructure\DailyActivityRepository.java
@@ -88,6 +91,7 @@ C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bi
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\api\StudentPerformanceController.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\api\StudentTaskController.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\AttemptService.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\BadgeDTO.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\CreateNoteRequest.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\CreateStudentTaskDTO.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\DuelService.java
