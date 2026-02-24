@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
     Trophy, Star, Flame, Target, Zap, Sparkles,
     Crown, Sunrise, Play, Shield, Swords,
     CheckCircle2, BookOpen, Clock, TrendingUp,
-    Layers, Brain, Award,
+    Layers, Brain, Award, Loader2,
 } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 
 type BadgeCategory = "todas" | "consistencia" | "performance" | "social" | "especial";
 
@@ -16,6 +17,7 @@ interface Badge {
     name: string;
     description: string;
     icon: typeof Trophy;
+    iconStr: string;
     earned: boolean;
     category: BadgeCategory;
     xp: number;
@@ -25,20 +27,24 @@ interface Badge {
     color: string;
 }
 
-const badges: Badge[] = [
-    { id: "1", name: "Madrugador", description: "Resolveu questoes antes das 6h da manha.", icon: Sunrise, earned: true, category: "consistencia", xp: 50, earnedDate: "15 Fev", color: "from-amber-400 to-orange-500" },
-    { id: "2", name: "Fogo Amigo", description: "Manteve ofensiva de 7 dias seguidos.", icon: Flame, earned: true, category: "consistencia", xp: 100, earnedDate: "20 Fev", color: "from-red-400 to-rose-500" },
-    { id: "3", name: "Maratonista", description: "Estudou por mais de 4 horas seguidas.", icon: Clock, earned: false, category: "consistencia", xp: 150, progress: 65, requirement: "3h20min / 4h", color: "from-indigo-400 to-violet-500" },
-    { id: "4", name: "Centenario", description: "Resolveu 100 questoes com aproveitamento > 80%.", icon: Target, earned: true, category: "performance", xp: 200, earnedDate: "18 Fev", color: "from-emerald-400 to-teal-500" },
-    { id: "5", name: "Sniper", description: "Acertou 10 questoes seguidas de nivel dificil.", icon: Target, earned: false, category: "performance", xp: 300, progress: 40, requirement: "4/10 consecutivas", color: "from-red-500 to-pink-600" },
-    { id: "6", name: "Primeiro Passo", description: "Concluiu seu primeiro simulado completo.", icon: Play, earned: true, category: "performance", xp: 75, earnedDate: "10 Fev", color: "from-blue-400 to-indigo-500" },
-    { id: "7", name: "Gladiador", description: "Venceu 10 duelos na Arena PVP.", icon: Swords, earned: true, category: "social", xp: 150, earnedDate: "22 Fev", color: "from-violet-500 to-purple-600" },
-    { id: "8", name: "Top 10%", description: "Alcancou o Top 10% do ranking geral.", icon: Crown, earned: false, category: "social", xp: 500, progress: 78, requirement: "Ranking #142 / Top 100", color: "from-amber-500 to-yellow-500" },
-    { id: "9", name: "Estudioso", description: "Criou 50 flashcards.", icon: Layers, earned: false, category: "especial", xp: 100, progress: 56, requirement: "28/50 flashcards", color: "from-teal-400 to-cyan-500" },
-    { id: "10", name: "Mestre", description: "Acertou 90%+ em 3 materias diferentes.", icon: Brain, earned: false, category: "especial", xp: 400, progress: 33, requirement: "1/3 materias", color: "from-indigo-600 to-violet-700" },
-    { id: "11", name: "Dedicacao Total", description: "Manteve ofensiva de 30 dias.", icon: Flame, earned: false, category: "consistencia", xp: 500, progress: 23, requirement: "7/30 dias", color: "from-orange-500 to-red-600" },
-    { id: "12", name: "1000 Questoes", description: "Resolveu 1000 questoes na plataforma.", icon: CheckCircle2, earned: false, category: "performance", xp: 250, progress: 85, requirement: "847/1000", color: "from-emerald-500 to-green-600" },
-];
+const iconMap: Record<string, typeof Trophy> = {
+    sunrise: Sunrise,
+    flame: Flame,
+    clock: Clock,
+    target: Target,
+    play: Play,
+    swords: Swords,
+    crown: Crown,
+    layers: Layers,
+    brain: Brain,
+    checkCircle2: CheckCircle2,
+    award: Award,
+    zap: Zap,
+    shield: Shield,
+    star: Star,
+    bookOpen: BookOpen,
+    sparkles: Sparkles,
+};
 
 const categoryConfig: Record<BadgeCategory, { label: string; icon: typeof Trophy }> = {
     todas: { label: "Todas", icon: Award },
@@ -50,13 +56,63 @@ const categoryConfig: Record<BadgeCategory, { label: string; icon: typeof Trophy
 
 export default function ConquistasPage() {
     const [activeCategory, setActiveCategory] = useState<BadgeCategory>("todas");
+    const [badges, setBadges] = useState<Badge[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchBadges() {
+            try {
+                const res = await apiFetch("/student/badges/me");
+                if (res.ok) {
+                    const data = await res.json();
+
+                    const mappedData = data.map((b: any) => ({
+                        id: b.id,
+                        name: b.name,
+                        description: b.description,
+                        icon: iconMap[b.icon] || Trophy,
+                        iconStr: b.icon,
+                        earned: b.earned,
+                        category: (b.category || "todas") as BadgeCategory,
+                        xp: b.xp,
+                        earnedDate: b.earnedDate ? new Date(b.earnedDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : undefined,
+                        progress: b.progress,
+                        requirement: b.requirement,
+                        color: b.color || "from-slate-400 to-slate-500",
+                    }));
+
+                    // Sort earned first, then by progress
+                    mappedData.sort((a: Badge, b: Badge) => {
+                        if (a.earned && !b.earned) return -1;
+                        if (!a.earned && b.earned) return 1;
+                        return (b.progress || 0) - (a.progress || 0);
+                    });
+
+                    setBadges(mappedData);
+                }
+            } catch (error) {
+                console.error("Failed to fetch badges:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchBadges();
+    }, []);
 
     const filteredBadges = activeCategory === "todas" ? badges : badges.filter(b => b.category === activeCategory);
     const earnedCount = badges.filter(b => b.earned).length;
-    const totalXP = badges.filter(b => b.earned).reduce((a, b) => a + b.xp, 0);
+    const totalXP = badges.filter(b => b.earned).reduce((a, b) => a + (b.xp || 0), 0);
+
+    if (loading) {
+        return (
+            <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto flex items-center justify-center min-h-[400px]">
+                <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+            </div>
+        );
+    }
 
     return (
-        <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
+        <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
@@ -79,12 +135,12 @@ export default function ConquistasPage() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-4 gap-3 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                 {[
                     { label: "Badges obtidos", val: `${earnedCount}/${badges.length}`, icon: Trophy, bg: "bg-amber-50", text: "text-amber-600" },
                     { label: "XP de badges", val: String(totalXP), icon: Zap, bg: "bg-indigo-50", text: "text-indigo-600" },
-                    { label: "Nivel atual", val: "Lv. 14", icon: Star, bg: "bg-violet-50", text: "text-violet-600" },
-                    { label: "Proximo badge", val: "85%", icon: Target, bg: "bg-emerald-50", text: "text-emerald-600" },
+                    { label: "Nivel atual", val: `Lv. ${Math.floor(totalXP / 1000) + 1}`, icon: Star, bg: "bg-violet-50", text: "text-violet-600" },
+                    { label: "Proximo badge", val: badges.filter(b => !b.earned).sort((a, b) => (b.progress || 0) - (a.progress || 0))[0]?.progress + "%" || "100%", icon: Target, bg: "bg-emerald-50", text: "text-emerald-600" },
                 ].map(s => {
                     const Icon = s.icon;
                     return (
@@ -102,14 +158,14 @@ export default function ConquistasPage() {
             </div>
 
             {/* Category Tabs */}
-            <div className="flex items-center gap-2 mb-6 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 mb-6 overflow-x-auto scrollbar-hide py-1">
                 {(Object.entries(categoryConfig) as [BadgeCategory, typeof categoryConfig.todas][]).map(([key, config]) => {
                     const Icon = config.icon;
                     return (
                         <button key={key} onClick={() => setActiveCategory(key)}
                             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all ${activeCategory === key
                                 ? "bg-indigo-50 text-indigo-700 border border-indigo-100"
-                                : "text-slate-400 hover:text-slate-600"
+                                : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
                                 }`}>
                             <Icon size={12} /> {config.label}
                         </button>
@@ -122,7 +178,7 @@ export default function ConquistasPage() {
                 {filteredBadges.map(badge => {
                     const Icon = badge.icon;
                     return (
-                        <div key={badge.id} className={`card-elevated !rounded-2xl p-5 hover:!transform-none transition-all ${!badge.earned ? "opacity-70" : ""
+                        <div key={badge.id} className={`card-elevated !rounded-2xl p-5 hover:!transform-none transition-all duration-300 ${!badge.earned ? "opacity-80 hover:opacity-100" : "bg-white"
                             }`}>
                             <div className="flex items-start gap-3">
                                 <div className="relative group cursor-pointer shrink-0">
@@ -152,16 +208,18 @@ export default function ConquistasPage() {
                                             <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
                                                 <Zap size={8} /> +{badge.xp} XP
                                             </span>
-                                            <span className="text-[10px] text-slate-400">{badge.earnedDate}</span>
+                                            {badge.earnedDate && (
+                                                <span className="text-[10px] text-slate-400">{badge.earnedDate}</span>
+                                            )}
                                         </div>
                                     ) : (
                                         <div>
                                             <div className="flex items-center gap-2 mb-1.5">
                                                 <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                    <div className={`h-full rounded-full bg-gradient-to-r ${badge.color}`}
-                                                        style={{ width: `${badge.progress}%` }} />
+                                                    <div className={`h-full rounded-full bg-gradient-to-r ${badge.color} transition-all duration-1000 ease-out`}
+                                                        style={{ width: `${badge.progress || 0}%` }} />
                                                 </div>
-                                                <span className="text-[10px] font-bold text-slate-500">{badge.progress}%</span>
+                                                <span className="text-[10px] font-bold text-slate-500">{badge.progress || 0}%</span>
                                             </div>
                                             <span className="text-[10px] text-slate-400">{badge.requirement}</span>
                                         </div>
@@ -172,6 +230,13 @@ export default function ConquistasPage() {
                     );
                 })}
             </div>
+
+            {filteredBadges.length === 0 && !loading && (
+                <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500">
+                    <Trophy className="w-12 h-12 text-slate-300 mb-3" />
+                    <p>Nenhuma conquista encontrada nesta categoria.</p>
+                </div>
+            )}
         </div>
     );
 }

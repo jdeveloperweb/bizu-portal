@@ -15,9 +15,9 @@ import {
 } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { apiFetch } from "@/lib/api";
 
 interface Coupon {
     id: string;
@@ -31,23 +31,10 @@ interface Coupon {
 }
 
 export default function AdminCuponsPage() {
-    const { data: session } = useSession();
-    const [coupons, setCoupons] = useState<Coupon[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
-    const [newCoupon, setNewCoupon] = useState({ code: "", type: "PERCENTAGE", value: "", maxUses: "", validUntil: "" });
-
     const fetchCoupons = async () => {
-        if (!session?.accessToken) return;
         setLoading(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/coupons`, {
-                headers: {
-                    Authorization: `Bearer ${session.accessToken}`
-                }
-            });
+            const res = await apiFetch(`/admin/coupons`);
             if (res.ok) {
                 const data = await res.json();
                 setCoupons(data);
@@ -61,19 +48,14 @@ export default function AdminCuponsPage() {
     };
 
     useEffect(() => {
-        if (session?.accessToken) {
-            fetchCoupons();
-        }
-    }, [session]);
+        fetchCoupons();
+    }, []);
 
     const handleDelete = async (id: string) => {
-        if (!session?.accessToken || !confirm("Tem certeza que deseja excluir este cupom?")) return;
+        if (!confirm("Tem certeza que deseja excluir este cupom?")) return;
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/coupons/${id}`, {
+            const res = await apiFetch(`/admin/coupons/${id}`, {
                 method: 'DELETE',
-                headers: {
-                    Authorization: `Bearer ${session.accessToken}`
-                }
             });
             if (res.ok) {
                 toast.success("Cupom excluído.");
@@ -88,7 +70,6 @@ export default function AdminCuponsPage() {
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!session?.accessToken) return;
         setSubmitting(true);
         try {
             const body = {
@@ -99,12 +80,8 @@ export default function AdminCuponsPage() {
                 validUntil: newCoupon.validUntil ? new Date(newCoupon.validUntil).toISOString() : null,
                 active: true
             };
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/coupons`, {
+            const res = await apiFetch(`/admin/coupons`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${session.accessToken}`
-                },
                 body: JSON.stringify(body)
             });
             if (res.ok) {

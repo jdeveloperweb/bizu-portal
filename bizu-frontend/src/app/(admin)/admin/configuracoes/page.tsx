@@ -7,12 +7,38 @@ import {
     Mail,
     Video,
     Server,
+    Loader2
 } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 export default function AdminConfiguracoesPage() {
+    const { data: session } = useSession();
     const [activeTab, setActiveTab] = useState("pagamento");
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+
+    // Initial State
+    const [settings, setSettings] = useState({
+        stripePubKey: "",
+        stripeSecretKey: "",
+        stripeWebhookSecret: "",
+        mpAccessToken: "",
+        mpPublicKey: "",
+        smtpHost: "",
+        smtpPort: 587,
+        smtpEncryption: "tls",
+        smtpUser: "",
+        smtpPass: "",
+        vimeoClientId: "",
+        vimeoSecret: "",
+        vimeoToken: "",
+        timezone: "America/Sao_Paulo",
+        sessionTimeout: 120,
+        maintenanceMode: false
+    });
 
     const tabs = [
         { id: "pagamento", label: "Gateways de Pagamento", icon: CreditCard },
@@ -21,21 +47,91 @@ export default function AdminConfiguracoesPage() {
         { id: "sistema", label: "Gerais do Sistema", icon: Server },
     ];
 
+    useEffect(() => {
+        const fetchSettings = async () => {
+            if (!session?.accessToken) return;
+            setLoading(true);
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/admin/settings`, {
+                    headers: {
+                        Authorization: `Bearer ${session.accessToken}`
+                    }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setSettings(prev => ({ ...prev, ...data }));
+                } else if (res.status !== 404) {
+                    toast.error("Erro ao carregar configurações");
+                }
+            } catch (error) {
+                console.error(error);
+                toast.error("Erro de conexão com servidor");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (session?.accessToken) {
+            fetchSettings();
+        }
+    }, [session]);
+
+    const handleSave = async () => {
+        if (!session?.accessToken) return;
+        setSaving(true);
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/admin/settings`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${session.accessToken}`
+                },
+                body: JSON.stringify(settings)
+            });
+
+            if (res.ok) {
+                toast.success("Configurações salvas com sucesso!");
+            } else {
+                toast.error("Falha ao salvar configurações");
+            }
+        } catch (error) {
+            toast.error("Erro de conexão");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const updateSetting = (key: string, value: any) => {
+        setSettings(prev => ({ ...prev, [key]: value }));
+    };
+
+    if (loading) {
+        return (
+            <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[50vh]">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+
     return (
-        <div className="container mx-auto px-4 py-12 max-w-5xl">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+        <div className="container mx-auto px-4 py-8 max-w-5xl">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
                 <PageHeader
                     title="Configurações do Sistema"
                     description="Gerencie chaves de API, integrações e parâmetros gerais da plataforma."
                     badge="SISTEMA"
                 />
-                <Button className="h-14 rounded-2xl font-black px-12 gap-2 shadow-xl shadow-indigo-600/20 bg-indigo-600 hover:bg-indigo-700 text-white">
-                    <Save className="w-5 h-5" />
-                    Salvar Configurações
+                <Button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="h-12 rounded-xl font-bold px-8 gap-2 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    {saving ? "Salvando..." : "Salvar Configurações"}
                 </Button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Menus Laterais */}
                 <div className="lg:col-span-1 space-y-2">
                     {tabs.map((tab) => {
@@ -45,13 +141,13 @@ export default function AdminConfiguracoesPage() {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`w-full flex items-center gap-3 px-5 py-4 rounded-3xl font-bold transition-all ${isActive
-                                        ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
-                                        : "bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-900 border border-slate-100"
+                                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold transition-all text-sm ${isActive
+                                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                                    : "bg-card text-muted-foreground hover:bg-muted hover:text-foreground border border-border"
                                     }`}
                             >
-                                <Icon className={`w-5 h-5 ${isActive ? "text-white" : "text-slate-400"}`} />
-                                <span className="text-sm">{tab.label}</span>
+                                <Icon className={`w-4 h-4 ${isActive ? "text-primary-foreground" : "text-muted-foreground"}`} />
+                                <span className="text-[13px]">{tab.label}</span>
                             </button>
                         );
                     })}
@@ -59,73 +155,83 @@ export default function AdminConfiguracoesPage() {
 
                 {/* Conteúdo da Aba */}
                 <div className="lg:col-span-3">
-                    <div className="p-8 md:p-10 rounded-[48px] bg-white border border-slate-100 shadow-sm min-h-[500px]">
+                    <div className="p-6 md:p-8 rounded-2xl bg-card border border-border shadow-sm min-h-[500px]">
 
                         {activeTab === "pagamento" && (
                             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div>
-                                    <h3 className="text-2xl font-black text-slate-900 mb-2">Gateways de Pagamento</h3>
-                                    <p className="text-slate-500 text-sm">Configure as chaves e tokens para processamento de pagamentos.</p>
+                                    <h3 className="text-xl font-bold text-foreground mb-1.5">Gateways de Pagamento</h3>
+                                    <p className="text-muted-foreground text-sm">Configure as chaves e tokens para processamento de pagamentos.</p>
                                 </div>
 
                                 {/* Stripe */}
-                                <div className="space-y-6 p-8 rounded-[32px] bg-slate-50 border border-slate-100">
-                                    <div className="flex items-center gap-3 mb-6">
+                                <div className="space-y-5 p-6 rounded-2xl bg-muted/30 border border-border">
+                                    <div className="flex items-center gap-3 mb-4">
                                         <div className="w-10 h-10 rounded-xl bg-[#635BFF]/10 flex items-center justify-center text-[#635BFF]">
                                             <CreditCard className="w-5 h-5" />
                                         </div>
-                                        <h4 className="text-lg font-bold text-slate-900">Integração Stripe</h4>
+                                        <h4 className="text-[15px] font-bold text-foreground">Integração Stripe</h4>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Chave Pública (Publishable Key)</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Chave Pública (Publishable Key)</label>
                                         <input
                                             type="text"
+                                            value={settings.stripePubKey}
+                                            onChange={e => updateSetting("stripePubKey", e.target.value)}
                                             placeholder="pk_test_..."
-                                            className="w-full h-14 px-6 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-mono text-sm"
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-[13px]"
                                         />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Chave Secreta (Secret Key)</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Chave Secreta (Secret Key)</label>
                                         <input
                                             type="password"
+                                            value={settings.stripeSecretKey}
+                                            onChange={e => updateSetting("stripeSecretKey", e.target.value)}
                                             placeholder="sk_test_..."
-                                            className="w-full h-14 px-6 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-mono text-sm"
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-[13px]"
                                         />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Webhook Secret</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Webhook Secret</label>
                                         <input
                                             type="password"
+                                            value={settings.stripeWebhookSecret}
+                                            onChange={e => updateSetting("stripeWebhookSecret", e.target.value)}
                                             placeholder="whsec_..."
-                                            className="w-full h-14 px-6 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-mono text-sm"
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-[13px]"
                                         />
                                     </div>
                                 </div>
 
                                 {/* Mercado Pago */}
-                                <div className="space-y-6 p-8 rounded-[32px] bg-slate-50 border border-slate-100">
-                                    <div className="flex items-center gap-3 mb-6">
+                                <div className="space-y-5 p-6 rounded-2xl bg-muted/30 border border-border">
+                                    <div className="flex items-center gap-3 mb-4">
                                         <div className="w-10 h-10 rounded-xl bg-[#009EE3]/10 flex items-center justify-center text-[#009EE3]">
                                             <CreditCard className="w-5 h-5" />
                                         </div>
-                                        <h4 className="text-lg font-bold text-slate-900">Mercado Pago</h4>
+                                        <h4 className="text-[15px] font-bold text-foreground">Mercado Pago</h4>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Access Token</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Access Token</label>
                                         <input
                                             type="password"
+                                            value={settings.mpAccessToken}
+                                            onChange={e => updateSetting("mpAccessToken", e.target.value)}
                                             placeholder="APP_USR-..."
-                                            className="w-full h-14 px-6 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-mono text-sm"
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-[13px]"
                                         />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Public Key</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Public Key</label>
                                         <input
                                             type="text"
+                                            value={settings.mpPublicKey}
+                                            onChange={e => updateSetting("mpPublicKey", e.target.value)}
                                             placeholder="APP_USR-..."
-                                            className="w-full h-14 px-6 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-mono text-sm"
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-[13px]"
                                         />
                                     </div>
                                 </div>
@@ -135,53 +241,69 @@ export default function AdminConfiguracoesPage() {
                         {activeTab === "email" && (
                             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div>
-                                    <h3 className="text-2xl font-black text-slate-900 mb-2">Servidor de E-mail</h3>
-                                    <p className="text-slate-500 text-sm">Configurações de SMTP para envio de e-mails transacionais (Recuperação de senha, boas-vindas, etc).</p>
+                                    <h3 className="text-xl font-bold text-foreground mb-1.5">Servidor de E-mail</h3>
+                                    <p className="text-muted-foreground text-sm">Configurações de SMTP para envio de e-mails transacionais (Recuperação de senha, boas-vindas, etc).</p>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 rounded-[32px] bg-slate-50 border border-slate-100">
-                                    <div className="space-y-2 md:col-span-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Host SMTP</label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-6 rounded-2xl bg-muted/30 border border-border">
+                                    <div className="space-y-1.5 md:col-span-2">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Host SMTP</label>
                                         <input
                                             type="text"
+                                            value={settings.smtpHost}
+                                            onChange={e => updateSetting("smtpHost", e.target.value)}
                                             placeholder="smtp.mailgun.org"
-                                            className="w-full h-14 px-6 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-mono text-sm"
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-[13px]"
                                         />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Porta</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Porta</label>
                                         <input
                                             type="number"
+                                            value={settings.smtpPort}
+                                            onChange={e => updateSetting("smtpPort", parseInt(e.target.value))}
                                             placeholder="587"
-                                            className="w-full h-14 px-6 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-mono text-sm"
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-[13px]"
                                         />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Criptografia</label>
-                                        <select className="w-full h-14 px-6 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-bold text-slate-700">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Criptografia</label>
+                                        <select
+                                            value={settings.smtpEncryption}
+                                            onChange={e => updateSetting("smtpEncryption", e.target.value)}
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-semibold text-sm"
+                                        >
                                             <option value="tls">TLS</option>
                                             <option value="ssl">SSL</option>
                                             <option value="none">Nenhuma</option>
                                         </select>
                                     </div>
-                                    <div className="space-y-2 md:col-span-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Usuário SMTP</label>
+                                    <div className="space-y-1.5 md:col-span-2">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Usuário SMTP</label>
                                         <input
                                             type="text"
+                                            value={settings.smtpUser}
+                                            onChange={e => updateSetting("smtpUser", e.target.value)}
                                             placeholder="contato@seudominio.com"
-                                            className="w-full h-14 px-6 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-mono text-sm"
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-[13px]"
                                         />
                                     </div>
-                                    <div className="space-y-2 md:col-span-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Senha SMTP</label>
+                                    <div className="space-y-1.5 md:col-span-2">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Senha SMTP</label>
                                         <input
                                             type="password"
+                                            value={settings.smtpPass}
+                                            onChange={e => updateSetting("smtpPass", e.target.value)}
                                             placeholder="••••••••••••••••"
-                                            className="w-full h-14 px-6 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-mono text-sm"
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-[13px]"
                                         />
                                     </div>
-                                    <div className="space-y-2 md:col-span-2 pt-4">
-                                        <Button variant="outline" className="w-full h-14 rounded-2xl font-bold border-indigo-200 text-indigo-600 hover:bg-indigo-50">
+                                    <div className="space-y-1.5 md:col-span-2 pt-2">
+                                        <Button
+                                            variant="outline"
+                                            className="w-full h-11 rounded-xl font-bold border-border text-foreground hover:bg-muted"
+                                            onClick={() => toast.info("Funcionalidade de teste em breve")}
+                                        >
                                             Testar Conexão SMTP
                                         </Button>
                                     </div>
@@ -192,40 +314,43 @@ export default function AdminConfiguracoesPage() {
                         {activeTab === "video" && (
                             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div>
-                                    <h3 className="text-2xl font-black text-slate-900 mb-2">Hospedagem de Vídeos</h3>
-                                    <p className="text-slate-500 text-sm">Configure as chaves da API para os provedores de vídeo dos cursos (Vimeo, YouTube, Panda Video).</p>
+                                    <h3 className="text-xl font-bold text-foreground mb-1.5">Hospedagem de Vídeos</h3>
+                                    <p className="text-muted-foreground text-sm">Configure as chaves da API para os provedores de vídeo dos cursos (Vimeo).</p>
                                 </div>
 
-                                <div className="space-y-6 p-8 rounded-[32px] bg-slate-50 border border-slate-100">
-                                    <div className="flex items-center gap-3 mb-6">
+                                <div className="space-y-5 p-6 rounded-2xl bg-muted/30 border border-border">
+                                    <div className="flex items-center gap-3 mb-4">
                                         <div className="w-10 h-10 rounded-xl bg-[#1AB7EA]/10 flex items-center justify-center text-[#1AB7EA]">
                                             <Video className="w-5 h-5" />
                                         </div>
-                                        <h4 className="text-lg font-bold text-slate-900">Vimeo Pro / Business</h4>
+                                        <h4 className="text-[15px] font-bold text-foreground">Vimeo Pro / Business</h4>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Client Identifier</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Client Identifier</label>
                                         <input
                                             type="text"
-                                            placeholder=""
-                                            className="w-full h-14 px-6 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-mono text-sm"
+                                            value={settings.vimeoClientId}
+                                            onChange={e => updateSetting("vimeoClientId", e.target.value)}
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-[13px]"
                                         />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Client Secrets</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Client Secrets</label>
                                         <input
                                             type="password"
-                                            placeholder=""
-                                            className="w-full h-14 px-6 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-mono text-sm"
+                                            value={settings.vimeoSecret}
+                                            onChange={e => updateSetting("vimeoSecret", e.target.value)}
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-[13px]"
                                         />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Personal Access Token</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Personal Access Token</label>
                                         <input
                                             type="password"
-                                            placeholder=""
-                                            className="w-full h-14 px-6 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-mono text-sm"
+                                            value={settings.vimeoToken}
+                                            onChange={e => updateSetting("vimeoToken", e.target.value)}
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-[13px]"
                                         />
                                     </div>
                                 </div>
@@ -235,37 +360,47 @@ export default function AdminConfiguracoesPage() {
                         {activeTab === "sistema" && (
                             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div>
-                                    <h3 className="text-2xl font-black text-slate-900 mb-2">Configurações Gerais</h3>
-                                    <p className="text-slate-500 text-sm">Ajuste itens críticos do funcionamento como fuso horário, limites e segurança.</p>
+                                    <h3 className="text-xl font-bold text-foreground mb-1.5">Configurações Gerais</h3>
+                                    <p className="text-muted-foreground text-sm">Ajuste itens críticos do funcionamento como fuso horário, limites e segurança.</p>
                                 </div>
 
-                                <div className="space-y-6 p-8 rounded-[32px] bg-slate-50 border border-slate-100">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Fuso Horário Principal (Timezone)</label>
-                                        <select className="w-full h-14 px-6 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-bold text-slate-700">
+                                <div className="space-y-5 p-6 rounded-2xl bg-muted/30 border border-border">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Fuso Horário Principal (Timezone)</label>
+                                        <select
+                                            value={settings.timezone}
+                                            onChange={e => updateSetting("timezone", e.target.value)}
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-semibold text-sm text-foreground"
+                                        >
                                             <option value="America/Sao_Paulo">America/Sao_Paulo (Horário de Brasília)</option>
                                             <option value="UTC">UTC (Universal Time)</option>
                                         </select>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Tempo Expirar Sessão (minutos)</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tempo Expirar Sessão (minutos)</label>
                                         <input
                                             type="number"
-                                            defaultValue={120}
-                                            className="w-full h-14 px-6 rounded-2xl bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-bold text-slate-700"
+                                            value={settings.sessionTimeout}
+                                            onChange={e => updateSetting("sessionTimeout", parseInt(e.target.value))}
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-semibold text-sm text-foreground"
                                         />
                                     </div>
 
-                                    <div className="pt-6 border-t border-slate-200">
+                                    <div className="pt-4 border-t border-border mt-2">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <h4 className="font-bold text-slate-900">Modo de Manutenção</h4>
-                                                <p className="text-xs text-slate-500 mt-1">Exibe uma tela de manutenção e impede acesso aos painéis públicos.</p>
+                                                <h4 className="font-bold text-foreground text-sm">Modo de Manutenção</h4>
+                                                <p className="text-xs text-muted-foreground mt-0.5">Exibe uma tela de manutenção e impede acesso aos painéis públicos.</p>
                                             </div>
                                             <label className="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" className="sr-only peer" />
-                                                <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-red-500"></div>
+                                                <input
+                                                    type="checkbox"
+                                                    className="sr-only peer"
+                                                    checked={settings.maintenanceMode}
+                                                    onChange={e => updateSetting("maintenanceMode", e.target.checked)}
+                                                />
+                                                <div className="w-12 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-destructive"></div>
                                             </label>
                                         </div>
                                     </div>
