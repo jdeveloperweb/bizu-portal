@@ -35,8 +35,10 @@ export default function QuestionViewer({
     banca,
     year,
 }: QuestionProps) {
+    const AUTO_NEXT_DELAY_MS = 5000;
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [countdownKey, setCountdownKey] = useState(0);
     const autoNextTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const handleSelect = (id: string) => {
@@ -46,10 +48,11 @@ export default function QuestionViewer({
 
         if (!isSimuladoMode) {
             setIsSubmitted(true);
+            setCountdownKey((prev) => prev + 1);
             if (autoNextTimeoutRef.current) clearTimeout(autoNextTimeoutRef.current);
             autoNextTimeoutRef.current = setTimeout(() => {
                 onNext?.();
-            }, 5000);
+            }, AUTO_NEXT_DELAY_MS);
         }
     };
 
@@ -180,8 +183,17 @@ export default function QuestionViewer({
                         </Button>
                     )
                 ) : isSubmitted ? (
-                    <div className="flex items-center justify-center h-14 px-6 rounded-2xl bg-primary/10 text-primary font-bold text-sm md:text-base">
-                        Próxima questão em 5 segundos...
+                    <div className="w-full sm:w-[340px] h-14 px-5 rounded-2xl bg-primary/10 text-primary font-bold text-sm md:text-base flex flex-col justify-center gap-2 overflow-hidden">
+                        <span className="text-center">Próxima questão em 5 segundos...</span>
+                        <div className="h-1.5 w-full rounded-full bg-primary/25 overflow-hidden">
+                            <motion.div
+                                key={countdownKey}
+                                className="h-full w-full bg-primary origin-left"
+                                initial={{ scaleX: 1 }}
+                                animate={{ scaleX: 0 }}
+                                transition={{ duration: AUTO_NEXT_DELAY_MS / 1000, ease: "linear" }}
+                            />
+                        </div>
                     </div>
                 ) : null}
             </div>
