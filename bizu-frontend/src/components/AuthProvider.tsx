@@ -21,6 +21,7 @@ interface AuthContextType {
 interface AuthUser {
     name?: string;
     email?: string;
+    phone?: string;
     preferred_username?: string;
     realm_access?: {
         roles: string[];

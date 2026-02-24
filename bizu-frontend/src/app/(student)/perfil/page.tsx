@@ -42,7 +42,7 @@ export default function ProfilePage() {
     useEffect(() => {
         if (user) {
             setName(user.name || "");
-            setPhone((user as any).phone || "");
+            setPhone(user.phone || "");
         }
     }, [user]);
 
@@ -104,7 +104,7 @@ export default function ProfilePage() {
         }
     };
 
-    const isModified = name !== (user?.name || "") || phone !== ((user as any).phone || "");
+    const isModified = name !== (user?.name || "") || phone !== (user?.phone || "");
 
 
     return (
