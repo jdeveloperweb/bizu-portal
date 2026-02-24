@@ -69,13 +69,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const data = await res.json();
                 Cookies.set("token", data.access_token, { expires: 1 });
                 setAuthenticated(true);
-                // Recarregar o Keycloak para ele reconhecer o token
                 keycloak?.init({ token: data.access_token, refreshToken: data.refresh_token });
                 return true;
+            } else if (res.status === 401 || res.status === 400) {
+                console.warn("Invalid credentials");
+                return false;
+            } else {
+                console.error(`Login failed with status: ${res.status}`);
+                return false;
             }
-            return false;
         } catch (error) {
-            console.error("Login failed", error);
+            console.error("Login request failed", error);
             return false;
         }
     };
