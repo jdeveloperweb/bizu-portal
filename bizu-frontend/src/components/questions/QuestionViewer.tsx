@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Bookmark, MessageSquare, Share2, CheckCircle2, XCircle } from "lucide-react";
@@ -37,14 +37,31 @@ export default function QuestionViewer({
 }: QuestionProps) {
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const autoNextTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const handleSelect = (id: string) => {
-        if (!isSubmitted) setSelectedOption(id);
+        if (isSubmitted) return;
+
+        setSelectedOption(id);
+
+        if (!isSimuladoMode) {
+            setIsSubmitted(true);
+            if (autoNextTimeoutRef.current) clearTimeout(autoNextTimeoutRef.current);
+            autoNextTimeoutRef.current = setTimeout(() => {
+                onNext?.();
+            }, 5000);
+        }
     };
 
     const handleSubmit = () => {
         if (selectedOption) setIsSubmitted(true);
     };
+
+    useEffect(() => {
+        return () => {
+            if (autoNextTimeoutRef.current) clearTimeout(autoNextTimeoutRef.current);
+        };
+    }, []);
 
     return (
         <motion.div
@@ -142,26 +159,31 @@ export default function QuestionViewer({
                     Ver Comentários
                 </Button>
 
-                {!isSubmitted && !isSimuladoMode ? (
-                    <Button
-                        onClick={handleSubmit}
-                        disabled={!selectedOption}
-                        className={cn(
-                            "rounded-2xl px-10 h-14 font-black text-lg transition-all duration-300",
-                            selectedOption ? "shadow-xl shadow-primary/30 hover:scale-105" : "opacity-50"
-                        )}
-                    >
-                        Responder Agora
-                    </Button>
-                ) : (
-                    <Button
-                        onClick={onNext}
-                        disabled={!selectedOption && isSimuladoMode}
-                        className="rounded-2xl px-10 h-14 font-black text-lg transition-all shadow-xl hover:scale-105 duration-300 bg-foreground text-background hover:bg-foreground/90"
-                    >
-                        {isSimuladoMode ? "Salvar e Continuar" : "Próxima Questão"}
-                    </Button>
-                )}
+                {isSimuladoMode ? (
+                    !isSubmitted ? (
+                        <Button
+                            onClick={handleSubmit}
+                            disabled={!selectedOption}
+                            className={cn(
+                                "rounded-2xl px-10 h-14 font-black text-lg transition-all duration-300",
+                                selectedOption ? "shadow-xl shadow-primary/30 hover:scale-105" : "opacity-50"
+                            )}
+                        >
+                            Responder Agora
+                        </Button>
+                    ) : (
+                        <Button
+                            onClick={onNext}
+                            className="rounded-2xl px-10 h-14 font-black text-lg transition-all shadow-xl hover:scale-105 duration-300 bg-foreground text-background hover:bg-foreground/90"
+                        >
+                            Salvar e Continuar
+                        </Button>
+                    )
+                ) : isSubmitted ? (
+                    <div className="flex items-center justify-center h-14 px-6 rounded-2xl bg-primary/10 text-primary font-bold text-sm md:text-base">
+                        Próxima questão em 5 segundos...
+                    </div>
+                ) : null}
             </div>
 
             <AnimatePresence>
