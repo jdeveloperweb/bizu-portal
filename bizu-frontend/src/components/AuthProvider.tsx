@@ -103,7 +103,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const register = async (name: string, email: string) => {
         try {
             const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
-            const res = await fetch(`${apiBase}/api/v1/public/auth/register`, {
+            // Se apiBase já termina com /api/v1, não adicionamos novamente
+            const endpoint = apiBase.endsWith('/api/v1')
+                ? `${apiBase}/public/auth/register`
+                : `${apiBase}/api/v1/public/auth/register`;
+
+            const res = await fetch(endpoint, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, email }),
