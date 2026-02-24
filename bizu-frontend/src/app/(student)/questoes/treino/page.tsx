@@ -44,9 +44,9 @@ function TreinoContent() {
         if (simulado && currentQuestionIdx < simulado.questions.length - 1) {
             setCurrentQuestionIdx(currentQuestionIdx + 1);
         } else {
-            // End of exam
-            alert("Simulado concluído!");
-            router.push("/simulados");
+            // End of quiz
+            alert("Quiz concluído!");
+            router.push("/dashboard");
         }
     };
 
@@ -59,8 +59,8 @@ function TreinoContent() {
             <div className="container mx-auto px-4 py-8">
                 <div className="text-center bg-card p-12 rounded-3xl border border-muted shadow-sm">
                     <h2 className="text-xl font-bold mb-4">Nenhuma questão encontrada</h2>
-                    <Link href="/simulados">
-                        <Button>Voltar para Simulados</Button>
+                    <Link href="/dashboard">
+                        <Button>Voltar para o Dashboard</Button>
                     </Link>
                 </div>
             </div>
@@ -86,7 +86,7 @@ function TreinoContent() {
     return (
         <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full max-w-[1600px]">
             <div className="flex flex-wrap items-center justify-between mb-6 md:mb-8 gap-3">
-                <Link href="/simulados">
+                <Link href="/dashboard">
                     <Button variant="ghost" className="rounded-xl flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 -ml-2 sm:ml-0">
                         <ChevronLeft className="w-4 h-4" />
                         <span className="hidden sm:inline">Voltar</span>

@@ -165,7 +165,7 @@ export default function SimuladosPage() {
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0">
                                     {sim.status === "disponivel" && (
-                                        <Link href={`/questoes/treino?simulado=${sim.id}`}
+                                        <Link href={`/simulados/${sim.id}`}
                                             className="btn-primary !h-9 !text-[12px] !px-5">
                                             <PlayCircle size={14} /> Iniciar
                                         </Link>

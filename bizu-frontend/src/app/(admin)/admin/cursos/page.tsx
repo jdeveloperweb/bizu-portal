@@ -31,6 +31,7 @@ export default function AdminCursosPage() {
         title: "",
         description: "",
         themeColor: "#8b5cf6",
+        textColor: "#ffffff",
         status: "PUBLISHED"
     });
 
@@ -55,14 +56,18 @@ export default function AdminCursosPage() {
         fetchCourses();
     }, []);
 
-    const updateCourseColor = async (id: string, newColor: string) => {
+    const updateCourseColor = async (id: string, newColor: string, type: 'themeColor' | 'textColor' = 'themeColor') => {
         const course = courses.find(c => c.id === id);
         if (!course) return;
 
         try {
+            const body = { ...course };
+            if (type === 'themeColor') body.themeColor = newColor;
+            else body.textColor = newColor;
+
             const res = await apiFetch(`/admin/courses/${id}`, {
                 method: "PUT",
-                body: JSON.stringify({ ...course, themeColor: newColor })
+                body: JSON.stringify(body)
             });
             if (res.ok) {
                 const updated = await res.json();
@@ -91,7 +96,7 @@ export default function AdminCursosPage() {
                 setIsCreating(false);
                 setIsEditing(false);
                 setEditingCourse(null);
-                setFormCourse({ title: "", description: "", themeColor: "#8b5cf6", status: "PUBLISHED" });
+                setFormCourse({ title: "", description: "", themeColor: "#8b5cf6", textColor: "#ffffff", status: "PUBLISHED" });
             }
         } catch (error) {
             console.error(`Failed to ${isEditing ? 'update' : 'create'} course`, error);
@@ -104,6 +109,7 @@ export default function AdminCursosPage() {
             title: course.title,
             description: course.description || "",
             themeColor: course.themeColor || course.color || "#8b5cf6",
+            textColor: course.textColor || "#ffffff",
             status: course.status || "PUBLISHED"
         });
         setIsEditing(true);
@@ -133,7 +139,7 @@ export default function AdminCursosPage() {
                     className="h-14 rounded-xl font-black px-8 gap-2 shadow-xl shadow-primary/20"
                     onClick={() => {
                         setIsEditing(false);
-                        setFormCourse({ title: "", description: "", themeColor: "#8b5cf6", status: "PUBLISHED" });
+                        setFormCourse({ title: "", description: "", themeColor: "#8b5cf6", textColor: "#ffffff", status: "PUBLISHED" });
                         setIsCreating(true);
                     }}
                 >
@@ -171,8 +177,8 @@ export default function AdminCursosPage() {
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-4">
                                                 <div
-                                                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-white"
-                                                    style={{ backgroundColor: course.themeColor || course.color }}
+                                                    className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                                                    style={{ backgroundColor: course.themeColor || course.color, color: course.textColor || "#ffffff" }}
                                                 >
                                                     <BookOpen className="w-6 h-6" />
                                                 </div>
@@ -183,14 +189,27 @@ export default function AdminCursosPage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <div className="flex items-center gap-3">
-                                                <input
-                                                    type="color"
-                                                    value={course.themeColor || course.color || "#000000"}
-                                                    onChange={(e) => updateCourseColor(course.id, e.target.value)}
-                                                    className="w-10 h-10 rounded-xl cursor-pointer border-none p-0"
-                                                />
-                                                <span className="font-mono text-xs font-bold text-muted-foreground">{(course.themeColor || course.color || "#000000").toUpperCase()}</span>
+                                            <div className="flex flex-col gap-2">
+                                                <div className="flex items-center gap-3">
+                                                    <input
+                                                        type="color"
+                                                        value={course.themeColor || course.color || "#000000"}
+                                                        onChange={(e) => updateCourseColor(course.id, e.target.value, 'themeColor')}
+                                                        className="w-8 h-8 rounded-lg cursor-pointer border-none p-0"
+                                                        title="Cor do Fundo"
+                                                    />
+                                                    <span className="font-mono text-xs font-bold text-muted-foreground w-16">{(course.themeColor || course.color || "#000000").toUpperCase()}</span>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <input
+                                                        type="color"
+                                                        value={course.textColor || "#ffffff"}
+                                                        onChange={(e) => updateCourseColor(course.id, e.target.value, 'textColor')}
+                                                        className="w-8 h-8 rounded-lg cursor-pointer border-none p-0"
+                                                        title="Cor do Texto"
+                                                    />
+                                                    <span className="font-mono text-xs font-bold text-muted-foreground w-16">{(course.textColor || "#ffffff").toUpperCase()}</span>
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 text-right">
@@ -249,7 +268,7 @@ export default function AdminCursosPage() {
                                         <div className="w-8 h-8 rounded-lg bg-primary" style={{ backgroundColor: courses[0]?.themeColor || courses[0]?.color }} />
                                         <div className="text-sm font-bold">{courses[0]?.title}</div>
                                     </div>
-                                    <Button className="w-full h-10 rounded-xl text-xs font-black uppercase" style={{ backgroundColor: courses[0]?.themeColor || courses[0]?.color }}>
+                                    <Button className="w-full h-10 rounded-xl text-xs font-black uppercase" style={{ backgroundColor: courses[0]?.themeColor || courses[0]?.color, color: courses[0]?.textColor || "#ffffff" }}>
                                         Continuar Estudando
                                         <ChevronRight className="w-3 h-3 ml-2" />
                                     </Button>
@@ -291,16 +310,30 @@ export default function AdminCursosPage() {
                                 />
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-muted-foreground">Cor de Identidade</label>
-                                <div className="flex items-center gap-4">
-                                    <input
-                                        type="color"
-                                        value={formCourse.themeColor}
-                                        onChange={e => setFormCourse({ ...formCourse, themeColor: e.target.value })}
-                                        className="w-12 h-12 rounded-xl cursor-pointer border-none p-0"
-                                    />
-                                    <span className="font-mono font-bold text-lg">{formCourse.themeColor.toUpperCase()}</span>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-muted-foreground">Cor de Identidade</label>
+                                    <div className="flex items-center gap-4">
+                                        <input
+                                            type="color"
+                                            value={formCourse.themeColor}
+                                            onChange={e => setFormCourse({ ...formCourse, themeColor: e.target.value })}
+                                            className="w-12 h-12 rounded-xl cursor-pointer border-none p-0"
+                                        />
+                                        <span className="font-mono font-bold text-lg">{formCourse.themeColor.toUpperCase()}</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-muted-foreground">Cor do Texto</label>
+                                    <div className="flex items-center gap-4">
+                                        <input
+                                            type="color"
+                                            value={formCourse.textColor}
+                                            onChange={e => setFormCourse({ ...formCourse, textColor: e.target.value })}
+                                            className="w-12 h-12 rounded-xl cursor-pointer border-none p-0"
+                                        />
+                                        <span className="font-mono font-bold text-lg">{formCourse.textColor.toUpperCase()}</span>
+                                    </div>
                                 </div>
                             </div>
 

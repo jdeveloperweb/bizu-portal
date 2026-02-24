@@ -33,6 +33,9 @@ public class Course {
     @Column(name = "theme_color")
     private String themeColor; // Hex code
 
+    @Column(name = "text_color")
+    private String textColor; // Hex code
+
     @Builder.Default
     @Column(nullable = false)
     private String status = "DRAFT"; // DRAFT, PUBLISHED, ARCHIVED

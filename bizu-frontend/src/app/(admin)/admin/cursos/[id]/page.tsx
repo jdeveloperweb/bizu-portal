@@ -41,6 +41,7 @@ interface Course {
     title: string;
     description: string;
     themeColor: string;
+    textColor?: string;
     modules: Module[];
 }
 
@@ -131,8 +132,8 @@ export default function CourseManagementPage() {
                     badge="CONTEÚDO"
                 />
                 <Button
-                    className="h-12 rounded-2xl font-black px-6 gap-2 shadow-lg"
-                    style={{ backgroundColor: course.themeColor || "#8b5cf6" }}
+                    className="h-12 rounded-2xl font-black px-6 gap-2 shadow-lg hover:opacity-90"
+                    style={{ backgroundColor: course.themeColor || "#8b5cf6", color: course.textColor || "#ffffff" }}
                     onClick={() => {
                         setEditingModule(null);
                         setModuleForm({ title: "", description: "" });
@@ -148,8 +149,8 @@ export default function CourseManagementPage() {
                 {course.modules?.length === 0 ? (
                     <div className="bg-card border-2 border-dashed rounded-[48px] p-20 text-center space-y-4">
                         <div
-                            className="w-20 h-20 rounded-[32px] mx-auto flex items-center justify-center text-white opacity-20"
-                            style={{ backgroundColor: course.themeColor || "#8b5cf6" }}
+                            className="w-20 h-20 rounded-[32px] mx-auto flex items-center justify-center opacity-20"
+                            style={{ backgroundColor: course.themeColor || "#8b5cf6", color: course.textColor || "#ffffff" }}
                         >
                             <BookOpen className="w-10 h-10" />
                         </div>

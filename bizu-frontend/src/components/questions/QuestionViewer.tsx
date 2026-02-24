@@ -17,6 +17,7 @@ interface QuestionProps {
     correctOptionId: string;
     resolution?: string;
     onNext?: () => void;
+    isSimuladoMode?: boolean;
 }
 
 export default function QuestionViewer({
@@ -25,6 +26,7 @@ export default function QuestionViewer({
     correctOptionId,
     resolution,
     onNext,
+    isSimuladoMode = false,
 }: QuestionProps) {
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -71,9 +73,10 @@ export default function QuestionViewer({
                                 "w-full flex items-start sm:items-center gap-3 md:gap-4 p-4 md:p-5 rounded-xl md:rounded-2xl border-2 text-left transition-all duration-300",
                                 !isSubmitted && isSelected && "border-primary bg-primary/5",
                                 !isSubmitted && !isSelected && "border-border hover:border-primary/50",
-                                isSubmitted && isCorrect && "border-success bg-success/10",
-                                isSubmitted && isSelected && !isCorrect && "border-danger bg-danger/10",
-                                isSubmitted && !isCorrect && !isSelected && "opacity-50"
+                                isSubmitted && isCorrect && !isSimuladoMode && "border-success bg-success/10",
+                                isSubmitted && isSelected && !isCorrect && !isSimuladoMode && "border-danger bg-danger/10",
+                                isSubmitted && !isCorrect && !isSelected && !isSimuladoMode && "opacity-50",
+                                isSubmitted && isSelected && isSimuladoMode && "border-primary bg-primary/5 border-2"
                             )}
                         >
                             <div className={cn(
@@ -85,10 +88,10 @@ export default function QuestionViewer({
                             <div className="flex-1 text-sm font-medium leading-snug md:leading-normal">
                                 {option.text}
                             </div>
-                            {isSubmitted && isCorrect && (
+                            {isSubmitted && isCorrect && !isSimuladoMode && (
                                 <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
                             )}
-                            {isSubmitted && isSelected && !isCorrect && (
+                            {isSubmitted && isSelected && !isCorrect && !isSimuladoMode && (
                                 <XCircle className="w-5 h-5 text-danger shrink-0" />
                             )}
                         </button>
@@ -102,7 +105,7 @@ export default function QuestionViewer({
                     12 Comentários
                 </Button>
 
-                {!isSubmitted ? (
+                {!isSubmitted && !isSimuladoMode ? (
                     <Button
                         onClick={handleSubmit}
                         disabled={!selectedOption}
@@ -113,13 +116,15 @@ export default function QuestionViewer({
                 ) : (
                     <Button
                         onClick={onNext}
-                        className="rounded-2xl px-8 md:px-12 h-14 font-bold text-base md:text-lg variant-secondary w-full sm:w-auto">
-                        Próxima Questão
+                        disabled={!selectedOption && isSimuladoMode}
+                        className="rounded-2xl px-8 md:px-12 h-14 font-bold text-base md:text-lg variant-secondary w-full sm:w-auto"
+                    >
+                        {isSimuladoMode ? "Próxima Questão" : "Próxima Questão"}
                     </Button>
                 )}
             </div>
 
-            {isSubmitted && resolution && (
+            {isSubmitted && resolution && !isSimuladoMode && (
                 <div className="mt-12 p-8 rounded-3xl bg-muted/50 border border-dashed border-border animate-in fade-in slide-in-from-top-4 duration-500">
                     <h4 className="font-bold text-primary mb-4 flex items-center gap-2">
                         <CheckCircle2 className="w-5 h-5" />

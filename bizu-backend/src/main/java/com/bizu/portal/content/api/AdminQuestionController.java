@@ -59,6 +59,11 @@ public class AdminQuestionController {
         return ResponseEntity.ok(questionService.save(question));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Question> getQuestion(@PathVariable UUID id) {
+        return ResponseEntity.ok(questionService.findById(id));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<Question> updateQuestion(@PathVariable UUID id, @RequestBody Question question) {
         Question existing = questionService.findById(id);
