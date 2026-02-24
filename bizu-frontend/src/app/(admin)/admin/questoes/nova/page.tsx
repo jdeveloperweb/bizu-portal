@@ -112,6 +112,8 @@ function QuestionFormContainer() {
     }, []);
 
     useEffect(() => {
+        setModules([]);
+        setSelectedModuleId("");
         if (selectedCourseId) {
             apiFetch(`/admin/modules/course/${selectedCourseId}`)
                 .then(res => res.json())
