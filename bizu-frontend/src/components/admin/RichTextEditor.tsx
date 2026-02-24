@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -46,13 +47,15 @@ const MenuButton = ({
 );
 
 export default function RichTextEditor({ content, onChange, placeholder }: RichTextEditorProps) {
+    const extensions = useMemo(() => [
+        StarterKit,
+        Underline,
+        Link.configure({ openOnClick: false }),
+        Placeholder.configure({ placeholder: placeholder || 'Escreva o enunciado aqui...' }),
+    ], [placeholder]);
+
     const editor = useEditor({
-        extensions: [
-            StarterKit,
-            Underline,
-            Link.configure({ openOnClick: false }),
-            Placeholder.configure({ placeholder: placeholder || 'Escreva o enunciado aqui...' }),
-        ],
+        extensions,
         content: content,
         onUpdate: ({ editor }) => {
             onChange(editor.getHTML());
