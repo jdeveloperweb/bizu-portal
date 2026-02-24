@@ -23,12 +23,12 @@ export default function LoginPage() {
             const isAdmin = roles.some((role: string) => role.toUpperCase() === "ADMIN");
 
             if (isAdmin) {
-                window.location.href = "/admin";
+                router.push("/admin");
             } else {
-                window.location.href = "/";
+                router.push("/");
             }
         }
-    }, [authenticated, user]);
+    }, [authenticated, user, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

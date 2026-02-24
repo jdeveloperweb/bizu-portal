@@ -68,6 +68,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (res.ok) {
                 const data = await res.json();
                 Cookies.set("token", data.access_token, { expires: 1 });
+
+                // Decodifica o token manualmente para atualizar o estado do usuário imediatamente
+                try {
+                    const base64Url = data.access_token.split('.')[1];
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                    setUser(JSON.parse(jsonPayload));
+                } catch (e) {
+                    console.error("Erro ao decodificar token", e);
+                }
+
                 setAuthenticated(true);
                 return true;
             } else if (res.status === 401 || res.status === 400) {
