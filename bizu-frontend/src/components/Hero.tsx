@@ -209,9 +209,9 @@ export default function Hero() {
 
 
                         {/* Logo grande com brilho */}
-                        <div className="slide-in-d1 mb-8 relative inline-block">
-                            <div className="absolute -inset-8 bg-indigo-500/30 blur-[60px] rounded-full opacity-60 group-hover:opacity-100 transition-opacity" />
-                            <BrandLogo size="hero" variant="gradient" link={false} />
+                        <div className="slide-in-d1 mb-6 relative inline-block">
+                            <div className="absolute -inset-4 bg-indigo-500/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <BrandLogo size="xl" variant="gradient" link={false} />
                         </div>
 
                         {/* Subtitulo Cinematográfico */}
@@ -284,8 +284,9 @@ export default function Hero() {
                             {/* App content mockup */}
                             <div className="flex min-h-[400px]">
                                 <div className="w-56 shrink-0 bg-white/5 border-r border-white/5 p-5 hidden md:block">
-                                    <div className="flex items-center mb-8">
-                                        <BrandLogo size="sm" variant="light" link={false} />
+                                    <div className="flex items-center gap-2 mb-8">
+                                        <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+                                        <span className="text-[18px] font-black text-white tracking-tight">Bizu!</span>
                                     </div>
                                     <div className="space-y-1.5">
                                         {[

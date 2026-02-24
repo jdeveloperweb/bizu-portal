@@ -57,27 +57,27 @@ export default function RegisterPage() {
                         <div className="mb-8">
                             <BrandLogo size="xl" variant="light" link={false} />
                         </div>
-                        <h2 className="text-3xl xl:text-4xl font-extrabold text-white leading-[1.1] mb-5">
+                        <h2 className="text-4xl xl:text-5xl font-black text-white leading-[1.1] mb-6 tracking-tighter">
                             Sua aprovação
                             <br />
-                            <span className="text-indigo-200">começa aqui.</span>
+                            <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-violet-200">começa aqui.</span>
                         </h2>
-                        <p className="text-indigo-200/80 text-sm max-w-sm leading-relaxed mb-8">
-                            Junte-se a milhares de concurseiros que ja estao evoluindo com a plataforma mais completa do Brasil.
+                        <p className="text-indigo-100/70 text-base xl:text-lg max-w-sm leading-relaxed mb-10">
+                            Junte-se a milhares de concurseiros que já estão evoluindo com a plataforma mais completa do Brasil.
                         </p>
 
                         {/* Steps */}
-                        <div className="space-y-4 mb-10">
+                        <div className="space-y-6 mb-12">
                             {[
-                                { step: "1", text: "Crie sua conta gratis" },
+                                { step: "1", text: "Crie sua conta grátis" },
                                 { step: "2", text: "Explore a plataforma por 7 dias" },
                                 { step: "3", text: "Evolua e conquiste sua vaga" },
                             ].map((s) => (
-                                <div key={s.step} className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-xs font-bold text-white border border-white/10">
+                                <div key={s.step} className="flex items-center gap-4 group">
+                                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-[15px] font-black text-white border border-white/20 shadow-xl backdrop-blur-md group-hover:scale-110 transition-transform">
                                         {s.step}
                                     </div>
-                                    <span className="text-sm text-indigo-50">{s.text}</span>
+                                    <span className="text-[17px] font-bold text-indigo-50 tracking-tight">{s.text}</span>
                                 </div>
                             ))}
                         </div>
@@ -88,22 +88,24 @@ export default function RegisterPage() {
             </div>
 
             {/* ── Right ── */}
-            <div className="flex-1 flex items-center justify-center px-6 py-10 bg-[#FAFBFF]">
-                <div className="w-full max-w-[400px]">
-                    <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-indigo-600 transition-colors mb-8">
-                        <ArrowLeft size={14} /> Voltar
+            <div className="flex-1 flex items-center justify-center px-8 lg:px-12 py-16 bg-[#FAFBFF]">
+                <div className="w-full max-w-[460px]">
+                    <Link href="/" className="inline-flex items-center gap-2 text-[15px] font-semibold text-slate-400 hover:text-indigo-600 transition-all mb-12 group">
+                        <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> Voltar ao início
                     </Link>
 
-                    <div className="lg:hidden mb-8">
-                        <BrandLogo size="md" variant="gradient" />
+                    <div className="lg:hidden mb-12">
+                        <BrandLogo size="lg" variant="gradient" />
                     </div>
 
-                    <h1 className="text-[22px] font-extrabold text-slate-900 mb-1">Criar sua conta</h1>
-                    <p className="text-sm text-slate-500 mb-6">7 dias gratis. Sem cartao.</p>
+                    <div className="mb-10">
+                        <h1 className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mb-3">Criar sua conta</h1>
+                        <p className="text-lg text-slate-500 font-medium">Experimente grátis por 7 dias. Sem cartão.</p>
+                    </div>
 
                     {/* Google */}
-                    <button className="w-full h-11 rounded-xl font-semibold text-sm text-slate-700 bg-white border border-slate-200 shadow-sm hover:border-slate-300 hover:shadow transition-all flex items-center justify-center gap-2.5 mb-5">
-                        <svg width="18" height="18" viewBox="0 0 24 24">
+                    <button className="w-full h-14 rounded-2xl font-bold text-[15px] text-slate-700 bg-white border border-slate-200 shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center gap-3 mb-8 group">
+                        <svg width="22" height="22" viewBox="0 0 24 24" className="group-hover:scale-110 transition-transform">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
@@ -112,73 +114,75 @@ export default function RegisterPage() {
                         Cadastrar com Google
                     </button>
 
-                    <div className="flex items-center gap-3 mb-5">
-                        <div className="flex-1 h-px bg-slate-100" />
-                        <span className="text-[11px] text-slate-400">ou</span>
-                        <div className="flex-1 h-px bg-slate-100" />
+                    <div className="flex items-center gap-4 mb-8">
+                        <div className="flex-1 h-px bg-slate-200/60" />
+                        <span className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">ou por e-mail</span>
+                        <div className="flex-1 h-px bg-slate-200/60" />
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-3">
-                        <div>
-                            <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Nome</label>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="block text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Nome completo</label>
                             <input type="text" required value={form.name}
                                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                placeholder="Seu nome completo" className="input-field" />
+                                placeholder="Como quer ser chamado?" className="input-field !h-14 !text-base bg-white border-slate-200 focus:border-indigo-500 shadow-sm" />
                         </div>
-                        <div>
-                            <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">E-mail</label>
+                        <div className="space-y-2">
+                            <label className="block text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">E-mail</label>
                             <input type="email" required value={form.email}
                                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                                placeholder="voce@email.com" className="input-field" />
+                                placeholder="seu@email.com" className="input-field !h-14 !text-base bg-white border-slate-200 focus:border-indigo-500 shadow-sm" />
                         </div>
-                        <div>
-                            <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Senha</label>
+                        <div className="space-y-2">
+                            <label className="block text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Senha</label>
                             <div className="relative">
                                 <input type={show ? "text" : "password"} required value={form.password}
                                     onChange={(e) => setForm({ ...form, password: e.target.value })}
-                                    placeholder="Minimo 8 caracteres" className="input-field pr-10" />
+                                    placeholder="Crie uma senha forte" className="input-field !h-14 !text-base !pr-14 bg-white border-slate-200 focus:border-indigo-500 shadow-sm" />
                                 <button type="button" onClick={() => setShow(!show)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                                    {show ? <EyeOff size={15} /> : <Eye size={15} />}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                                    {show ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
                             </div>
                             {form.password && (
-                                <div className="mt-2">
-                                    <div className="flex gap-1">
+                                <div className="mt-3 px-1">
+                                    <div className="flex gap-1.5 mb-1.5">
                                         {[1, 2, 3, 4].map(i => (
-                                            <div key={i} className="h-1 flex-1 rounded-full transition-all duration-300"
+                                            <div key={i} className="h-1.5 flex-1 rounded-full transition-all duration-300"
                                                 style={{ background: i <= strength ? sColors[strength] : "#E2E8F0" }} />
                                         ))}
                                     </div>
-                                    <p className="text-[10px] mt-1 font-semibold" style={{ color: sColors[strength] }}>{sLabels[strength]}</p>
+                                    <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: sColors[strength] }}>{sLabels[strength]}</p>
                                 </div>
                             )}
                         </div>
-                        <div>
-                            <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Confirmar senha</label>
+                        <div className="space-y-2">
+                            <label className="block text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">Confirmar senha</label>
                             <input type={show ? "text" : "password"} required value={form.confirm}
                                 onChange={(e) => setForm({ ...form, confirm: e.target.value })}
-                                placeholder="Repita a senha"
-                                className={`input-field ${mismatch ? "!border-red-400 focus:!border-red-400" : ""}`} />
-                            {mismatch && <p className="text-[10px] text-red-500 mt-1 font-medium">Senhas nao coincidem</p>}
+                                placeholder="Repita sua senha"
+                                className={`input-field !h-14 !text-base bg-white border-slate-200 focus:border-indigo-500 shadow-sm ${mismatch ? "!border-red-400 focus:!border-red-400" : ""}`} />
+                            {mismatch && <p className="text-xs text-red-500 mt-1 font-bold ml-1">As senhas não coincidem</p>}
                         </div>
 
                         <button type="submit" disabled={loading || mismatch}
-                            className="btn-primary w-full !h-11 !rounded-xl mt-1 disabled:opacity-60">
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Rocket size={15} /> Criar conta gratis</>}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white w-full h-14 rounded-2xl font-black text-lg flex items-center justify-center gap-3 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50 active:scale-[0.98] mt-4">
+                            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <><Rocket size={20} /> Criar conta agora</>}
                         </button>
 
-                        <p className="text-[10px] text-center text-slate-400 pt-1">
-                            Ao criar conta voce concorda com os{" "}
-                            <Link href="/termos" className="text-indigo-500 hover:underline">Termos</Link> e{" "}
-                            <Link href="/privacidade" className="text-indigo-500 hover:underline">Privacidade</Link>.
+                        <p className="text-[12px] text-center text-slate-400 leading-relaxed pt-2">
+                            Ao criar conta você concorda com os nossos{" "}
+                            <Link href="/termos" className="text-indigo-600 font-bold hover:underline">Termos</Link> e{" "}
+                            <Link href="/privacidade" className="text-indigo-600 font-bold hover:underline">Privacidade</Link>.
                         </p>
                     </form>
 
-                    <p className="text-center text-sm text-slate-500 mt-5">
-                        Ja tem conta?{" "}
-                        <Link href="/login" className="text-indigo-600 font-bold hover:text-indigo-800 transition-colors">Entrar</Link>
-                    </p>
+                    <div className="mt-12 pt-8 border-t border-slate-100 text-center">
+                        <p className="text-[15px] text-slate-500 font-medium">
+                            Já tem uma conta?{" "}
+                            <Link href="/login" className="text-indigo-600 font-extrabold hover:text-indigo-800 transition-all hover:underline decoration-2 underline-offset-4">Entrar agora</Link>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
