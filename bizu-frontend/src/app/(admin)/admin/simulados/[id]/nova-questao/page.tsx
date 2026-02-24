@@ -60,12 +60,15 @@ export default function NovaQuestaoSimuladoPage() {
 
     const handleSave = async () => {
         try {
+            const selectedModule = modules.find(m => m.id === selectedModuleId);
+            const finalSubject = selectedModule ? selectedModule.title : subject;
+
             const res = await apiFetch(`/admin/simulados/${simuladoId}/questions`, {
                 method: "POST",
                 body: JSON.stringify({
                     statement: content,
                     difficulty,
-                    subject,
+                    subject: finalSubject,
                     banca,
                     year,
                     options,
@@ -222,26 +225,6 @@ export default function NovaQuestaoSimuladoPage() {
                             </div>
 
                             <div className="space-y-6">
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Disciplina</label>
-                                    <div className="relative group">
-                                        <select
-                                            className="w-full h-14 px-5 pr-10 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/30 focus:bg-white font-bold text-sm outline-none appearance-none transition-all cursor-pointer"
-                                            value={subject}
-                                            onChange={(e) => setSubject(e.target.value)}
-                                        >
-                                            <option>Direito Administrativo</option>
-                                            <option>Direito Constitucional</option>
-                                            <option>Português</option>
-                                            <option>Raciocínio Lógico</option>
-                                            <option>Atualidades</option>
-                                        </select>
-                                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                                            <Settings2 className="w-4 h-4 rotate-45" />
-                                        </div>
-                                    </div>
-                                </div>
-
                                 {/* Module Selector */}
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Módulo do Curso</label>

@@ -26,8 +26,12 @@ public class AdminModuleController {
     @PutMapping("/{id}")
     public ResponseEntity<Module> updateModule(@PathVariable UUID id, @RequestBody Module module) {
         Module existing = moduleService.findById(id);
-        module.setId(existing.getId());
-        return ResponseEntity.ok(moduleService.save(module));
+        existing.setTitle(module.getTitle());
+        existing.setDescription(module.getDescription());
+        if (module.getOrderIndex() != null) {
+            existing.setOrderIndex(module.getOrderIndex());
+        }
+        return ResponseEntity.ok(moduleService.save(existing));
     }
 
     @GetMapping("/course/{courseId}")

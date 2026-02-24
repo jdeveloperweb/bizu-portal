@@ -119,13 +119,16 @@ function QuestionFormContainer() {
             const method = editId ? "PUT" : "POST";
             const url = editId ? `/admin/questions/${editId}` : "/admin/questions";
 
+            const selectedModule = modules.find(m => m.id === selectedModuleId);
+            const finalSubject = selectedModule ? selectedModule.title : subject;
+
             const res = await apiFetch(url, {
                 method,
                 body: JSON.stringify({
                     statement: content,
                     category,
                     difficulty,
-                    subject,
+                    subject: finalSubject,
                     banca,
                     year,
                     options,
@@ -320,33 +323,6 @@ function QuestionFormContainer() {
                             </div>
 
                             <div className="space-y-6">
-                                {/* Subject Selector */}
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Disciplina</label>
-                                    <div className="relative group">
-                                        <select
-                                            className="w-full h-14 px-5 pr-10 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/30 focus:bg-white font-bold text-sm outline-none appearance-none transition-all cursor-pointer"
-                                            value={subject}
-                                            onChange={(e) => setSubject(e.target.value)}
-                                        >
-                                            <option value="Direito Administrativo">Direito Administrativo</option>
-                                            <option value="Direito Constitucional">Direito Constitucional</option>
-                                            <option value="Português">Português</option>
-                                            <option value="Raciocínio Lógico">Raciocínio Lógico</option>
-                                            <option value="Atualidades">Atualidades</option>
-                                            {/* Suporte para valores em maiúsculo do banco */}
-                                            <option value="DIREITO ADMINISTRATIVO">DIREITO ADMINISTRATIVO</option>
-                                            <option value="DIREITO CONSTITUCIONAL">DIREITO CONSTITUCIONAL</option>
-                                            <option value="PORTUGUÊS">PORTUGUÊS</option>
-                                            <option value="RACIOCÍNIO LÓGICO">RACIOCÍNIO LÓGICO</option>
-                                            <option value="ATUALIDADES">ATUALIDADES</option>
-                                        </select>
-                                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
-                                            <PlusCircle className="w-4 h-4 rotate-45" />
-                                        </div>
-                                    </div>
-                                </div>
-
                                 {/* Course Selector */}
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1 text-primary">Curso Vinculado</label>

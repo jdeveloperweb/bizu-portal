@@ -26,8 +26,12 @@ public class AdminMaterialController {
     @PutMapping("/{id}")
     public ResponseEntity<Material> updateMaterial(@PathVariable UUID id, @RequestBody Material material) {
         Material existing = materialService.findById(id);
-        material.setId(existing.getId());
-        return ResponseEntity.ok(materialService.save(material));
+        existing.setTitle(material.getTitle());
+        existing.setDescription(material.getDescription());
+        existing.setFileUrl(material.getFileUrl());
+        existing.setFileType(material.getFileType());
+        existing.setFree(material.isFree());
+        return ResponseEntity.ok(materialService.save(existing));
     }
 
     @GetMapping("/module/{moduleId}")

@@ -81,6 +81,9 @@ function TreinoContent() {
         options: formattedOptions,
         correctOptionId: currentQuestion.correctOption,
         resolution: currentQuestion.resolution || "Resolução não disponível para esta questão.",
+        banca: currentQuestion.banca,
+        year: currentQuestion.year,
+        subject: currentQuestion.module?.title || currentQuestion.subject,
     };
 
     return (

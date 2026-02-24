@@ -67,8 +67,21 @@ public class AdminQuestionController {
     @PutMapping("/{id}")
     public ResponseEntity<Question> updateQuestion(@PathVariable UUID id, @RequestBody Question question) {
         Question existing = questionService.findById(id);
-        question.setId(existing.getId());
-        return ResponseEntity.ok(questionService.save(question));
+        existing.setStatement(question.getStatement());
+        existing.setOptions(question.getOptions());
+        existing.setCorrectOption(question.getCorrectOption());
+        existing.setResolution(question.getResolution());
+        existing.setBanca(question.getBanca());
+        existing.setYear(question.getYear());
+        existing.setSubject(question.getSubject());
+        existing.setTopic(question.getTopic());
+        existing.setDifficulty(question.getDifficulty());
+        existing.setQuestionType(question.getQuestionType());
+        existing.setCategory(question.getCategory());
+        if (question.getModule() != null) {
+            existing.setModule(question.getModule());
+        }
+        return ResponseEntity.ok(questionService.save(existing));
     }
 
     @DeleteMapping("/{id}")
