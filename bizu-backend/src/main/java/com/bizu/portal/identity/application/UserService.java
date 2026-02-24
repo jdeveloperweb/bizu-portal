@@ -58,7 +58,9 @@ public class UserService {
             // for entities with pre-assigned IDs.
             newUser.setNew(false);
             try {
-                return userRepository.save(newUser);
+                // Flush inside the try/catch so merge-time optimistic locking errors
+                // are handled here instead of surfacing only at transaction commit.
+                return userRepository.saveAndFlush(newUser);
             } catch (ObjectOptimisticLockingFailureException ex) {
                 // Concurrent requests can attempt to create the same user simultaneously.
                 // If another transaction persisted it first, return the now-existing record.

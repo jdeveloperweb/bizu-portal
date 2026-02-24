@@ -34,13 +34,13 @@ class UserServiceTest {
     void syncUser_marksPreAssignedIdUserAsNotNewBeforeSaving() {
         UUID userId = UUID.randomUUID();
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
-        when(userRepository.save(org.mockito.ArgumentMatchers.any(User.class)))
+        when(userRepository.saveAndFlush(org.mockito.ArgumentMatchers.any(User.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         User saved = userService.syncUser(userId, "student@bizu.com", "Student");
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(userRepository).save(userCaptor.capture());
+        verify(userRepository).saveAndFlush(userCaptor.capture());
         User persistedUser = userCaptor.getValue();
 
         assertThat(persistedUser.getId()).isEqualTo(userId);
@@ -60,12 +60,12 @@ class UserServiceTest {
                         .status("ACTIVE")
                         .build())
         );
-        when(userRepository.save(org.mockito.ArgumentMatchers.any(User.class)))
+        when(userRepository.saveAndFlush(org.mockito.ArgumentMatchers.any(User.class)))
                 .thenThrow(new ObjectOptimisticLockingFailureException(User.class, userId));
 
         User saved = userService.syncUser(userId, "student@bizu.com", "Student");
 
         assertThat(saved.getId()).isEqualTo(userId);
-        verify(userRepository).save(org.mockito.ArgumentMatchers.any(User.class));
+        verify(userRepository).saveAndFlush(org.mockito.ArgumentMatchers.any(User.class));
     }
 }
