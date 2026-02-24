@@ -89,10 +89,10 @@ export default function PricingPage() {
                 <span className="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[#6366F1] mb-4 pill-primary px-4 py-1.5 rounded-full">
                     Investimento
                 </span>
-                <h1 className="text-5xl font-extrabold text-slate-900 mb-4">
-                    Planos &amp; Preços
+                <h1 className="text-4xl font-extrabold text-slate-900 mb-4">
+                    Planos & Preços
                 </h1>
-                <p className="text-slate-500 text-lg max-w-xl mx-auto mb-10">
+                <p className="text-slate-500 text-base max-w-xl mx-auto mb-10">
                     Escolha o plano ideal para o seu objetivo. Todos incluem{" "}
                     <strong className="text-slate-700">7 dias de garantia incondicional</strong>.
                 </p>
@@ -162,14 +162,14 @@ export default function PricingPage() {
                                             <Icon size={24} style={{ color: colors.icon }} />
                                         </div>
 
-                                        <h3 className="text-2xl font-black text-slate-900 mb-2">{plan.name}</h3>
+                                        <h3 className="text-xl font-black text-slate-900 mb-2">{plan.name}</h3>
                                         <p className="text-sm text-slate-500 mb-8 leading-relaxed min-h-[48px]">
                                             {plan.description || "Acesso completo ao conteúdo do curso."}
                                         </p>
 
                                         <div className="flex items-baseline gap-1 mb-2">
                                             <span className="text-sm text-slate-400 font-bold">R$</span>
-                                            <span className="text-5xl font-black text-slate-900">
+                                            <span className="text-4xl font-black text-slate-900">
                                                 {plan.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                             </span>
                                             <span className="text-sm text-slate-400 font-bold capitalize">
@@ -207,7 +207,7 @@ export default function PricingPage() {
 
                                         <Link href={`/register?plan=${plan.id}&course=${selectedCourseId}`} className="block mt-auto">
                                             <button
-                                                className="w-full h-14 rounded-2xl font-black text-base transition-all duration-300 hover:scale-[1.02] shadow-xl"
+                                                className="w-full h-12 rounded-2xl font-black text-sm transition-all duration-300 hover:scale-[1.02] shadow-xl"
                                                 style={
                                                     plan.highlight
                                                         ? {

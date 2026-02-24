@@ -65,8 +65,8 @@ const features = [
 
 /* ── Concursos ── */
 const concursos = [
-    { name: "C-EspFN", full: "Carreira de Elite - Fuzileiros" },
-    { name: "C-Hab/Ap-SG", full: "Especialização e Carreira - Sargentos" },
+    { name: "Polícia Federal", full: "Delegado e Agente" },
+    { name: "Receita Federal", full: "Auditor e Analista" },
 ];
 
 /* ── Counter ── */
@@ -222,13 +222,13 @@ export default function Hero() {
                         </div>
 
                         {/* Logo grande com brilho */}
-                        <div className="slide-in-d1 mb-8 relative inline-block">
+                        <div className="slide-in-d1 mb-6 relative inline-block">
                             <div className="absolute -inset-4 bg-indigo-500/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <BrandLogo size="hero" variant="gradient" link={false} />
+                            <BrandLogo size="xl" variant="gradient" link={false} />
                         </div>
 
                         {/* Subtitulo Cinematográfico */}
-                        <h1 className="slide-in-d1 text-3xl sm:text-4xl md:text-7xl font-black text-white leading-[1.1] mb-6 tracking-tighter">
+                        <h1 className="slide-in-d1 text-3xl sm:text-4xl md:text-6xl font-black text-white leading-[1.1] mb-6 tracking-tighter">
                             O jeito certo de estudar
                             <br />
                             <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-violet-400 to-indigo-400 animate-gradient-x drop-shadow-[0_0_15px_rgba(99,102,241,0.3)]">
@@ -236,7 +236,7 @@ export default function Hero() {
                             </span>
                         </h1>
 
-                        <p className="slide-in-d2 max-w-2xl mx-auto text-base md:text-xl text-slate-400 mb-10 leading-relaxed font-medium">
+                        <p className="slide-in-d2 max-w-2xl mx-auto text-base md:text-lg text-slate-400 mb-10 leading-relaxed font-medium">
                             Questões específicas, simulados semanais, ranking e desempenho detalhado em tempo real.
                             <br className="hidden sm:block" />
                             Tudo que você precisa para conquistar sua aprovação.
@@ -260,20 +260,20 @@ export default function Hero() {
                         {/* CTAs de Alto Impacto */}
                         <div className="slide-in-d3 flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
                             <Link href="/register" className="w-full sm:w-auto">
-                                <button className="group relative flex items-center justify-center gap-3 px-12 h-[64px] rounded-2xl text-[16px] font-bold text-white overflow-hidden shadow-[0_20px_40px_-10px_rgba(99,102,241,0.5)] hover:scale-[1.05] hover:shadow-[0_25px_50px_-12px_rgba(99,102,241,0.6)] transition-all duration-500 active:scale-95">
+                                <button className="group relative flex items-center justify-center gap-3 px-12 h-[56px] rounded-2xl text-[15px] font-bold text-white overflow-hidden shadow-[0_20px_40px_-10px_rgba(99,102,241,0.5)] hover:scale-[1.05] hover:shadow-[0_25px_50px_-12px_rgba(99,102,241,0.6)] transition-all duration-500 active:scale-95">
                                     {/* Background animado do botão */}
                                     <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 bg-[length:200%_auto] animate-gradient-x" />
                                     <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out" />
                                     <div className="relative flex items-center gap-3">
-                                        <Rocket size={20} className="group-hover:translate-y-[-4px] group-hover:translate-x-[2px] transition-transform duration-500" />
+                                        <Rocket size={18} className="group-hover:translate-y-[-4px] group-hover:translate-x-[2px] transition-transform duration-500" />
                                         Comece grátis agora
-                                        <ArrowRight size={18} className="group-hover:translate-x-1.5 transition-transform duration-500" />
+                                        <ArrowRight size={16} className="group-hover:translate-x-1.5 transition-transform duration-500" />
                                     </div>
                                 </button>
                             </Link>
                             <Link href="/pricing" className="w-full sm:w-auto">
-                                <button className="flex items-center justify-center gap-2 px-10 h-[64px] rounded-2xl text-[16px] font-semibold text-white bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all shadow-xl">
-                                    <Play size={18} className="fill-white" />
+                                <button className="flex items-center justify-center gap-2 px-10 h-[56px] rounded-2xl text-[15px] font-semibold text-white bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all shadow-xl">
+                                    <Play size={16} className="fill-white" />
                                     Ver planos
                                 </button>
                             </Link>
@@ -333,7 +333,7 @@ export default function Hero() {
                                     <div className="flex items-center justify-between mb-8">
                                         <div>
                                             <h4 className="text-[15px] font-bold text-white mb-1">Seja um Bizurado! 😎</h4>
-                                            <p className="text-[11px] text-slate-400 font-medium tracking-wide">C-EspFN · ACESSO PREMIUM</p>
+                                            <p className="text-[11px] text-slate-400 font-medium tracking-wide">FOCADO NA APROVAÇÃO · ACESSO PREMIUM</p>
                                         </div>
                                         <div className="flex gap-2">
                                             <div className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] font-bold text-amber-500">🔥 12 DIAS</div>
@@ -364,7 +364,7 @@ export default function Hero() {
                                             {[
                                                 { n: "Conhecimentos Específicos", p: 88, c: "bg-emerald-500" },
                                                 { n: "Técnicas de Estudo", p: 74, c: "bg-indigo-500" },
-                                                { n: "Simulados GLO", p: 65, c: "bg-amber-500" },
+                                                { n: "Simulados de Elite", p: 65, c: "bg-amber-500" },
                                             ].map(s => (
                                                 <div key={s.n}>
                                                     <div className="flex justify-between text-[10px] font-bold mb-2">
@@ -407,7 +407,7 @@ export default function Hero() {
                             {
                                 step: "01",
                                 title: "Crie sua conta",
-                                desc: "Cadastre-se gratuitamente e escolha entre C-EspFN ou C-Hab/Ap-SG.",
+                                desc: "Cadastre-se gratuitamente e escolha o foco dos seus estudos.",
                                 icon: Rocket,
                                 gradient: "from-indigo-500 to-violet-600",
                             },
@@ -588,71 +588,7 @@ export default function Hero() {
                 </div>
             </section>
 
-            {/* ═══════════════════════════
-           SOCIAL PROOF - mural
-         ═══════════════════════════ */}
-            <section className="py-24 overflow-hidden relative border-y border-slate-100 bg-slate-50/10">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/20 via-white to-violet-50/20" />
 
-
-                <div className="absolute inset-0 opacity-20" style={{
-                    backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)`,
-                    backgroundSize: "28px 28px",
-                }} />
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-500/20 rounded-full blur-[150px] mix-blend-screen" />
-
-                <div className="relative container mx-auto px-6 text-center z-10">
-                    <div className="inline-block hover:scale-105 transition-transform duration-500 mb-2">
-                        <BrandLogo size="md" variant="dark" link={false} />
-                    </div>
-                    <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mt-8 mb-5 slide-in-d1">
-                        Junte-se a milhares de
-                        <br />
-                        <span className="gradient-text">bizurados</span>
-                    </h2>
-                    <p className="text-slate-500 mb-14 max-w-md mx-auto text-lg slide-in-d2">
-                        Concurseiros que já estão usando o Bizu! para conquistar sua aprovação definitiva.
-                    </p>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mb-14">
-                        {[
-                            { val: "2000", suffix: "+", label: "Questoes especificas", icon: BookOpen },
-                            { val: "52", suffix: "", label: "Simulados por ano", icon: ClipboardList },
-                            { val: "98", suffix: "%", label: "Recomendacoes", icon: Star },
-                            { val: "24", suffix: "/7", label: "Disponibilidade", icon: Zap },
-                        ].map((s) => {
-                            const Icon = s.icon;
-                            return (
-                                <div key={s.label} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-indigo-400/30 transition-all group">
-                                    <Icon size={20} className="text-indigo-600 mx-auto mb-3" />
-                                    <div className="text-2xl font-extrabold text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors">
-                                        <Counter target={s.val} />{s.suffix && <span className="text-indigo-600">{s.suffix}</span>}
-                                    </div>
-                                    <div className="text-[11px] text-slate-400 font-medium">{s.label}</div>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    <p className="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-bold mb-4">
-                        Concursos cobertos
-                    </p>
-                    <div className="flex flex-wrap items-center justify-center gap-2.5">
-                        {[
-                            { tag: "C-EspFN", desc: "Corpo de Fuzileiros" },
-                            { tag: "C-Hab/Ap-SG", desc: "Sargentos" },
-                        ].map((c) => (
-                            <div key={c.tag} className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 hover:border-indigo-200 transition-all shadow-sm hover:shadow-md">
-                                <Target size={14} className="text-indigo-600" />
-                                <div className="text-left">
-                                    <div className="text-xs font-bold text-slate-900">{c.tag}</div>
-                                    <div className="text-[10px] text-slate-400">{c.desc}</div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
 
             {/* ═══════════════════════════
            CTA FINAL

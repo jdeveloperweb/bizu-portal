@@ -52,15 +52,15 @@ export default function RegisterPage() {
                     backgroundSize: "32px 32px",
                 }} />
 
-                <div className="relative z-10 flex flex-col justify-end p-14 xl:p-20 w-full h-full">
+                <div className="relative z-10 flex flex-col justify-end p-10 xl:p-14 w-full h-full">
                     <div>
-                        <div className="mb-10">
-                            <BrandLogo size="hero" variant="light" link={false} />
+                        <div className="mb-8">
+                            <BrandLogo size="xl" variant="light" link={false} />
                         </div>
-                        <h2 className="text-4xl xl:text-5xl font-extrabold text-white leading-[1.1] mb-5">
-                            Sua aprovacao
+                        <h2 className="text-3xl xl:text-4xl font-extrabold text-white leading-[1.1] mb-5">
+                            Sua aprovação
                             <br />
-                            <span className="text-indigo-200">comeca aqui.</span>
+                            <span className="text-indigo-200">começa aqui.</span>
                         </h2>
                         <p className="text-indigo-200/80 text-sm max-w-sm leading-relaxed mb-8">
                             Junte-se a milhares de concurseiros que ja estao evoluindo com a plataforma mais completa do Brasil.
@@ -83,20 +83,7 @@ export default function RegisterPage() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        <div className="flex -space-x-2.5">
-                            {["JM", "LC", "BR", "FK"].map((init, i) => (
-                                <div key={init} className="w-8 h-8 rounded-full border-2 border-indigo-900 flex items-center justify-center text-[9px] font-bold text-white"
-                                    style={{ background: `hsl(${260 + i * 20}, 55%, ${50 + i * 5}%)`, zIndex: 4 - i }}>
-                                    {init}
-                                </div>
-                            ))}
-                        </div>
-                        <div>
-                            <div className="text-xs font-bold text-white">+247 novos esta semana</div>
-                            <div className="text-[10px] text-indigo-200/60">Comunidade em crescimento</div>
-                        </div>
-                    </div>
+
                 </div>
             </div>
 

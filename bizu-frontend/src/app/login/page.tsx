@@ -59,14 +59,14 @@ export default function LoginPage() {
                     backgroundSize: "40px 40px",
                 }} />
 
-                <div className="relative z-10 flex flex-col justify-center p-16 xl:p-24 w-full h-full">
+                <div className="relative z-10 flex flex-col justify-center p-12 xl:p-16 w-full h-full">
                     <div className="max-w-xl">
-                        <div className="mb-12 animate-in fade-in slide-in-from-left duration-700">
-                            <BrandLogo size="hero" variant="light" link={false} />
+                        <div className="mb-8 animate-in fade-in slide-in-from-left duration-700">
+                            <BrandLogo size="xl" variant="light" link={false} />
                         </div>
 
                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom duration-700 delay-200 fill-mode-both">
-                            <h2 className="text-4xl xl:text-6xl font-extrabold text-white leading-[1.05] tracking-tight">
+                            <h2 className="text-3xl xl:text-5xl font-extrabold text-white leading-[1.1] tracking-tight">
                                 Estude com
                                 <br />
                                 <span className="text-indigo-300">estratégia.</span>
@@ -74,7 +74,7 @@ export default function LoginPage() {
                                 Passe com certeza.
                             </h2>
 
-                            <p className="text-indigo-100/70 text-lg xl:text-xl max-w-md leading-relaxed">
+                            <p className="text-indigo-100/70 text-base xl:text-lg max-w-md leading-relaxed">
                                 A plataforma inteligente que já ajudou mais de <span className="text-white font-bold">10.000</span> concurseiros a conquistar a aprovação.
                             </p>
 
@@ -95,21 +95,7 @@ export default function LoginPage() {
                             </div>
                         </div>
 
-                        {/* Social proof */}
-                        <div className="mt-8 flex items-center gap-4 py-6 px-8 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 animate-in fade-in slide-in-from-bottom duration-700 delay-700 fill-mode-both max-w-xs">
-                            <div className="flex -space-x-3">
-                                {["MC", "AP", "DS", "JM"].map((init, i) => (
-                                    <div key={init} className="w-10 h-10 rounded-full border-2 border-indigo-900 shadow-xl flex items-center justify-center text-[10px] font-bold text-white transition-transform hover:scale-110 hover:z-20"
-                                        style={{ background: `hsl(${240 + i * 20}, 70%, ${50 + i * 5}%)`, zIndex: 10 - i }}>
-                                        {init}
-                                    </div>
-                                ))}
-                            </div>
-                            <div>
-                                <div className="text-sm font-bold text-white leading-tight">10.000+ aprovados</div>
-                                <div className="text-[11px] text-indigo-200/60 font-medium">Junte-se à comunidade</div>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
             </div>
