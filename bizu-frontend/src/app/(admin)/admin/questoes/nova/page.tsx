@@ -155,6 +155,9 @@ function QuestionFormContainer() {
             const selectedModule = modules.find(m => m.id === selectedModuleId);
             const finalSubject = selectedModule ? selectedModule.title : subject;
 
+            const selectedModule = modules.find(m => m.id === selectedModuleId);
+            const finalSubject = selectedModule ? selectedModule.title : subject;
+
             const res = await apiFetch(url, {
                 method,
                 body: JSON.stringify({
