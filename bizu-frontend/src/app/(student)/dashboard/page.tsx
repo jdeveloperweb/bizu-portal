@@ -60,21 +60,27 @@ export default function DashboardPage() {
     const streak = gamification?.currentStreak || 0;
     const userName = typeof user?.name === "string" && user.name.trim().length > 0 ? user.name : "Aluno";
 
+    const earnedBadgesCount = badges.filter((badge) => badge.earned).length;
+
+    const hasEarnedBadge = (badgeCode: string) => badges.some((badge) =>
+        badge.earned && (badge.badgeId === badgeCode || badge.code === badgeCode || badge.id === badgeCode)
+    );
+
     const achivementsData = [
-        { icon: Flame, unlocked: badges.some(b => b.badgeId === 'first_blood'), color: "from-orange-400 to-rose-500", shadow: "shadow-orange-500/40", anim: "group-hover:rotate-12 group-hover:scale-125" },
-        { icon: Target, unlocked: badges.some(b => b.badgeId === 'sharpshooter'), color: "from-blue-400 to-indigo-500", shadow: "shadow-blue-500/40", anim: "group-hover:scale-125" },
-        { icon: Swords, unlocked: badges.some(b => b.badgeId === 'arena_master'), color: "from-emerald-400 to-teal-500", shadow: "shadow-emerald-500/40", anim: "group-hover:-rotate-12 group-hover:scale-125" },
-        { icon: Star, unlocked: badges.some(b => b.badgeId === 'dedication'), color: "from-amber-300 to-orange-400", shadow: "shadow-amber-500/40", anim: "group-hover:rotate-45 group-hover:scale-125" },
-        { icon: Brain, unlocked: badges.some(b => b.badgeId === 'genius') },
-        { icon: Crown, unlocked: badges.some(b => b.badgeId === 'champion') },
-        { icon: Layers, unlocked: badges.some(b => b.badgeId === 'flashcard_pro') },
-        { icon: BookOpen, unlocked: badges.some(b => b.badgeId === 'bookworm') },
+        { icon: Flame, unlocked: hasEarnedBadge('first_blood'), color: "from-orange-400 to-rose-500", shadow: "shadow-orange-500/40", anim: "group-hover:rotate-12 group-hover:scale-125" },
+        { icon: Target, unlocked: hasEarnedBadge('sharpshooter'), color: "from-blue-400 to-indigo-500", shadow: "shadow-blue-500/40", anim: "group-hover:scale-125" },
+        { icon: Swords, unlocked: hasEarnedBadge('arena_master'), color: "from-emerald-400 to-teal-500", shadow: "shadow-emerald-500/40", anim: "group-hover:-rotate-12 group-hover:scale-125" },
+        { icon: Star, unlocked: hasEarnedBadge('dedication'), color: "from-amber-300 to-orange-400", shadow: "shadow-amber-500/40", anim: "group-hover:rotate-45 group-hover:scale-125" },
+        { icon: Brain, unlocked: hasEarnedBadge('genius') },
+        { icon: Crown, unlocked: hasEarnedBadge('champion') },
+        { icon: Layers, unlocked: hasEarnedBadge('flashcard_pro') },
+        { icon: BookOpen, unlocked: hasEarnedBadge('bookworm') },
     ];
 
-    // Fallback se não bater nomes de badges
-    if (badges.length > 0) {
-        achivementsData.forEach((ach, index) => {
-            if (index < badges.length) ach.unlocked = true;
+    // Fallback visual: se a API não trouxer códigos compatíveis, considera apenas badges realmente conquistados.
+    if (earnedBadgesCount > 0 && !achivementsData.some((achievement) => achievement.unlocked)) {
+        achivementsData.forEach((achievement, index) => {
+            if (index < earnedBadgesCount) achievement.unlocked = true;
         });
     }
 
@@ -312,8 +318,8 @@ export default function DashboardPage() {
                     {/* Achievements */}
                     <div className="bg-card border border-border rounded-3xl p-6 lg:p-8 shadow-sm">
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-[15px] font-bold text-foreground">Conquistas</h3>
-                            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-full uppercase tracking-wider">{badges.length} Desbloqueadas</span>
+                            <h3 className="text-[15px] font-bold text-slate-800">Conquistas</h3>
+                            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-full uppercase tracking-wider">{earnedBadgesCount} Desbloqueadas</span>
                         </div>
                         <div className="grid grid-cols-4 gap-3">
                             {achivementsData.map((c, i) => (
