@@ -10,7 +10,7 @@ interface AuthContextType {
     loginDirect: (username: string, password: string) => Promise<boolean>;
     logout: () => void;
     token?: string;
-    user?: AuthUser;
+    user: AuthUser | null;
     loading: boolean;
     register: (name: string, email: string, password: string) => Promise<boolean>;
     selectedCourseId?: string;
@@ -19,6 +19,12 @@ interface AuthContextType {
 }
 
 interface AuthUser {
+    name?: string;
+    email?: string;
+    preferred_username?: string;
+    realm_access?: {
+        roles: string[];
+    };
     metadata?: Record<string, unknown>;
     [key: string]: unknown;
 }
@@ -80,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setAuthenticated(auth);
                 if (auth && keycloak) {
                     Cookies.set("token", keycloak.token || "", { expires: 1 });
-                    setUser(keycloak.tokenParsed);
+                    setUser(keycloak.tokenParsed ?? null);
                     await refreshUserProfile();
                 }
                 setLoading(false);
