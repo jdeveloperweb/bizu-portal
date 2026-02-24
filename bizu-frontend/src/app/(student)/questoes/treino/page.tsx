@@ -6,10 +6,10 @@ import { Timer, LayoutGrid, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { apiFetch } from "@/lib/api";
 
-export default function ModoTreinoPage() {
+function TreinoContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const simuladoId = searchParams.get("simulado");
@@ -117,5 +117,13 @@ export default function ModoTreinoPage() {
                 <QuestionViewer {...mappedQuestion} onNext={handleNext} />
             </div>
         </div>
+    );
+}
+
+export default function ModoTreinoPage() {
+    return (
+        <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Carregando modo treino...</div>}>
+            <TreinoContent />
+        </Suspense>
     );
 }
