@@ -71,7 +71,7 @@ export default function AdminUsuariosPage() {
     }, []);
 
     return (
-        <div className="container mx-auto px-4 py-12 max-w-7xl">
+        <div className="w-full px-8 py-12">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                 <PageHeader
                     title="Gestão de Alunos"
@@ -92,21 +92,21 @@ export default function AdminUsuariosPage() {
                     <input
                         type="text"
                         placeholder="Buscar por nome, e-mail ou CPF..."
-                        className="w-full h-16 pl-14 pr-6 rounded-3xl bg-card border border-primary/5 focus:border-primary outline-none transition-all font-medium text-lg shadow-sm"
+                        className="w-full h-16 pl-14 pr-6 rounded-xl bg-card border border-primary/5 focus:border-primary outline-none transition-all font-medium text-lg shadow-sm"
                     />
                 </div>
                 <div className="flex gap-4">
-                    <Button variant="outline" className="h-16 flex-1 rounded-3xl gap-2 font-black border-primary/5 hover:bg-primary/5">
+                    <Button variant="outline" className="h-16 flex-1 rounded-xl gap-2 font-black border-primary/5 hover:bg-primary/5">
                         <Filter className="w-5 h-5 text-primary" />
                         Filtros
                     </Button>
-                    <div className="h-16 px-6 rounded-3xl bg-card border border-primary/5 flex items-center justify-center font-black text-primary">
+                    <div className="h-16 px-6 rounded-xl bg-card border border-primary/5 flex items-center justify-center font-black text-primary">
                         {users.length} ALUNOS
                     </div>
                 </div>
             </div>
 
-            <div className="bg-card border rounded-[48px] overflow-hidden">
+            <div className="bg-card border rounded-2xl overflow-hidden">
                 <table className="w-full text-left">
                     <thead className="bg-muted/50 border-b">
                         <tr>

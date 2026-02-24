@@ -122,7 +122,7 @@ export default function AdminCursosPage() {
     };
 
     return (
-        <div className="container mx-auto px-4 py-12 max-w-7xl">
+        <div className="w-full px-8 py-12">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                 <PageHeader
                     title="Gestão de Cursos"
@@ -130,7 +130,7 @@ export default function AdminCursosPage() {
                     badge="CONTEÚDO"
                 />
                 <Button
-                    className="h-14 rounded-2xl font-black px-8 gap-2 shadow-xl shadow-primary/20"
+                    className="h-14 rounded-xl font-black px-8 gap-2 shadow-xl shadow-primary/20"
                     onClick={() => {
                         setIsEditing(false);
                         setFormCourse({ title: "", description: "", themeColor: "#8b5cf6", status: "PUBLISHED" });
@@ -144,7 +144,7 @@ export default function AdminCursosPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-card border rounded-[48px] overflow-hidden">
+                    <div className="bg-card border rounded-2xl overflow-hidden">
                         <table className="w-full text-left">
                             <thead className="bg-muted/50 border-b">
                                 <tr>
@@ -232,7 +232,7 @@ export default function AdminCursosPage() {
                 </div>
 
                 <div className="space-y-6">
-                    <div className="p-8 rounded-[48px] bg-card border space-y-6">
+                    <div className="p-8 rounded-2xl bg-card border space-y-6">
                         <div className="flex items-center gap-3 text-primary">
                             <Eye className="w-5 h-5" />
                             <h4 className="font-black text-sm uppercase tracking-widest">Preview do Tema</h4>
@@ -244,7 +244,7 @@ export default function AdminCursosPage() {
 
                         <div className="space-y-4">
                             {courses.length > 0 ? (
-                                <div className="p-6 rounded-3xl bg-muted/30 border border-dashed">
+                                <div className="p-6 rounded-xl bg-muted/30 border border-dashed">
                                     <div className="flex items-center gap-3 mb-4">
                                         <div className="w-8 h-8 rounded-lg bg-primary" style={{ backgroundColor: courses[0]?.themeColor || courses[0]?.color }} />
                                         <div className="text-sm font-bold">{courses[0]?.title}</div>
@@ -255,7 +255,7 @@ export default function AdminCursosPage() {
                                     </Button>
                                 </div>
                             ) : (
-                                <div className="p-6 rounded-3xl bg-muted/30 border border-dashed text-center text-muted-foreground text-sm font-medium">
+                                <div className="p-6 rounded-xl bg-muted/30 border border-dashed text-center text-muted-foreground text-sm font-medium">
                                     Crie um curso para visualizar o preview.
                                 </div>
                             )}
@@ -266,7 +266,7 @@ export default function AdminCursosPage() {
 
             {(isCreating || isEditing) && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-card w-full max-w-md rounded-[32px] p-8 shadow-2xl border">
+                    <div className="bg-card w-full max-w-md rounded-2xl p-8 shadow-2xl border">
                         <h2 className="text-2xl font-black mb-6">{isEditing ? 'Editar Curso' : 'Novo Curso'}</h2>
                         <form onSubmit={handleSubmitCourse} className="space-y-6">
                             <div className="space-y-2">

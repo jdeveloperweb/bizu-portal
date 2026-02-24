@@ -46,7 +46,7 @@ const priorityColor: Record<string, string> = {
 
 export default function DashboardPage() {
     return (
-        <div className="p-6 lg:p-8 max-w-[1200px]">
+        <div className="p-6 lg:p-8 w-full">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div>
@@ -97,7 +97,7 @@ export default function DashboardPage() {
                 <div className="lg:col-span-2 space-y-5">
 
                     {/* Welcome CTA */}
-                    <div className="relative rounded-2xl overflow-hidden p-6 text-white"
+                    <div className="relative rounded-xl overflow-hidden p-6 text-white"
                         style={{ background: "linear-gradient(135deg, #6366F1 0%, #7C3AED 50%, #9333EA 100%)" }}>
                         <div className="absolute inset-0 opacity-[0.08]" style={{
                             backgroundImage: `radial-gradient(circle, white 0.8px, transparent 0.8px)`,
@@ -131,7 +131,7 @@ export default function DashboardPage() {
                                 const Icon = a.icon;
                                 return (
                                     <Link key={a.label} href={a.href}
-                                        className="group card-elevated !rounded-2xl p-4 flex items-start gap-3">
+                                        className="group card-elevated !rounded-xl p-4 flex items-start gap-3">
                                         <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${a.color} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-sm`}>
                                             <Icon size={16} className="text-white" />
                                         </div>
@@ -149,7 +149,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Pending Tasks */}
-                    <div className="card-elevated !rounded-2xl p-5 hover:!transform-none">
+                    <div className="card-elevated !rounded-xl p-5 hover:!transform-none">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                                 <CheckSquare size={14} className="text-indigo-500" /> Tarefas pendentes
@@ -176,7 +176,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Recent Activity */}
-                    <div className="card-elevated !rounded-2xl p-5 hover:!transform-none">
+                    <div className="card-elevated !rounded-xl p-5 hover:!transform-none">
                         <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                             <Clock size={14} className="text-slate-400" /> Atividade recente
                         </h3>
@@ -205,7 +205,7 @@ export default function DashboardPage() {
                 {/* Right sidebar */}
                 <div className="space-y-5">
                     {/* Subject Performance */}
-                    <div className="card-elevated !rounded-2xl p-5 hover:!transform-none">
+                    <div className="card-elevated !rounded-xl p-5 hover:!transform-none">
                         <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                             <TrendingUp size={14} className="text-indigo-500" /> Suas materias
                         </h3>
@@ -229,7 +229,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Achievements */}
-                    <div className="card-elevated !rounded-2xl p-5 hover:!transform-none">
+                    <div className="card-elevated !rounded-xl p-5 hover:!transform-none">
                         <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
                             <Trophy size={14} className="text-amber-500" /> Conquistas
                         </h3>
@@ -248,8 +248,8 @@ export default function DashboardPage() {
                                 return (
                                     <div key={i}
                                         className={`aspect-square rounded-xl flex items-center justify-center transition-all ${c.unlocked
-                                                ? `bg-gradient-to-br ${c.color} shadow-sm hover:scale-110 cursor-pointer`
-                                                : "bg-slate-50 border border-slate-100 opacity-30"
+                                            ? `bg-gradient-to-br ${c.color} shadow-sm hover:scale-110 cursor-pointer`
+                                            : "bg-slate-50 border border-slate-100 opacity-30"
                                             }`}>
                                         <Icon size={16} className={c.unlocked ? "text-white" : "text-slate-400"} />
                                     </div>
@@ -262,7 +262,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Ranking */}
-                    <div className="rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 p-5">
+                    <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 p-5">
                         <div className="flex items-center gap-2.5 mb-3">
                             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
                                 <BarChart3 size={14} className="text-white" />
@@ -282,7 +282,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Study Tools */}
-                    <div className="card-elevated !rounded-2xl p-5 hover:!transform-none">
+                    <div className="card-elevated !rounded-xl p-5 hover:!transform-none">
                         <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
                             <Zap size={14} className="text-amber-500" /> Ferramentas
                         </h3>

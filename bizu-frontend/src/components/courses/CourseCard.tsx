@@ -20,7 +20,7 @@ export default function CourseCard({
     lessonsCount = 0,
 }: CourseCardProps) {
     return (
-        <div className="group relative bg-card border rounded-3xl overflow-hidden hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+        <div className="group relative bg-card border rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
             <div className="aspect-video relative overflow-hidden bg-muted">
                 {thumbnail ? (
                     <Image
@@ -59,7 +59,7 @@ export default function CourseCard({
                     </div>
                 </div>
 
-                <Button className="w-full rounded-2xl font-bold py-6 group-hover:bg-primary transition-all">
+                <Button className="w-full rounded-xl font-bold py-6 group-hover:bg-primary transition-all">
                     Acessar Curso
                 </Button>
             </div>

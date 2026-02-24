@@ -83,7 +83,7 @@ export default function AdminQuestoesPage() {
     };
 
     return (
-        <div className="container mx-auto px-4 py-12 max-w-7xl">
+        <div className="w-full px-8 py-12">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                 <PageHeader
                     title="Banco de Questões"
@@ -96,7 +96,7 @@ export default function AdminQuestoesPage() {
                         Filtros Avançados
                     </Button>
                     <Link href="/admin/questoes/nova">
-                        <Button className="h-14 rounded-2xl font-black px-8 gap-2 shadow-xl shadow-primary/20">
+                        <Button className="h-14 rounded-xl font-black px-8 gap-2 shadow-xl shadow-primary/20">
                             <Plus className="w-5 h-5" />
                             Cadastrar Questão
                         </Button>
@@ -105,17 +105,17 @@ export default function AdminQuestoesPage() {
             </div>
 
             {/* Tabs Design */}
-            <div className="flex gap-4 mb-8 bg-muted/20 p-2 rounded-[32px] w-fit border border-muted/50">
+            <div className="flex gap-4 mb-8 bg-muted/20 p-2 rounded-2xl w-fit border border-muted/50">
                 <button
                     onClick={() => setActiveTab("SIMULADO")}
-                    className={`flex items-center gap-3 px-8 py-4 rounded-[24px] font-black transition-all ${activeTab === "SIMULADO" ? "bg-white text-primary shadow-xl shadow-primary/10" : "text-muted-foreground hover:text-foreground"}`}
+                    className={`flex items-center gap-3 px-8 py-4 rounded-xl font-black transition-all ${activeTab === "SIMULADO" ? "bg-white text-primary shadow-xl shadow-primary/10" : "text-muted-foreground hover:text-foreground"}`}
                 >
                     <FileText className="w-5 h-5" />
                     Banca de Simulados
                 </button>
                 <button
                     onClick={() => setActiveTab("QUIZ")}
-                    className={`flex items-center gap-3 px-8 py-4 rounded-[24px] font-black transition-all ${activeTab === "QUIZ" ? "bg-white text-primary shadow-xl shadow-primary/10" : "text-muted-foreground hover:text-foreground"}`}
+                    className={`flex items-center gap-3 px-8 py-4 rounded-xl font-black transition-all ${activeTab === "QUIZ" ? "bg-white text-primary shadow-xl shadow-primary/10" : "text-muted-foreground hover:text-foreground"}`}
                 >
                     <Dumbbell className="w-5 h-5" />
                     Quick Quiz (Treino)
@@ -124,7 +124,7 @@ export default function AdminQuestoesPage() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-                <div className="p-8 rounded-[40px] bg-card border group hover:border-primary/50 transition-all cursor-default relative overflow-hidden">
+                <div className="p-8 rounded-2xl bg-card border group hover:border-primary/50 transition-all cursor-default relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-primary/10 transition-colors" />
                     <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Total no Banco</div>
                     <div className="text-4xl font-black mb-2">{stats.total}</div>
@@ -133,17 +133,17 @@ export default function AdminQuestoesPage() {
                         <ArrowUpRight className="w-3 h-3" />
                     </div>
                 </div>
-                <div className="p-8 rounded-[40px] bg-card border hover:border-success/50 transition-all cursor-default">
+                <div className="p-8 rounded-2xl bg-card border hover:border-success/50 transition-all cursor-default">
                     <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Fácil</div>
                     <div className="text-4xl font-black mb-2 text-success">{stats.easy}</div>
                     <div className="text-xs font-bold text-muted-foreground">Iniciantes</div>
                 </div>
-                <div className="p-8 rounded-[40px] bg-card border hover:border-warning/50 transition-all cursor-default">
+                <div className="p-8 rounded-2xl bg-card border hover:border-warning/50 transition-all cursor-default">
                     <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Médio</div>
                     <div className="text-4xl font-black mb-2 text-warning">{stats.medium}</div>
                     <div className="text-xs font-bold text-muted-foreground">Intermediário</div>
                 </div>
-                <div className="p-8 rounded-[40px] bg-card border hover:border-destructive/50 transition-all cursor-default">
+                <div className="p-8 rounded-2xl bg-card border hover:border-destructive/50 transition-all cursor-default">
                     <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Difícil</div>
                     <div className="text-4xl font-black mb-2 text-destructive">{stats.hard}</div>
                     <div className="text-xs font-bold text-muted-foreground">Avançado</div>
@@ -157,14 +157,14 @@ export default function AdminQuestoesPage() {
                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <Input
                             placeholder="Buscar no conteúdo, matéria ou banca..."
-                            className="h-16 pl-14 rounded-[28px] bg-card border-2 focus-visible:ring-0 focus-visible:border-primary font-bold text-lg transition-all shadow-sm"
+                            className="h-16 pl-14 rounded-xl bg-card border-2 focus-visible:ring-0 focus-visible:border-primary font-bold text-lg transition-all shadow-sm"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
                 </div>
 
-                <div className="bg-card border rounded-[48px] overflow-hidden shadow-sm">
+                <div className="bg-card border rounded-2xl overflow-hidden shadow-sm">
                     <table className="w-full text-left">
                         <thead className="bg-muted/30 border-b">
                             <tr>

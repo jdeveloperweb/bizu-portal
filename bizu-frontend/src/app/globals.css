@@ -117,7 +117,7 @@
   --border: #E2E8F0;
   --input: #F8FAFC;
   --ring: #6366F1;
-  --radius: 0.75rem;
+  --radius: 0.5rem;
 }
 
 /* ─── Utilitarios ─── */
@@ -128,7 +128,7 @@
 .card-elevated {
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.03);
   transition: all 0.25s ease;
 }

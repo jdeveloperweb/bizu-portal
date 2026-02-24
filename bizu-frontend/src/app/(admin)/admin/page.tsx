@@ -102,7 +102,7 @@ export default function AdminDashboardPage() {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-8 max-w-[1200px]"
+            className="p-8 w-full"
         >
             <div className="mb-8">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-3">
@@ -152,7 +152,7 @@ export default function AdminDashboardPage() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="lg:col-span-2 card-elevated !rounded-3xl p-6"
+                    className="lg:col-span-2 card-elevated !rounded-xl p-6"
                 >
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
@@ -205,7 +205,7 @@ export default function AdminDashboardPage() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.6 }}
-                        className="rounded-3xl p-6 relative overflow-hidden bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-xl shadow-indigo-500/20"
+                        className="rounded-xl p-6 relative overflow-hidden bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-xl shadow-indigo-500/20"
                     >
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
                         <TrendingUp size={24} className="mb-4 text-indigo-200" />
@@ -229,7 +229,7 @@ export default function AdminDashboardPage() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.7 }}
-                        className="card-elevated !rounded-3xl p-6 border-l-4 border-l-amber-500"
+                        className="card-elevated !rounded-xl p-6 border-l-4 border-l-amber-500"
                     >
                         <div className="flex items-center gap-2 text-amber-600 mb-2">
                             <AlertCircle size={16} />

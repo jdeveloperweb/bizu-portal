@@ -35,7 +35,7 @@ export default function AdminSidebar() {
 
         return (
             <Link href={item.href}
-                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${active
+                className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${active
                     ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                     }`}>
@@ -72,7 +72,7 @@ export default function AdminSidebar() {
                     ))}
                 </div>
 
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold">
                         AD
                     </div>

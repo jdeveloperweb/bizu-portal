@@ -115,7 +115,7 @@ export default function AdminPlanosPage() {
     };
 
     return (
-        <div className="container mx-auto px-4 py-12 max-w-7xl">
+        <div className="w-full px-8 py-12">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                 <PageHeader
                     title="Gestão de Planos"
@@ -124,14 +124,14 @@ export default function AdminPlanosPage() {
                 />
                 <Button
                     onClick={openCreateModal}
-                    className="h-14 rounded-2xl font-black text-lg gap-2 shadow-xl shadow-primary/20"
+                    className="h-14 rounded-xl font-black text-lg gap-2 shadow-xl shadow-primary/20"
                 >
                     <Plus className="w-5 h-5" />
                     Novo Plano
                 </Button>
             </div>
 
-            <div className="bg-card border rounded-[48px] overflow-hidden">
+            <div className="bg-card border rounded-2xl overflow-hidden">
                 <table className="w-full text-left">
                     <thead className="bg-muted/50 border-b">
                         <tr>
@@ -214,7 +214,7 @@ export default function AdminPlanosPage() {
 
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-                    <div className="bg-card w-full max-w-2xl rounded-[32px] p-8 shadow-2xl border my-8">
+                    <div className="bg-card w-full max-w-2xl rounded-2xl p-8 shadow-2xl border my-8">
                         <div className="flex items-center justify-between mb-8">
                             <h2 className="text-2xl font-black">{editingPlan.id ? "Editar Plano" : "Novo Plano"}</h2>
                             <Button variant="ghost" className="rounded-full w-10 h-10 p-0" onClick={() => setIsModalOpen(false)}>
