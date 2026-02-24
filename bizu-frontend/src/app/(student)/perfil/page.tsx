@@ -39,6 +39,9 @@ export default function ProfilePage() {
         }
     };
 
+    const userName = typeof user?.name === "string" ? user.name : "";
+    const userEmail = typeof user?.email === "string" ? user.email : "";
+
     return (
         <div className="container mx-auto px-4 py-12 max-w-5xl">
             <PageHeader
@@ -76,11 +79,11 @@ export default function ProfilePage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-muted-foreground ml-1">Nome Completo</label>
-                                <Input value={user?.name || ""} readOnly className="h-12 rounded-2xl bg-muted/30 border-none" />
+                                <Input value={userName} readOnly className="h-12 rounded-2xl bg-muted/30 border-none" />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-muted-foreground ml-1">E-mail</label>
-                                <Input value={user?.email || ""} disabled className="h-12 rounded-2xl bg-muted/10 border-none cursor-not-allowed" />
+                                <Input value={userEmail} disabled className="h-12 rounded-2xl bg-muted/10 border-none cursor-not-allowed" />
                             </div>
                         </div>
                         <Button className="mt-8 rounded-2xl px-8 h-12 font-bold" disabled>Salvar Alterações</Button>
