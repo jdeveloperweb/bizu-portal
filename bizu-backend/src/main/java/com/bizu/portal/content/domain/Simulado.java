@@ -41,6 +41,10 @@ public class Simulado {
     @Column(name = "weekly_cycle")
     private boolean weeklyCycle = false;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id")
+    private Course course;
+
     @ManyToMany
     @JoinTable(
         name = "simulado_questions",

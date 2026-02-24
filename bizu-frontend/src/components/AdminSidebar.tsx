@@ -18,6 +18,7 @@ export default function AdminSidebar() {
         { href: "/admin", icon: PieChart, label: "Visao Geral" },
         { href: "/admin/usuarios", icon: Users, label: "Usuarios" },
         { href: "/admin/cursos", icon: BookOpen, label: "Cursos" },
+        { href: "/admin/simulados", icon: BookOpen, label: "Simulados" },
         { href: "/admin/questoes", icon: HelpCircle, label: "Banco de Questoes" },
         { href: "/admin/planos", icon: CreditCard, label: "Planos & Precos" },
         { href: "/admin/cupons", icon: Ticket, label: "Cupons" },
