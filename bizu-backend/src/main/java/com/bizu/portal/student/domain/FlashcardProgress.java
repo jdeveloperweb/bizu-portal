@@ -5,6 +5,7 @@ import com.bizu.portal.identity.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -33,9 +34,9 @@ public class FlashcardProgress {
     @Builder.Default
     private Integer intervalDays = 0;
 
-    @Column(name = "ease_factor")
+    @Column(name = "ease_factor", precision = 5, scale = 2)
     @Builder.Default
-    private Double easeFactor = 2.50;
+    private BigDecimal easeFactor = new BigDecimal("2.50");
 
     @Builder.Default
     private Integer repetitions = 0;

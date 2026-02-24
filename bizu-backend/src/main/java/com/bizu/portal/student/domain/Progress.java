@@ -5,6 +5,7 @@ import com.bizu.portal.identity.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -30,8 +31,8 @@ public class Progress {
     private Course course;
 
     @Builder.Default
-    @Column(name = "percent_completed")
-    private Double percentCompleted = 0.0;
+    @Column(name = "percent_completed", precision = 5, scale = 2)
+    private BigDecimal percentCompleted = BigDecimal.ZERO;
 
     @Column(name = "last_content_id")
     private UUID lastContentId; // ID of the last module or question accessed

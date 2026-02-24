@@ -6,6 +6,7 @@ import com.bizu.portal.student.infrastructure.FlashcardProgressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -73,7 +74,7 @@ public class StudentFlashcardService {
                     .user(com.bizu.portal.identity.domain.User.builder().id(userId).build())
                     .flashcard(flashcard)
                     .intervalDays(0)
-                    .easeFactor(2.5)
+                    .easeFactor(new BigDecimal("2.5"))
                     .repetitions(0)
                     .build();
             });
@@ -95,14 +96,14 @@ public class StudentFlashcardService {
             } else if (progress.getRepetitions() == 1) {
                 progress.setIntervalDays(3);
             } else {
-                progress.setIntervalDays((int) Math.round(progress.getIntervalDays() * progress.getEaseFactor()));
+                progress.setIntervalDays((int) Math.round(progress.getIntervalDays() * progress.getEaseFactor().doubleValue()));
             }
             progress.setRepetitions(progress.getRepetitions() + 1);
         }
 
         // Update ease factor: EF = EF + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
-        double newEase = progress.getEaseFactor() + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
-        progress.setEaseFactor(Math.max(1.3, newEase));
+        double newEase = progress.getEaseFactor().doubleValue() + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+        progress.setEaseFactor(BigDecimal.valueOf(Math.max(1.3, newEase)));
         
         progress.setLastReviewedAt(OffsetDateTime.now());
         progress.setNextReviewAt(OffsetDateTime.now().plusDays(progress.getIntervalDays()));
