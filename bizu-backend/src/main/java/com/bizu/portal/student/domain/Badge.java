@@ -33,4 +33,21 @@ public class Badge {
     @Builder.Default
     @Column(name = "required_xp")
     private Integer requiredXp = 0;
+
+    @Column(length = 50)
+    private String category;
+
+    @Column(name = "xp")
+    @Builder.Default
+    private Integer xp = 0;
+
+    @Column(name = "target_progress")
+    @Builder.Default
+    private Integer targetProgress = 0;
+
+    @Column(length = 255)
+    private String requirement;
+
+    @Column(length = 100)
+    private String color;
 }
