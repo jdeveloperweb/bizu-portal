@@ -21,8 +21,16 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
     if (response.status === 401) {
         // Se o token expirou, podemos redirecionar para o login
-        if (typeof window !== "undefined" && window.location.pathname !== "/login") {
-            window.location.href = "/login";
+        if (typeof window !== "undefined") {
+            const path = window.location.pathname.toLowerCase();
+            const isAuthPage = path === "/login" || path === "/register" || path.startsWith("/forgot-password");
+
+            // Não redirecionar se já estivermos em página de auth ou se o endpoint for público
+            const isPublicEndpoint = endpoint.includes("/public/") || endpoint.includes("/branding/active");
+
+            if (!isAuthPage && !isPublicEndpoint) {
+                window.location.href = "/login";
+            }
         }
     }
 

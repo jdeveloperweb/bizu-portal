@@ -27,6 +27,61 @@ public class StudentTaskService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<TaskSuggestionDTO> generateSuggestions(UUID userId) {
+        List<TaskSuggestionDTO> suggestions = new java.util.ArrayList<>();
+        
+        CreateStudentTaskDTO task1 = new CreateStudentTaskDTO();
+        task1.setTitle("Revisar matérias com baixo desempenho");
+        task1.setSubject("Geral");
+        task1.setPriority("alta");
+        task1.setSource("desempenho");
+        task1.setDueDate("Hoje");
+        task1.setStatus("pendente");
+        
+        suggestions.add(TaskSuggestionDTO.builder()
+            .text("Revisar matérias com acerto abaixo da média (<70%)")
+            .type("alert")
+            .color("text-red-500")
+            .actionLabel("Criar tarefa")
+            .taskToCreate(task1)
+            .build());
+
+        CreateStudentTaskDTO task2 = new CreateStudentTaskDTO();
+        task2.setTitle("Resolver 20 questões");
+        task2.setSubject("Geral");
+        task2.setPriority("media");
+        task2.setSource("sistema");
+        task2.setDueDate("Hoje");
+        task2.setStatus("pendente");
+
+        suggestions.add(TaskSuggestionDTO.builder()
+            .text("Resolver 20 questões para bater a sua meta diária")
+            .type("trend")
+            .color("text-amber-500")
+            .actionLabel("Criar tarefa")
+            .taskToCreate(task2)
+            .build());
+
+        CreateStudentTaskDTO task3 = new CreateStudentTaskDTO();
+        task3.setTitle("Simulado de fixação");
+        task3.setSubject("Geral");
+        task3.setPriority("alta");
+        task3.setSource("sistema");
+        task3.setDueDate("Fim de semana");
+        task3.setStatus("pendente");
+
+        suggestions.add(TaskSuggestionDTO.builder()
+            .text("Fazer um simulado para revisar o conteúdo estudado na semana")
+            .type("chart")
+            .color("text-indigo-500")
+            .actionLabel("Criar tarefa")
+            .taskToCreate(task3)
+            .build());
+
+        return suggestions;
+    }
+
     @Transactional
     public StudentTaskDTO createTask(UUID userId, CreateStudentTaskDTO createDTO) {
         User user = userRepository.findById(userId)

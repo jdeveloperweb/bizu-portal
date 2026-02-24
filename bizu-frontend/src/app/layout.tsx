@@ -39,6 +39,7 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { NotificationProvider } from "@/components/NotificationProvider";
 import BrandingLoader from "@/components/BrandingLoader";
 import CourseSelectionGate from "@/components/CourseSelectionGate";
+import { AppearanceProvider } from "@/components/AppearanceProvider";
 
 export default function RootLayout({
   children,
@@ -49,8 +50,10 @@ export default function RootLayout({
         style={{ fontFamily: "var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif" }}
       >
         <AuthProvider>
-          <BrandingLoader />
-          <NotificationProvider><CourseSelectionGate>{children}</CourseSelectionGate></NotificationProvider>
+          <AppearanceProvider>
+            <BrandingLoader />
+            <NotificationProvider><CourseSelectionGate>{children}</CourseSelectionGate></NotificationProvider>
+          </AppearanceProvider>
         </AuthProvider>
       </body>
     </html>

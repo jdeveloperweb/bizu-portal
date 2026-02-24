@@ -17,6 +17,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense, useMemo } from "react";
 import { apiFetch } from "@/lib/api";
 import { motion } from "framer-motion";
+import { useAuth } from "@/components/AuthProvider";
 
 interface Module {
     id: string;
@@ -55,6 +56,7 @@ function TreinoContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const simuladoId = searchParams.get("simulado");
+    const { selectedCourseId } = useAuth();
 
     const [simulado, setSimulado] = useState<SimuladoData | null>(null);
     const [courses, setCourses] = useState<Course[]>([]);
@@ -65,8 +67,12 @@ function TreinoContent() {
     const [isApplyingConfig, setIsApplyingConfig] = useState(false);
 
     const modules = useMemo(
-        () => Array.from(new Map(courses.flatMap(course => course.modules).map(module => [module.id, module])).values()),
-        [courses]
+        () => {
+            if (!selectedCourseId) return [];
+            const selectedCourse = courses.find((c) => c.id === selectedCourseId);
+            return selectedCourse?.modules || [];
+        },
+        [courses, selectedCourseId]
     );
 
     const selectedModulesText = useMemo(() => {

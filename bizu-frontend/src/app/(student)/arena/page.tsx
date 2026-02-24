@@ -25,10 +25,8 @@ interface OnlineUser {
     status: "online" | "em_duelo";
 }
 
-const SUBJECTS = [
-    "Aleatorio", "Direito Constitucional", "Direito Administrativo",
-    "Direito Civil", "Direito Penal", "Processo Civil",
-];
+// SUBJECTS will be fetched dynamically from the selected course
+
 
 export default function ArenaPage() {
     const [activeTab, setActiveTab] = useState<ArenaTab>("online");
@@ -38,6 +36,8 @@ export default function ArenaPage() {
     const [activeDuelId, setActiveDuelId] = useState<string | null>(null);
     const [currentUserId, setCurrentUserId] = useState<string>("");
     const [myStats, setMyStats] = useState({ wins: 0, losses: 0, winRate: 0, streak: 0 });
+    const [availableModules, setAvailableModules] = useState<string[]>([]);
+
 
     useEffect(() => {
         const token = Cookies.get("token");
@@ -79,10 +79,23 @@ export default function ArenaPage() {
                         streak: 0
                     });
                 }
+
+                // Fetch modules for the selected course
+                const selectedCourseId = localStorage.getItem("selectedCourseId");
+                if (selectedCourseId) {
+                    const courseRes = await apiFetch(`/public/courses/${selectedCourseId}`);
+                    if (courseRes.ok) {
+                        const courseData = await courseRes.json();
+                        if (courseData.modules) {
+                            setAvailableModules(courseData.modules.map((m: any) => m.title));
+                        }
+                    }
+                }
             } catch (error) {
                 console.error("Failed to load arena data", error);
             }
         };
+
 
         loadData();
         const interval = setInterval(loadData, 15000);
@@ -278,15 +291,20 @@ export default function ArenaPage() {
                             <div>
                                 <label className="text-[10px] font-bold text-slate-500 mb-1.5 block uppercase tracking-wider">Materia</label>
                                 <div className="flex flex-wrap gap-1.5">
-                                    {SUBJECTS.map(s => (
+                                    {["Aleatorio", ...availableModules].map(s => (
                                         <button key={s} onClick={() => setSelectedSubject(s)}
                                             className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all ${selectedSubject === s
                                                 ? "bg-indigo-50 text-indigo-700 border border-indigo-100"
                                                 : "text-slate-400 hover:text-slate-600 bg-slate-50 border border-slate-100"
                                                 }`}>
-                                            {s === "Aleatorio" ? s : s.replace("Direito ", "D. ").replace("Processo ", "P. ")}
+                                            {s === "Aleatorio" ? s : s
+                                                .replace("Direito ", "D. ")
+                                                .replace("Processo ", "P. ")
+                                                .replace("Legislação ", "Leg. ")
+                                                .substring(0, 20)}
                                         </button>
                                     ))}
+
                                 </div>
                             </div>
                             <div className="flex items-center justify-between py-2 px-3 rounded-xl bg-slate-50 border border-slate-100">

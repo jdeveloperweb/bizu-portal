@@ -39,8 +39,8 @@ public class GamificationService {
 
         // Let's get generic counts for progress estimation
         int totalQuestions = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM student.attempts WHERE user_id = ?", Integer.class, userId);
-        int totalDuels = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM student.duels WHERE (player1_id = ? OR player2_id = ?) AND status = 'FINISHED'", Integer.class, userId, userId);
-        int totalFlashcards = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM student.flashcard_decks WHERE user_id = ?", Integer.class, userId);
+        int totalDuels = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM student.duels WHERE (challenger_id = ? OR opponent_id = ?) AND status = 'COMPLETED'", Integer.class, userId, userId);
+        int totalFlashcards = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM student.flashcard_progress WHERE user_id = ?", Integer.class, userId);
         
         GamificationStats stats = gamificationRepository.findById(userId).orElse(null);
         int streak = stats != null ? stats.getCurrentStreak() : 0;

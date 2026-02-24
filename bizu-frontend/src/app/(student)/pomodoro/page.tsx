@@ -8,6 +8,7 @@ import {
     CheckCircle2, ChevronRight, Settings, Volume2,
     VolumeX, BookOpen, Zap,
 } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 
 type SessionType = "focus" | "shortBreak" | "longBreak";
 
@@ -25,16 +26,8 @@ const PRESETS = [
     { label: "Rapido", focus: 15, short: 3, long: 10 },
 ];
 
-const SUBJECTS = [
-    "Direito Constitucional",
-    "Direito Administrativo",
-    "Direito Civil",
-    "Direito Penal",
-    "Processo Civil",
-    "Processo Penal",
-    "Lingua Portuguesa",
-    "Raciocinio Logico",
-];
+// SUBJECTS will be fetched dynamically from the selected course
+
 
 export default function PomodoroPage() {
     const [focusDuration, setFocusDuration] = useState(25);
@@ -44,8 +37,10 @@ export default function PomodoroPage() {
     const [isRunning, setIsRunning] = useState(false);
     const [sessionType, setSessionType] = useState<SessionType>("focus");
     const [completedCycles, setCompletedCycles] = useState(0);
-    const [selectedSubject, setSelectedSubject] = useState(SUBJECTS[0]);
+    const [selectedSubject, setSelectedSubject] = useState("Selecione um módulo");
+    const [availableModules, setAvailableModules] = useState<string[]>([]);
     const [totalFocusToday, setTotalFocusToday] = useState(47);
+
     const [soundEnabled, setSoundEnabled] = useState(true);
     const [showSubjectPicker, setShowSubjectPicker] = useState(false);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -77,6 +72,29 @@ export default function PomodoroPage() {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isRunning, timeLeft]);
+
+    useEffect(() => {
+        const fetchModules = async () => {
+            try {
+                const selectedCourseId = localStorage.getItem("selectedCourseId");
+                if (selectedCourseId) {
+                    const res = await apiFetch(`/public/courses/${selectedCourseId}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.modules && data.modules.length > 0) {
+                            const moduleTitles = data.modules.map((m: any) => m.title);
+                            setAvailableModules(moduleTitles);
+                            setSelectedSubject(moduleTitles[0]);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching modules:", error);
+            }
+        };
+        fetchModules();
+    }, []);
+
 
     const handleSessionComplete = () => {
         setIsRunning(false);
@@ -199,15 +217,20 @@ export default function PomodoroPage() {
                                 <BookOpen size={13} /> {selectedSubject} <ChevronRight size={11} className={showSubjectPicker ? "rotate-90" : ""} />
                             </button>
                             {showSubjectPicker && (
-                                <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-lg z-10 p-1.5 min-w-[240px]">
-                                    {SUBJECTS.map(s => (
-                                        <button key={s} onClick={() => { setSelectedSubject(s); setShowSubjectPicker(false); }}
-                                            className={`w-full text-left px-3 py-2 rounded-lg text-[12px] font-medium transition-all ${s === selectedSubject ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"
-                                                }`}>
-                                            {s}
-                                        </button>
-                                    ))}
+                                <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-lg z-10 p-1.5 min-w-[240px] max-h-48 overflow-y-auto hidden-scrollbar">
+                                    {availableModules.length > 0 ? (
+                                        availableModules.map(s => (
+                                            <button key={s} onClick={() => { setSelectedSubject(s); setShowSubjectPicker(false); }}
+                                                className={`w-full text-left px-3 py-2 rounded-lg text-[12px] font-medium transition-all ${s === selectedSubject ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"
+                                                    }`}>
+                                                {s}
+                                            </button>
+                                        ))
+                                    ) : (
+                                        <div className="text-[12px] text-slate-500 p-2 text-center">Nenhum módulo encontrado</div>
+                                    )}
                                 </div>
+
                             )}
                         </div>
 

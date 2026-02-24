@@ -32,7 +32,7 @@ public class Attempt {
     @Column(name = "selected_option")
     private String selectedOption;
 
-    @Column(nullable = false)
+    @Column(name = "is_correct", nullable = false)
     private boolean correct;
 
     @Column(name = "time_spent_seconds")

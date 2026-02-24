@@ -32,6 +32,7 @@ export default function ProfilePage() {
     const { user, logout, selectedCourseId, refreshUserProfile } = useAuth();
     const [devices, setDevices] = useState<any[]>([]);
     const [subscription, setSubscription] = useState<any>(null);
+    const [courseName, setCourseName] = useState<string>("");
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -49,9 +50,10 @@ export default function ProfilePage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [devicesRes, subRes] = await Promise.all([
+                const [devicesRes, subRes, coursesRes] = await Promise.all([
                     apiFetch("/devices"),
-                    apiFetch("/subscriptions/me")
+                    apiFetch("/subscriptions/me"),
+                    apiFetch("/public/courses")
                 ]);
 
                 if (devicesRes.ok) {
@@ -63,6 +65,14 @@ export default function ProfilePage() {
                     const data = await subRes.json();
                     setSubscription(data);
                 }
+
+                if (coursesRes.ok && selectedCourseId) {
+                    const courses = await coursesRes.json();
+                    const currentCourse = courses.find((c: any) => c.id === selectedCourseId);
+                    if (currentCourse) {
+                        setCourseName(currentCourse.title);
+                    }
+                }
             } catch (err) {
                 console.error("Failed to load profile data", err);
             } finally {
@@ -70,7 +80,7 @@ export default function ProfilePage() {
             }
         };
         fetchData();
-    }, []);
+    }, [selectedCourseId]);
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -234,8 +244,10 @@ export default function ProfilePage() {
                         ) : (
                             <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-8 rounded-[32px] bg-slate-50 border border-slate-100 gap-6">
                                 <div>
-                                    <div className="text-xl font-black text-slate-900 mb-1">Plano Gratuito</div>
-                                    <div className="text-sm font-medium text-slate-500 font-brand">Acesso limitado ao conteúdo básico e simulados públicos.</div>
+                                    <div className="text-xl font-black text-slate-900 mb-1">
+                                        Plano Gratuito {courseName ? `• ${courseName}` : ""}
+                                    </div>
+                                    <div className="text-sm font-medium text-slate-500">Acesso limitado ao conteúdo básico e simulados públicos.</div>
                                 </div>
                                 <Link href="/pricing">
                                     <Button className="btn-primary rounded-2xl h-12 px-8 font-bold w-full md:w-auto">

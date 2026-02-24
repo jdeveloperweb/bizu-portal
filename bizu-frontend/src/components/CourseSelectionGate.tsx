@@ -30,7 +30,11 @@ export default function CourseSelectionGate({ children }: { children: React.Reac
         loadCourses();
     }, [authenticated, loading, selectedCourseId]);
 
-    const shouldBlock = authenticated && !loading && !selectedCourseId && !pathname?.startsWith("/admin");
+    const isPublicPath = !pathname || pathname === "/" || pathname === "/login" || pathname === "/register" ||
+        pathname.startsWith("/pricing") || pathname.startsWith("/termos") || pathname.startsWith("/privacidade") ||
+        pathname.startsWith("/forgot-password");
+
+    const shouldBlock = authenticated && !loading && !selectedCourseId && !isPublicPath && !pathname?.startsWith("/admin");
 
     const handleConfirm = async () => {
         if (!selected) return;

@@ -4,6 +4,7 @@ import com.bizu.portal.student.application.CreateStudentTaskDTO;
 import com.bizu.portal.student.application.StudentTaskDTO;
 import com.bizu.portal.student.application.StudentTaskService;
 import com.bizu.portal.student.application.UpdateStudentTaskStatusDTO;
+import com.bizu.portal.student.application.TaskSuggestionDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,6 +25,12 @@ public class StudentTaskController {
     public ResponseEntity<List<StudentTaskDTO>> getUserTasks(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getSubject());
         return ResponseEntity.ok(studentTaskService.getUserTasks(userId));
+    }
+
+    @GetMapping("/suggestions")
+    public ResponseEntity<List<TaskSuggestionDTO>> getSuggestions(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(studentTaskService.generateSuggestions(userId));
     }
 
     @PostMapping

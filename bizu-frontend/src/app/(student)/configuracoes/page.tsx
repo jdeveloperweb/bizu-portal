@@ -1,17 +1,31 @@
 "use client";
+import { useState, useEffect, useMemo } from "react";
+import { apiFetch } from "@/lib/api";
 
-import { useState } from "react";
 import {
     Settings, Timer, Bell, BookOpen, BarChart3,
     Palette, Shield, Monitor, Smartphone, ChevronRight,
     Save, RotateCcw, CheckCircle2, Moon, Sun,
     Eye, Volume2,
 } from "lucide-react";
+import { useAppearance } from "@/components/AppearanceProvider";
+import { useAuth } from "@/components/AuthProvider";
 
 interface SettingsSection {
     id: string;
     label: string;
     icon: typeof Settings;
+}
+
+interface Module {
+    id: string;
+    title: string;
+}
+
+interface Course {
+    id: string;
+    title: string;
+    modules: Module[];
 }
 
 const sections: SettingsSection[] = [
@@ -23,13 +37,10 @@ const sections: SettingsSection[] = [
     { id: "privacidade", label: "Privacidade", icon: Shield },
 ];
 
-const SUBJECTS = [
-    "Direito Constitucional", "Direito Administrativo", "Direito Civil",
-    "Direito Penal", "Processo Civil", "Processo Penal",
-    "Lingua Portuguesa", "Raciocinio Logico",
-];
 
 export default function ConfiguracoesPage() {
+    const { theme, setTheme, compactMode, setCompactMode } = useAppearance();
+    const { selectedCourseId } = useAuth();
     const [activeSection, setActiveSection] = useState("pomodoro");
     const [saved, setSaved] = useState(false);
 
@@ -43,10 +54,43 @@ export default function ConfiguracoesPage() {
     const [pomodoroSound, setPomodoroSound] = useState(true);
 
     // Study settings
+    const [courses, setCourses] = useState<Course[]>([]);
     const [dailyGoal, setDailyGoal] = useState(50);
     const [weeklySimulados, setWeeklySimulados] = useState(2);
-    const [selectedSubjects, setSelectedSubjects] = useState<string[]>(SUBJECTS.slice(0, 5));
+    const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+
+    const modules = useMemo(
+        () => {
+            if (!selectedCourseId) return [];
+            const selectedCourse = courses.find((c) => c.id === selectedCourseId);
+            return selectedCourse?.modules || [];
+        },
+        [courses, selectedCourseId]
+    );
+
+    useEffect(() => {
+        const fetchCourses = async () => {
+            try {
+                const res = await apiFetch("/public/courses");
+                if (res.ok) {
+                    const data = await res.json();
+                    setCourses(data);
+
+                    // Pre-select some modules if available
+                    const allModules = data.flatMap((c: Course) => c.modules);
+                    if (allModules.length > 0) {
+                        const uniqueModules = Array.from(new Map(allModules.map((m: Module) => [m.id, m])).values()) as Module[];
+                        setSelectedSubjects(uniqueModules.slice(0, 5).map(m => m.id));
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch courses/modules", error);
+            }
+        };
+        fetchCourses();
+    }, []);
     const [questionDifficulty, setQuestionDifficulty] = useState<"mista" | "facil" | "media" | "dificil">("mista");
+
     const [showResolution, setShowResolution] = useState(true);
 
     // Notification settings
@@ -62,9 +106,6 @@ export default function ConfiguracoesPage() {
     const [showInRanking, setShowInRanking] = useState(true);
     const [showRealName, setShowRealName] = useState(false);
 
-    // Appearance
-    const [theme, setTheme] = useState<"light" | "dark" | "auto">("light");
-    const [compactMode, setCompactMode] = useState(false);
 
     const toggleSubject = (s: string) => {
         setSelectedSubjects(prev =>
@@ -126,8 +167,8 @@ export default function ConfiguracoesPage() {
                             return (
                                 <button key={section.id} onClick={() => setActiveSection(section.id)}
                                     className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[12px] font-medium transition-all ${active
-                                            ? "bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-700 font-bold"
-                                            : "text-slate-500 hover:bg-slate-50"
+                                        ? "bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-700 font-bold"
+                                        : "text-slate-500 hover:bg-slate-50"
                                         }`}>
                                     <Icon size={15} className={active ? "text-indigo-600" : "text-slate-400"} />
                                     {section.label}
@@ -222,8 +263,8 @@ export default function ConfiguracoesPage() {
                                             {(["mista", "facil", "media", "dificil"] as const).map(d => (
                                                 <button key={d} onClick={() => setQuestionDifficulty(d)}
                                                     className={`py-2.5 rounded-xl text-[12px] font-bold border-2 transition-all capitalize ${questionDifficulty === d
-                                                            ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                                                            : "border-slate-200 text-slate-500 hover:border-slate-300"
+                                                        ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                                                        : "border-slate-200 text-slate-500 hover:border-slate-300"
                                                         }`}>
                                                     {d === "facil" ? "Facil" : d === "media" ? "Media" : d === "dificil" ? "Dificil" : "Mista"}
                                                 </button>
@@ -243,17 +284,23 @@ export default function ConfiguracoesPage() {
                             <div className="card-elevated !rounded-2xl p-6 hover:!transform-none">
                                 <h3 className="text-[15px] font-bold text-slate-800 mb-5">Materias de Interesse</h3>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {SUBJECTS.map(s => (
-                                        <button key={s} onClick={() => toggleSubject(s)}
-                                            className={`flex items-center gap-2 py-2.5 px-3 rounded-xl text-[12px] font-medium border transition-all ${selectedSubjects.includes(s)
-                                                    ? "border-indigo-300 bg-indigo-50 text-indigo-700"
-                                                    : "border-slate-200 text-slate-500 hover:border-slate-300"
+                                    {modules.map(s => (
+                                        <button key={s.id} onClick={() => toggleSubject(s.id)}
+                                            className={`flex items-center gap-2 py-2.5 px-3 rounded-xl text-[12px] font-medium border transition-all ${selectedSubjects.includes(s.id)
+                                                ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                                                : "border-slate-200 text-slate-500 hover:border-slate-300"
                                                 }`}>
-                                            <CheckCircle2 size={14} className={selectedSubjects.includes(s) ? "text-indigo-500" : "text-slate-300"} />
-                                            {s}
+                                            <CheckCircle2 size={14} className={selectedSubjects.includes(s.id) ? "text-indigo-500" : "text-slate-300"} />
+                                            {s.title}
                                         </button>
                                     ))}
+                                    {modules.length === 0 && (
+                                        <div className="col-span-2 text-center text-[12px] py-4 text-slate-500">
+                                            Carregando matérias...
+                                        </div>
+                                    )}
                                 </div>
+
                             </div>
                         </>
                     )}
@@ -332,8 +379,8 @@ export default function ConfiguracoesPage() {
                                         ]).map(r => (
                                             <button key={r.key} onClick={() => setRankingType(r.key)}
                                                 className={`py-2.5 rounded-xl text-[12px] font-bold border-2 transition-all ${rankingType === r.key
-                                                        ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                                                        : "border-slate-200 text-slate-500 hover:border-slate-300"
+                                                    ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                                                    : "border-slate-200 text-slate-500 hover:border-slate-300"
                                                     }`}>
                                                 {r.label}
                                             </button>
@@ -379,8 +426,8 @@ export default function ConfiguracoesPage() {
                                             return (
                                                 <button key={t.key} onClick={() => setTheme(t.key)}
                                                     className={`flex flex-col items-center gap-2 py-4 rounded-xl border-2 transition-all ${theme === t.key
-                                                            ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                                                            : "border-slate-200 text-slate-500 hover:border-slate-300"
+                                                        ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                                                        : "border-slate-200 text-slate-500 hover:border-slate-300"
                                                         }`}>
                                                     <Icon size={20} />
                                                     <span className="text-[11px] font-bold">{t.label}</span>

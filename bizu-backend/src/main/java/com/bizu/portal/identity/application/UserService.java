@@ -42,4 +42,17 @@ public class UserService {
         // Remove do banco local (hard delete para ser definitivo conforme pedido)
         userRepository.delete(user);
     }
+
+    @Transactional
+    public User syncUser(java.util.UUID userId, String email, String name) {
+        return userRepository.findById(userId).orElseGet(() -> {
+            User newUser = User.builder()
+                    .id(userId)
+                    .email(email)
+                    .name(name != null ? name : email)
+                    .status("ACTIVE")
+                    .build();
+            return userRepository.save(newUser);
+        });
+    }
 }

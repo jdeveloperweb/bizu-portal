@@ -8,6 +8,9 @@ spring:
     password: bizu_password
     driver-class-name: org.postgresql.Driver
 
+  flyway:
+    validate-on-migrate: false
+
   jpa:
     hibernate:
       ddl-auto: validate

@@ -47,6 +47,7 @@ import { apiFetch } from "@/lib/api";
 export default function TarefasPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [courses, setCourses] = useState<any[]>([]);
+    const [suggestions, setSuggestions] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -55,6 +56,10 @@ export default function TarefasPage() {
                 const resTasks = await apiFetch("/student/tasks");
                 if (resTasks.ok) {
                     setTasks(await resTasks.json());
+                }
+                const resSuggestions = await apiFetch("/student/tasks/suggestions");
+                if (resSuggestions.ok) {
+                    setSuggestions(await resSuggestions.json());
                 }
                 const resCourses = await apiFetch("/public/courses");
                 if (resCourses.ok) {
@@ -142,6 +147,25 @@ export default function TarefasPage() {
             }
         } catch (error) {
             console.error("Error creating task", error);
+        }
+    };
+
+    const createSuggestedTask = async (taskData: any) => {
+        try {
+            const res = await apiFetch("/student/tasks", {
+                method: "POST",
+                body: JSON.stringify(taskData)
+            });
+
+            if (res.ok) {
+                const savedTask = await res.json();
+                setTasks(prev => [savedTask, ...prev]);
+
+                // Optional: remove suggestion after adding
+                setSuggestions(prev => prev.filter(s => s.taskToCreate.title !== taskData.title));
+            }
+        } catch (error) {
+            console.error("Error creating suggested task", error);
         }
     };
 
@@ -325,18 +349,16 @@ export default function TarefasPage() {
                             <Brain size={14} className="text-indigo-500" /> Sugestoes do Sistema
                         </h3>
                         <div className="space-y-2.5">
-                            {[
-                                { icon: AlertCircle, text: "Revisar Direito Civil - Contratos (acerto 58%)", color: "text-red-500", actionLabel: "Criar tarefa" },
-                                { icon: TrendingUp, text: "Resolver 20 questoes para meta semanal", color: "text-amber-500", actionLabel: "Criar tarefa" },
-                                { icon: BarChart3, text: "Processo Penal: revisar provas em especie", color: "text-indigo-500", actionLabel: "Criar tarefa" },
-                            ].map((s, i) => {
-                                const Icon = s.icon;
+                            {suggestions.map((s, i) => {
+                                const Icon = s.type === 'alert' ? AlertCircle : s.type === 'trend' ? TrendingUp : BarChart3;
                                 return (
                                     <div key={i} className="flex items-start gap-2.5 py-2 px-3 rounded-xl bg-slate-50 border border-slate-100">
                                         <Icon size={13} className={`${s.color} mt-0.5 shrink-0`} />
                                         <div className="flex-1">
                                             <div className="text-[11px] text-slate-600 font-medium">{s.text}</div>
-                                            <button className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 mt-1">
+                                            <button
+                                                onClick={() => createSuggestedTask(s.taskToCreate)}
+                                                className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 mt-1">
                                                 {s.actionLabel}
                                             </button>
                                         </div>

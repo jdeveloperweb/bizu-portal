@@ -117,8 +117,73 @@
   --border: #E2E8F0;
   --input: #F8FAFC;
   --ring: #6366F1;
-  --radius: 0.5rem;
+  --radius: 0.875rem;
 }
+
+.dark {
+  --background: #020617;
+  --foreground: #F8FAFC;
+  --card: #0F172A;
+  --card-foreground: #F8FAFC;
+  --popover: #0F172A;
+  --popover-foreground: #F8FAFC;
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+  --accent: #F59E0B;
+  --accent-foreground: #FFFFFF;
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
+  --border: #1E293B;
+  --input: #0F172A;
+  --ring: #6366F1;
+  --secondary: #1E293B;
+  --secondary-foreground: #F1F5F9;
+  --surface: #020617;
+}
+
+.compact-mode {
+  --radius: 0.5rem;
+  font-size: 13px;
+}
+
+.compact-mode .p-8 {
+  padding: 1.25rem !important;
+}
+
+.compact-mode .p-6 {
+  padding: 1rem !important;
+}
+
+.compact-mode .py-8 {
+  padding-top: 1.25rem !important;
+  padding-bottom: 1.25rem !important;
+}
+
+.compact-mode .py-6 {
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+.compact-mode .gap-8 {
+  gap: 1.25rem !important;
+}
+
+.compact-mode .gap-6 {
+  gap: 1rem !important;
+}
+
+.compact-mode .space-y-8> :not([hidden])~ :not([hidden]) {
+  margin-top: 1.25rem !important;
+}
+
+.compact-mode .space-y-6> :not([hidden])~ :not([hidden]) {
+  margin-top: 1rem !important;
+}
+
+.compact-mode .card-elevated {
+  border-radius: 0.5rem;
+}
+
 
 /* ─── Utilitarios ─── */
 .font-brand {

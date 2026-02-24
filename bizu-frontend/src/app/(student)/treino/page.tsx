@@ -13,21 +13,36 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { apiFetch } from "@/lib/api";
 
 export default function CustomQuizPage() {
     const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
     const [questionCount, setQuestionCount] = useState(20);
     const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
 
-    const subjects = [
-        "Direito Administrativo",
-        "Direito Constitucional",
-        "Direito Civil",
-        "Processo Penal",
-        "Direito Tributário",
-        "Língua Portuguesa"
-    ];
+    const [availableModules, setAvailableModules] = useState<string[]>([]);
+
+    useEffect(() => {
+        const fetchModules = async () => {
+            try {
+                const selectedCourseId = localStorage.getItem("selectedCourseId");
+                if (selectedCourseId) {
+                    const res = await apiFetch(`/public/courses/${selectedCourseId}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.modules) {
+                            setAvailableModules(data.modules.map((m: any) => m.title));
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching modules:", error);
+            }
+        };
+        fetchModules();
+    }, []);
+
 
     const toggleSubject = (s: string) => {
         setSelectedSubjects(prev =>
@@ -52,7 +67,7 @@ export default function CustomQuizPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {subjects.map(s => (
+                        {availableModules.map(s => (
                             <button
                                 key={s}
                                 onClick={() => toggleSubject(s)}
@@ -67,6 +82,7 @@ export default function CustomQuizPage() {
                             </button>
                         ))}
                     </div>
+
                 </div>
 
                 {/* Step 2: Configuration */}

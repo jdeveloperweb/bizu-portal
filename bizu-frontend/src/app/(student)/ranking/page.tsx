@@ -23,10 +23,8 @@ interface RankedUser {
     delta?: number;
 }
 
-const SUBJECTS = [
-    "Todas", "Direito Constitucional", "Direito Administrativo", "Direito Civil",
-    "Direito Penal", "Processo Civil", "Processo Penal",
-];
+// SUBJECTS will be fetched dynamically from the selected course
+
 
 export default function RankingStudentPage() {
     const [activeTab, setActiveTab] = useState<RankingTab>("geral");
@@ -34,11 +32,14 @@ export default function RankingStudentPage() {
     const [topUsers, setTopUsers] = useState<RankedUser[]>([]);
     const [myRank, setMyRank] = useState<RankedUser | null>(null);
     const [loading, setLoading] = useState(true);
+    const [availableModules, setAvailableModules] = useState<string[]>([]);
+
 
     useEffect(() => {
         async function fetchRanking() {
             setLoading(true);
             try {
+                // Fetch ranking data
                 const [globalRes, meRes] = await Promise.all([
                     apiFetch("/student/ranking/global?limit=50"),
                     apiFetch("/student/ranking/me")
@@ -52,7 +53,7 @@ export default function RankingStudentPage() {
                         avatar: u.avatar || u.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase(),
                         xp: u.xp,
                         streak: u.streak,
-                        accuracy: 0, // Not available in simple query
+                        accuracy: 0,
                         questionsThisWeek: 0,
                         delta: 0
                     })));
@@ -71,14 +72,29 @@ export default function RankingStudentPage() {
                         delta: 0
                     });
                 }
+
+                // Fetch modules for the selected course
+                const selectedCourseId = localStorage.getItem("selectedCourseId");
+                if (selectedCourseId) {
+                    const courseRes = await apiFetch(`/public/courses/${selectedCourseId}`);
+                    if (courseRes.ok) {
+                        const courseData = await courseRes.json();
+                        if (courseData.modules) {
+                            setAvailableModules(courseData.modules.map((m: any) => m.title));
+                        }
+                    }
+                }
             } catch (error) {
-                console.error("Error fetching ranking:", error);
+                console.error("Error fetching ranking or modules:", error);
             } finally {
                 setLoading(false);
             }
         }
         fetchRanking();
     }, []);
+
+    const subjects = ["Todas", ...availableModules];
+
 
     if (loading) {
         return (
@@ -157,16 +173,21 @@ export default function RankingStudentPage() {
             {/* Subject filter for "Por Materia" tab */}
             {activeTab === "materia" && (
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-5 scrollbar-hide">
-                    {SUBJECTS.map(s => (
+                    {subjects.map(s => (
                         <button key={s} onClick={() => setSelectedSubject(s)}
                             className={`px-3 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all ${selectedSubject === s
                                 ? "bg-indigo-50 text-indigo-700 border border-indigo-100"
                                 : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
                                 }`}>
-                            {s === "Todas" ? s : s.replace("Direito ", "D. ").replace("Processo ", "P. ")}
+                            {s === "Todas" ? s : s
+                                .replace("Direito ", "D. ")
+                                .replace("Processo ", "P. ")
+                                .replace("Legislação ", "Leg. ")
+                                .substring(0, 25)}
                         </button>
                     ))}
                 </div>
+
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
