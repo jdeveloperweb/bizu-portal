@@ -4,6 +4,7 @@ import com.bizu.portal.identity.domain.User;
 import com.bizu.portal.identity.infrastructure.KeycloakService;
 import com.bizu.portal.identity.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,7 +57,13 @@ public class UserService {
             // Spring Data JPA to use merge(), avoiding persist() detached-entity failures
             // for entities with pre-assigned IDs.
             newUser.setNew(false);
-            return userRepository.save(newUser);
+            try {
+                return userRepository.save(newUser);
+            } catch (ObjectOptimisticLockingFailureException ex) {
+                // Concurrent requests can attempt to create the same user simultaneously.
+                // If another transaction persisted it first, return the now-existing record.
+                return userRepository.findById(userId).orElseThrow(() -> ex);
+            }
         });
     }
 }

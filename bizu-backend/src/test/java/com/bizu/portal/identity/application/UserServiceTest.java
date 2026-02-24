@@ -5,6 +5,7 @@ import com.bizu.portal.identity.infrastructure.KeycloakService;
 import com.bizu.portal.identity.infrastructure.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -45,5 +46,26 @@ class UserServiceTest {
         assertThat(persistedUser.getId()).isEqualTo(userId);
         assertThat(persistedUser.isNew()).isFalse();
         assertThat(saved.isNew()).isFalse();
+    }
+
+    @Test
+    void syncUser_returnsExistingUserWhenConcurrentInsertWinsRace() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(
+                Optional.empty(),
+                Optional.of(User.builder()
+                        .id(userId)
+                        .email("student@bizu.com")
+                        .name("Student")
+                        .status("ACTIVE")
+                        .build())
+        );
+        when(userRepository.save(org.mockito.ArgumentMatchers.any(User.class)))
+                .thenThrow(new ObjectOptimisticLockingFailureException(User.class, userId));
+
+        User saved = userService.syncUser(userId, "student@bizu.com", "Student");
+
+        assertThat(saved.getId()).isEqualTo(userId);
+        verify(userRepository).save(org.mockito.ArgumentMatchers.any(User.class));
     }
 }
