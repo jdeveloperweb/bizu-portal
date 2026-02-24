@@ -30,4 +30,16 @@ public class UserService {
         
         return userRepository.save(user);
     }
+
+    @Transactional
+    public void deleteUser(java.util.UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        
+        // Remove do Keycloak primeiro
+        keycloakService.deleteKeycloakUser(user.getEmail());
+        
+        // Remove do banco local (hard delete para ser definitivo conforme pedido)
+        userRepository.delete(user);
+    }
 }

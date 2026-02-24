@@ -11,7 +11,8 @@ import {
     Calendar,
     Shield,
     ExternalLink,
-    MoreHorizontal
+    MoreHorizontal,
+    Trash2
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -44,9 +45,31 @@ export default function AdminUsuariosPage() {
         }
     };
 
+    const handleDeleteUser = async (id: string, name: string) => {
+        if (!confirm(`Tem certeza que deseja apagar o usuário ${name}? Esta ação é irreversível e removerá o acesso dele permanentemente (Banco e Keycloak).`)) {
+            return;
+        }
+
+        try {
+            const res = await apiFetch(`/admin/users/${id}`, {
+                method: "DELETE"
+            });
+
+            if (res.ok) {
+                setUsers(prev => prev.filter(u => u.id !== id));
+            } else {
+                alert("Falha ao apagar usuário.");
+            }
+        } catch (error) {
+            console.error("Failed to delete user", error);
+            alert("Erro ao tentar apagar usuário.");
+        }
+    };
+
     useEffect(() => {
         fetchUsers();
     }, []);
+
     return (
         <div className="container mx-auto px-4 py-12 max-w-7xl">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
@@ -139,9 +162,25 @@ export default function AdminUsuariosPage() {
                                     <span className="font-black text-primary bg-primary/10 px-3 py-1 rounded-lg text-xs">{user.xp || '0 XP'}</span>
                                 </td>
                                 <td className="px-8 py-6 text-right">
-                                    <Button variant="ghost" size="sm" className="rounded-xl h-10 w-10 p-0 hover:bg-muted opacity-0 group-hover:opacity-100 transition-all">
-                                        <ExternalLink className="w-4 h-4 text-muted-foreground" />
-                                    </Button>
+                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="rounded-xl h-10 w-10 p-0 hover:bg-muted"
+                                            title="Ver Detalhes"
+                                        >
+                                            <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleDeleteUser(user.id, user.name)}
+                                            className="rounded-xl h-10 w-10 p-0 hover:bg-destructive/10 text-destructive"
+                                            title="Apagar Usuário"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

@@ -25,6 +25,7 @@ public class AdminUserController {
 
     private final UserRepository userRepository;
     private final GamificationRepository gamificationRepository;
+    private final com.bizu.portal.identity.application.UserService userService;
 
     @GetMapping
     public ResponseEntity<List<AdminUserDto>> listUsers() {
@@ -32,6 +33,12 @@ public class AdminUserController {
                 .map(this::toDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(users);
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@org.springframework.web.bind.annotation.PathVariable String id) {
+        userService.deleteUser(java.util.UUID.fromString(id));
+        return ResponseEntity.noContent().build();
     }
 
     private AdminUserDto toDto(User user) {

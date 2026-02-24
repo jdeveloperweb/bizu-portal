@@ -67,6 +67,42 @@ public class KeycloakService {
         }
     }
 
+    public void deleteKeycloakUser(String email) {
+        String adminToken = getAdminToken();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(adminToken);
+
+        // Search for user by email to get their ID
+        String searchUrl = String.format("%s/admin/realms/%s/users?username=%s", authServerUrl, realm, email);
+        
+        try {
+            ResponseEntity<List> searchResponse = restTemplate.exchange(
+                searchUrl, 
+                HttpMethod.GET, 
+                new HttpEntity<>(headers), 
+                List.class
+            );
+
+            List users = searchResponse.getBody();
+            if (users == null || users.isEmpty()) {
+                log.warn("Usuário não encontrado no Keycloak para exclusão: {}", email);
+                return;
+            }
+
+            Map<String, Object> keycloakUser = (Map<String, Object>) users.get(0);
+            String userId = (String) keycloakUser.get("id");
+
+            // Delete user by ID
+            String deleteUrl = String.format("%s/admin/realms/%s/users/%s", authServerUrl, realm, userId);
+            restTemplate.exchange(deleteUrl, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
+            
+            log.info("Usuário {} (ID: {}) deletado com sucesso do Keycloak", email, userId);
+        } catch (Exception e) {
+            log.error("Erro ao deletar usuário no Keycloak", e);
+            throw new RuntimeException("Erro ao remover usuário do serviço de identidade");
+        }
+    }
+
     private String getAdminToken() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
