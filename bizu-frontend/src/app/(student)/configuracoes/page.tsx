@@ -189,7 +189,7 @@ export default function ConfiguracoesPage() {
         <button onClick={() => onChange(!enabled)}
             className={`w-10 h-[22px] rounded-full transition-all relative ${enabled ? "bg-indigo-500" : "bg-muted"
                 }`}>
-            <div className={`w-[18px] h-[18px] rounded-full bg-white shadow-sm absolute top-[2px] transition-all ${enabled ? "left-[20px]" : "left-[2px]"
+            <div className={`w-[18px] h-[18px] rounded-full bg-background shadow-sm absolute top-[2px] transition-all ${enabled ? "left-[20px]" : "left-[2px]"
                 }`} />
         </button>
     );
@@ -201,7 +201,7 @@ export default function ConfiguracoesPage() {
             <input type="range" min={min} max={max} step={step} value={value}
                 onChange={e => onChange(Number(e.target.value))}
                 className="flex-1 h-1.5 bg-muted rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 [&::-webkit-slider-thumb]:shadow-md" />
-            <span className="text-[13px] font-bold text-slate-900 w-16 text-right">{value}{unit}</span>
+            <span className="text-[13px] font-bold text-foreground w-16 text-right">{value}{unit}</span>
         </div>
     );
 
@@ -234,10 +234,10 @@ export default function ConfiguracoesPage() {
                             return (
                                 <button key={section.id} onClick={() => setActiveSection(section.id)}
                                     className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[12px] font-medium transition-all ${active
-                                        ? "bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-500/10 dark:to-violet-500/10 text-indigo-700 dark:text-indigo-400 font-bold"
+                                        ? "bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-500/15 dark:to-violet-500/15 text-indigo-700 dark:text-indigo-300 font-bold"
                                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                         }`}>
-                                    <Icon size={15} className={active ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground opacity-70 group-hover:opacity-100"} />
+                                    <Icon size={15} className={active ? "text-indigo-600 dark:text-indigo-300" : "text-muted-foreground opacity-70 group-hover:opacity-100"} />
                                     {section.label}
                                     {active && <ChevronRight size={11} className="ml-auto text-indigo-400" />}
                                 </button>
@@ -330,7 +330,7 @@ export default function ConfiguracoesPage() {
                                             {(["mista", "facil", "media", "dificil"] as const).map(d => (
                                                 <button key={d} onClick={() => setQuestionDifficulty(d)}
                                                     className={`py-2.5 rounded-xl text-[12px] font-bold border-2 transition-all capitalize ${questionDifficulty === d
-                                                        ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                                                        ? "border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"
                                                         : "border-border text-muted-foreground hover:border-border"
                                                         }`}>
                                                     {d === "facil" ? "Facil" : d === "media" ? "Media" : d === "dificil" ? "Dificil" : "Mista"}
@@ -354,10 +354,10 @@ export default function ConfiguracoesPage() {
                                     {modules.map(s => (
                                         <button key={s.id} onClick={() => toggleSubject(s.id)}
                                             className={`flex items-center gap-2 py-2.5 px-3 rounded-xl text-[12px] font-medium border transition-all ${selectedSubjects.includes(s.id)
-                                                ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                                                ? "border-indigo-300 bg-indigo-50 text-indigo-700 dark:border-indigo-500/50 dark:bg-indigo-500/15 dark:text-indigo-300"
                                                 : "border-border text-muted-foreground hover:border-border"
                                                 }`}>
-                                            <CheckCircle2 size={14} className={selectedSubjects.includes(s.id) ? "text-indigo-500" : "text-slate-300"} />
+                                            <CheckCircle2 size={14} className={selectedSubjects.includes(s.id) ? "text-indigo-500 dark:text-indigo-300" : "text-muted-foreground/60"} />
                                             {s.title}
                                         </button>
                                     ))}
@@ -446,7 +446,7 @@ export default function ConfiguracoesPage() {
                                         ]).map(r => (
                                             <button key={r.key} onClick={() => setRankingType(r.key)}
                                                 className={`py-2.5 rounded-xl text-[12px] font-bold border-2 transition-all ${rankingType === r.key
-                                                    ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                                                    ? "border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"
                                                     : "border-border text-muted-foreground hover:border-border"
                                                     }`}>
                                                 {r.label}
@@ -493,7 +493,7 @@ export default function ConfiguracoesPage() {
                                             return (
                                                 <button key={t.key} onClick={() => setTheme(t.key)}
                                                     className={`flex flex-col items-center gap-2 py-4 rounded-xl border-2 transition-all ${theme === t.key
-                                                        ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                                                        ? "border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"
                                                         : "border-border text-muted-foreground hover:border-border"
                                                         }`}>
                                                     <Icon size={20} />
