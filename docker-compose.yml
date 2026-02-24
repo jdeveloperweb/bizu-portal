@@ -54,6 +54,7 @@ services:
       - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
       - STRIPE_API_KEY=${STRIPE_KEY}
       - KEYCLOAK_ISSUER_URI=${KEYCLOAK_ISSUER_URI}
+      - SPRING_FLYWAY_VALIDATE_ON_MIGRATE=false
     depends_on:
       - bizu-db
       - keycloak
