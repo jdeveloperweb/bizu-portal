@@ -52,6 +52,10 @@ public class UserService {
                     .name(name != null ? name : email)
                     .status("ACTIVE")
                     .build();
+            // User IDs come from the identity provider. Marking as not-new forces
+            // Spring Data JPA to use merge(), avoiding persist() detached-entity failures
+            // for entities with pre-assigned IDs.
+            newUser.setNew(false);
             return userRepository.save(newUser);
         });
     }
