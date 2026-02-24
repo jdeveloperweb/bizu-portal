@@ -13,7 +13,7 @@ import {
     MinusCircle
 } from "lucide-react";
 import { Button } from "../../../../../../components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -38,6 +38,26 @@ export default function NovaQuestaoSimuladoPage() {
     });
     const [correctOption, setCorrectOption] = useState("A");
 
+    const [simulado, setSimulado] = useState<any>(null);
+    const [modules, setModules] = useState<any[]>([]);
+    const [selectedModuleId, setSelectedModuleId] = useState<string>("");
+
+    useEffect(() => {
+        apiFetch(`/admin/simulados/${simuladoId}`)
+            .then(res => res.json())
+            .then(data => {
+                setSimulado(data);
+                if (data.course) {
+                    apiFetch(`/admin/modules/course/${data.course.id}`)
+                        .then(r => r.json())
+                        .then(mods => {
+                            if (Array.isArray(mods)) setModules(mods);
+                        });
+                }
+            })
+            .catch(err => console.error("Error fetching simulado/modules", err));
+    }, [simuladoId]);
+
     const handleSave = async () => {
         try {
             const res = await apiFetch(`/admin/simulados/${simuladoId}/questions`, {
@@ -50,7 +70,8 @@ export default function NovaQuestaoSimuladoPage() {
                     year,
                     options,
                     correctOption,
-                    questionType: "MULTIPLE_CHOICE"
+                    questionType: "MULTIPLE_CHOICE",
+                    module: selectedModuleId ? { id: selectedModuleId } : null
                 })
             });
 
@@ -215,6 +236,29 @@ export default function NovaQuestaoSimuladoPage() {
                                             <option>Raciocínio Lógico</option>
                                             <option>Atualidades</option>
                                         </select>
+                                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                                            <Settings2 className="w-4 h-4 rotate-45" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Module Selector */}
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Módulo do Curso</label>
+                                    <div className="relative group">
+                                        <select
+                                            className="w-full h-14 px-5 pr-10 rounded-2xl bg-primary/5 border-2 border-primary/10 focus:border-primary/30 focus:bg-white font-bold text-sm outline-none appearance-none transition-all cursor-pointer"
+                                            value={selectedModuleId}
+                                            onChange={(e) => setSelectedModuleId(e.target.value)}
+                                        >
+                                            <option value="">Selecione um módulo...</option>
+                                            {modules.map(module => (
+                                                <option key={module.id} value={module.id}>{module.title}</option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                                            <PlusCircle className="w-4 h-4" />
+                                        </div>
                                     </div>
                                 </div>
 

@@ -47,14 +47,21 @@ public class Duel {
     private String subject;
     
     @Builder.Default
-    @Column(name = "question_count")
-    private int questionCount = 10;
+    @Column(name = "current_round")
+    private int currentRound = 0;
+
+    @Builder.Default
+    @Column(name = "sudden_death")
+    private boolean suddenDeath = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
     @Column(name = "completed_at")
     private OffsetDateTime completedAt;
+
+    @OneToMany(mappedBy = "duel", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<DuelQuestion> questions;
 
     @PrePersist
     protected void onCreate() {

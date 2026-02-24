@@ -1,0 +1,152 @@
+package com.bizu.portal.student.application;
+
+import com.bizu.portal.content.domain.Question;
+import com.bizu.portal.content.infrastructure.QuestionRepository;
+import com.bizu.portal.identity.domain.User;
+import com.bizu.portal.student.domain.Duel;
+import com.bizu.portal.student.domain.DuelQuestion;
+import com.bizu.portal.student.infrastructure.DuelQuestionRepository;
+import com.bizu.portal.student.infrastructure.DuelRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class DuelService {
+
+    private final DuelRepository duelRepository;
+    private final DuelQuestionRepository duelQuestionRepository;
+    private final QuestionRepository questionRepository;
+    private final NotificationService notificationService;
+
+    @Transactional
+    public Duel createDuel(UUID challengerId, UUID opponentId, String subject) {
+        Duel duel = Duel.builder()
+                .challenger(User.builder().id(challengerId).build())
+                .opponent(User.builder().id(opponentId).build())
+                .subject(subject)
+                .status("PENDING")
+                .build();
+
+        duel = duelRepository.save(duel);
+        
+        // Notify opponent
+        notificationService.send(opponentId, "Novo Desafio!", "Você foi desafiado para um duelo em " + subject);
+        
+        return duel;
+    }
+
+    @Transactional
+    public Duel acceptDuel(UUID duelId) {
+        Duel duel = duelRepository.findById(duelId).orElseThrow();
+        duel.setStatus("IN_PROGRESS");
+        duel.setCurrentRound(1);
+        
+        // Select initial 10 questions: 3 Easy, 4 Medium, 3 Hard
+        List<Question> easy = questionRepository.findByFilters(null, null, duel.getSubject(), null, "EASY", "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 10)).getContent();
+        List<Question> medium = questionRepository.findByFilters(null, null, duel.getSubject(), null, "MEDIUM", "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 10)).getContent();
+        List<Question> hard = questionRepository.findByFilters(null, null, duel.getSubject(), null, "HARD", "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 10)).getContent();
+        
+        // Fallback if not enough questions in filters
+        if (easy.isEmpty()) easy = questionRepository.findAll();
+        
+        Random rand = new Random();
+        for (int i = 1; i <= 10; i++) {
+            List<Question> pool = i <= 3 ? easy : i <= 7 ? medium : hard;
+            if (pool.isEmpty()) pool = easy; 
+            if (pool.isEmpty()) pool = questionRepository.findAll();
+
+            Question q = pool.get(rand.nextInt(pool.size()));
+            DuelQuestion dq = DuelQuestion.builder()
+                    .duel(duel)
+                    .question(q)
+                    .roundNumber(i)
+                    .difficulty(i <= 3 ? "EASY" : i <= 7 ? "MEDIUM" : "HARD")
+                    .build();
+            duelQuestionRepository.save(dq);
+        }
+        
+        return duelRepository.save(duel);
+    }
+
+    @Transactional
+    public Duel submitAnswer(UUID duelId, UUID userId, int answerIndex) {
+        Duel duel = duelRepository.findById(duelId).orElseThrow();
+        DuelQuestion currentRoundQuestion = duelQuestionRepository.findByDuelIdAndRoundNumber(duelId, duel.getCurrentRound());
+
+        boolean isChallenger = duel.getChallenger().getId().equals(userId);
+        boolean isCorrect = String.valueOf(answerIndex).equals(currentRoundQuestion.getQuestion().getCorrectOption());
+
+        if (isChallenger) {
+            currentRoundQuestion.setChallengerAnswerIndex(answerIndex);
+            currentRoundQuestion.setChallengerCorrect(isCorrect);
+            if (isCorrect) duel.setChallengerScore(duel.getChallengerScore() + 1);
+        } else {
+            currentRoundQuestion.setOpponentAnswerIndex(answerIndex);
+            currentRoundQuestion.setOpponentCorrect(isCorrect);
+            if (isCorrect) duel.setOpponentScore(duel.getOpponentScore() + 1);
+        }
+
+        duelQuestionRepository.save(currentRoundQuestion);
+
+        // Check if both have answered the current round
+        if (currentRoundQuestion.getChallengerAnswerIndex() != null && currentRoundQuestion.getOpponentAnswerIndex() != null) {
+            checkRoundResult(duel, currentRoundQuestion);
+        }
+
+        return duelRepository.save(duel);
+    }
+
+    private void checkRoundResult(Duel duel, DuelQuestion dq) {
+        int round = duel.getCurrentRound();
+        boolean cCorrect = dq.getChallengerCorrect();
+        boolean oCorrect = dq.getOpponentCorrect();
+
+        if (round < 10) {
+            // Standard rounds: just advance
+            duel.setCurrentRound(round + 1);
+        } else {
+            // Shootout phase (from round 10 onwards)
+            if (cCorrect && !oCorrect) {
+                // Challenger wins
+                finishDuel(duel, duel.getChallenger());
+            } else if (!cCorrect && oCorrect) {
+                // Opponent wins
+                finishDuel(duel, duel.getOpponent());
+            } else {
+                // Both correct or both wrong: continue to next round with higher difficulty
+                duel.setCurrentRound(round + 1);
+                duel.setSuddenDeath(true);
+                
+                // Generate next question for sudden death
+                generateSuddenDeathQuestion(duel, round + 1);
+            }
+        }
+    }
+
+    private void generateSuddenDeathQuestion(Duel duel, int roundNumber) {
+        // Pick a HARD question for sudden death
+        List<Question> questions = questionRepository.findAll(); // Filter by hard difficulty
+        Question q = questions.get(new Random().nextInt(questions.size()));
+        DuelQuestion dq = DuelQuestion.builder()
+                .duel(duel)
+                .question(q)
+                .roundNumber(roundNumber)
+                .difficulty("HARD")
+                .build();
+        duelQuestionRepository.save(dq);
+    }
+
+    private void finishDuel(Duel duel, User winner) {
+        duel.setStatus("COMPLETED");
+        duel.setWinner(winner);
+        duel.setCompletedAt(OffsetDateTime.now());
+    }
+}

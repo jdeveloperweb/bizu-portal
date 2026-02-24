@@ -78,4 +78,11 @@ public class AdminSimuladoController {
     public ResponseEntity<Simulado> removeQuestion(@PathVariable UUID id, @PathVariable UUID questionId) {
         return ResponseEntity.ok(adminSimuladoService.removeQuestion(id, questionId));
     }
+
+    @PostMapping("/{id}/generate")
+    public ResponseEntity<Simulado> generateQuestions(
+            @PathVariable UUID id, 
+            @RequestBody java.util.Map<UUID, Integer> moduleWeights) {
+        return ResponseEntity.ok(adminSimuladoService.generateQuestions(id, moduleWeights));
+    }
 }

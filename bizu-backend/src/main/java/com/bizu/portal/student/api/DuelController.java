@@ -17,6 +17,8 @@ import java.util.UUID;
 public class DuelController {
 
     private final DuelRepository duelRepository;
+    private final DuelService duelService;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     @GetMapping("/online")
     public ResponseEntity<List<String>> getOnlineUsers() {
@@ -32,9 +34,10 @@ public class DuelController {
 
     @PostMapping("/{duelId}/aceitar")
     public ResponseEntity<Duel> acceptDuel(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID duelId) {
-        Duel duel = duelRepository.findById(duelId).orElseThrow();
-        duel.setStatus("IN_PROGRESS");
-        return ResponseEntity.ok(duelRepository.save(duel));
+        Duel duel = duelService.acceptDuel(duelId);
+        // Notify both players that duel started
+        messagingTemplate.convertAndSend("/topic/duelos/" + duelId, duel);
+        return ResponseEntity.ok(duel);
     }
 
     @PostMapping("/{duelId}/recusar")
@@ -48,19 +51,25 @@ public class DuelController {
     @PostMapping("/desafiar")
     public ResponseEntity<Duel> createDuel(@AuthenticationPrincipal Jwt jwt, @RequestParam UUID opponentId, @RequestParam String subject) {
         UUID challengerId = UUID.fromString(jwt.getSubject());
-        // Logic to invite a user and create a Duel record
-        Duel duel = Duel.builder()
-            .challenger(com.bizu.portal.identity.domain.User.builder().id(challengerId).build())
-            .opponent(com.bizu.portal.identity.domain.User.builder().id(opponentId).build())
-            .status("PENDING")
-            .subject(subject)
-            .build();
-        return ResponseEntity.ok(duelRepository.save(duel));
+        return ResponseEntity.ok(duelService.createDuel(challengerId, opponentId, subject));
+    }
+
+    @PostMapping("/{duelId}/responder")
+    public ResponseEntity<Duel> submitAnswer(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID duelId, @RequestParam int answerIndex) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        Duel duel = duelService.submitAnswer(duelId, userId, answerIndex);
+        // Send state update
+        messagingTemplate.convertAndSend("/topic/duelos/" + duelId, duel);
+        return ResponseEntity.ok(duel);
+    }
+
+    @GetMapping("/{duelId}")
+    public ResponseEntity<Duel> getDuel(@PathVariable UUID duelId) {
+        return ResponseEntity.ok(duelRepository.findById(duelId).orElseThrow());
     }
 
     @GetMapping("/ranking")
-    public ResponseEntity<List<Object>> getDuelRanking() {
-        // Separate ranking for duels
-        return ResponseEntity.ok(List.of());
+    public ResponseEntity<List<Object[]>> getDuelRanking() {
+        return ResponseEntity.ok(duelRepository.getRanking());
     }
 }

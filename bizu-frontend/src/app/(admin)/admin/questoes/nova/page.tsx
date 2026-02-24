@@ -40,7 +40,13 @@ function QuestionFormContainer() {
         D: ""
     });
     const [correctOption, setCorrectOption] = useState("A");
-    const [isLoading, setIsLoading] = useState(false);
+
+    const [courses, setCourses] = useState<any[]>([]);
+    const [modules, setModules] = useState<any[]>([]);
+    const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+    const [selectedModuleId, setSelectedModuleId] = useState<string>("");
+
+    const [isLoading, setIsLoading] = useState(!!editId);
 
     useEffect(() => {
         if (editId) {
@@ -56,11 +62,57 @@ function QuestionFormContainer() {
                     setYear(data.year || new Date().getFullYear());
                     setOptions(data.options || { A: "", B: "", C: "", D: "" });
                     setCorrectOption(data.correctOption || "A");
+                    if (data.module) {
+                        setSelectedModuleId(data.module.id);
+                        if (data.module.course) {
+                            setSelectedCourseId(data.module.course.id);
+                        }
+                    }
                 })
-                .catch(err => console.error("Error fetching question", err))
+                .catch(err => {
+                    console.error("Error fetching question", err);
+                    alert("Erro ao carregar os dados da questão.");
+                })
                 .finally(() => setIsLoading(false));
+        } else {
+            setContent("");
+            setCategory("QUIZ");
+            setDifficulty("EASY");
+            setSubject("Direito Administrativo");
+            setBanca("");
+            setYear(new Date().getFullYear());
+            setOptions({ A: "", B: "", C: "", D: "" });
+            setCorrectOption("A");
+            setIsLoading(false);
         }
     }, [editId]);
+
+    useEffect(() => {
+        apiFetch("/admin/courses")
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setCourses(data);
+                }
+            })
+            .catch(err => console.error("Error fetching courses", err));
+    }, []);
+
+    useEffect(() => {
+        if (selectedCourseId) {
+            apiFetch(`/admin/modules/course/${selectedCourseId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        setModules(data);
+                    }
+                })
+                .catch(err => console.error("Error fetching modules", err));
+        } else {
+            setModules([]);
+            setSelectedModuleId("");
+        }
+    }, [selectedCourseId]);
 
     const handleSave = async () => {
         try {
@@ -78,7 +130,8 @@ function QuestionFormContainer() {
                     year,
                     options,
                     correctOption,
-                    questionType: "MULTIPLE_CHOICE"
+                    questionType: "MULTIPLE_CHOICE",
+                    module: selectedModuleId ? { id: selectedModuleId } : null
                 })
             });
 
@@ -87,6 +140,7 @@ function QuestionFormContainer() {
             }
         } catch (error) {
             console.error("Failed to save question", error);
+            alert("Erro ao salvar a questão. Verifique os campos e tente novamente.");
         }
     };
 
@@ -275,14 +329,61 @@ function QuestionFormContainer() {
                                             value={subject}
                                             onChange={(e) => setSubject(e.target.value)}
                                         >
-                                            <option>Direito Administrativo</option>
-                                            <option>Direito Constitucional</option>
-                                            <option>Português</option>
-                                            <option>Raciocínio Lógico</option>
-                                            <option>Atualidades</option>
+                                            <option value="Direito Administrativo">Direito Administrativo</option>
+                                            <option value="Direito Constitucional">Direito Constitucional</option>
+                                            <option value="Português">Português</option>
+                                            <option value="Raciocínio Lógico">Raciocínio Lógico</option>
+                                            <option value="Atualidades">Atualidades</option>
+                                            {/* Suporte para valores em maiúsculo do banco */}
+                                            <option value="DIREITO ADMINISTRATIVO">DIREITO ADMINISTRATIVO</option>
+                                            <option value="DIREITO CONSTITUCIONAL">DIREITO CONSTITUCIONAL</option>
+                                            <option value="PORTUGUÊS">PORTUGUÊS</option>
+                                            <option value="RACIOCÍNIO LÓGICO">RACIOCÍNIO LÓGICO</option>
+                                            <option value="ATUALIDADES">ATUALIDADES</option>
                                         </select>
                                         <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
                                             <PlusCircle className="w-4 h-4 rotate-45" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Course Selector */}
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1 text-primary">Curso Vinculado</label>
+                                    <div className="relative group">
+                                        <select
+                                            className="w-full h-14 px-5 pr-10 rounded-2xl bg-primary/5 border-2 border-primary/10 focus:border-primary/30 focus:bg-white font-bold text-sm outline-none appearance-none transition-all cursor-pointer"
+                                            value={selectedCourseId}
+                                            onChange={(e) => setSelectedCourseId(e.target.value)}
+                                        >
+                                            <option value="">Selecione um curso...</option>
+                                            {courses.map(course => (
+                                                <option key={course.id} value={course.id}>{course.title}</option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                                            <Settings2 className="w-4 h-4" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Module Selector */}
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1 text-primary">Módulo do Curso</label>
+                                    <div className="relative group">
+                                        <select
+                                            className="w-full h-14 px-5 pr-10 rounded-2xl bg-primary/5 border-2 border-primary/10 focus:border-primary/30 focus:bg-white font-bold text-sm outline-none appearance-none transition-all cursor-pointer disabled:opacity-50"
+                                            value={selectedModuleId}
+                                            onChange={(e) => setSelectedModuleId(e.target.value)}
+                                            disabled={!selectedCourseId}
+                                        >
+                                            <option value="">{selectedCourseId ? "Selecione um módulo..." : "Selecione um curso primeiro"}</option>
+                                            {modules.map(module => (
+                                                <option key={module.id} value={module.id}>{module.title}</option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                                            <FileText className="w-4 h-4" />
                                         </div>
                                     </div>
                                 </div>

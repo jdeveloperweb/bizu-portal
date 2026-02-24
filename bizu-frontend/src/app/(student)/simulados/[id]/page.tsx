@@ -20,7 +20,7 @@ export default function SimuladoProvaPage() {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Anti-cheat & Fetch Data
+    // Fetch Data
     useEffect(() => {
         const fetchSimulado = async () => {
             setIsLoading(true);
@@ -40,7 +40,10 @@ export default function SimuladoProvaPage() {
         if (simuladoId) {
             fetchSimulado();
         }
+    }, [simuladoId]);
 
+    // Anti-cheat & Fullscreen
+    useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.hidden && !isFinished && !isLoading) {
                 setCheatWarning(true);

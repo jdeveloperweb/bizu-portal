@@ -1,0 +1,246 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Swords, Trophy, Timer, CheckCircle2, XCircle, Zap, Shield, Crown } from "lucide-react";
+import { Duel, DuelQuestion, DuelService } from "@/lib/duelService";
+import { useDuelWebSocket } from "@/hooks/useDuelWebSocket";
+import confetti from "canvas-confetti";
+
+interface ArenaDuelScreenProps {
+    duelId: string;
+    onClose: () => void;
+    currentUserId: string;
+}
+
+export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: ArenaDuelScreenProps) {
+    const [duel, setDuel] = useState<Duel | null>(null);
+    const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+    const [timeLeft, setTimeLeft] = useState(30);
+    const [showCorrection, setShowCorrection] = useState(false);
+
+    useDuelWebSocket(duelId, (updatedDuel) => {
+        setDuel(updatedDuel);
+        // If round changed, reset state
+        if (duel && updatedDuel.currentRound !== duel.currentRound) {
+            setSelectedAnswer(null);
+            setShowCorrection(false);
+            setTimeLeft(30);
+        }
+    });
+
+    useEffect(() => {
+        const fetchDuel = async () => {
+            const data = await DuelService.getDuel(duelId);
+            setDuel(data);
+        };
+        fetchDuel();
+    }, [duelId]);
+
+    useEffect(() => {
+        if (!duel || duel.status !== "IN_PROGRESS") return;
+
+        const timer = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timer);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [duel?.currentRound, duel?.status]);
+
+    useEffect(() => {
+        if (duel?.status === "COMPLETED") {
+            if (duel.winner?.id === currentUserId) {
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+    }, [duel?.status]);
+
+    if (!duel) return null;
+
+    const currentRoundQuestion = duel.questions.find(q => q.roundNumber === duel.currentRound);
+    const isChallenger = duel.challenger.id === currentUserId;
+    const myAnswer = isChallenger ? currentRoundQuestion?.challengerAnswerIndex : currentRoundQuestion?.opponentAnswerIndex;
+    const opponentAnswer = isChallenger ? currentRoundQuestion?.opponentAnswerIndex : currentRoundQuestion?.challengerAnswerIndex;
+
+    const handleAnswer = async (index: number) => {
+        if (selectedAnswer !== null || myAnswer !== undefined) return;
+        setSelectedAnswer(index);
+        await DuelService.submitAnswer(duelId, index);
+    };
+
+    return (
+        <div className="fixed inset-0 z-[100] bg-slate-900/95 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="w-full max-w-4xl bg-white rounded-3xl overflow-hidden shadow-2xl relative flex flex-col h-[90vh]">
+                {/* Header / Scoreboard */}
+                <div className="bg-slate-50 p-6 border-b border-slate-100">
+                    <div className="flex items-center justify-between gap-8">
+                        {/* Challenger */}
+                        <div className="flex flex-col items-center gap-2 flex-1">
+                            <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xl font-bold shadow-lg ${isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
+                                {duel.challenger.name?.slice(0, 2).toUpperCase()}
+                            </div>
+                            <span className="text-sm font-bold text-slate-800">{duel.challenger.name}</span>
+                            <div className="flex gap-1 mt-1">
+                                {Array.from({ length: 10 }).map((_, i) => (
+                                    <div key={i} className={`w-2.5 h-2.5 rounded-full ${duel.questions[i]?.challengerCorrect === true ? "bg-emerald-500" :
+                                        duel.questions[i]?.challengerCorrect === false ? "bg-red-500" :
+                                            "bg-slate-200"
+                                        }`} />
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* VS / Round Info */}
+                        <div className="flex flex-col items-center gap-1">
+                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rodada {duel.currentRound}</div>
+                            <div className="flex items-center gap-4">
+                                <span className="text-4xl font-black text-slate-900">{duel.challengerScore}</span>
+                                <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-white shadow-lg">
+                                    <span className="text-xs font-bold leading-none">VS</span>
+                                </div>
+                                <span className="text-4xl font-black text-slate-900">{duel.opponentScore}</span>
+                            </div>
+                            {duel.suddenDeath && (
+                                <motion.div
+                                    initial={{ scale: 0.8, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full mt-1 flex items-center gap-1"
+                                >
+                                    <Zap size={10} /> MORTE SÚBITA
+                                </motion.div>
+                            )}
+                        </div>
+
+                        {/* Opponent */}
+                        <div className="flex flex-col items-center gap-2 flex-1">
+                            <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-600 text-xl font-bold shadow-lg ${!isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
+                                {duel.opponent.name?.slice(0, 2).toUpperCase()}
+                            </div>
+                            <span className="text-sm font-bold text-slate-800">{duel.opponent.name}</span>
+                            <div className="flex gap-1 mt-1">
+                                {Array.from({ length: 10 }).map((_, i) => (
+                                    <div key={i} className={`w-2.5 h-2.5 rounded-full ${duel.questions[i]?.opponentCorrect === true ? "bg-emerald-500" :
+                                        duel.questions[i]?.opponentCorrect === false ? "bg-red-500" :
+                                            "bg-slate-200"
+                                        }`} />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Question Area */}
+                <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-center text-center">
+                    <AnimatePresence mode="wait">
+                        {duel.status === "IN_PROGRESS" && currentRoundQuestion ? (
+                            <motion.div
+                                key={currentRoundQuestion.id}
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                exit={{ y: -20, opacity: 0 }}
+                                className="w-full max-w-2xl"
+                            >
+                                <div className="mb-6 flex items-center justify-center gap-4">
+                                    <div className="flex items-center gap-2 text-indigo-600 font-bold text-sm">
+                                        <Timer size={18} /> {timeLeft}s
+                                    </div>
+                                    <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${currentRoundQuestion.difficulty === 'EASY' ? 'bg-emerald-50 text-emerald-600' :
+                                        currentRoundQuestion.difficulty === 'MEDIUM' ? 'bg-amber-50 text-amber-600' :
+                                            'bg-red-50 text-red-600'
+                                        }`}>
+                                        Nível {currentRoundQuestion.difficulty}
+                                    </div>
+                                </div>
+
+                                <h2 className="text-xl font-bold text-slate-900 mb-8 leading-relaxed">
+                                    {currentRoundQuestion.question.statement}
+                                </h2>
+
+                                <div className="grid grid-cols-1 gap-3">
+                                    {Object.entries(currentRoundQuestion.question.options).map(([key, option], idx) => {
+                                        const isSelected = selectedAnswer === Number(key) || myAnswer === Number(key);
+                                        const isWaitingOpponent = myAnswer !== undefined && opponentAnswer === undefined;
+
+                                        return (
+                                            <motion.button
+                                                key={key}
+                                                whileHover={{ scale: 1.01 }}
+                                                whileTap={{ scale: 0.99 }}
+                                                onClick={() => handleAnswer(Number(key))}
+                                                disabled={myAnswer !== undefined}
+                                                className={`p-4 rounded-2xl border-2 text-left transition-all relative ${isSelected ? "border-indigo-500 bg-indigo-50 shadow-md" :
+                                                    "border-slate-100 hover:border-indigo-200 hover:bg-slate-50"
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold border ${isSelected ? "bg-indigo-500 text-white border-indigo-500" : "bg-white text-slate-400 border-slate-200"
+                                                        }`}>
+                                                        {String.fromCharCode(65 + idx)}
+                                                    </div>
+                                                    <span className={`text-[15px] font-medium ${isSelected ? "text-indigo-900" : "text-slate-700"}`}>
+                                                        {option}
+                                                    </span>
+                                                </div>
+                                                {isWaitingOpponent && isSelected && (
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 text-[10px] font-bold text-indigo-500 italic">
+                                                        <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" /> Aguardando oponente...
+                                                    </div>
+                                                )}
+                                            </motion.button>
+                                        );
+                                    })}
+                                </div>
+                            </motion.div>
+                        ) : duel.status === "COMPLETED" ? (
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="flex flex-col items-center gap-6"
+                            >
+                                <div className={`w-24 h-24 rounded-full flex items-center justify-center shadow-xl ${duel.winner?.id === currentUserId ? "bg-amber-100 text-amber-500" : "bg-slate-100 text-slate-400"
+                                    }`}>
+                                    <Trophy size={48} />
+                                </div>
+                                <div>
+                                    <h2 className="text-3xl font-black text-slate-900 mb-2">
+                                        {duel.winner?.id === currentUserId ? "VOCÊ VENCEU!" : "DERROTA"}
+                                    </h2>
+                                    <p className="text-slate-500">{duel.winner?.name} é o campeão da Arena.</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="px-6 py-3 rounded-2xl bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-200 cursor-pointer" onClick={onClose}>
+                                        Voltar para Arena
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <div className="flex flex-col items-center gap-4 text-slate-400">
+                                <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                                <p className="font-bold">Sincronizando duelo...</p>
+                            </div>
+                        )}
+                    </AnimatePresence>
+                </div>
+
+                {/* Status Bar */}
+                <div className="px-8 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                            <Shield size={14} className="text-slate-400" /> Matéria: {duel.subject}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

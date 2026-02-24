@@ -21,6 +21,7 @@ import { Button } from "../../../../components/ui/button";
 import { useState, useEffect } from "react";
 import { Input } from "../../../../components/ui/input";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -31,6 +32,7 @@ import {
 import { apiFetch } from "@/lib/api";
 
 export default function AdminQuestoesPage() {
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState<"SIMULADO" | "QUIZ">("SIMULADO");
     const [questions, setQuestions] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -205,9 +207,11 @@ export default function AdminQuestoesPage() {
                                 <tr key={q.id} className="group hover:bg-muted/20 transition-all">
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col gap-1">
-                                            <div className="font-bold text-slate-800 line-clamp-1 group-hover:text-primary transition-colors cursor-default" title={q.statement}>
-                                                {q.statement.replace(/[#*]/g, '')}
-                                            </div>
+                                            <div
+                                                className="font-bold text-slate-800 line-clamp-1 group-hover:text-primary transition-colors cursor-default"
+                                                title={q.statement}
+                                                dangerouslySetInnerHTML={{ __html: q.statement }}
+                                            />
                                             <div className="flex items-center gap-2">
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 px-2 py-0.5 rounded">
                                                     {q.subject}
@@ -237,12 +241,13 @@ export default function AdminQuestoesPage() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end" className="w-48 rounded-2xl p-2 shadow-2xl border-muted/50">
-                                                <Link href={`/admin/questoes/nova?id=${q.id}`}>
-                                                    <DropdownMenuItem className="rounded-xl font-bold gap-2 focus:bg-primary focus:text-white cursor-pointer h-10">
-                                                        <Edit2 className="w-4 h-4" />
-                                                        Editar Questão
-                                                    </DropdownMenuItem>
-                                                </Link>
+                                                <DropdownMenuItem
+                                                    onClick={() => router.push(`/admin/questoes/nova?id=${q.id}`)}
+                                                    className="rounded-xl font-bold gap-2 focus:bg-primary focus:text-white cursor-pointer h-10"
+                                                >
+                                                    <Edit2 className="w-4 h-4" />
+                                                    Editar Questão
+                                                </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     onClick={() => handleDelete(q.id)}
                                                     className="rounded-xl font-bold gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer h-10"

@@ -83,4 +83,21 @@ public class AdminSimuladoService {
         simulado.getQuestions().removeIf(q -> q.getId().equals(questionId));
         return simuladoRepository.save(simulado);
     }
+
+    @Transactional
+    public Simulado generateQuestions(UUID simuladoId, java.util.Map<UUID, Integer> moduleWeights) {
+        Simulado simulado = findById(simuladoId);
+        
+        for (java.util.Map.Entry<UUID, Integer> entry : moduleWeights.entrySet()) {
+            UUID moduleId = entry.getKey();
+            Integer count = entry.getValue();
+            
+            if (count != null && count > 0) {
+                java.util.List<Question> randomQuestions = questionRepository.findRandomByModuleAndCategory(moduleId, "SIMULADO", count);
+                simulado.getQuestions().addAll(randomQuestions);
+            }
+        }
+        
+        return simuladoRepository.save(simulado);
+    }
 }
