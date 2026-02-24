@@ -41,38 +41,46 @@ const sourceLabels: Record<TaskSource, string> = {
     ranking: "Meta Ranking",
 };
 
-const SUBJECTS = [
-    "Direito Constitucional", "Direito Administrativo", "Direito Civil",
-    "Direito Penal", "Processo Civil", "Processo Penal",
-];
-
 import { useEffect } from "react";
 import { apiFetch } from "@/lib/api";
 
 export default function TarefasPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
+    const [courses, setCourses] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const fetchTasks = async () => {
+        const fetchData = async () => {
             try {
-                const res = await apiFetch("/student/tasks");
-                if (res.ok) {
-                    setTasks(await res.json());
+                const resTasks = await apiFetch("/student/tasks");
+                if (resTasks.ok) {
+                    setTasks(await resTasks.json());
+                }
+                const resCourses = await apiFetch("/public/courses");
+                if (resCourses.ok) {
+                    const coursesData = await resCourses.json();
+                    setCourses(coursesData);
+                    if (coursesData.length > 0) {
+                        setSelectedCourse(coursesData[0].id);
+                        if (coursesData[0].modules?.length > 0) {
+                            setSelectedModule(coursesData[0].modules[0].id);
+                        }
+                    }
                 }
             } catch (error) {
-                console.error("Failed to fetch tasks", error);
+                console.error("Failed to fetch data", error);
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchTasks();
+        fetchData();
     }, []);
 
     const [filter, setFilter] = useState<"todas" | "pendente" | "em_progresso" | "concluida">("todas");
     const [showNewTask, setShowNewTask] = useState(false);
     const [newTitle, setNewTitle] = useState("");
-    const [newSubject, setNewSubject] = useState(SUBJECTS[0]);
+    const [selectedCourse, setSelectedCourse] = useState("");
+    const [selectedModule, setSelectedModule] = useState("");
     const [newPriority, setNewPriority] = useState<Priority>("media");
 
     const toggleStatus = async (id: string) => {
@@ -107,9 +115,13 @@ export default function TarefasPage() {
     const addTask = async () => {
         if (!newTitle.trim()) return;
 
+        const course = courses.find(c => c.id === selectedCourse);
+        const module = course?.modules?.find((m: any) => m.id === selectedModule);
+        const subjectName = module ? `${course.title} - ${module.title}` : (course ? course.title : "Geral");
+
         const newTaskData = {
             title: newTitle,
-            subject: newSubject,
+            subject: subjectName,
             priority: newPriority,
             status: "pendente",
             source: "manual",
@@ -207,17 +219,37 @@ export default function TarefasPage() {
                             <input value={newTitle} onChange={e => setNewTitle(e.target.value)}
                                 placeholder="Titulo da tarefa..." autoFocus
                                 className="input-field mb-3" />
-                            <div className="flex items-center gap-3 mb-4">
-                                <select value={newSubject} onChange={e => setNewSubject(e.target.value)}
-                                    className="input-field !w-auto !h-9 text-[12px]">
-                                    {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
-                                </select>
-                                <select value={newPriority} onChange={e => setNewPriority(e.target.value as Priority)}
-                                    className="input-field !w-auto !h-9 text-[12px]">
-                                    <option value="alta">Alta</option>
-                                    <option value="media">Media</option>
-                                    <option value="baixa">Baixa</option>
-                                </select>
+                            <div className="flex flex-col gap-3 mb-4">
+                                <div className="flex items-center gap-3">
+                                    <select value={selectedCourse} onChange={e => {
+                                        setSelectedCourse(e.target.value);
+                                        const course = courses.find(c => c.id === e.target.value);
+                                        if (course?.modules?.length > 0) {
+                                            setSelectedModule(course.modules[0].id);
+                                        } else {
+                                            setSelectedModule("");
+                                        }
+                                    }}
+                                        className="input-field !h-9 text-[12px] flex-1">
+                                        {courses.length === 0 ? <option value="">Nenhum curso dispon&iacute;vel</option> : null}
+                                        {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                                    </select>
+                                    <select value={newPriority} onChange={e => setNewPriority(e.target.value as Priority)}
+                                        className="input-field !w-auto !h-9 text-[12px]">
+                                        <option value="alta">Alta</option>
+                                        <option value="media">M&eacute;dia</option>
+                                        <option value="baixa">Baixa</option>
+                                    </select>
+                                </div>
+                                {courses.find((c: any) => c.id === selectedCourse)?.modules?.length > 0 && (
+                                    <select value={selectedModule} onChange={e => setSelectedModule(e.target.value)}
+                                        className="input-field !h-9 text-[12px] w-full">
+                                        <option value="">Selecione um m&oacute;dulo...</option>
+                                        {courses.find((c: any) => c.id === selectedCourse)?.modules?.map((m: any) => (
+                                            <option key={m.id} value={m.id}>{m.title}</option>
+                                        ))}
+                                    </select>
+                                )}
                             </div>
                             <div className="flex items-center gap-2">
                                 <button onClick={addTask} className="btn-primary !h-9 !text-[12px] !px-4">Adicionar</button>
