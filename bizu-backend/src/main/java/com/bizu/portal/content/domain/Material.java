@@ -37,6 +37,7 @@ public class Material {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "module_id")
+    @com.fasterxml.jackson.annotation.JsonBackReference
     private Module module;
 
     @Column(name = "created_at", nullable = false, updatable = false)
