@@ -33,13 +33,13 @@ export default function Navbar() {
                 }`}
         >
             <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-                <BrandLogo size="sm" variant={scrolled ? "dark" : "light"} />
+                <BrandLogo size="sm" variant="dark" />
 
                 {/* Desktop */}
                 <div className="hidden md:flex items-center gap-8">
                     {navLinks.map((l) => (
                         <Link key={l.href} href={l.href}
-                            className={`text-[13px] font-semibold transition-colors ${scrolled ? "text-slate-500 hover:text-slate-900" : "text-white/80 hover:text-white"}`}>
+                            className="text-[14px] font-bold text-slate-600 hover:text-indigo-600 transition-colors">
                             {l.label}
                         </Link>
                     ))}
@@ -49,16 +49,13 @@ export default function Navbar() {
                     {authenticated ? (
                         <>
                             <Link href={dashboardHref}
-                                className={`flex items-center gap-2 text-[13px] font-bold transition-all px-4 py-2 rounded-full ${scrolled
-                                        ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
-                                        : "bg-white/10 text-white hover:bg-white/20 backdrop-blur-md"
-                                    }`}>
-                                <LayoutDashboard size={14} />
+                                className="flex items-center gap-2 text-[14px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-all px-5 py-2.5 rounded-full shadow-sm">
+                                <LayoutDashboard size={16} />
                                 Painel
                             </Link>
                             <button
                                 onClick={logout}
-                                className={`p-2 rounded-full transition-colors ${scrolled ? "text-slate-400 hover:text-red-500 hover:bg-red-50" : "text-white/60 hover:text-white hover:bg-white/10"}`}
+                                className="p-2.5 rounded-full text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                                 title="Sair">
                                 <LogOut size={18} />
                             </button>
@@ -66,18 +63,20 @@ export default function Navbar() {
                     ) : (
                         <>
                             <Link href="/login"
-                                className={`text-[13px] font-semibold transition-colors px-3 py-2 ${scrolled ? "text-slate-600 hover:text-indigo-600" : "text-white/80 hover:text-white"}`}>
+                                className="text-[14px] font-bold text-slate-700 hover:text-indigo-600 transition-colors px-4 py-2 hover:bg-slate-50 rounded-full">
                                 Entrar
                             </Link>
-                            <Link href="/register" className={`btn-primary !h-9 !text-xs !rounded-full !px-5 ${!scrolled ? "shadow-[0_0_15px_rgba(99,102,241,0.5)]" : ""}`}>
-                                Comece gratis
+                            <Link href="/register"
+                                className="relative group inline-flex items-center justify-center px-6 py-2.5 text-[14px] font-bold text-white transition-all duration-300 bg-gradient-to-r from-indigo-600 to-violet-600 rounded-full shadow-md shadow-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/50 hover:-translate-y-0.5 overflow-hidden">
+                                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                                <span className="relative z-10 flex items-center gap-2">Comece grátis</span>
                             </Link>
                         </>
                     )}
                 </div>
 
-                <button className={`md:hidden ${scrolled ? "text-slate-500" : "text-white"}`} onClick={() => setMobileOpen(!mobileOpen)}>
-                    {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+                <button className="md:hidden text-slate-600 hover:text-indigo-600 transition-colors" onClick={() => setMobileOpen(!mobileOpen)}>
+                    {mobileOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
             </div>
 

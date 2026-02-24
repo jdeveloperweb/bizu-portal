@@ -121,12 +121,6 @@ export default function Hero() {
 
                     <div className="max-w-4xl mx-auto text-center flex flex-col items-center mb-16">
 
-                        {/* Badge Academy */}
-                        <div className="animate-fade-in-up inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm mb-8">
-                            <span className="flex h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
-                            <span className="text-xs font-semibold text-slate-600 tracking-wide uppercase">Bizu Academy Elite</span>
-                        </div>
-
                         {/* Title */}
                         <h1 className="animate-fade-in-up delay-100 text-4xl sm:text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-6">
                             A excelência na sua <br className="hidden md:block" />
