@@ -209,7 +209,7 @@ export default function ProfilePage() {
                             <Button
                                 onClick={handleSave}
                                 disabled={!isModified || isSaving}
-                                className="rounded-2xl px-10 h-14 font-black shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all w-full sm:w-auto"
+                                className="btn-primary rounded-2xl px-10 h-14 font-black shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                                 Salvar Alterações

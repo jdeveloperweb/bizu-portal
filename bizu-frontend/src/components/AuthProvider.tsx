@@ -84,11 +84,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 pkceMethod: "S256",
             })
             .then(async (auth) => {
-                setAuthenticated(auth);
                 if (auth && keycloak) {
+                    setAuthenticated(true);
                     Cookies.set("token", keycloak.token || "", { expires: 1 });
                     setUser(keycloak.tokenParsed ?? null);
                     await refreshUserProfile();
+                } else {
+                    const manualToken = Cookies.get("token");
+                    if (manualToken) {
+                        try {
+                            const base64Url = manualToken.split('.')[1];
+                            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                            const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                            const parsedToken = JSON.parse(jsonPayload);
+
+                            // Check expiration
+                            if (parsedToken.exp && parsedToken.exp * 1000 > Date.now()) {
+                                setAuthenticated(true);
+                                setUser(parsedToken);
+                                await refreshUserProfile();
+                            } else {
+                                Cookies.remove("token");
+                                setAuthenticated(false);
+                            }
+                        } catch (e) {
+                            console.error("Failed to parse manual token", e);
+                            Cookies.remove("token");
+                            setAuthenticated(false);
+                        }
+                    } else {
+                        setAuthenticated(false);
+                    }
                 }
                 setLoading(false);
             })
