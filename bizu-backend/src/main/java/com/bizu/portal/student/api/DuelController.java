@@ -1,5 +1,6 @@
 package com.bizu.portal.student.api;
 
+import com.bizu.portal.student.application.DuelService;
 import com.bizu.portal.student.domain.Duel;
 import com.bizu.portal.student.infrastructure.DuelRepository;
 import lombok.RequiredArgsConstructor;
