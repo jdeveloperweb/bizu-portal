@@ -43,6 +43,9 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
 
     Page<Question> findByCategory(String category, Pageable pageable);
 
+    @Query(value = "SELECT * FROM content.questions WHERE category = :category ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
+    java.util.List<Question> findRandomByCategory(@Param("category") String category, @Param("limit") int limit);
+
     long countByCategory(String category);
 
     long countByCategoryAndDifficulty(String category, String difficulty);

@@ -1,8 +1,8 @@
 package com.bizu.portal.student.api;
 
 import com.bizu.portal.content.domain.Simulado;
-import com.bizu.portal.content.infrastructure.QuestionRepository;
 import com.bizu.portal.content.infrastructure.SimuladoRepository;
+import com.bizu.portal.student.application.StudentSimuladoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,12 +16,21 @@ import java.util.UUID;
 public class SimuladoController {
 
     private final SimuladoRepository simuladoRepository;
-    private final QuestionRepository questionRepository;
+    private final StudentSimuladoService studentSimuladoService;
 
     @GetMapping("/disponiveis")
     public ResponseEntity<List<Simulado>> getAvailableSimulados() {
-        // Here we could filter by current date
         return ResponseEntity.ok(simuladoRepository.findAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Simulado> getSimulado(@PathVariable UUID id) {
+        return ResponseEntity.ok(studentSimuladoService.getSimuladoCompleto(id));
+    }
+
+    @GetMapping("/quiz/rapido")
+    public ResponseEntity<Simulado> getQuickQuiz(@RequestParam(defaultValue = "10") int count) {
+        return ResponseEntity.ok(studentSimuladoService.generateQuickQuiz(count));
     }
 
     @PostMapping("/personalizado")
@@ -29,12 +38,6 @@ public class SimuladoController {
             @RequestParam List<String> subjects,
             @RequestParam int count,
             @RequestParam String difficulty) {
-        
-        // Logic to fetch custom questions and return a temporary "simulado" session
-        // For now, returning a mock or finding existing questions
-        return ResponseEntity.ok(Simulado.builder()
-            .title("Simulado Personalizado")
-            .description("Gerado conforme seus critérios")
-            .build());
+        return ResponseEntity.ok(studentSimuladoService.generateQuickQuiz(count));
     }
 }

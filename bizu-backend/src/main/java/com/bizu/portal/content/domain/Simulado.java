@@ -43,6 +43,7 @@ public class Simulado {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "modules"})
     private Course course;
 
     @ManyToMany

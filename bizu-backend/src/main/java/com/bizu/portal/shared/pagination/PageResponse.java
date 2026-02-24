@@ -18,4 +18,15 @@ public class PageResponse<T> {
     private long totalElements;
     private int totalPages;
     private boolean last;
+
+    public static <T> PageResponse<T> of(org.springframework.data.domain.Page<T> page) {
+        return PageResponse.<T>builder()
+                .content(page.getContent())
+                .pageNumber(page.getNumber())
+                .pageSize(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .last(page.isLast())
+                .build();
+    }
 }

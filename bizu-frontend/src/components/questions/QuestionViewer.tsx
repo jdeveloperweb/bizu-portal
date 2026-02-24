@@ -16,6 +16,7 @@ interface QuestionProps {
     options: Option[];
     correctOptionId: string;
     resolution?: string;
+    onNext?: () => void;
 }
 
 export default function QuestionViewer({
@@ -23,6 +24,7 @@ export default function QuestionViewer({
     options,
     correctOptionId,
     resolution,
+    onNext,
 }: QuestionProps) {
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -109,7 +111,9 @@ export default function QuestionViewer({
                         Responder
                     </Button>
                 ) : (
-                    <Button className="rounded-2xl px-8 md:px-12 h-14 font-bold text-base md:text-lg variant-secondary w-full sm:w-auto">
+                    <Button
+                        onClick={onNext}
+                        className="rounded-2xl px-8 md:px-12 h-14 font-bold text-base md:text-lg variant-secondary w-full sm:w-auto">
                         Próxima Questão
                     </Button>
                 )}

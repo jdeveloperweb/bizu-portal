@@ -107,11 +107,10 @@ export default function ConquistasPage() {
                     const Icon = config.icon;
                     return (
                         <button key={key} onClick={() => setActiveCategory(key)}
-                            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all ${
-                                activeCategory === key
+                            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all ${activeCategory === key
                                     ? "bg-indigo-50 text-indigo-700 border border-indigo-100"
                                     : "text-slate-400 hover:text-slate-600"
-                            }`}>
+                                }`}>
                             <Icon size={12} /> {config.label}
                         </button>
                     );
@@ -123,16 +122,21 @@ export default function ConquistasPage() {
                 {filteredBadges.map(badge => {
                     const Icon = badge.icon;
                     return (
-                        <div key={badge.id} className={`card-elevated !rounded-2xl p-5 hover:!transform-none transition-all ${
-                            !badge.earned ? "opacity-70" : ""
-                        }`}>
+                        <div key={badge.id} className={`card-elevated !rounded-2xl p-5 hover:!transform-none transition-all ${!badge.earned ? "opacity-70" : ""
+                            }`}>
                             <div className="flex items-start gap-3">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
-                                    badge.earned
-                                        ? `bg-gradient-to-br ${badge.color} shadow-sm`
-                                        : "bg-slate-100"
-                                }`}>
-                                    <Icon size={20} className={badge.earned ? "text-white" : "text-slate-400"} />
+                                <div className="relative group cursor-pointer shrink-0">
+                                    {badge.earned && (
+                                        <div className={`absolute -inset-0.5 bg-gradient-to-r ${badge.color} rounded-xl blur opacity-30 group-hover:opacity-70 transition duration-500 group-hover:duration-200 animate-pulse`} />
+                                    )}
+                                    <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-500 ${badge.earned
+                                            ? `bg-gradient-to-br ${badge.color} shadow-md group-hover:scale-110 group-hover:-translate-y-0.5`
+                                            : "bg-slate-100 border border-slate-200"
+                                        }`}>
+                                        <div className={`transition-all duration-300 ${badge.earned ? "group-hover:rotate-12 hover:scale-110" : ""}`}>
+                                            <Icon size={20} className={`${badge.earned ? "text-white drop-shadow-md" : "text-slate-400"}`} />
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-0.5">

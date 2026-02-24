@@ -258,25 +258,35 @@ export default function DashboardPage() {
                     <div className="bg-white border border-slate-200 rounded-3xl p-6 lg:p-8 shadow-sm">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-[15px] font-bold text-slate-800">Conquistas</h3>
-                            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full uppercase tracking-wider">4 Bloqueadas</span>
+                            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-full uppercase tracking-wider">4 Bloqueadas</span>
                         </div>
                         <div className="grid grid-cols-4 gap-3">
                             {[
-                                { icon: Flame, unlocked: true },
-                                { icon: Target, unlocked: true },
-                                { icon: Swords, unlocked: true },
-                                { icon: Star, unlocked: true },
+                                { icon: Flame, unlocked: true, color: "from-orange-400 to-rose-500", shadow: "shadow-orange-500/40", anim: "group-hover:rotate-12 group-hover:scale-125" },
+                                { icon: Target, unlocked: true, color: "from-blue-400 to-indigo-500", shadow: "shadow-blue-500/40", anim: "group-hover:scale-125" },
+                                { icon: Swords, unlocked: true, color: "from-emerald-400 to-teal-500", shadow: "shadow-emerald-500/40", anim: "group-hover:-rotate-12 group-hover:scale-125" },
+                                { icon: Star, unlocked: true, color: "from-amber-300 to-orange-400", shadow: "shadow-amber-500/40", anim: "group-hover:rotate-45 group-hover:scale-125" },
                                 { icon: Brain, unlocked: false },
                                 { icon: Crown, unlocked: false },
                                 { icon: Layers, unlocked: false },
                                 { icon: BookOpen, unlocked: false },
                             ].map((c, i) => (
-                                <div key={i}
-                                    className={`aspect-square rounded-2xl flex items-center justify-center transition-all ${c.unlocked
-                                        ? `bg-slate-900 shadow-md hover:scale-[1.05] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer`
-                                        : "bg-slate-50 border border-slate-100"
-                                        }`}>
-                                    <c.icon size={18} className={c.unlocked ? "text-white" : "text-slate-300"} />
+                                <div key={i} className="relative group cursor-pointer">
+                                    {c.unlocked && (
+                                        <div className={`absolute -inset-0.5 bg-gradient-to-r ${c.color} rounded-2xl blur opacity-30 group-hover:opacity-70 transition duration-500 group-hover:duration-200 animate-pulse`} />
+                                    )}
+                                    <div
+                                        className={`relative aspect-square rounded-2xl flex items-center justify-center transition-all duration-500 ${c.unlocked
+                                            ? `bg-gradient-to-br ${c.color} shadow-lg ${c.shadow} group-hover:scale-105 group-hover:-translate-y-1`
+                                            : "bg-slate-50 border border-slate-100"
+                                            }`}>
+                                        <div className={`transition-all duration-300 ${c.unlocked ? c.anim : ""}`}>
+                                            <c.icon
+                                                size={c.unlocked ? 24 : 18}
+                                                className={`${c.unlocked ? "text-white drop-shadow-md" : "text-slate-300"}`}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             ))}
                         </div>
