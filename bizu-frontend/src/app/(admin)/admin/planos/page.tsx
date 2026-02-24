@@ -17,6 +17,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+import { apiFetch } from "@/lib/api";
+
 export default function AdminPlanosPage() {
     const [plans, setPlans] = useState<any[]>([]);
     const [courses, setCourses] = useState<any[]>([]);
@@ -24,12 +26,10 @@ export default function AdminPlanosPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPlan, setEditingPlan] = useState<any>(null);
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
-
     const fetchPlans = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch(`${apiUrl}/admin/plans`);
+            const res = await apiFetch("/admin/plans");
             if (res.ok) {
                 const data = await res.json();
                 setPlans(data);
@@ -43,7 +43,7 @@ export default function AdminPlanosPage() {
 
     const fetchCourses = async () => {
         try {
-            const res = await fetch(`${apiUrl}/admin/courses`);
+            const res = await apiFetch("/admin/courses");
             if (res.ok) {
                 const data = await res.json();
                 setCourses(data);
@@ -61,7 +61,7 @@ export default function AdminPlanosPage() {
     const handleDelete = async (id: string) => {
         if (!confirm("Deseja realmente excluir este plano?")) return;
         try {
-            const res = await fetch(`${apiUrl}/admin/plans/${id}`, { method: "DELETE" });
+            const res = await apiFetch(`/admin/plans/${id}`, { method: "DELETE" });
             if (res.ok) {
                 setPlans(prev => prev.filter(p => p.id !== id));
             }
@@ -73,12 +73,11 @@ export default function AdminPlanosPage() {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         const method = editingPlan.id ? "PUT" : "POST";
-        const url = editingPlan.id ? `${apiUrl}/admin/plans/${editingPlan.id}` : `${apiUrl}/admin/plans`;
+        const url = editingPlan.id ? `/admin/plans/${editingPlan.id}` : "/admin/plans";
 
         try {
-            const res = await fetch(url, {
+            const res = await apiFetch(url, {
                 method,
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(editingPlan)
             });
 

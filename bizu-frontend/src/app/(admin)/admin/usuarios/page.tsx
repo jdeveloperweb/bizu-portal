@@ -16,16 +16,16 @@ import {
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
+import { apiFetch } from "@/lib/api";
+
 export default function AdminUsuariosPage() {
     const [users, setUsers] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
-
     const fetchUsers = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch(`${apiUrl}/admin/users`);
+            const res = await apiFetch("/admin/users");
             if (res.ok) {
                 const data = await res.json();
 

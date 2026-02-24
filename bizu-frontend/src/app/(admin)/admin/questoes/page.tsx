@@ -28,6 +28,8 @@ import {
     DropdownMenuTrigger,
 } from "../../../../components/ui/dropdown-menu";
 
+import { apiFetch } from "@/lib/api";
+
 export default function AdminQuestoesPage() {
     const [activeTab, setActiveTab] = useState<"SIMULADO" | "QUIZ">("SIMULADO");
     const [questions, setQuestions] = useState<any[]>([]);
@@ -35,11 +37,9 @@ export default function AdminQuestoesPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [stats, setStats] = useState({ total: 0, easy: 0, medium: 0, hard: 0 });
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
-
     const fetchStats = async () => {
         try {
-            const res = await fetch(`${apiUrl}/admin/questions/stats?category=${activeTab}`);
+            const res = await apiFetch(`/admin/questions/stats?category=${activeTab}`);
             if (res.ok) {
                 const data = await res.json();
                 setStats(data);
@@ -52,7 +52,7 @@ export default function AdminQuestoesPage() {
     const fetchQuestions = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch(`${apiUrl}/admin/questions?category=${activeTab}&search=${searchTerm}`);
+            const res = await apiFetch(`/admin/questions?category=${activeTab}&search=${searchTerm}`);
             if (res.ok) {
                 const data = await res.json();
                 setQuestions(data.content || []);
@@ -72,7 +72,7 @@ export default function AdminQuestoesPage() {
     const handleDelete = async (id: string) => {
         if (!confirm("Tem certeza que deseja excluir esta questão?")) return;
         try {
-            const res = await fetch(`${apiUrl}/admin/questions/${id}`, { method: "DELETE" });
+            const res = await apiFetch(`/admin/questions/${id}`, { method: "DELETE" });
             if (res.ok) {
                 fetchQuestions();
                 fetchStats();
@@ -223,8 +223,8 @@ export default function AdminQuestoesPage() {
                                     </td>
                                     <td className="px-8 py-6 text-center">
                                         <span className={`px-4 py-1.5 rounded-full text-[10px] font-black border uppercase tracking-widest ${q.difficulty === 'EASY' ? 'bg-success/5 text-success border-success/20' :
-                                                q.difficulty === 'MEDIUM' ? 'bg-warning/5 text-warning border-warning/20' :
-                                                    'bg-destructive/5 text-destructive border-destructive/20'
+                                            q.difficulty === 'MEDIUM' ? 'bg-warning/5 text-warning border-warning/20' :
+                                                'bg-destructive/5 text-destructive border-destructive/20'
                                             }`}>
                                             {q.difficulty === 'EASY' ? 'Fácil' : q.difficulty === 'MEDIUM' ? 'Médio' : 'Difícil'}
                                         </span>

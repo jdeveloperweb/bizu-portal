@@ -21,6 +21,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { apiFetch } from "@/lib/api";
+
 export default function NovaQuestaoPage() {
     const router = useRouter();
     const [content, setContent] = useState("");
@@ -37,13 +39,10 @@ export default function NovaQuestaoPage() {
     });
     const [correctOption, setCorrectOption] = useState("A");
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
-
     const handleSave = async () => {
         try {
-            const res = await fetch(`${apiUrl}/admin/questions`, {
+            const res = await apiFetch("/admin/questions", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     statement: content,
                     category,
@@ -205,15 +204,15 @@ export default function NovaQuestaoPage() {
                                         transition={{ delay: 0.3 + (idx * 0.1) }}
                                         whileHover={{ y: -4 }}
                                         className={`flex items-stretch gap-6 p-2 pr-6 rounded-[32px] border-2 transition-all duration-500 ${correctOption === key
-                                                ? 'border-success bg-success/[0.03] shadow-[0_20px_40px_-15px_rgba(5,150,105,0.12)]'
-                                                : 'border-muted hover:border-primary/20 bg-card hover:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.05)]'
+                                            ? 'border-success bg-success/[0.03] shadow-[0_20px_40px_-15px_rgba(5,150,105,0.12)]'
+                                            : 'border-muted hover:border-primary/20 bg-card hover:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.05)]'
                                             }`}
                                     >
                                         <button
                                             onClick={() => setCorrectOption(key)}
                                             className={`w-16 h-16 rounded-[24px] flex items-center justify-center text-xl font-black transition-all duration-500 group relative overflow-hidden ${correctOption === key
-                                                    ? 'bg-success text-white shadow-lg shadow-success/30'
-                                                    : 'bg-muted/50 text-muted-foreground hover:bg-primary/10 hover:text-primary'
+                                                ? 'bg-success text-white shadow-lg shadow-success/30'
+                                                : 'bg-muted/50 text-muted-foreground hover:bg-primary/10 hover:text-primary'
                                                 }`}
                                         >
                                             <span className="relative z-10">{key}</span>
@@ -329,8 +328,8 @@ export default function NovaQuestaoPage() {
                                                     key={d.id}
                                                     onClick={() => setDifficulty(d.id as any)}
                                                     className={`h-11 rounded-xl font-bold text-[10px] uppercase transition-all flex flex-col items-center justify-center gap-1 ${difficulty === d.id
-                                                            ? `bg-white text-foreground shadow-sm ring-2 ring-primary/10`
-                                                            : 'hover:text-foreground text-muted-foreground'
+                                                        ? `bg-white text-foreground shadow-sm ring-2 ring-primary/10`
+                                                        : 'hover:text-foreground text-muted-foreground'
                                                         }`}
                                                 >
                                                     <span className={`w-1.5 h-1.5 rounded-full ${difficulty === d.id ? d.color : 'bg-muted-foreground/30'}`} />
