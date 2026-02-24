@@ -12,7 +12,7 @@ interface AuthContextType {
     token?: string;
     user?: any;
     loading: boolean;
-    register: (name: string, email: string) => Promise<boolean>;
+    register: (name: string, email: string, password: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         keycloak?.logout({ redirectUri: window.location.origin });
     };
 
-    const register = async (name: string, email: string) => {
+    const register = async (name: string, email: string, password: string) => {
         try {
             const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
             // Se apiBase já termina com /api/v1, não adicionamos novamente
@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const res = await fetch(endpoint, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, email }),
+                body: JSON.stringify({ name, email, password }),
             });
             return res.ok;
         } catch (error) {

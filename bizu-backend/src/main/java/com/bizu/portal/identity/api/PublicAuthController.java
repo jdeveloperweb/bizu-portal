@@ -20,7 +20,7 @@ public class PublicAuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         try {
-            User user = userService.registerUser(request.getName(), request.getEmail());
+            User user = userService.registerUser(request.getName(), request.getEmail(), request.getPassword());
             return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

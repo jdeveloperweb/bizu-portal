@@ -7,9 +7,11 @@ import BrandLogo from "@/components/BrandLogo";
 import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useNotification } from "@/components/NotificationProvider";
 
 export default function LoginPage() {
     const { login, loginDirect, authenticated, user } = useAuth();
+    const { notify } = useNotification();
     const router = useRouter();
     const [show, setShow] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -35,7 +37,7 @@ export default function LoginPage() {
         setLoading(true);
         const success = await loginDirect(form.email, form.password);
         if (!success) {
-            alert("Usuário ou senha inválidos.");
+            notify("Acesso negado", "E-mail ou senha incorretos. Verifique suas credenciais e tente novamente.", "error");
             setLoading(false);
         }
     };

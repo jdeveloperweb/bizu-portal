@@ -6,11 +6,14 @@ import { Eye, EyeOff, Loader2, UserPlus, ArrowLeft, CheckCircle2, Rocket } from 
 import BrandLogo from "@/components/BrandLogo";
 import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useNotification } from "@/components/NotificationProvider";
 
 export default function RegisterPage() {
     const [show, setShow] = useState(false);
     const [loading, setLoading] = useState(false);
     const { register } = useAuth();
+    const { notify } = useNotification();
     const router = useRouter();
     const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
 
@@ -34,15 +37,15 @@ export default function RegisterPage() {
         setLoading(true);
 
         try {
-            const success = await register(form.name, form.email);
+            const success = await register(form.name, form.email, form.password);
             if (success) {
-                alert("Conta criada com sucesso! Você já pode entrar.");
+                notify("Conta Criada! 🚀", "Sua jornada rumo à aprovação começou. Faça login para acessar a plataforma.", "success");
                 router.push("/login");
             } else {
-                alert("Erro ao criar conta. Verifique os dados ou tente novamente mais tarde.");
+                notify("Houve um problema", "Não conseguimos criar sua conta. Verifique se o e-mail já está em uso.", "error");
             }
         } catch (error) {
-            alert("Ocorreu um erro inesperado.");
+            notify("Indisponibilidade temporária", "Nosso serviço está passando por instabilidades. Tente novamente em instantes.", "error");
         } finally {
             setLoading(false);
         }
