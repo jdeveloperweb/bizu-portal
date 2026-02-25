@@ -8,7 +8,9 @@ import com.bizu.portal.identity.domain.User;
 import com.bizu.portal.identity.infrastructure.UserRepository;
 import com.bizu.portal.student.domain.GamificationStats;
 import com.bizu.portal.student.infrastructure.GamificationRepository;
+import com.bizu.portal.commerce.application.EntitlementService;
 import com.bizu.portal.identity.application.UserService;
+import com.bizu.portal.student.api.StudentProgressSSEController;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,6 +37,7 @@ public class AdminUserController {
     private final UserService userService;
     private final SubscriptionRepository subscriptionRepository;
     private final PlanRepository planRepository;
+    private final EntitlementService entitlementService;
 
     @GetMapping
     public ResponseEntity<List<AdminUserDto>> listUsers() {
@@ -74,23 +77,33 @@ public class AdminUserController {
             Plan plan = planRepository.findById(UUID.fromString(updateDto.getPlanId()))
                 .orElseThrow(() -> new RuntimeException("Plano não encontrado"));
             
-            // Cancela assinaturas anteriores
-            subscriptionRepository.findAllByStatus("ACTIVE").stream()
-                .filter(s -> s.getUser().getId().equals(id))
+            // Cancela assinaturas e entitlements anteriores para garantir que o novo curso seja o único
+            subscriptionRepository.findAll().stream()
+                .filter(s -> s.getUser().getId().equals(id) && "ACTIVE".equals(s.getStatus()))
                 .forEach(s -> {
                     s.setStatus("CANCELED");
                     subscriptionRepository.save(s);
+                    entitlementService.revokeBySource(s.getId(), "SUBSCRIPTION");
                 });
             
             // Cria nova assinatura
+            int monthsCount = updateDto.getMonths() != null ? updateDto.getMonths() : 12;
             Subscription sub = Subscription.builder()
                 .user(user)
                 .plan(plan)
                 .status("ACTIVE")
                 .currentPeriodStart(java.time.OffsetDateTime.now())
-                .currentPeriodEnd(java.time.OffsetDateTime.now().plusYears(1)) // Prático: 1 ano
+                .currentPeriodEnd(java.time.OffsetDateTime.now().plusMonths(monthsCount))
                 .build();
-            subscriptionRepository.save(sub);
+            sub = subscriptionRepository.save(sub);
+
+            // Garante o entitlement (acesso) ao curso vinculado ao plano
+            if (plan.getCourse() != null) {
+                entitlementService.grantFromSubscription(user, plan.getCourse(), sub);
+            }
+
+            // Notifica o frontend via SSE para recarregar permissões instantaneamente
+            StudentProgressSSEController.pushUpdate(id, "entitlement_change", "upgraded");
         }
         
         return ResponseEntity.ok(user);
@@ -135,6 +148,7 @@ public class AdminUserController {
                 .courseTitle(courseTitle)
                 .joined(user.getCreatedAt() != null ? user.getCreatedAt().toString() : "")
                 .xp(xp)
+                .currentPeriodEnd(sub != null ? sub.getCurrentPeriodEnd() : null)
                 .build();
     }
 
@@ -145,6 +159,7 @@ public class AdminUserController {
         private String name;
         private String email;
         private String planId;
+        private Integer months;
     }
 
     @Data
@@ -159,5 +174,6 @@ public class AdminUserController {
         private String courseTitle;
         private String joined;
         private String xp;
+        private java.time.OffsetDateTime currentPeriodEnd;
     }
 }

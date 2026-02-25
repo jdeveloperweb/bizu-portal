@@ -29,17 +29,19 @@ export default function DashboardPage() {
     const [badges, setBadges] = useState<any[]>([]);
     const [recentMaterials, setRecentMaterials] = useState<any[]>([]);
     const [courses, setCourses] = useState<any[]>([]);
+    const [subscription, setSubscription] = useState<any>(null);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const [statsRes, gamificationRes, badgesRes, rankingRes, coursesRes, materialsRes] = await Promise.all([
+                const [statsRes, gamificationRes, badgesRes, rankingRes, coursesRes, materialsRes, subscriptionRes] = await Promise.all([
                     apiFetch("/student/performance/summary"),
                     apiFetch("/student/gamification/me"),
                     apiFetch("/student/badges/me"),
                     apiFetch("/student/ranking/me"),
                     apiFetch("/student/courses/me"),
-                    apiFetch("/student/materials")
+                    apiFetch("/student/materials"),
+                    apiFetch("/subscriptions/me")
                 ]);
 
                 if (statsRes.ok) setStats(await statsRes.json());
@@ -48,6 +50,7 @@ export default function DashboardPage() {
                 if (rankingRes.ok) setRanking(await rankingRes.json());
                 if (coursesRes.ok) setCourses(await coursesRes.json());
                 if (materialsRes.ok) setRecentMaterials(await materialsRes.json());
+                if (subscriptionRes.ok) setSubscription(await subscriptionRes.json());
             } catch (error) {
                 console.error("Dashboard fetch error:", error);
             }
@@ -101,6 +104,16 @@ export default function DashboardPage() {
                     <p className="text-sm text-muted-foreground font-medium tracking-wide">
                         Sua jornada para a aprovação continua hoje.
                     </p>
+                    {subscription && subscription.currentPeriodEnd && (
+                        <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-indigo-50 border border-indigo-100/50 text-[11px] font-bold text-indigo-600 animate-in fade-in slide-in-from-left-4 duration-700">
+                            <Clock size={12} />
+                            Seu plano expira em {(() => {
+                                const d = new Date(subscription.currentPeriodEnd);
+                                d.setDate(d.getDate() - 1);
+                                return d.toLocaleDateString('pt-BR');
+                            })()} e será renovado em {new Date(subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-3">

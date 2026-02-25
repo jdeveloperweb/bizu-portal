@@ -2,6 +2,7 @@ package com.bizu.portal.commerce.api;
 
 import com.bizu.portal.commerce.domain.Subscription;
 import com.bizu.portal.commerce.infrastructure.SubscriptionRepository;
+import com.bizu.portal.identity.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,11 +19,13 @@ import java.util.UUID;
 public class SubscriptionController {
 
     private final SubscriptionRepository subscriptionRepository;
+    private final UserRepository userRepository;
 
     @GetMapping("/me")
     public ResponseEntity<Subscription> getMySubscription(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
-        return subscriptionRepository.findFirstByUserIdAndStatusOrderByCreatedAtDesc(userId, "ACTIVE")
+        String email = jwt.getClaim("email");
+        return userRepository.findByEmail(email)
+            .flatMap(user -> subscriptionRepository.findFirstByUserIdAndStatusOrderByCreatedAtDesc(user.getId(), "ACTIVE"))
             .map(ResponseEntity::ok)
             .orElseGet(() -> ResponseEntity.notFound().build());
     }

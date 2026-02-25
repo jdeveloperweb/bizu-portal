@@ -30,7 +30,8 @@ export default function AdminUsuariosPage() {
     const [formUser, setFormUser] = useState({
         name: "",
         email: "",
-        planId: ""
+        planId: "",
+        months: 12
     });
 
     const fetchUsers = async () => {
@@ -69,7 +70,8 @@ export default function AdminUsuariosPage() {
         setFormUser({
             name: user.name || "",
             email: user.email || "",
-            planId: user.planId || ""
+            planId: user.planId || "",
+            months: 12
         });
         setIsEditing(true);
         fetchPlans();
@@ -83,7 +85,8 @@ export default function AdminUsuariosPage() {
                 body: JSON.stringify({
                     name: formUser.name,
                     email: formUser.email,
-                    planId: formUser.planId || null
+                    planId: formUser.planId || null,
+                    months: formUser.months
                 })
             });
 
@@ -253,6 +256,11 @@ export default function AdminUsuariosPage() {
                                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight ml-1">
                                                     {user.courseTitle || 'Nenhum curso'}
                                                 </span>
+                                                {user.currentPeriodEnd && (
+                                                    <span className="text-[9px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 w-fit mt-1">
+                                                        Expira: {new Date(user.currentPeriodEnd).toLocaleDateString('pt-BR')}
+                                                    </span>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="px-8 py-5">
@@ -362,6 +370,23 @@ export default function AdminUsuariosPage() {
                                         ))}
                                     </select>
                                 </div>
+
+                                {formUser.planId && (
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Duração do Acesso</label>
+                                        <select
+                                            value={formUser.months}
+                                            onChange={e => setFormUser({ ...formUser, months: parseInt(e.target.value) })}
+                                            className="flex w-full h-12 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all appearance-none"
+                                        >
+                                            <option value={1}>1 Mês (Mensal)</option>
+                                            <option value={3}>3 Meses (Trimestral)</option>
+                                            <option value={6}>6 Meses (Semestral)</option>
+                                            <option value={12}>12 Meses (Anual)</option>
+                                            <option value={24}>24 Meses (2 Anos)</option>
+                                        </select>
+                                    </div>
+                                )}
 
                                 <div className="flex gap-4 pt-4">
                                     <Button
