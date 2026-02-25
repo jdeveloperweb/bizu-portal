@@ -66,25 +66,43 @@ public class UserService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public User syncUser(java.util.UUID userId, String email, String name) {
+        // Try to find by ID first
         return userRepository.findById(userId).orElseGet(() -> {
-            User newUser = User.builder()
-                    .id(userId)
-                    .email(email)
-                    .name(name != null ? name : email)
-                    .status("ACTIVE")
-                    .build();
-            
-            // User IDs come from the identity provider.
-            // Using the default isNew=true triggers persist(), 
-            // and the catch block handles race conditions if the user was inserted concurrently.
-            try {
-                return userRepository.saveAndFlush(newUser);
-            } catch (Exception ex) {
-                // If it fails (OptimisticLocking, DataIntegrity, etc.), 
-                // it means another thread likely already persisted the user.
-                return userRepository.findById(userId)
-                        .orElseThrow(() -> new RuntimeException("Erro ao sincronizar usuário", ex));
-            }
+            // If not found by ID, try to find by email
+            return userRepository.findByEmail(email).map(existingUser -> {
+                // If found by email, we should ideally link the IDs, 
+                // but for now returning the existing user is safer.
+                return existingUser;
+            }).orElseGet(() -> {
+                // Create new user with Keycloak subject ID
+                User newUser = User.builder()
+                        .id(userId)
+                        .email(email)
+                        .name(name != null ? name : email)
+                        .status("ACTIVE")
+                        .build();
+                
+                try {
+                    return userRepository.saveAndFlush(newUser);
+                } catch (Exception ex) {
+                    // Fallback to finding by email if a race condition occurred
+                    return userRepository.findByEmail(email)
+                            .orElseThrow(() -> new RuntimeException("Erro ao sincronizar usuário", ex));
+                }
+            });
         });
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.UUID resolveUserId(org.springframework.security.oauth2.jwt.Jwt jwt) {
+        String email = jwt.getClaimAsString("email");
+        String name = jwt.getClaimAsString("name");
+        java.util.UUID subjectId = java.util.UUID.fromString(jwt.getSubject());
+        
+        // For efficiency, we can usually just look up by email, 
+        // but calling syncUser (or a trimmed version of it) ensures the record exists.
+        return userRepository.findByEmail(email)
+                .map(User::getId)
+                .orElse(subjectId);
     }
 }

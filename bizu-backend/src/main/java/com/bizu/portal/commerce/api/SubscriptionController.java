@@ -2,6 +2,7 @@ package com.bizu.portal.commerce.api;
 
 import com.bizu.portal.commerce.domain.Subscription;
 import com.bizu.portal.commerce.infrastructure.SubscriptionRepository;
+import com.bizu.portal.identity.application.UserService;
 import com.bizu.portal.identity.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +21,13 @@ public class SubscriptionController {
 
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping("/me")
     public ResponseEntity<Subscription> getMySubscription(@AuthenticationPrincipal Jwt jwt) {
-        String email = jwt.getClaim("email");
-        return userRepository.findByEmail(email)
-            .flatMap(user -> subscriptionRepository.findFirstByUserIdAndStatusInOrderByCreatedAtDesc(user.getId(), java.util.List.of("ACTIVE", "PAST_DUE", "TRIALING", "active", "trialing")))
+        UUID userId = userService.resolveUserId(jwt);
+        return subscriptionRepository.findFirstByUserIdAndStatusInOrderByCreatedAtDesc(userId, 
+                java.util.List.of("ACTIVE", "PAST_DUE", "TRIALING", "active", "trialing", "paid", "PAID"))
             .map(ResponseEntity::ok)
             .orElseGet(() -> ResponseEntity.notFound().build());
     }

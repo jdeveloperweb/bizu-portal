@@ -2,6 +2,7 @@ package com.bizu.portal.student.api;
 
 import com.bizu.portal.student.application.SubjectStatsDTO;
 import com.bizu.portal.student.infrastructure.AttemptRepository;
+import com.bizu.portal.identity.application.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,10 +21,11 @@ import java.util.stream.Collectors;
 public class StudentPerformanceController {
 
     private final AttemptRepository attemptRepository;
+    private final UserService userService;
 
     @GetMapping("/summary")
     public ResponseEntity<Map<String, Object>> getPerformanceSummary(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        UUID userId = userService.resolveUserId(jwt);
         
         var allAttempts = attemptRepository.findAllByUser_Id(userId);
         

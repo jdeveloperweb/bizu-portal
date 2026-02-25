@@ -12,6 +12,8 @@ import java.util.UUID;
 
 public interface CourseEntitlementRepository extends JpaRepository<CourseEntitlement, UUID> {
 
+    Optional<CourseEntitlement> findByUserIdAndCourseId(UUID userId, UUID courseId);
+
     @Query("""
         SELECT e FROM CourseEntitlement e
         WHERE e.user.id = :userId

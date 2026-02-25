@@ -3,6 +3,7 @@ package com.bizu.portal.student.api;
 import com.bizu.portal.commerce.application.EntitlementService;
 import com.bizu.portal.content.domain.Simulado;
 import com.bizu.portal.content.infrastructure.SimuladoRepository;
+import com.bizu.portal.identity.application.UserService;
 import com.bizu.portal.student.application.StudentSimuladoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,10 +23,11 @@ public class SimuladoController {
     private final SimuladoRepository simuladoRepository;
     private final StudentSimuladoService studentSimuladoService;
     private final EntitlementService entitlementService;
+    private final UserService userService;
 
     @GetMapping("/disponiveis")
     public ResponseEntity<List<Simulado>> getAvailableSimulados(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        UUID userId = userService.resolveUserId(jwt);
         
         // Get active course IDs for the user
         List<UUID> activeCourseIds = entitlementService.getActiveEntitlements(userId)

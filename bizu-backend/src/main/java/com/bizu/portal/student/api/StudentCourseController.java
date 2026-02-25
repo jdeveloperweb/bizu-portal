@@ -2,6 +2,7 @@ package com.bizu.portal.student.api;
 
 import com.bizu.portal.commerce.application.EntitlementService;
 import com.bizu.portal.commerce.domain.CourseEntitlement;
+import com.bizu.portal.identity.application.UserService;
 import com.bizu.portal.content.domain.Course;
 import com.bizu.portal.content.infrastructure.CourseRepository;
 import com.bizu.portal.student.infrastructure.AttemptRepository;
@@ -22,10 +23,11 @@ public class StudentCourseController {
     private final CourseRepository courseRepository;
     private final AttemptRepository attemptRepository;
     private final EntitlementService entitlementService;
+    private final UserService userService;
 
     @GetMapping("/me")
     public ResponseEntity<List<Map<String, Object>>> getMyCourses(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        UUID userId = userService.resolveUserId(jwt);
         
         // Busca cursos que o usuário tem direito de acessar (assinatura, grupo, trial, etc)
         List<CourseEntitlement> activeEntitlements = entitlementService.getActiveEntitlements(userId);

@@ -120,18 +120,29 @@ public class EntitlementService {
 
     private CourseEntitlement grantEntitlement(User user, Course course, String source,
                                                 UUID sourceId, OffsetDateTime expiresAt) {
-        // Upsert: reactivate if existing inactive entitlement exists
-        var existing = entitlementRepository.findActiveEntitlement(
-            user.getId(), course.getId(), OffsetDateTime.now());
+        // Upsert: search by the unique key (user_id, course_id) to avoid ConstraintViolation
+        var existing = entitlementRepository.findByUserIdAndCourseId(user.getId(), course.getId());
 
         if (existing.isPresent()) {
             CourseEntitlement e = existing.get();
-            // Extend if new expiration is later
-            if (expiresAt != null && (e.getExpiresAt() == null || expiresAt.isAfter(e.getExpiresAt()))) {
-                e.setExpiresAt(expiresAt);
-                return entitlementRepository.save(e);
+            
+            // Reactivate and update source
+            e.setActive(true);
+            e.setRevokedAt(null);
+            e.setSource(source);
+            e.setSourceId(sourceId);
+            
+            // Extend or set expiration (only if new is later or if current is expired)
+            if (expiresAt != null) {
+                if (e.getExpiresAt() == null || expiresAt.isAfter(e.getExpiresAt()) || e.isExpired()) {
+                    e.setExpiresAt(expiresAt);
+                }
+            } else {
+                e.setExpiresAt(null); // No expiration = permanent access
             }
-            return e;
+            
+            log.info("Updated and reactivated entitlement for user {} course {}", user.getId(), course.getId());
+            return entitlementRepository.save(e);
         }
 
         CourseEntitlement entitlement = CourseEntitlement.builder()

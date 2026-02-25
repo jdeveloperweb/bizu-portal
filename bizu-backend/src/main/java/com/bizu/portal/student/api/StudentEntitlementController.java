@@ -2,6 +2,7 @@ package com.bizu.portal.student.api;
 
 import com.bizu.portal.commerce.application.EntitlementService;
 import com.bizu.portal.commerce.domain.CourseEntitlement;
+import com.bizu.portal.identity.application.UserService;
 import com.bizu.portal.identity.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,25 +20,19 @@ public class StudentEntitlementController {
 
     private final EntitlementService entitlementService;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping("/me")
     public ResponseEntity<List<CourseEntitlement>> getMyEntitlements(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = resolveUserId(jwt);
+        UUID userId = userService.resolveUserId(jwt);
         return ResponseEntity.ok(entitlementService.getActiveEntitlements(userId));
     }
-
+    
     @GetMapping("/check/{courseId}")
     public ResponseEntity<Boolean> checkAccess(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID courseId) {
-        UUID userId = resolveUserId(jwt);
+        UUID userId = userService.resolveUserId(jwt);
         return ResponseEntity.ok(entitlementService.hasAccess(userId, courseId));
-    }
-
-    private UUID resolveUserId(Jwt jwt) {
-        String email = jwt.getClaim("email");
-        return userRepository.findByEmail(email)
-            .map(u -> u.getId())
-            .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
     }
 }

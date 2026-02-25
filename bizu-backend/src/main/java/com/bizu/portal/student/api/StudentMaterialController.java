@@ -1,6 +1,7 @@
 package com.bizu.portal.student.api;
 
 import com.bizu.portal.commerce.application.EntitlementService;
+import com.bizu.portal.identity.application.UserService;
 import com.bizu.portal.content.application.MaterialService;
 import com.bizu.portal.content.domain.Material;
 import com.bizu.portal.content.infrastructure.MaterialRepository;
@@ -23,10 +24,11 @@ public class StudentMaterialController {
     private final MaterialService materialService;
     private final MaterialRepository materialRepository;
     private final EntitlementService entitlementService;
+    private final UserService userService;
 
     @GetMapping
     public ResponseEntity<List<Material>> getAllMaterials(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        UUID userId = userService.resolveUserId(jwt);
         
         // Busca cursos que o usuário tem direito de acessar
         List<UUID> subscribedCourseIds = entitlementService.getActiveEntitlements(userId)
