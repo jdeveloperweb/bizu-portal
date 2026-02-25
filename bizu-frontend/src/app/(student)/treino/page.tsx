@@ -15,6 +15,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/api";
+import { getStoredSelectedCourseId } from "@/lib/course-selection";
 
 export default function CustomQuizPage() {
     const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
@@ -26,7 +27,7 @@ export default function CustomQuizPage() {
     useEffect(() => {
         const fetchModules = async () => {
             try {
-                const selectedCourseId = localStorage.getItem("selectedCourseId");
+                const selectedCourseId = getStoredSelectedCourseId();
                 if (selectedCourseId) {
                     const res = await apiFetch(`/public/courses/${selectedCourseId}`);
                     if (res.ok) {

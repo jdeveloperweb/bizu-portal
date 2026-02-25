@@ -9,6 +9,7 @@ import {
     BarChart3, Clock,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { getStoredSelectedCourseId } from "@/lib/course-selection";
 import { DuelService, Duel } from "@/lib/duelService";
 import ArenaDuelScreen from "@/components/arena/ArenaDuelScreen";
 import Cookies from "js-cookie";
@@ -81,7 +82,7 @@ export default function ArenaPage() {
                 }
 
                 // Fetch modules for the selected course
-                const selectedCourseId = localStorage.getItem("selectedCourseId");
+                const selectedCourseId = getStoredSelectedCourseId();
                 if (selectedCourseId) {
                     const courseRes = await apiFetch(`/public/courses/${selectedCourseId}`);
                     if (courseRes.ok) {

@@ -1,4 +1,5 @@
 import Cookies from "js-cookie";
+import { getStoredSelectedCourseId } from "@/lib/course-selection";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://bizu.mjolnix.com.br/api/v1";
 
@@ -11,7 +12,7 @@ export interface ApiErrorBody {
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     const token = Cookies.get("token");
 
-    const selectedCourseId = typeof window !== "undefined" ? window.localStorage.getItem("selectedCourseId") : null;
+    const selectedCourseId = getStoredSelectedCourseId();
 
     const headers: Record<string, string> = {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),

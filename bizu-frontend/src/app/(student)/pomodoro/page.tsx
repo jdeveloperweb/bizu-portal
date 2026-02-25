@@ -9,6 +9,7 @@ import {
     VolumeX, BookOpen, Zap,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { getStoredSelectedCourseId } from "@/lib/course-selection";
 
 type SessionType = "focus" | "shortBreak" | "longBreak";
 
@@ -89,7 +90,7 @@ export default function PomodoroPage() {
     useEffect(() => {
         const fetchModules = async () => {
             try {
-                const selectedCourseId = localStorage.getItem("selectedCourseId");
+                const selectedCourseId = getStoredSelectedCourseId();
                 if (selectedCourseId) {
                     const res = await apiFetch(`/public/courses/${selectedCourseId}`);
                     if (res.ok) {
@@ -111,7 +112,7 @@ export default function PomodoroPage() {
 
     const saveSession = async () => {
         try {
-            const selectedCourseId = localStorage.getItem("selectedCourseId");
+            const selectedCourseId = getStoredSelectedCourseId();
             const res = await apiFetch('/student/pomodoro/session', {
                 method: "POST",
                 body: JSON.stringify({
