@@ -49,11 +49,8 @@ export default function CourseDetailsPage() {
         fetchCourse();
     }, [courseId]);
 
-    if (isLoading) return <div className="p-20 text-center">Carregando detalhes do curso...</div>;
-    if (!course) return <div className="p-20 text-center text-danger">Curso não encontrado.</div>;
-
     const completedMaterialsSet = useMemo(() => new Set(completedMaterials), [completedMaterials]);
-    const currentModule = course.modules?.[activeModule];
+    const currentModule = course?.modules?.[activeModule];
 
     const progressData = useMemo(() => {
         const modules = course?.modules || [];
@@ -85,6 +82,9 @@ export default function CourseDetailsPage() {
 
         return { overallProgress, moduleProgressMap };
     }, [course, completedMaterialsSet]);
+
+    if (isLoading) return <div className="p-20 text-center">Carregando detalhes do curso...</div>;
+    if (!course) return <div className="p-20 text-center text-danger">Curso não encontrado.</div>;
 
 
     return (
