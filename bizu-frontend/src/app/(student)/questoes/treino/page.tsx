@@ -179,7 +179,7 @@ function TreinoContent() {
 
     if (filteredQuestions.length === 0) {
         return (
-            <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full max-w-[1600px]">
+            <div className="w-full px-4 sm:px-6 py-6 sm:py-8">
                 <div className="flex items-center justify-between mb-6">
                     <Link href="/dashboard">
                         <Button variant="ghost" className="rounded-xl flex items-center gap-2">
@@ -218,7 +218,7 @@ function TreinoContent() {
     };
 
     return (
-        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full max-w-[1600px] relative overflow-hidden">
+        <div className="w-full px-4 sm:px-6 py-6 sm:py-8 relative overflow-hidden">
             <div className="pointer-events-none absolute -top-16 right-0 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
             <div className="pointer-events-none absolute top-48 -left-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
 
