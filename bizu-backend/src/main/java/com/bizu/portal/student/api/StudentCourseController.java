@@ -6,6 +6,7 @@ import com.bizu.portal.identity.application.UserService;
 import com.bizu.portal.content.domain.Course;
 import com.bizu.portal.content.infrastructure.CourseRepository;
 import com.bizu.portal.student.infrastructure.AttemptRepository;
+import com.bizu.portal.student.infrastructure.MaterialCompletionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,6 +27,7 @@ public class StudentCourseController {
     private final EntitlementService entitlementService;
     private final UserService userService;
     private final UserRepository userRepository;
+    private final MaterialCompletionRepository materialCompletionRepository;
 
     @PutMapping("/select")
     public ResponseEntity<?> updateSelectedCourse(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, String> request) {
@@ -89,21 +91,75 @@ public class StudentCourseController {
 
             courseMap.put("modules", modules);
             
-            // Calcula progresso real baseado em questões resolvidas no curso
-            long totalQuestions = modules.stream()
-                .flatMap(m -> (m.getQuestions() != null ? m.getQuestions() : Collections.<com.bizu.portal.content.domain.Question>emptyList()).stream())
-                .count();
-            
-            long attemptedQuestions = 0;
-            if (totalQuestions > 0) {
-                attemptedQuestions = attemptRepository.countDistinctQuestionByUserIdAndCourseId(userId, course.getId());
+            Set<UUID> completedMaterialIds = materialCompletionRepository.findByUserId(userId).stream()
+                .map(completion -> completion.getMaterial().getId())
+                .collect(Collectors.toSet());
+
+            Set<UUID> attemptedQuestionIds = attemptRepository.findDistinctQuestionIdsByUserIdAndCourseId(userId, course.getId());
+
+            double totalWeight = 0D;
+            double completedWeight = 0D;
+
+            for (com.bizu.portal.content.domain.Module module : modules) {
+                List<com.bizu.portal.content.domain.Material> moduleMaterials = module.getMaterials() != null
+                    ? module.getMaterials()
+                    : Collections.emptyList();
+                List<com.bizu.portal.content.domain.Question> moduleQuestions = module.getQuestions() != null
+                    ? module.getQuestions()
+                    : Collections.emptyList();
+
+                double moduleWeight = moduleMaterials.size() + (moduleQuestions.size() * 0.5D);
+
+                if (moduleWeight <= 0D) {
+                    continue;
+                }
+
+                totalWeight += moduleWeight;
+
+                long completedMaterialsInModule = moduleMaterials.stream()
+                    .filter(material -> completedMaterialIds.contains(material.getId()))
+                    .count();
+
+                long attemptedQuestionsInModule = moduleQuestions.stream()
+                    .filter(question -> attemptedQuestionIds.contains(question.getId()))
+                    .count();
+
+                double moduleCompletedWeight = completedMaterialsInModule + (attemptedQuestionsInModule * 0.5D);
+                double moduleProgress = Math.min(1D, moduleCompletedWeight / moduleWeight);
+
+                completedWeight += moduleProgress * moduleWeight;
             }
-            
-            int progress = totalQuestions > 0 ? (int) ((attemptedQuestions * 100) / totalQuestions) : 0;
-            courseMap.put("progress", progress);
-            
-            // Próximo módulo (primeiro não concluído ou o primeiro)
-            courseMap.put("nextModule", modules.isEmpty() ? "Bizu Academy" : modules.get(0).getTitle());
+
+            int progress = totalWeight > 0D
+                ? (int) Math.round((completedWeight / totalWeight) * 100D)
+                : 0;
+            courseMap.put("progress", Math.max(0, Math.min(100, progress)));
+
+            String nextModule = modules.stream()
+                .filter(module -> {
+                    List<com.bizu.portal.content.domain.Material> moduleMaterials = module.getMaterials() != null
+                        ? module.getMaterials()
+                        : Collections.emptyList();
+                    List<com.bizu.portal.content.domain.Question> moduleQuestions = module.getQuestions() != null
+                        ? module.getQuestions()
+                        : Collections.emptyList();
+
+                    if (moduleMaterials.isEmpty() && moduleQuestions.isEmpty()) {
+                        return false;
+                    }
+
+                    boolean materialsDone = moduleMaterials.stream()
+                        .allMatch(material -> completedMaterialIds.contains(material.getId()));
+                    boolean questionsDone = moduleQuestions.stream()
+                        .allMatch(question -> attemptedQuestionIds.contains(question.getId()));
+
+                    return !(materialsDone && questionsDone);
+                })
+                .map(com.bizu.portal.content.domain.Module::getTitle)
+                .findFirst()
+                .orElse(modules.isEmpty() ? "Bizu Academy" : modules.get(0).getTitle());
+
+            courseMap.put("nextModule", nextModule);
             
             // Contagem de alunos (simulada ou real se o repositório permitir)
             // Para ser preciso, deveríamos injetar o CourseEntitlementRepository e contar

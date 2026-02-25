@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,7 +52,40 @@ export default function CourseDetailsPage() {
     if (isLoading) return <div className="p-20 text-center">Carregando detalhes do curso...</div>;
     if (!course) return <div className="p-20 text-center text-danger">Curso não encontrado.</div>;
 
+    const completedMaterialsSet = useMemo(() => new Set(completedMaterials), [completedMaterials]);
     const currentModule = course.modules?.[activeModule];
+
+    const progressData = useMemo(() => {
+        const modules = course?.modules || [];
+
+        let totalWeight = 0;
+        let completedWeight = 0;
+
+        const moduleProgressMap: Record<string, number> = {};
+
+        modules.forEach((module: any) => {
+            const materials = module.materials || [];
+            const moduleWeight = materials.length;
+            if (moduleWeight <= 0) {
+                moduleProgressMap[module.id] = 0;
+                return;
+            }
+
+            totalWeight += moduleWeight;
+
+            const completedMaterials = materials.filter((material: any) => completedMaterialsSet.has(material.id)).length;
+            const moduleCompletedWeight = completedMaterials;
+            const moduleProgress = Math.min(100, Math.round((moduleCompletedWeight / moduleWeight) * 100));
+
+            moduleProgressMap[module.id] = moduleProgress;
+            completedWeight += (moduleProgress / 100) * moduleWeight;
+        });
+
+        const overallProgress = totalWeight > 0 ? Math.min(100, Math.round((completedWeight / totalWeight) * 100)) : 0;
+
+        return { overallProgress, moduleProgressMap };
+    }, [course, completedMaterialsSet]);
+
 
     return (
         <div className="w-full px-4 lg:px-8 py-8 lg:py-10">
@@ -68,12 +101,12 @@ export default function CourseDetailsPage() {
                 <div className="lg:w-80 flex flex-col justify-center gap-4">
                     <div className="flex items-center justify-between text-sm font-bold mb-1">
                         <span>Progresso Total</span>
-                        <span className="text-primary">0%</span>
+                        <span className="text-primary">{progressData.overallProgress}%</span>
                     </div>
                     <div className="h-4 bg-muted rounded-full overflow-hidden border">
                         <div
                             className="h-full bg-primary shadow-[0_0_15px_rgba(var(--primary),0.5)] transition-all duration-1000"
-                            style={{ width: `0%` }}
+                            style={{ width: `${progressData.overallProgress}%` }}
                         />
                     </div>
                 </div>
@@ -101,6 +134,7 @@ export default function CourseDetailsPage() {
                             <div className="flex-1">
                                 <div className="font-bold text-lg leading-tight mb-1">{mod.title}</div>
                                 <div className="text-xs text-muted-foreground line-clamp-1">{mod.description || "Inicie o estudo deste módulo."}</div>
+                                <div className="mt-2 text-[11px] font-bold text-muted-foreground">{progressData.moduleProgressMap[mod.id] || 0}% concluído</div>
                             </div>
 
                             {activeModule === idx && <ChevronRight className="w-5 h-5 text-primary self-center" />}
