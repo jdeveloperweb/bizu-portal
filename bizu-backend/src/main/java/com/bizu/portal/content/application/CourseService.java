@@ -20,8 +20,9 @@ public class CourseService {
         return courseRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Course findById(UUID id) {
-        return courseRepository.findById(id)
+        return courseRepository.findByIdWithModules(id)
             .orElseThrow(() -> new ResourceNotFoundException("Curso não encontrado"));
     }
 

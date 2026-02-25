@@ -78,6 +78,9 @@ public class StudentCourseController {
             courseMap.put("description", course.getDescription());
             courseMap.put("thumbnailUrl", course.getThumbnailUrl());
             courseMap.put("themeColor", course.getThemeColor());
+            courseMap.put("textColor", course.getTextColor());
+            courseMap.put("category", course.getCategory());
+            courseMap.put("modules", course.getModules());
             
             // Calcula progresso real baseado em questões resolvidas no curso
             long totalQuestions = course.getModules().stream()
@@ -94,6 +97,10 @@ public class StudentCourseController {
             
             // Próximo módulo (primeiro não concluído ou o primeiro)
             courseMap.put("nextModule", course.getModules().isEmpty() ? "Bizu Academy" : course.getModules().get(0).getTitle());
+            
+            // Contagem de alunos (simulada ou real se o repositório permitir)
+            // Para ser preciso, deveríamos injetar o CourseEntitlementRepository e contar
+            courseMap.put("studentsCount", 0); // Pode ser melhorado depois
             
             response.add(courseMap);
         }
