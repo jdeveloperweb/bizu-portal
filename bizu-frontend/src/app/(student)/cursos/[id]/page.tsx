@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 export default function CourseDetailsPage({ params }: { params: { id: string } }) {
     const [course, setCourse] = useState<any>(null);
     const [activeModule, setActiveModule] = useState(0);
+    const [completedMaterials, setCompletedMaterials] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -25,6 +26,12 @@ export default function CourseDetailsPage({ params }: { params: { id: string } }
                 if (res.ok) {
                     const data = await res.json();
                     setCourse(data);
+
+                    // Fetch completions
+                    const compRes = await apiFetch('/student/materials/completed');
+                    if (compRes.ok) {
+                        setCompletedMaterials(await compRes.json());
+                    }
                 }
             } catch (error) {
                 console.error("Failed to fetch course", error);
@@ -168,15 +175,19 @@ export default function CourseDetailsPage({ params }: { params: { id: string } }
                                                     <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-lg transition-all group">
                                                         <div className={cn(
                                                             "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                                                            material.fileType === 'VIDEO' ? "bg-indigo-50 text-indigo-600" : "bg-rose-50 text-rose-600"
+                                                            completedMaterials.includes(material.id) ? "bg-success/10 text-success" : "bg-white text-slate-400 group-hover:text-primary transition-colors"
                                                         )}>
-                                                            {material.fileType === 'VIDEO' ? <Play className="w-5 h-5 fill-current" /> : <FileText className="w-5 h-5" />}
+                                                            {completedMaterials.includes(material.id) ? (
+                                                                <CheckCircle2 className="w-5 h-5" />
+                                                            ) : (
+                                                                material.fileType === 'VIDEO' ? <Play className="w-5 h-5 fill-current" /> : <FileText className="w-5 h-5" />
+                                                            )}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <div className="text-sm font-bold text-slate-800 truncate group-hover:text-primary transition-colors">{material.title}</div>
-                                                            <div className="text-[10px] text-muted-foreground uppercase font-black">{material.fileType}</div>
+                                                            <div className="font-bold text-sm truncate group-hover:text-primary transition-colors">{material.title}</div>
+                                                            <div className="text-[10px] text-slate-400 uppercase font-black tracking-widest">{material.fileType || 'AULA'}</div>
                                                         </div>
-                                                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
+                                                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-all" />
                                                     </div>
                                                 </Link>
                                             ))}
