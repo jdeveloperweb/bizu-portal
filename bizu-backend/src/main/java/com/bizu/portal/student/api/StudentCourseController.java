@@ -88,8 +88,42 @@ public class StudentCourseController {
             courseMap.put("category", course.getCategory());
             List<com.bizu.portal.content.domain.Module> modules =
                 course.getModules() != null ? course.getModules() : Collections.emptyList();
+            courseMap.put("modules", modules.stream().map(module -> {
+                Map<String, Object> moduleMap = new HashMap<>();
+                moduleMap.put("id", module.getId());
+                moduleMap.put("title", module.getTitle());
+                moduleMap.put("description", module.getDescription());
+                moduleMap.put("orderIndex", module.getOrderIndex());
 
-            courseMap.put("modules", modules);
+                List<com.bizu.portal.content.domain.Material> moduleMaterials = module.getMaterials() != null
+                    ? module.getMaterials()
+                    : Collections.emptyList();
+                List<com.bizu.portal.content.domain.Question> moduleQuestions = module.getQuestions() != null
+                    ? module.getQuestions()
+                    : Collections.emptyList();
+
+                moduleMap.put("materials", moduleMaterials.stream().map(material -> {
+                    Map<String, Object> materialMap = new HashMap<>();
+                    materialMap.put("id", material.getId());
+                    materialMap.put("title", material.getTitle());
+                    materialMap.put("description", material.getDescription());
+                    materialMap.put("fileUrl", material.getFileUrl());
+                    materialMap.put("fileType", material.getFileType());
+                    materialMap.put("isFree", material.isFree());
+                    return materialMap;
+                }).toList());
+
+                moduleMap.put("questions", moduleQuestions.stream().map(question -> {
+                    Map<String, Object> questionMap = new HashMap<>();
+                    questionMap.put("id", question.getId());
+                    questionMap.put("statement", question.getStatement());
+                    questionMap.put("questionType", question.getQuestionType());
+                    questionMap.put("difficulty", question.getDifficulty());
+                    return questionMap;
+                }).toList());
+
+                return moduleMap;
+            }).toList());
             
             Set<UUID> completedMaterialIds = materialCompletionRepository.findByUserId(userId).stream()
                 .map(completion -> completion.getMaterial().getId())
