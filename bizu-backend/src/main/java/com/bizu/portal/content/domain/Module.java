@@ -39,4 +39,8 @@ public class Module {
     @Builder.Default
     @com.fasterxml.jackson.annotation.JsonManagedReference
     private List<Material> materials = new ArrayList<>();
+
+    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Question> questions = new ArrayList<>();
 }
