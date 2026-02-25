@@ -67,7 +67,7 @@ export default function DashboardPage() {
     const totalResolved = stats?.totalAttempted || 0;
     const accuracy = stats?.overallAccuracy ? parseFloat(stats.overallAccuracy).toFixed(1) + "%" : "0%";
     const totalXp = gamification?.totalXp || 0;
-    const streak = gamification?.currentStreak || 0;
+    const streak = gamification?.currentStreak ?? gamification?.streak ?? 0;
     const userName = typeof user?.name === "string" && user.name.trim().length > 0 ? user.name : "Aluno";
 
     const earnedBadgesCount = badges.filter((badge) => badge.earned).length;

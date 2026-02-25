@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react"; import Link from "next/link";
+import { useState } from "react"; import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import BrandLogo from "@/components/BrandLogo";
-import { apiFetch } from "@/lib/api";
 import {
     LayoutDashboard, BookOpen, ClipboardList, Layers,
     Swords, TrendingUp, User, Trophy, LogOut,
-    ChevronRight, Search, Flame, Timer, CheckSquare,
+    ChevronRight, Search, Timer, CheckSquare,
     StickyNote, Settings, BarChart3, Menu, X, FileText, PlayCircle
 } from "lucide-react";
 
@@ -43,32 +42,11 @@ export default function StudentSidebar() {
     const pathname = usePathname();
     const { logout, subscription, entitlements, selectedCourseId } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
-    const [streak, setStreak] = useState(0);
-
-    useEffect(() => {
-        const fetchGamification = async () => {
-            try {
-                const res = await apiFetch("/student/gamification/me");
-                if (res.ok) {
-                    const data = await res.json();
-                    setStreak(data.currentStreak || 0);
-                }
-            } catch (err) {
-                console.error("Failed to fetch streak", err);
-            }
-        };
-        fetchGamification();
-    }, []);
-
-    // Close sidebar on path change (mobile)
-    useEffect(() => {
-        setIsOpen(false);
-    }, [pathname]);
-
     const Item = ({ href, icon: Icon, label }: { href: string; icon: typeof LayoutDashboard; label: string }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
         return (
             <Link href={href}
+                onClick={() => setIsOpen(false)}
                 className={`group flex items-center gap-2.5 px-3 py-[7px] rounded-lg text-[13px] font-medium transition-all ${active
                     ? "bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-500/10 dark:to-violet-500/10 text-indigo-700 dark:text-indigo-400 font-semibold"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -83,8 +61,8 @@ export default function StudentSidebar() {
     return (
         <>
             {/* Menu Mobile Topo */}
-            <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-background border-b border-border flex items-center justify-between px-4 z-40">
-                <BrandLogo size="sm" variant="dark" />
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-background border-b border-border flex items-center justify-between px-4 z-40">
+                <BrandLogo size="md" variant="dark" />
                 <button onClick={() => setIsOpen(!isOpen)} className="p-2 -mr-2 text-muted-foreground hover:text-indigo-600 transition-colors">
                     {isOpen ? <X size={20} /> : <Menu size={20} />}
                 </button>
@@ -103,11 +81,8 @@ export default function StudentSidebar() {
                 fixed md:sticky top-0 z-50 transition-transform duration-300 ease-in-out
                 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             `}>
-                <div className="h-14 flex items-center justify-between px-4 border-b border-border shrink-0">
-                    <BrandLogo size="sm" variant="dark" />
-                    <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
-                        <Flame size={10} /> {streak}
-                    </div>
+                <div className="h-16 flex items-center px-4 border-b border-border shrink-0">
+                    <BrandLogo size="md" variant="dark" />
                 </div>
 
                 <div className="px-3 py-2.5">
