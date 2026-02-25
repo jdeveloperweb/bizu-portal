@@ -63,11 +63,15 @@ public class StudentCourseController {
         // Busca cursos que o usuário tem direito de acessar (assinatura, grupo, trial, etc)
         List<CourseEntitlement> activeEntitlements = entitlementService.getActiveEntitlements(userId);
         
-        List<Course> courses = activeEntitlements.stream()
+        List<Course> entitledCourses = activeEntitlements.stream()
             .map(e -> e.getCourse())
             .filter(Objects::nonNull)
             .distinct()
             .collect(Collectors.toList());
+
+        List<Course> courses = entitledCourses.stream()
+            .map(course -> courseRepository.findByIdWithModulesAndQuestions(course.getId()).orElse(course))
+            .toList();
         
         List<Map<String, Object>> response = new ArrayList<>();
         
@@ -80,11 +84,14 @@ public class StudentCourseController {
             courseMap.put("themeColor", course.getThemeColor());
             courseMap.put("textColor", course.getTextColor());
             courseMap.put("category", course.getCategory());
-            courseMap.put("modules", course.getModules());
+            List<com.bizu.portal.content.domain.Module> modules =
+                course.getModules() != null ? course.getModules() : Collections.emptyList();
+
+            courseMap.put("modules", modules);
             
             // Calcula progresso real baseado em questões resolvidas no curso
-            long totalQuestions = course.getModules().stream()
-                .flatMap(m -> m.getQuestions().stream())
+            long totalQuestions = modules.stream()
+                .flatMap(m -> (m.getQuestions() != null ? m.getQuestions() : Collections.<com.bizu.portal.content.domain.Question>emptyList()).stream())
                 .count();
             
             long attemptedQuestions = 0;
@@ -96,7 +103,7 @@ public class StudentCourseController {
             courseMap.put("progress", progress);
             
             // Próximo módulo (primeiro não concluído ou o primeiro)
-            courseMap.put("nextModule", course.getModules().isEmpty() ? "Bizu Academy" : course.getModules().get(0).getTitle());
+            courseMap.put("nextModule", modules.isEmpty() ? "Bizu Academy" : modules.get(0).getTitle());
             
             // Contagem de alunos (simulada ou real se o repositório permitir)
             // Para ser preciso, deveríamos injetar o CourseEntitlementRepository e contar
