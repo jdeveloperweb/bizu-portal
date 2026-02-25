@@ -4,9 +4,8 @@ import { useState, useEffect } from "react";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
-    ChevronRight, Play, CheckCircle2, Lock,
-    Star, Clock, FileText, BookOpen,
-    Download
+    ChevronRight, Play, CheckCircle2,
+    Star, Clock, FileText
 } from "lucide-react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
@@ -56,7 +55,7 @@ export default function CourseDetailsPage() {
     const currentModule = course.modules?.[activeModule];
 
     return (
-        <div className="container mx-auto px-4 py-8 lg:py-12 max-w-7xl">
+        <div className="w-full px-4 lg:px-8 py-8 lg:py-10">
             <div className="flex flex-col lg:flex-row gap-8 mb-12">
                 <div className="flex-1">
                     <PageHeader
@@ -80,7 +79,7 @@ export default function CourseDetailsPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-10 items-start">
                 {/* Module Sidebar */}
                 <div className="lg:col-span-4 space-y-4">
                     <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground ml-2 mb-4">Trilha do Curso</h3>
@@ -89,7 +88,7 @@ export default function CourseDetailsPage() {
                             key={mod.id}
                             onClick={() => setActiveModule(idx)}
                             className={cn(
-                                "p-6 rounded-[32px] border transition-all cursor-pointer group flex items-start gap-4",
+                                "p-5 rounded-2xl border transition-all cursor-pointer group flex items-start gap-4",
                                 activeModule === idx ? "bg-card border-primary/30 shadow-xl ring-1 ring-primary/10" : "hover:bg-muted/50 border-transparent"
                             )}
                         >
@@ -108,7 +107,7 @@ export default function CourseDetailsPage() {
                         </div>
                     ))}
                     {(!course.modules || course.modules.length === 0) && (
-                        <div className="p-8 text-center bg-muted/20 rounded-3xl border border-dashed">
+                        <div className="p-8 text-center bg-muted/20 rounded-xl border border-dashed">
                             Nenhum módulo cadastrado.
                         </div>
                     )}
@@ -117,7 +116,7 @@ export default function CourseDetailsPage() {
                 {/* Selected Module Content */}
                 <div className="lg:col-span-8">
                     {currentModule ? (
-                        <div className="p-10 rounded-[48px] bg-card border shadow-2xl relative overflow-hidden">
+                        <div className="p-6 md:p-8 rounded-2xl bg-card border shadow-xl relative overflow-hidden min-h-[calc(100vh-220px)]">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] -mr-32 -mt-32" />
 
                             <div className="relative z-10">
@@ -201,7 +200,7 @@ export default function CourseDetailsPage() {
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="text-center py-10 bg-slate-50 rounded-3xl border border-dashed text-sm text-slate-400">
+                                        <div className="text-center py-10 bg-slate-50 rounded-xl border border-dashed text-sm text-slate-400">
                                             Nenhuma aula disponível para este módulo ainda.
                                         </div>
                                     )}
@@ -209,7 +208,7 @@ export default function CourseDetailsPage() {
                             </div>
                         </div>
                     ) : (
-                        <div className="p-10 text-center bg-card border rounded-[48px] shadow-sm">
+                        <div className="p-10 text-center bg-card border rounded-2xl shadow-sm min-h-[420px] flex items-center justify-center">
                             Selecione um módulo para ver o conteúdo.
                         </div>
                     )}

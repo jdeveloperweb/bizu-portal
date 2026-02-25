@@ -2,6 +2,7 @@ package com.bizu.portal.student.api;
 
 import com.bizu.portal.commerce.application.EntitlementService;
 import com.bizu.portal.identity.application.UserService;
+import com.bizu.portal.identity.infrastructure.UserRepository;
 import com.bizu.portal.content.application.MaterialService;
 import com.bizu.portal.content.domain.Material;
 import com.bizu.portal.content.infrastructure.MaterialRepository;
@@ -25,6 +26,7 @@ public class StudentMaterialController {
     private final MaterialRepository materialRepository;
     private final EntitlementService entitlementService;
     private final UserService userService;
+    private final UserRepository userRepository;
 
     private final com.bizu.portal.student.infrastructure.MaterialCompletionRepository completionRepository;
 
@@ -65,7 +67,7 @@ public class StudentMaterialController {
         } else {
             Material material = materialService.findById(id);
             com.bizu.portal.student.domain.MaterialCompletion completion = com.bizu.portal.student.domain.MaterialCompletion.builder()
-                .user(com.bizu.portal.identity.domain.User.builder().id(userId).build())
+                .user(userRepository.getReferenceById(userId))
                 .material(material)
                 .build();
             completionRepository.save(completion);
