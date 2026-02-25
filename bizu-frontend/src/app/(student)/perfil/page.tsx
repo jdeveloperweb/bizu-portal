@@ -11,6 +11,32 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
+const formatPrice = (price?: number | string, currency = "BRL") => {
+    if (price === undefined || price === null || price === "") return null;
+
+    const value = typeof price === "number" ? price : Number(price);
+    if (Number.isNaN(value)) return null;
+
+    return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency,
+        minimumFractionDigits: 2,
+    }).format(value);
+};
+
+const billingIntervalLabel = (interval?: string) => {
+    switch (interval) {
+        case "MONTHLY":
+            return "mensal";
+        case "YEARLY":
+            return "anual";
+        case "ONE_TIME":
+            return "pagamento único";
+        default:
+            return "";
+    }
+};
+
 const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -28,9 +54,31 @@ const itemVariants = {
     visible: { opacity: 1, y: 0 }
 };
 
+type Device = {
+    id: string;
+    userAgent?: string;
+    ipAddress?: string;
+    lastSeenAt: string;
+};
+
+type Plan = {
+    id: string;
+    name?: string;
+    price?: number | string;
+    currency?: string;
+    billingInterval?: string;
+    course?: { id?: string };
+};
+
+type CourseSummary = {
+    id: string;
+    title: string;
+};
+
 export default function ProfilePage() {
     const { user, logout, selectedCourseId, refreshUserProfile, subscription, entitlements } = useAuth();
-    const [devices, setDevices] = useState<any[]>([]);
+    const [devices, setDevices] = useState<Device[]>([]);
+    const [plans, setPlans] = useState<Plan[]>([]);
     const [courseName, setCourseName] = useState<string>("");
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -49,9 +97,10 @@ export default function ProfilePage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [devicesRes, coursesRes] = await Promise.all([
+                const [devicesRes, coursesRes, plansRes] = await Promise.all([
                     apiFetch("/devices"),
-                    apiFetch("/public/courses")
+                    apiFetch("/public/courses"),
+                    apiFetch("/public/plans")
                 ]);
 
                 if (devicesRes.ok) {
@@ -59,13 +108,18 @@ export default function ProfilePage() {
                     setDevices(data);
                 }
 
+                if (plansRes.ok) {
+                    const plansData = await plansRes.json();
+                    setPlans(Array.isArray(plansData) ? plansData : []);
+                }
+
                 // Try to find course name from entitlements first (more reliable for students)
                 const ent = entitlements?.find(e => e.course?.id === selectedCourseId);
                 if (ent) {
                     setCourseName(ent.course.title);
                 } else if (coursesRes.ok && selectedCourseId) {
-                    const courses = await coursesRes.json();
-                    const currentCourse = courses.find((c: any) => c.id === selectedCourseId);
+                    const courses: CourseSummary[] = await coursesRes.json();
+                    const currentCourse = courses.find((c) => c.id === selectedCourseId);
                     if (currentCourse) {
                         setCourseName(currentCourse.title);
                     }
@@ -77,7 +131,18 @@ export default function ProfilePage() {
             }
         };
         fetchData();
-    }, [selectedCourseId]);
+    }, [selectedCourseId, entitlements]);
+
+    const selectedEntitlement = entitlements?.find(e => e.course?.id === selectedCourseId && e.active);
+    const selectedPlan = subscription?.plan?.course?.id === selectedCourseId
+        ? subscription.plan
+        : plans.find((plan) => plan.course?.id === selectedCourseId);
+    const currentCourseLabel = selectedEntitlement?.course?.title || courseName || "Curso selecionado";
+    const currentPlanLabel = subscription?.plan?.name
+        || selectedPlan?.name
+        || (selectedEntitlement?.source === "MANUAL" ? "Plano Vitalício" : "Plano Ativo");
+    const currentPlanPrice = formatPrice(subscription?.plan?.price ?? selectedPlan?.price, subscription?.plan?.currency || selectedPlan?.currency || "BRL");
+    const currentBillingInterval = billingIntervalLabel(subscription?.plan?.billingInterval || selectedPlan?.billingInterval);
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -92,7 +157,7 @@ export default function ProfilePage() {
             } else {
                 toast.error("Erro ao atualizar perfil");
             }
-        } catch (err) {
+        } catch {
             toast.error("Erro de conexão");
         } finally {
             setIsSaving(false);
@@ -106,7 +171,7 @@ export default function ProfilePage() {
                 setDevices(devices.filter(d => d.id !== id));
                 toast.success("Dispositivo removido");
             }
-        } catch (err) {
+        } catch {
             toast.error("Falha ao remover dispositivo");
         }
     };
@@ -223,22 +288,33 @@ export default function ProfilePage() {
                             <h3 className="text-xl font-black">{subscription ? "Assinatura Ativa" : "Meu Plano"}</h3>
                         </div>
 
-                        {subscription || entitlements?.some(e => e.course?.id === selectedCourseId && e.active) ? (
+                        {subscription || selectedEntitlement ? (
                             <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-8 rounded-[32px] bg-gradient-to-br from-indigo-50/50 to-indigo-100/30 border border-indigo-100/50 gap-6">
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
                                         <div className="text-2xl font-black text-indigo-600 uppercase tracking-tight">
-                                            {subscription?.plan?.name || (entitlements?.find(e => e.course?.id === selectedCourseId)?.source === 'MANUAL' ? 'Plano Vitalício' : 'Plano Ativo')}
+                                            {currentPlanLabel}
                                         </div>
                                         <div className="pill pill-success text-[10px] scale-90">ATIVO</div>
                                     </div>
-                                    <div className="text-sm font-medium text-slate-600">
+
+                                    <div className="text-sm font-semibold text-slate-900 mb-1">
+                                        {currentCourseLabel}
+                                    </div>
+
+                                    <div className="text-sm font-medium text-slate-600 mb-1">
                                         {subscription ? (
                                             <>Sua assinatura renova em <span className="font-bold text-slate-900">{new Date(subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}</span></>
                                         ) : (
-                                            <>Acesso garantido via {entitlements?.find(e => e.course?.id === selectedCourseId)?.source || 'Assinatura'}</>
+                                            <>Acesso garantido via {selectedEntitlement?.source || 'Assinatura'}</>
                                         )}
                                     </div>
+
+                                    {currentPlanPrice && (
+                                        <div className="text-xs font-bold text-indigo-700 uppercase tracking-wide">
+                                            {currentPlanPrice} {currentBillingInterval ? `• ${currentBillingInterval}` : ""}
+                                        </div>
+                                    )}
                                 </div>
                                 <Button className="rounded-2xl border-2 border-indigo-200 bg-white text-indigo-600 hover:bg-indigo-600 hover:text-white h-12 px-8 font-bold transition-all w-full md:w-auto">
                                     Gerenciar Assinatura
