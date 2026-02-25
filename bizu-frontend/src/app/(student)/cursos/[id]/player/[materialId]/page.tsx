@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Download, Share2, Maximize2, FileText, ChevronLeft, Play, Info, CheckCircle2 } from "lucide-react";
+import { Download, Share2, FileText, ChevronLeft, Play, Info, CheckCircle2, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -89,14 +89,16 @@ export default function CoursePlayerPage() {
     );
 
     const materials = module?.materials || [];
+    const isVideo = currentMaterial.fileType === "VIDEO";
+    const isPdf = currentMaterial.fileType === "PDF" || currentMaterial.fileUrl?.toLowerCase().includes(".pdf");
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="w-full px-4 lg:px-8 py-6 lg:py-8">
             {/* Header / Breadcrumb */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
                 <div className="flex items-center gap-4">
                     <Link href={`/cursos/${courseId}`}>
-                        <Button variant="ghost" className="rounded-xl flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <Button variant="ghost" className="rounded-lg flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800">
                             <ChevronLeft className="w-5 h-5 text-primary" />
                             Voltar ao Curso
                         </Button>
@@ -109,12 +111,12 @@ export default function CoursePlayerPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" className="rounded-2xl px-4 flex items-center gap-2 border-slate-200">
+                    <Button variant="outline" className="rounded-lg px-4 flex items-center gap-2 border-slate-200">
                         <Share2 className="w-4 h-4" />
                         <span className="hidden sm:inline">Compartilhar</span>
                     </Button>
                     <Button
-                        className="rounded-2xl px-6 flex items-center gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/10"
+                        className="rounded-lg px-6 flex items-center gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/10"
                         onClick={() => window.open(currentMaterial.fileUrl, '_blank')}
                     >
                         <Download className="w-4 h-4" />
@@ -123,12 +125,12 @@ export default function CoursePlayerPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-stretch">
                 {/* Main Content (Video/PDF) */}
-                <div className="lg:col-span-8 space-y-6">
+                <div className="lg:col-span-8 space-y-4 min-h-[calc(100vh-180px)] flex flex-col">
                     {/* Player Area */}
-                    <div className="aspect-video bg-black rounded-[40px] overflow-hidden shadow-2xl relative group">
-                        {currentMaterial.fileType === 'VIDEO' ? (
+                    <div className="flex-1 min-h-[420px] bg-black rounded-2xl overflow-hidden shadow-xl relative group border border-slate-900/40">
+                        {isVideo ? (
                             (currentMaterial.fileUrl.includes('youtube.com') || currentMaterial.fileUrl.includes('vimeo.com')) ? (
                                 <iframe
                                     src={currentMaterial.fileUrl}
@@ -144,14 +146,22 @@ export default function CoursePlayerPage() {
                                     poster={course?.thumbnailUrl}
                                 />
                             )
+                        ) : isPdf ? (
+                            <iframe
+                                src={`${currentMaterial.fileUrl}#toolbar=1&navpanes=0&scrollbar=1`}
+                                className="w-full h-full border-none bg-white"
+                                title={currentMaterial.title}
+                            />
                         ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center bg-muted/10">
-                                <FileText className="w-20 h-20 text-primary mb-4" />
-                                <p className="text-xl font-bold">{currentMaterial.title}</p>
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-muted/10 p-6 text-center">
+                                <FileText className="w-16 h-16 text-primary mb-4" />
+                                <p className="text-xl font-bold text-white">{currentMaterial.title}</p>
+                                <p className="text-sm text-slate-300 mt-2">Pré-visualização não disponível para este formato.</p>
                                 <Button
-                                    className="mt-6 rounded-2xl"
+                                    className="mt-6 rounded-lg"
                                     onClick={() => window.open(currentMaterial.fileUrl, '_blank')}
                                 >
+                                    <ExternalLink className="w-4 h-4" />
                                     Abrir Documento
                                 </Button>
                             </div>
@@ -159,7 +169,7 @@ export default function CoursePlayerPage() {
                     </div>
 
                     {/* Description */}
-                    <div className="bg-card border-2 border-slate-100 dark:border-slate-800 rounded-[40px] p-8">
+                    <div className="bg-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-lg font-bold flex items-center gap-2">
                                 <Info className="w-5 h-5 text-primary" />
@@ -167,7 +177,7 @@ export default function CoursePlayerPage() {
                             </h3>
                             <Button
                                 variant={isCompleted ? "default" : "ghost"}
-                                className={cn("font-bold gap-2", isCompleted ? "bg-success hover:bg-success/90 text-white" : "text-success")}
+                                className={cn("font-bold gap-2 rounded-lg", isCompleted ? "bg-success hover:bg-success/90 text-white" : "text-success")}
                                 onClick={toggleCompletion}
                             >
                                 <CheckCircle2 className={cn("w-4 h-4", isCompleted && "fill-current")} />
@@ -184,8 +194,8 @@ export default function CoursePlayerPage() {
                 </div>
 
                 {/* Sidebar - Playlist */}
-                <div className="lg:col-span-4 space-y-6">
-                    <div className="p-8 rounded-[40px] bg-card border shadow-sm flex flex-col h-[600px] overflow-hidden">
+                <div className="lg:col-span-4 space-y-4 min-h-[calc(100vh-180px)] flex flex-col">
+                    <div className="p-6 rounded-2xl bg-card border shadow-sm flex flex-col flex-1 overflow-hidden min-h-[420px]">
                         <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
                             <Play className="w-5 h-5 text-amber-500" />
                             Aulas do Módulo
@@ -194,7 +204,7 @@ export default function CoursePlayerPage() {
                             {materials.map((item: any, idx: number) => (
                                 <Link key={item.id} href={`/cursos/${courseId}/player/${item.id}`}>
                                     <div className={cn(
-                                        "p-5 rounded-3xl text-sm transition-all cursor-pointer border group mb-2",
+                                        "p-4 rounded-xl text-sm transition-all cursor-pointer border group mb-2",
                                         materialId === item.id
                                             ? "bg-primary border-primary text-primary-foreground shadow-xl shadow-primary/10"
                                             : "hover:bg-muted border-transparent text-foreground"
@@ -215,7 +225,7 @@ export default function CoursePlayerPage() {
 
                     <div className="p-2">
                         <Link href={`/estudar/${module?.id}`} className="block">
-                            <Button className="w-full h-16 rounded-[28px] font-black text-lg gap-3 shadow-2xl shadow-primary/20 hover:scale-[1.02] transition-transform">
+                            <Button className="w-full h-14 rounded-xl font-black text-lg gap-3 shadow-xl shadow-primary/20 hover:scale-[1.01] transition-transform">
                                 <CheckCircle2 className="w-6 h-6" />
                                 Fazer Quiz do Módulo
                             </Button>
