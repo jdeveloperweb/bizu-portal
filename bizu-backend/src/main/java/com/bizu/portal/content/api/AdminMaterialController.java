@@ -31,6 +31,7 @@ public class AdminMaterialController {
         existing.setFileUrl(material.getFileUrl());
         existing.setFileType(material.getFileType());
         existing.setFree(material.isFree());
+        existing.setContent(material.getContent());
         return ResponseEntity.ok(materialService.save(existing));
     }
 

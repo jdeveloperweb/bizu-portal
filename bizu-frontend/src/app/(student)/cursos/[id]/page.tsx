@@ -100,34 +100,26 @@ export default function CourseDetailsPage({ params }: { params: { id: string } }
                 </div>
 
                 {/* Selected Module Content */}
-                <div className="lg:col-span-8 space-y-10">
+                <div className="lg:col-span-8">
                     {currentModule ? (
                         <div className="p-10 rounded-[48px] bg-card border shadow-2xl relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] -mr-32 -mt-32" />
 
                             <div className="relative z-10">
-                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10 pb-8 border-b">
                                     <div>
                                         <h2 className="text-3xl font-black mb-2">{currentModule.title}</h2>
                                         <p className="text-muted-foreground">{currentModule.description}</p>
                                     </div>
-                                    <div className="flex items-center gap-4">
-                                        <Link href={`/materiais?moduleId=${currentModule.id}`}>
-                                            <Button variant="outline" className="rounded-2xl h-14 px-8 font-black gap-2 text-lg border-2 hover:bg-slate-50 transition-all">
-                                                <FileText className="w-5 h-5" />
-                                                Ver Materiais
-                                            </Button>
-                                        </Link>
-                                        <Link href={`/estudar/${currentModule.id}`}>
-                                            <Button className="rounded-2xl h-14 px-8 font-black gap-2 text-lg shadow-xl shadow-primary/20 hover:scale-105 transition-transform">
-                                                <Play className="w-5 h-5 fill-current" />
-                                                Fazer Quiz
-                                            </Button>
-                                        </Link>
-                                    </div>
+                                    <Link href={`/cursos/${course.id}/player/${currentModule.materials[0]?.id || ""}`}>
+                                        <Button className="rounded-2xl h-14 px-8 font-black gap-2 text-lg shadow-xl shadow-primary/20 hover:scale-105 transition-transform shrink-0">
+                                            <Play className="w-5 h-5 fill-current" />
+                                            Começar Módulo
+                                        </Button>
+                                    </Link>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
                                     <div className="space-y-6">
                                         <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                                             <Star className="w-4 h-4 text-primary" />
@@ -152,27 +144,27 @@ export default function CourseDetailsPage({ params }: { params: { id: string } }
                                     <div className="space-y-6">
                                         <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                                             <Clock className="w-4 h-4 text-primary" />
-                                            Recursos
+                                            Informações
                                         </h4>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="p-4 rounded-3xl bg-muted/30 text-center">
-                                                <div className="text-2xl font-black">{currentModule.orderIndex || activeModule + 1}</div>
-                                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Posição</div>
+                                                <div className="text-2xl font-black">{currentModule.materials?.length || 0}</div>
+                                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Aulas</div>
                                             </div>
                                             <div className="p-4 rounded-3xl bg-muted/30 text-center">
                                                 <div className="text-2xl font-black">?</div>
-                                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Conteúdos</div>
+                                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Minutos</div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="mt-12 pt-10 border-t">
-                                    <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-6">Materiais Disponíveis</h4>
+                                <div className="pt-10 border-t">
+                                    <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-6">Aulas Disponíveis</h4>
                                     {currentModule.materials && currentModule.materials.length > 0 ? (
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {currentModule.materials.map((material: any) => (
-                                                <Link key={material.id} href={`/materiais/${material.id}`}>
+                                                <Link key={material.id} href={`/cursos/${course.id}/player/${material.id}`}>
                                                     <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-lg transition-all group">
                                                         <div className={cn(
                                                             "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
@@ -191,14 +183,16 @@ export default function CourseDetailsPage({ params }: { params: { id: string } }
                                         </div>
                                     ) : (
                                         <div className="text-center py-10 bg-slate-50 rounded-3xl border border-dashed text-sm text-slate-400">
-                                            Nenhum material disponível para este módulo ainda.
+                                            Nenhuma aula disponível para este módulo ainda.
                                         </div>
                                     )}
                                 </div>
                             </div>
                         </div>
                     ) : (
-                        <div className="p-10 text-center">Selecione um módulo para ver o conteúdo.</div>
+                        <div className="p-10 text-center bg-card border rounded-[48px] shadow-sm">
+                            Selecione um módulo para ver o conteúdo.
+                        </div>
                     )}
                 </div>
             </div>

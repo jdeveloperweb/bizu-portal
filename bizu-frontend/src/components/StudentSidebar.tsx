@@ -41,7 +41,7 @@ const bottomNav = [
 
 export default function StudentSidebar() {
     const pathname = usePathname();
-    const { logout, subscription } = useAuth();
+    const { logout, subscription, entitlements, selectedCourseId } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [streak, setStreak] = useState(0);
 
@@ -138,12 +138,20 @@ export default function StudentSidebar() {
 
                 <div className="px-2.5 py-3 border-t border-border space-y-2">
                     <div className="rounded-lg bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-100 px-3.5 py-3">
-                        <p className="text-[11px] font-bold text-indigo-700 mb-0.5">{subscription?.plan?.name || "Plano Free"}</p>
-                        {!subscription && <p className="text-[10px] text-indigo-500/70 mb-2">Faca upgrade para desbloquear tudo</p>}
-                        {subscription && (
-                            <p className="text-[10px] text-indigo-500/70 mb-2">
-                                Ativo ate {new Date(subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}
-                            </p>
+                        {subscription || entitlements?.some(e => e.course?.id === selectedCourseId && e.active) ? (
+                            <>
+                                <p className="text-[11px] font-bold text-indigo-700 mb-0.5">
+                                    {subscription?.plan?.name || (entitlements?.find(e => e.course?.id === selectedCourseId)?.source === 'MANUAL' ? 'Plano Vitalício' : 'Plano Ativo')}
+                                </p>
+                                <p className="text-[10px] text-indigo-500/70 mb-2">
+                                    {entitlements?.find(e => e.course?.id === selectedCourseId)?.course?.title || "Curso Ativo"}
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <p className="text-[11px] font-bold text-indigo-700 mb-0.5">Plano Free</p>
+                                <p className="text-[10px] text-indigo-500/70 mb-2">Faca upgrade para desbloquear tudo</p>
+                            </>
                         )}
                         <Link href="/ranking" className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5">
                             Ver metas <ChevronRight size={11} />

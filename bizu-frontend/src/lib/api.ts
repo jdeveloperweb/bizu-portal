@@ -13,12 +13,15 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
 
     const selectedCourseId = typeof window !== "undefined" ? window.localStorage.getItem("selectedCourseId") : null;
 
-    const headers = {
-        "Content-Type": "application/json",
+    const headers: Record<string, string> = {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(selectedCourseId ? { "X-Selected-Course-Id": selectedCourseId } : {}),
-        ...options.headers,
+        ...Object.fromEntries(Object.entries(options.headers || {}).map(([k, v]) => [k, String(v)])),
     };
+
+    if (!(options.body instanceof FormData)) {
+        headers["Content-Type"] = "application/json";
+    }
 
     const response = await fetch(`${API_URL}${endpoint}`, {
         ...options,

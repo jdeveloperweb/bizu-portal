@@ -35,6 +35,11 @@ public class Module {
     @com.fasterxml.jackson.annotation.JsonBackReference
     private Course course;
 
+    @com.fasterxml.jackson.annotation.JsonProperty("courseId")
+    public UUID getCourseId() {
+        return course != null ? course.getId() : null;
+    }
+
     @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     @com.fasterxml.jackson.annotation.JsonManagedReference

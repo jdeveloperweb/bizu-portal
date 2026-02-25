@@ -26,17 +26,17 @@ public class StudentMaterialController {
     private final EntitlementService entitlementService;
     private final UserService userService;
 
+    private final com.bizu.portal.student.infrastructure.MaterialCompletionRepository completionRepository;
+
     @GetMapping
     public ResponseEntity<List<Material>> getAllMaterials(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = userService.resolveUserId(jwt);
         
-        // Busca cursos que o usuário tem direito de acessar
         List<UUID> subscribedCourseIds = entitlementService.getActiveEntitlements(userId)
             .stream()
             .map(e -> e.getCourse().getId())
             .collect(Collectors.toList());
             
-        // Filtra todos os materiais que pertencem a esses cursos
         List<Material> allMaterials = materialRepository.findAll();
         List<Material> subscribedMaterials = allMaterials.stream()
             .filter(m -> m.getModule() != null && m.getModule().getCourse() != null && 
@@ -44,6 +44,34 @@ public class StudentMaterialController {
             .collect(Collectors.toList());
             
         return ResponseEntity.ok(subscribedMaterials);
+    }
+
+    @GetMapping("/completed")
+    public ResponseEntity<List<UUID>> getCompletedMaterials(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        return ResponseEntity.ok(completionRepository.findByUserId(userId)
+            .stream()
+            .map(c -> c.getMaterial().getId())
+            .collect(Collectors.toList()));
+    }
+
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<Void> toggleCompletion(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        java.util.Optional<com.bizu.portal.student.domain.MaterialCompletion> existing = completionRepository.findByUserIdAndMaterialId(userId, id);
+        
+        if (existing.isPresent()) {
+            completionRepository.delete(existing.get());
+        } else {
+            Material material = materialService.findById(id);
+            com.bizu.portal.student.domain.MaterialCompletion completion = com.bizu.portal.student.domain.MaterialCompletion.builder()
+                .user(com.bizu.portal.identity.domain.User.builder().id(userId).build())
+                .material(material)
+                .build();
+            completionRepository.save(completion);
+        }
+        
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}")

@@ -25,6 +25,9 @@ public class Material {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(columnDefinition = "TEXT")
+    private String content; // Dynamic HTML/Markdown content
+
     @Column(name = "file_url", nullable = false)
     private String fileUrl; // S3 URL
 

@@ -31,6 +31,9 @@ public class AdminCourseController {
         existing.setTextColor(course.getTextColor());
         existing.setStatus(course.getStatus());
         existing.setThumbnailUrl(course.getThumbnailUrl());
+        existing.setCategory(course.getCategory());
+        existing.setLevel(course.getLevel());
+        existing.setMandatory(course.isMandatory());
         return ResponseEntity.ok(courseService.save(existing));
     }
 

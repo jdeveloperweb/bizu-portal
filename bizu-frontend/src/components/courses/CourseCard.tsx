@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { BookOpen, Users, Star } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 interface CourseCardProps {
+    id: string;
     title: string;
     description: string;
     thumbnail?: string;
@@ -14,6 +16,7 @@ interface CourseCardProps {
 }
 
 export default function CourseCard({
+    id,
     title,
     description,
     thumbnail,
@@ -44,8 +47,8 @@ export default function CourseCard({
                 </div>
             </div>
 
-            <div className="p-6">
-                <h3 className="text-xl font-bold mb-2 line-clamp-1 group-hover:text-primary transition-colors" style={themeColor ? { '--primary': themeColor } as any : {}}>
+            <div className="p-6 text-left">
+                <h3 className="text-xl font-bold mb-2 line-clamp-1 group-hover:text-primary transition-colors text-foreground" style={themeColor ? { '--primary': themeColor } as any : {}}>
                     {title}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-6 line-clamp-2">
@@ -63,12 +66,14 @@ export default function CourseCard({
                     </div>
                 </div>
 
-                <Button
-                    className="w-full rounded-xl font-bold py-6 transition-all"
-                    style={themeColor ? { backgroundColor: themeColor, color: textColor || "#ffffff" } : {}}
-                >
-                    Acessar Curso
-                </Button>
+                <Link href={`/cursos/${id}`} className="block">
+                    <Button
+                        className="w-full rounded-xl font-bold py-6 transition-all"
+                        style={themeColor ? { backgroundColor: themeColor, color: textColor || "#ffffff" } : {}}
+                    >
+                        Acessar Curso
+                    </Button>
+                </Link>
             </div>
         </div>
     );

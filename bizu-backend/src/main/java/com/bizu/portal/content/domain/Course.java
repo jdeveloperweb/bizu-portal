@@ -41,6 +41,16 @@ public class Course {
     @Column(nullable = false)
     private String status = "DRAFT"; // DRAFT, PUBLISHED, ARCHIVED
 
+    @Column(name = "category")
+    private String category;
+
+    @Column(name = "level")
+    private String level; // INICIANTE, INTERMEDIARIO, AVANCADO
+
+    @Builder.Default
+    @Column(name = "is_mandatory")
+    private boolean isMandatory = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 

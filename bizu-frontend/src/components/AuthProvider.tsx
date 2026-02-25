@@ -17,6 +17,7 @@ interface AuthContextType {
     setSelectedCourseId: (courseId?: string) => void;
     refreshUserProfile: () => Promise<void>;
     subscription: any;
+    entitlements: any[];
 }
 
 interface AuthUser {
@@ -38,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<AuthUser | null>(null);
     const [subscription, setSubscription] = useState<any>(null);
+    const [entitlements, setEntitlements] = useState<any[]>([]);
     const [selectedCourseId, setSelectedCourseIdState] = useState<string | undefined>(undefined);
 
     const applySelectedCourseId = (nextUser: AuthUser) => {
@@ -74,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(me);
             applySelectedCourseId(me);
 
-            // Fetch subscription too
+            // Fetch subscription and entitlements
             try {
                 const subRes = await fetch(apiBase.endsWith('/api/v1') ? `${apiBase}/subscriptions/me` : `${apiBase}/api/v1/subscriptions/me`, {
                     headers: {
@@ -88,8 +90,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 } else {
                     setSubscription(null);
                 }
+
+                const entRes = await fetch(apiBase.endsWith('/api/v1') ? `${apiBase}/student/entitlements/me` : `${apiBase}/api/v1/student/entitlements/me`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                if (entRes.ok) {
+                    const entData = await entRes.json();
+                    setEntitlements(entData);
+                }
             } catch (err) {
-                console.error("Failed to fetch subscription in AuthProvider", err);
+                console.error("Failed to fetch subscription or entitlements in AuthProvider", err);
                 setSubscription(null);
             }
         }
@@ -234,7 +247,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register, selectedCourseId, setSelectedCourseId, refreshUserProfile, subscription }}>
+        <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register, selectedCourseId, setSelectedCourseId, refreshUserProfile, subscription, entitlements }}>
             {children}
         </AuthContext.Provider>
     );

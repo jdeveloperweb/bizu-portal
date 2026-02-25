@@ -29,7 +29,7 @@ const itemVariants = {
 };
 
 export default function ProfilePage() {
-    const { user, logout, selectedCourseId, refreshUserProfile, subscription } = useAuth();
+    const { user, logout, selectedCourseId, refreshUserProfile, subscription, entitlements } = useAuth();
     const [devices, setDevices] = useState<any[]>([]);
     const [courseName, setCourseName] = useState<string>("");
     const [isLoading, setIsLoading] = useState(true);
@@ -59,7 +59,11 @@ export default function ProfilePage() {
                     setDevices(data);
                 }
 
-                if (coursesRes.ok && selectedCourseId) {
+                // Try to find course name from entitlements first (more reliable for students)
+                const ent = entitlements?.find(e => e.course?.id === selectedCourseId);
+                if (ent) {
+                    setCourseName(ent.course.title);
+                } else if (coursesRes.ok && selectedCourseId) {
                     const courses = await coursesRes.json();
                     const currentCourse = courses.find((c: any) => c.id === selectedCourseId);
                     if (currentCourse) {
@@ -219,15 +223,21 @@ export default function ProfilePage() {
                             <h3 className="text-xl font-black">{subscription ? "Assinatura Ativa" : "Meu Plano"}</h3>
                         </div>
 
-                        {subscription ? (
+                        {subscription || entitlements?.some(e => e.course?.id === selectedCourseId && e.active) ? (
                             <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-8 rounded-[32px] bg-gradient-to-br from-indigo-50/50 to-indigo-100/30 border border-indigo-100/50 gap-6">
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
-                                        <div className="text-2xl font-black text-indigo-600 uppercase tracking-tight">{subscription.plan?.name}</div>
+                                        <div className="text-2xl font-black text-indigo-600 uppercase tracking-tight">
+                                            {subscription?.plan?.name || (entitlements?.find(e => e.course?.id === selectedCourseId)?.source === 'MANUAL' ? 'Plano Vitalício' : 'Plano Ativo')}
+                                        </div>
                                         <div className="pill pill-success text-[10px] scale-90">ATIVO</div>
                                     </div>
                                     <div className="text-sm font-medium text-slate-600">
-                                        Sua assinatura renova em <span className="font-bold text-slate-900">{new Date(subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}</span>
+                                        {subscription ? (
+                                            <>Sua assinatura renova em <span className="font-bold text-slate-900">{new Date(subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}</span></>
+                                        ) : (
+                                            <>Acesso garantido via {entitlements?.find(e => e.course?.id === selectedCourseId)?.source || 'Assinatura'}</>
+                                        )}
                                     </div>
                                 </div>
                                 <Button className="rounded-2xl border-2 border-indigo-200 bg-white text-indigo-600 hover:bg-indigo-600 hover:text-white h-12 px-8 font-bold transition-all w-full md:w-auto">
