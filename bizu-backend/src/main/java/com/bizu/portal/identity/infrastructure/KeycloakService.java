@@ -67,6 +67,50 @@ public class KeycloakService {
         }
     }
 
+    public void updateKeycloakUser(String email, String name, String newEmail) {
+        String adminToken = getAdminToken();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(adminToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // Search for user by current email to get their ID
+        String searchUrl = String.format("%s/admin/realms/%s/users?username=%s", authServerUrl, realm, email);
+        
+        try {
+            ResponseEntity<List> searchResponse = restTemplate.exchange(
+                searchUrl, 
+                HttpMethod.GET, 
+                new HttpEntity<>(headers), 
+                List.class
+            );
+
+            List users = searchResponse.getBody();
+            if (users == null || users.isEmpty()) {
+                log.warn("Usuário não encontrado no Keycloak para atualização: {}", email);
+                return;
+            }
+
+            Map<String, Object> keycloakUser = (Map<String, Object>) users.get(0);
+            String userId = (String) keycloakUser.get("id");
+
+            Map<String, Object> updates = new HashMap<>();
+            if (name != null) updates.put("firstName", name);
+            if (newEmail != null) {
+                updates.put("email", newEmail);
+                updates.put("username", newEmail);
+            }
+
+            // Update user by ID
+            String updateUrl = String.format("%s/admin/realms/%s/users/%s", authServerUrl, realm, userId);
+            restTemplate.exchange(updateUrl, HttpMethod.PUT, new HttpEntity<>(updates, headers), String.class);
+            
+            log.info("Usuário {} (ID: {}) atualizado com sucesso no Keycloak", email, userId);
+        } catch (Exception e) {
+            log.error("Erro ao atualizar usuário no Keycloak", e);
+            throw new RuntimeException("Erro ao atualizar usuário no serviço de identidade: " + e.getMessage());
+        }
+    }
+
     public void deleteKeycloakUser(String email) {
         String adminToken = getAdminToken();
         HttpHeaders headers = new HttpHeaders();

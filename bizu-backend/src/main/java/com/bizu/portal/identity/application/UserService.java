@@ -33,6 +33,25 @@ public class UserService {
     }
 
     @Transactional
+    public User updateUser(java.util.UUID id, String name, String email) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        String oldEmail = user.getEmail();
+        String oldName = user.getName();
+        
+        user.setName(name);
+        user.setEmail(email);
+
+        // Atualiza no Keycloak se necessário
+        if (!name.equals(oldName) || !email.equals(oldEmail)) {
+            keycloakService.updateKeycloakUser(oldEmail, name, email);
+        }
+
+        return userRepository.save(user);
+    }
+
+    @Transactional
     public void deleteUser(java.util.UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));

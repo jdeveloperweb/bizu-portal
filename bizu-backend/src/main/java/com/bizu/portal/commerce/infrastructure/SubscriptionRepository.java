@@ -9,5 +9,6 @@ import java.util.UUID;
 @Repository
 public interface SubscriptionRepository extends JpaRepository<Subscription, UUID> {
     long countByStatus(String status);
+    java.util.List<Subscription> findAllByStatus(String status);
     java.util.Optional<Subscription> findFirstByUserIdAndStatusOrderByCreatedAtDesc(UUID userId, String status);
 }

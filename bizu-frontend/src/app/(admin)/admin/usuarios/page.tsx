@@ -23,6 +23,16 @@ export default function AdminUsuariosPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
 
+    // User Editing State
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingUser, setEditingUser] = useState<any>(null);
+    const [plans, setPlans] = useState<any[]>([]);
+    const [formUser, setFormUser] = useState({
+        name: "",
+        email: "",
+        planId: ""
+    });
+
     const fetchUsers = async () => {
         setIsLoading(true);
         try {
@@ -31,7 +41,7 @@ export default function AdminUsuariosPage() {
                 const data = await res.json();
                 const formattedUsers = data.map((u: any) => ({
                     ...u,
-                    joined: new Date(u.joined).toLocaleDateString('pt-BR', { month: 'short', day: 'numeric', year: 'numeric' })
+                    joined: u.joined ? new Date(u.joined).toLocaleDateString('pt-BR', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'
                 }));
                 setUsers(formattedUsers);
             }
@@ -39,6 +49,55 @@ export default function AdminUsuariosPage() {
             console.error("Failed to fetch users", error);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchPlans = async () => {
+        try {
+            const res = await apiFetch("/admin/plans");
+            if (res.ok) {
+                const data = await res.json();
+                setPlans(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch plans", error);
+        }
+    };
+
+    const handleEditClick = (user: any) => {
+        setEditingUser(user);
+        setFormUser({
+            name: user.name || "",
+            email: user.email || "",
+            planId: user.planId || ""
+        });
+        setIsEditing(true);
+        fetchPlans();
+    };
+
+    const handleUpdateUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const res = await apiFetch(`/admin/users/${editingUser.id}`, {
+                method: "PUT",
+                body: JSON.stringify({
+                    name: formUser.name,
+                    email: formUser.email,
+                    planId: formUser.planId || null
+                })
+            });
+
+            if (res.ok) {
+                await fetchUsers();
+                setIsEditing(false);
+                setEditingUser(null);
+            } else {
+                const err = await res.text();
+                alert("Falha ao atualizar usuário: " + err);
+            }
+        } catch (error) {
+            console.error("Failed to update user", error);
+            alert("Erro ao atualizar usuário.");
         }
     };
 
@@ -135,7 +194,7 @@ export default function AdminUsuariosPage() {
                         <thead>
                             <tr className="bg-slate-50/50 border-b border-slate-100">
                                 <th className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Aluno</th>
-                                <th className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Plano</th>
+                                <th className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Plano / Curso</th>
                                 <th className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Cadastro</th>
                                 <th className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest text-center">Progresso</th>
                                 <th className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest text-right">Ação</th>
@@ -185,11 +244,16 @@ export default function AdminUsuariosPage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-5">
-                                            <span className={`pill text-[10px] ${user.plan === 'Diamond' ? 'pill-primary' : 'pill-success'
-                                                } uppercase tracking-wider`}>
-                                                <Shield className="w-3 h-3" />
-                                                {user.plan || 'Free'}
-                                            </span>
+                                            <div className="flex flex-col gap-1">
+                                                <span className={`pill text-[10px] w-fit ${user.plan === 'FREE' ? 'pill-success' : 'pill-primary'
+                                                    } uppercase tracking-wider`}>
+                                                    <Shield className="w-3 h-3" />
+                                                    {user.plan || 'Free'}
+                                                </span>
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight ml-1">
+                                                    {user.courseTitle || 'Nenhum curso'}
+                                                </span>
+                                            </div>
                                         </td>
                                         <td className="px-8 py-5">
                                             <div className="text-sm font-semibold text-slate-600 flex items-center gap-2">
@@ -208,8 +272,9 @@ export default function AdminUsuariosPage() {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
+                                                    onClick={() => handleEditClick(user)}
                                                     className="rounded-lg h-9 w-9 text-slate-400 hover:text-primary hover:bg-primary/5"
-                                                    title="Ver Detalhes"
+                                                    title="Editar Usuário"
                                                 >
                                                     <ExternalLink className="w-4 h-4" />
                                                 </Button>
@@ -231,6 +296,94 @@ export default function AdminUsuariosPage() {
                     </table>
                 </div>
             </motion.div>
+
+            {/* Modal de Edição */}
+            <AnimatePresence>
+                {isEditing && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl border border-slate-100"
+                        >
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                                    <Users className="w-6 h-6 text-primary" />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-black text-slate-900 leading-tight">Editar Usuário</h2>
+                                    <p className="text-sm font-medium text-slate-400">ID: {editingUser.id.substring(0, 8)}...</p>
+                                </div>
+                            </div>
+
+                            <form onSubmit={handleUpdateUser} className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Nome Completo</label>
+                                    <input
+                                        autoFocus
+                                        required
+                                        placeholder="Nome do aluno"
+                                        value={formUser.name}
+                                        onChange={e => setFormUser({ ...formUser, name: e.target.value })}
+                                        className="input-field h-12 px-4 rounded-xl border-slate-200 focus:ring-primary/10"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">E-mail</label>
+                                    <input
+                                        required
+                                        type="email"
+                                        placeholder="email@exemplo.com"
+                                        value={formUser.email}
+                                        onChange={e => setFormUser({ ...formUser, email: e.target.value })}
+                                        className="input-field h-12 px-4 rounded-xl border-slate-200 focus:ring-primary/10"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Plano & Curso</label>
+                                    <select
+                                        value={formUser.planId}
+                                        onChange={e => setFormUser({ ...formUser, planId: e.target.value })}
+                                        className="flex w-full h-12 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all appearance-none"
+                                    >
+                                        <option value="">Plano Free (Sem curso vinculado)</option>
+                                        {plans.map((plan: any) => (
+                                            <option key={plan.id} value={plan.id}>
+                                                {plan.name} {plan.course ? `(${plan.course.title})` : ''} - R$ {plan.price}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="flex gap-4 pt-4">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="flex-1 h-12 rounded-2xl font-bold border-slate-200 text-slate-500 hover:bg-slate-50"
+                                        onClick={() => {
+                                            setIsEditing(false);
+                                            setEditingUser(null);
+                                        }}
+                                    >
+                                        Cancelar
+                                    </Button>
+                                    <Button type="submit" className="flex-1 h-12 rounded-2xl font-black shadow-lg shadow-primary/20">
+                                        Salvar Alterações
+                                    </Button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 }
