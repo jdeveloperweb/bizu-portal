@@ -3,13 +3,13 @@
 import PageHeader from "@/components/PageHeader";
 import { Search, Filter, FileText, Download, Play, Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { apiFetch } from "@/lib/api";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-export default function MaterialsPage() {
+function MaterialsContent() {
     const searchParams = useSearchParams();
     const moduleId = searchParams.get("moduleId");
 
@@ -125,5 +125,13 @@ export default function MaterialsPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function MaterialsPage() {
+    return (
+        <Suspense fallback={<div className="container mx-auto px-4 py-24 text-center">Carregando biblioteca...</div>}>
+            <MaterialsContent />
+        </Suspense>
     );
 }
