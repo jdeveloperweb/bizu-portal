@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import keycloak from "@/lib/auth";
 import Cookies from "js-cookie";
+import { normalizeSelectedCourseId } from "@/lib/course-selection";
 
 interface AuthContextType {
     authenticated: boolean;
@@ -43,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [selectedCourseId, setSelectedCourseIdState] = useState<string | undefined>(undefined);
 
     const applySelectedCourseId = (nextUser: AuthUser) => {
-        const nextSelectedCourseId = typeof nextUser?.metadata?.selectedCourseId === "string" ? nextUser.metadata.selectedCourseId : undefined;
+        const nextSelectedCourseId = normalizeSelectedCourseId(nextUser?.metadata?.selectedCourseId);
         setSelectedCourseIdState(nextSelectedCourseId);
 
         if (typeof window !== "undefined") {
@@ -209,10 +210,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const setSelectedCourseId = (courseId?: string) => {
-        setSelectedCourseIdState(courseId);
+        const normalizedCourseId = normalizeSelectedCourseId(courseId);
+        setSelectedCourseIdState(normalizedCourseId);
         if (typeof window !== "undefined") {
-            if (courseId) {
-                window.localStorage.setItem("selectedCourseId", courseId);
+            if (normalizedCourseId) {
+                window.localStorage.setItem("selectedCourseId", normalizedCourseId);
             } else {
                 window.localStorage.removeItem("selectedCourseId");
             }

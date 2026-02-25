@@ -9,6 +9,7 @@ import {
     Loader2
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { getStoredSelectedCourseId } from "@/lib/course-selection";
 
 type RankingTab = "geral" | "semanal" | "materia";
 
@@ -74,7 +75,7 @@ export default function RankingStudentPage() {
                 }
 
                 // Fetch modules for the selected course
-                const selectedCourseId = localStorage.getItem("selectedCourseId");
+                const selectedCourseId = getStoredSelectedCourseId();
                 if (selectedCourseId) {
                     const courseRes = await apiFetch(`/public/courses/${selectedCourseId}`);
                     if (courseRes.ok) {
