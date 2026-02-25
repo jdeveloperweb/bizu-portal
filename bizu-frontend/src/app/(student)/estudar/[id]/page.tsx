@@ -17,9 +17,12 @@ import {
     RotateCcw
 } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-export default function StudySessionPage({ params }: { params: { id: string } }) {
+export default function StudySessionPage() {
+    const params = useParams<{ id: string | string[] }>();
+    const moduleId = Array.isArray(params.id) ? params.id[0] : params.id;
     const [module, setModule] = useState<any>(null);
     const [questions, setQuestions] = useState<any[]>([]);
     const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
@@ -31,10 +34,15 @@ export default function StudySessionPage({ params }: { params: { id: string } })
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        if (!moduleId) {
+            setIsLoading(false);
+            return;
+        }
+
         const fetchModule = async () => {
             setIsLoading(true);
             try {
-                const res = await apiFetch(`/public/modules/${params.id}`);
+                const res = await apiFetch(`/public/modules/${moduleId}`);
                 if (res.ok) {
                     const data = await res.json();
                     setModule(data);
@@ -48,7 +56,7 @@ export default function StudySessionPage({ params }: { params: { id: string } })
             }
         };
         fetchModule();
-    }, [params.id]);
+    }, [moduleId]);
 
     useEffect(() => {
         if (showResult) return;
@@ -155,7 +163,7 @@ export default function StudySessionPage({ params }: { params: { id: string } })
             {/* Session Header */}
             <header className="h-20 bg-background border-b flex items-center px-4 md:px-8 justify-between sticky top-0 z-50">
                 <div className="flex items-center gap-6">
-                    <Link href={`/materiais/${params.id}`}>
+                    <Link href={`/materiais/${moduleId}`}>
                         <Button variant="ghost" size="icon" className="rounded-xl">
                             <ChevronLeft className="w-6 h-6" />
                         </Button>

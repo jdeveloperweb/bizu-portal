@@ -5,18 +5,26 @@ import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Download, Share2, ZoomIn, ZoomOut, Maximize2, FileText, ChevronLeft, Play, Info, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-export default function MaterialViewerPage({ params }: { params: { id: string } }) {
+export default function MaterialViewerPage() {
+    const params = useParams<{ id: string | string[] }>();
+    const moduleId = Array.isArray(params.id) ? params.id[0] : params.id;
     const [module, setModule] = useState<any>(null);
     const [activeMaterialIdx, setActiveMaterialIdx] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        if (!moduleId) {
+            setIsLoading(false);
+            return;
+        }
+
         const fetchModule = async () => {
             setIsLoading(true);
             try {
-                const res = await apiFetch(`/public/modules/${params.id}`);
+                const res = await apiFetch(`/public/modules/${moduleId}`);
                 if (res.ok) {
                     const data = await res.json();
                     setModule(data);
@@ -28,7 +36,7 @@ export default function MaterialViewerPage({ params }: { params: { id: string } 
             }
         };
         fetchModule();
-    }, [params.id]);
+    }, [moduleId]);
 
     if (isLoading) return <div className="p-20 text-center text-foreground">Carregando conteúdo do módulo...</div>;
     if (!module) return <div className="p-20 text-center text-danger">Módulo não encontrado.</div>;
