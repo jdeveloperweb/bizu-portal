@@ -39,7 +39,9 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { NotificationProvider } from "@/components/NotificationProvider";
 import BrandingLoader from "@/components/BrandingLoader";
 import CourseSelectionGate from "@/components/CourseSelectionGate";
+import PaywallGate from "@/components/PaywallGate";
 import { AppearanceProvider } from "@/components/AppearanceProvider";
+import { CourseProvider } from "@/contexts/CourseContext";
 
 export default function RootLayout({
   children,
@@ -50,10 +52,18 @@ export default function RootLayout({
         style={{ fontFamily: "var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif" }}
       >
         <AuthProvider>
-          <AppearanceProvider>
-            <BrandingLoader />
-            <NotificationProvider><CourseSelectionGate>{children}</CourseSelectionGate></NotificationProvider>
-          </AppearanceProvider>
+          <CourseProvider>
+            <AppearanceProvider>
+              <BrandingLoader />
+              <NotificationProvider>
+                <CourseSelectionGate>
+                  <PaywallGate>
+                    {children}
+                  </PaywallGate>
+                </CourseSelectionGate>
+              </NotificationProvider>
+            </AppearanceProvider>
+          </CourseProvider>
         </AuthProvider>
       </body>
     </html>
