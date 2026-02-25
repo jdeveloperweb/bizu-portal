@@ -91,7 +91,7 @@ public class RedisRankingService {
      * Reset weekly rankings every Saturday at 23:59.
      * Archives are kept in Postgres via ActivityAttempt records.
      */
-    @Scheduled(cron = "59 23 * * 6") // Saturday 23:59
+    @Scheduled(cron = "0 59 23 * * 6") // Saturday 23:59
     public void resetWeeklyRankings() {
         int week = OffsetDateTime.now().get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
         String globalKey = GLOBAL_WEEKLY_KEY + week;
