@@ -134,7 +134,7 @@ export default function ProfilePage() {
     }, [selectedCourseId, entitlements]);
 
     const selectedEntitlement = entitlements?.find(e => e.course?.id === selectedCourseId && e.active);
-    const selectedPlan = subscription?.plan?.course?.id === selectedCourseId
+    const selectedPlan = subscription && subscription?.plan?.course?.id === selectedCourseId
         ? subscription.plan
         : plans.find((plan) => plan.course?.id === selectedCourseId);
     const currentCourseLabel = selectedEntitlement?.course?.title || courseName || "Curso selecionado";
