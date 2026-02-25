@@ -71,15 +71,17 @@ public class AdminUserController {
     @PutMapping("/{id}")
     @Transactional
     public ResponseEntity<User> updateUser(@PathVariable UUID id, @RequestBody UserUpdateDto updateDto) {
+        // Primeiro atualiza os dados básicos do usuário
         User user = userService.updateUser(id, updateDto.getName(), updateDto.getEmail());
         
-        if (updateDto.getPlanId() != null) {
+        // Se houver troca de plano solicitada
+        if (updateDto.getPlanId() != null && !updateDto.getPlanId().isEmpty() && !"null".equalsIgnoreCase(updateDto.getPlanId())) {
             Plan plan = planRepository.findById(UUID.fromString(updateDto.getPlanId()))
-                .orElseThrow(() -> new RuntimeException("Plano não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Plano não encontrado: " + updateDto.getPlanId()));
             
-            // Cancela assinaturas e entitlements anteriores para garantir que o novo curso seja o único
-            subscriptionRepository.findAll().stream()
-                .filter(s -> s.getUser().getId().equals(id))
+            // Cancela assinaturas e entitlements anteriores do usuário de forma eficiente
+            List<Subscription> userSubs = subscriptionRepository.findAllByUserId(id);
+            userSubs.stream()
                 .filter(s -> "ACTIVE".equals(s.getStatus()) || "PAST_DUE".equals(s.getStatus()))
                 .forEach(s -> {
                     s.setStatus("CANCELED");

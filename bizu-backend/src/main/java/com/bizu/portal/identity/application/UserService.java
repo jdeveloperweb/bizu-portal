@@ -75,9 +75,8 @@ public class UserService {
                     .build();
             
             // User IDs come from the identity provider.
-            // Using setNew(false) forces merge(), which is safer for potential concurrent inserts
-            // as it will pick up the existing record if it was inserted between find and save.
-            newUser.setNew(false);
+            // Using the default isNew=true triggers persist(), 
+            // and the catch block handles race conditions if the user was inserted concurrently.
             try {
                 return userRepository.saveAndFlush(newUser);
             } catch (Exception ex) {
