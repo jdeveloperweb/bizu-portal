@@ -13,6 +13,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -43,6 +44,7 @@ public class StudentMaterialController {
         List<Material> subscribedMaterials = allMaterials.stream()
             .filter(m -> m.getModule() != null && m.getModule().getCourse() != null && 
                          subscribedCourseIds.contains(m.getModule().getCourse().getId()))
+            .filter(this::isAttachedMaterial)
             .collect(Collectors.toList());
             
         return ResponseEntity.ok(subscribedMaterials);
@@ -83,6 +85,23 @@ public class StudentMaterialController {
 
     @GetMapping("/module/{moduleId}")
     public ResponseEntity<List<Material>> getMaterialsByModule(@PathVariable UUID moduleId) {
-        return ResponseEntity.ok(materialService.findByModuleId(moduleId));
+        List<Material> moduleMaterials = materialService.findByModuleId(moduleId).stream()
+            .filter(this::isAttachedMaterial)
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(moduleMaterials);
+    }
+
+    private boolean isAttachedMaterial(Material material) {
+        if (material == null) {
+            return false;
+        }
+
+        String fileType = material.getFileType();
+        String normalizedFileType = fileType == null ? "" : fileType.trim().toUpperCase(Locale.ROOT);
+        boolean isArticle = "ARTICLE".equals(normalizedFileType);
+        boolean hasAttachedFile = material.getFileUrl() != null && !material.getFileUrl().isBlank();
+
+        return !isArticle && hasAttachedFile;
     }
 }
