@@ -38,6 +38,8 @@ export interface CourseContextType {
     loading: boolean;
     /** Whether entitlement is expired (shows paywall) */
     entitlementExpired: boolean;
+    /** Whether user is within the 5-day grace period for late payment */
+    isGracePeriod: boolean;
 }
 
 const defaultGamification: GamificationState = { xp: 0, streak: 0, maxStreak: 0 };
@@ -60,8 +62,23 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
     const currentEntitlement = entitlements.find(
         (e) => e.courseId === activeCourseId && e.active
     );
+
     const hasEntitlement = !!currentEntitlement;
-    const entitlementExpired = activeCourseId !== null && !hasEntitlement && !loading;
+
+    // Grace Period Logic: allow 5 days if payment is late (PAST_DUE)
+    // Note: this assumes the subscription object is also available or status is passed via entitlement
+    // Since entitlements list might not have subscription status, we'll check expiry
+    const isGracePeriod = React.useMemo(() => {
+        if (!currentEntitlement || !currentEntitlement.expiresAt) return false;
+        const expiry = new Date(currentEntitlement.expiresAt);
+        const now = new Date();
+        const graceEnd = new Date(expiry);
+        graceEnd.setDate(graceEnd.getDate() + 5);
+
+        return now > expiry && now <= graceEnd;
+    }, [currentEntitlement]);
+
+    const entitlementExpired = activeCourseId !== null && !hasEntitlement && !loading && !isGracePeriod;
 
     // ------------------------------------------------------------------
     // Load entitlements on auth
@@ -189,6 +206,7 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
                 gamification,
                 loading,
                 entitlementExpired,
+                isGracePeriod,
             }}
         >
             {children}

@@ -47,7 +47,7 @@ public class AdminUserController {
         Map<UUID, GamificationStats> statsMap = gamificationRepository.findAll().stream()
                 .collect(Collectors.toMap(GamificationStats::getUserId, s -> s, (s1, s2) -> s1));
 
-        Map<UUID, Subscription> subsMap = subscriptionRepository.findAllByStatus("ACTIVE").stream()
+        Map<UUID, Subscription> subsMap = subscriptionRepository.findAllByStatusIn(List.of("ACTIVE", "PAST_DUE")).stream()
                 .collect(Collectors.toMap(s -> s.getUser().getId(), s -> s, (s1, s2) -> s1));
 
         List<AdminUserDto> dtos = users.stream()
@@ -63,7 +63,7 @@ public class AdminUserController {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         
         GamificationStats stats = gamificationRepository.findByUserId(id).orElse(null);
-        Subscription sub = subscriptionRepository.findFirstByUserIdAndStatusOrderByCreatedAtDesc(id, "ACTIVE").orElse(null);
+        Subscription sub = subscriptionRepository.findFirstByUserIdAndStatusInOrderByCreatedAtDesc(id, List.of("ACTIVE", "PAST_DUE")).orElse(null);
         
         return ResponseEntity.ok(toDto(user, stats, sub));
     }
@@ -79,15 +79,23 @@ public class AdminUserController {
             
             // Cancela assinaturas e entitlements anteriores para garantir que o novo curso seja o único
             subscriptionRepository.findAll().stream()
-                .filter(s -> s.getUser().getId().equals(id) && "ACTIVE".equals(s.getStatus()))
+                .filter(s -> s.getUser().getId().equals(id))
+                .filter(s -> "ACTIVE".equals(s.getStatus()) || "PAST_DUE".equals(s.getStatus()))
                 .forEach(s -> {
                     s.setStatus("CANCELED");
                     subscriptionRepository.save(s);
                     entitlementService.revokeBySource(s.getId(), "SUBSCRIPTION");
                 });
             
-            // Cria nova assinatura
-            int monthsCount = updateDto.getMonths() != null ? updateDto.getMonths() : 12;
+            // Cria nova assinatura baseada no intervalo do plano
+            int monthsCount = 12; // Default
+            String interval = plan.getBillingInterval() != null ? plan.getBillingInterval().toUpperCase() : "YEARLY";
+            
+            if ("MONTHLY".equals(interval)) monthsCount = 1;
+            else if ("SEMESTRAL".equals(interval)) monthsCount = 6;
+            else if ("YEARLY".equals(interval)) monthsCount = 12;
+            else if ("ONE_TIME".equals(interval)) monthsCount = 1200; // Vitalício (100 anos)
+
             Subscription sub = Subscription.builder()
                 .user(user)
                 .plan(plan)
@@ -126,13 +134,12 @@ public class AdminUserController {
             }
         }
 
-        String planName = "FREE";
-        String planId = null;
-        String courseTitle = "Nenhum";
+        String status = user.getStatus() != null ? user.getStatus() : "ACTIVE";
         
         if (sub != null && sub.getPlan() != null) {
             planName = sub.getPlan().getName();
             planId = sub.getPlan().getId().toString();
+            status = sub.getStatus(); // Usa o status da assinatura (ACTIVE, PAST_DUE, etc)
             if (sub.getPlan().getCourse() != null) {
                 courseTitle = sub.getPlan().getCourse().getTitle();
             }

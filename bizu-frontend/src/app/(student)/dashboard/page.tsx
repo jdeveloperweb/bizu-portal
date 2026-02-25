@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { useCourse } from "@/contexts/CourseContext";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,7 @@ const quickActions = [
 
 export default function DashboardPage() {
     const { user } = useAuth();
+    const { isGracePeriod } = useCourse();
     const [stats, setStats] = useState<any>(null);
     const [gamification, setGamification] = useState<any>(null);
     const [ranking, setRanking] = useState<any>(null);
@@ -104,7 +106,7 @@ export default function DashboardPage() {
                     <p className="text-sm text-muted-foreground font-medium tracking-wide">
                         Sua jornada para a aprovação continua hoje.
                     </p>
-                    {subscription && subscription.currentPeriodEnd && (
+                    {subscription && subscription.currentPeriodEnd && !isGracePeriod && (
                         <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-indigo-50 border border-indigo-100/50 text-[11px] font-bold text-indigo-600 animate-in fade-in slide-in-from-left-4 duration-700">
                             <Clock size={12} />
                             Seu plano expira em {(() => {
@@ -112,6 +114,13 @@ export default function DashboardPage() {
                                 d.setDate(d.getDate() - 1);
                                 return d.toLocaleDateString('pt-BR');
                             })()} e será renovado em {new Date(subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}
+                        </div>
+                    )}
+
+                    {isGracePeriod && (
+                        <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-red-50 border border-red-100/50 text-[11px] font-bold text-red-600 animate-pulse">
+                            <Clock size={12} className="text-red-500" />
+                            Pagamento em atraso. Seu acesso será bloqueado em 5 dias se não regularizado.
                         </div>
                     )}
                 </div>
