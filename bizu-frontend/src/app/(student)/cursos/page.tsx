@@ -6,6 +6,7 @@ import { Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/api";
+import { resolveMediaUrl } from "@/lib/media";
 
 export default function CoursesPage() {
     const [courses, setCourses] = useState<any[]>([]);
@@ -73,7 +74,7 @@ export default function CoursesPage() {
                             id={course.id}
                             title={course.title}
                             description={course.description}
-                            thumbnail={course.thumbnailUrl}
+                            thumbnail={resolveMediaUrl(course.thumbnailUrl)}
                             lessonsCount={course.modules?.length || 0}
                             themeColor={course.themeColor}
                             textColor={course.textColor}
