@@ -13,4 +13,6 @@ public interface GamificationRepository extends JpaRepository<GamificationStats,
     
     @Query("SELECT g FROM GamificationStats g ORDER BY g.totalXp DESC")
     List<GamificationStats> findAllOrderByTotalXpDesc();
+
+    java.util.Optional<GamificationStats> findByUserId(UUID userId);
 }
