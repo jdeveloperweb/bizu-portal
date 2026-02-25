@@ -52,6 +52,9 @@ public class User implements Persistable<UUID> {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    @Version
+    private Long version;
+
     @Column(name = "deleted_at")
     private OffsetDateTime deletedAt;
 

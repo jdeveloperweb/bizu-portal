@@ -1,10 +1,8 @@
 package com.bizu.portal.student.api;
 
-import com.bizu.portal.commerce.domain.SubscriptionGroup;
-import com.bizu.portal.commerce.infrastructure.SubscriptionGroupRepository;
+import com.bizu.portal.commerce.application.EntitlementService;
 import com.bizu.portal.content.application.MaterialService;
 import com.bizu.portal.content.domain.Material;
-import com.bizu.portal.content.domain.Course;
 import com.bizu.portal.content.infrastructure.MaterialRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,19 +22,16 @@ public class StudentMaterialController {
 
     private final MaterialService materialService;
     private final MaterialRepository materialRepository;
-    private final SubscriptionGroupRepository subscriptionGroupRepository;
+    private final EntitlementService entitlementService;
 
     @GetMapping
     public ResponseEntity<List<Material>> getAllMaterials(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getSubject());
         
-        // Busca planos assinados pelo usuário
-        List<SubscriptionGroup> activeSubscriptions = subscriptionGroupRepository.findAllByUserIdAndActiveIsTrue(userId);
-        
-        List<UUID> subscribedCourseIds = activeSubscriptions.stream()
-            .map(sg -> sg.getPlan().getCourse())
-            .filter(Objects::nonNull)
-            .map(Course::getId)
+        // Busca cursos que o usuário tem direito de acessar
+        List<UUID> subscribedCourseIds = entitlementService.getActiveEntitlements(userId)
+            .stream()
+            .map(e -> e.getCourse().getId())
             .collect(Collectors.toList());
             
         // Filtra todos os materiais que pertencem a esses cursos

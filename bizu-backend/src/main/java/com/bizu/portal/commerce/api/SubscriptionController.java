@@ -25,7 +25,7 @@ public class SubscriptionController {
     public ResponseEntity<Subscription> getMySubscription(@AuthenticationPrincipal Jwt jwt) {
         String email = jwt.getClaim("email");
         return userRepository.findByEmail(email)
-            .flatMap(user -> subscriptionRepository.findFirstByUserIdAndStatusInOrderByCreatedAtDesc(user.getId(), java.util.List.of("ACTIVE", "PAST_DUE")))
+            .flatMap(user -> subscriptionRepository.findFirstByUserIdAndStatusInOrderByCreatedAtDesc(user.getId(), java.util.List.of("ACTIVE", "PAST_DUE", "TRIALING", "active", "trialing")))
             .map(ResponseEntity::ok)
             .orElseGet(() -> ResponseEntity.notFound().build());
     }

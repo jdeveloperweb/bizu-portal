@@ -16,6 +16,7 @@ interface AuthContextType {
     selectedCourseId?: string;
     setSelectedCourseId: (courseId?: string) => void;
     refreshUserProfile: () => Promise<void>;
+    subscription: any;
 }
 
 interface AuthUser {
@@ -36,6 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [authenticated, setAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<AuthUser | null>(null);
+    const [subscription, setSubscription] = useState<any>(null);
     const [selectedCourseId, setSelectedCourseIdState] = useState<string | undefined>(undefined);
 
     const applySelectedCourseId = (nextUser: AuthUser) => {
@@ -71,6 +73,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const me = await res.json();
             setUser(me);
             applySelectedCourseId(me);
+
+            // Fetch subscription too
+            try {
+                const subRes = await fetch(apiBase.endsWith('/api/v1') ? `${apiBase}/subscriptions/me` : `${apiBase}/api/v1/subscriptions/me`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                if (subRes.ok) {
+                    const subData = await subRes.json();
+                    setSubscription(subData);
+                } else {
+                    setSubscription(null);
+                }
+            } catch (err) {
+                console.error("Failed to fetch subscription in AuthProvider", err);
+                setSubscription(null);
+            }
         }
     }, []);
 
@@ -213,7 +234,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register, selectedCourseId, setSelectedCourseId, refreshUserProfile }}>
+        <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register, selectedCourseId, setSelectedCourseId, refreshUserProfile, subscription }}>
             {children}
         </AuthContext.Provider>
     );

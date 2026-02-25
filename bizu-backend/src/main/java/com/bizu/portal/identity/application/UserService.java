@@ -6,6 +6,7 @@ import com.bizu.portal.identity.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -63,7 +64,7 @@ public class UserService {
         userRepository.delete(user);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public User syncUser(java.util.UUID userId, String email, String name) {
         return userRepository.findById(userId).orElseGet(() -> {
             User newUser = User.builder()
@@ -72,18 +73,18 @@ public class UserService {
                     .name(name != null ? name : email)
                     .status("ACTIVE")
                     .build();
-            // User IDs come from the identity provider. Marking as not-new forces
-            // Spring Data JPA to use merge(), avoiding persist() detached-entity failures
-            // for entities with pre-assigned IDs.
+            
+            // User IDs come from the identity provider.
+            // Using setNew(false) forces merge(), which is safer for potential concurrent inserts
+            // as it will pick up the existing record if it was inserted between find and save.
             newUser.setNew(false);
             try {
-                // Flush inside the try/catch so merge-time optimistic locking errors
-                // are handled here instead of surfacing only at transaction commit.
                 return userRepository.saveAndFlush(newUser);
-            } catch (ObjectOptimisticLockingFailureException ex) {
-                // Concurrent requests can attempt to create the same user simultaneously.
-                // If another transaction persisted it first, return the now-existing record.
-                return userRepository.findById(userId).orElseThrow(() -> ex);
+            } catch (Exception ex) {
+                // If it fails (OptimisticLocking, DataIntegrity, etc.), 
+                // it means another thread likely already persisted the user.
+                return userRepository.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("Erro ao sincronizar usuário", ex));
             }
         });
     }

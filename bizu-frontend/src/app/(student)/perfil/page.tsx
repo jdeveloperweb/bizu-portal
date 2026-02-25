@@ -29,9 +29,8 @@ const itemVariants = {
 };
 
 export default function ProfilePage() {
-    const { user, logout, selectedCourseId, refreshUserProfile } = useAuth();
+    const { user, logout, selectedCourseId, refreshUserProfile, subscription } = useAuth();
     const [devices, setDevices] = useState<any[]>([]);
-    const [subscription, setSubscription] = useState<any>(null);
     const [courseName, setCourseName] = useState<string>("");
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -50,20 +49,14 @@ export default function ProfilePage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [devicesRes, subRes, coursesRes] = await Promise.all([
+                const [devicesRes, coursesRes] = await Promise.all([
                     apiFetch("/devices"),
-                    apiFetch("/subscriptions/me"),
                     apiFetch("/public/courses")
                 ]);
 
                 if (devicesRes.ok) {
                     const data = await devicesRes.json();
                     setDevices(data);
-                }
-
-                if (subRes.ok) {
-                    const data = await subRes.json();
-                    setSubscription(data);
                 }
 
                 if (coursesRes.ok && selectedCourseId) {
@@ -223,7 +216,7 @@ export default function ProfilePage() {
                             <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
                                 <CreditCard className="w-5 h-5 text-indigo-600" />
                             </div>
-                            <h3 className="text-xl font-black">Assinatura Ativa</h3>
+                            <h3 className="text-xl font-black">{subscription ? "Assinatura Ativa" : "Meu Plano"}</h3>
                         </div>
 
                         {subscription ? (
