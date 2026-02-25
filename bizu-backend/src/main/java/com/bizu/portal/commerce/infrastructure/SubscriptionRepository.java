@@ -1,6 +1,7 @@
 package com.bizu.portal.commerce.infrastructure;
 
 import com.bizu.portal.commerce.domain.Subscription;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,5 +12,7 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
     long countByStatus(String status);
     java.util.List<Subscription> findAllByUserId(UUID userId);
     java.util.List<Subscription> findAllByStatusIn(java.util.List<String> statuses);
+
+    @EntityGraph(attributePaths = {"plan", "plan.course"})
     java.util.Optional<Subscription> findFirstByUserIdAndStatusInOrderByCreatedAtDesc(UUID userId, java.util.List<String> statuses);
 }
