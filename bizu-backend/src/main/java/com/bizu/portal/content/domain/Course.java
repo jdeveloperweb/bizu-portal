@@ -49,6 +49,7 @@ public class Course {
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @com.fasterxml.jackson.annotation.JsonManagedReference
     private List<Module> modules = new ArrayList<>();
 
     @PrePersist

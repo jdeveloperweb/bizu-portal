@@ -32,7 +32,7 @@ public class Module {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"modules", "hibernateLazyInitializer", "handler"})
+    @com.fasterxml.jackson.annotation.JsonBackReference
     private Course course;
 
     @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -42,5 +42,6 @@ public class Module {
 
     @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @com.fasterxml.jackson.annotation.JsonManagedReference
     private List<Question> questions = new ArrayList<>();
 }
