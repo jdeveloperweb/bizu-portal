@@ -7,6 +7,7 @@ import { Download, Share2, FileText, ChevronLeft, Play, Info, CheckCircle2, Exte
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { getVideoEmbedUrl } from "@/lib/video-embed";
 
 export default function CoursePlayerPage() {
     const params = useParams<{ id: string | string[]; materialId: string | string[] }>();
@@ -94,6 +95,7 @@ export default function CoursePlayerPage() {
     const isArticle = normalizedFileType === "ARTICLE";
     const isPdf = normalizedFileType === "PDF" || currentMaterial.fileUrl?.toLowerCase().includes(".pdf");
     const hasDownloadUrl = Boolean(currentMaterial.fileUrl?.trim());
+    const embedVideoUrl = isVideo ? getVideoEmbedUrl(currentMaterial.fileUrl) : null;
 
     return (
         <div className="w-full px-4 lg:px-8 py-6 lg:py-8">
@@ -136,10 +138,12 @@ export default function CoursePlayerPage() {
                     {/* Player Area */}
                     <div className="flex-1 min-h-[420px] bg-black rounded-2xl overflow-hidden shadow-xl relative group border border-slate-900/40">
                         {isVideo ? (
-                            (currentMaterial.fileUrl.includes('youtube.com') || currentMaterial.fileUrl.includes('vimeo.com')) ? (
+                            embedVideoUrl ? (
                                 <iframe
-                                    src={currentMaterial.fileUrl}
+                                    src={embedVideoUrl}
                                     className="w-full h-full border-none"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    referrerPolicy="strict-origin-when-cross-origin"
                                     allowFullScreen
                                     title={currentMaterial.title}
                                 />

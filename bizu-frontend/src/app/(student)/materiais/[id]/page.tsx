@@ -7,6 +7,7 @@ import { Download, Share2, ZoomIn, ZoomOut, Maximize2, FileText, ChevronLeft, Pl
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { getVideoEmbedUrl } from "@/lib/video-embed";
 
 export default function MaterialViewerPage() {
     const params = useParams<{ id: string | string[] }>();
@@ -43,6 +44,7 @@ export default function MaterialViewerPage() {
 
     const materials = module.materials || [];
     const currentMaterial = materials[activeMaterialIdx];
+    const embedVideoUrl = currentMaterial?.fileType === "VIDEO" ? getVideoEmbedUrl(currentMaterial.fileUrl) : null;
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -84,10 +86,12 @@ export default function MaterialViewerPage() {
                     {/* Video Player Area */}
                     <div className="aspect-video bg-black rounded-[40px] overflow-hidden shadow-2xl relative group">
                         {currentMaterial?.fileType === 'VIDEO' ? (
-                            (currentMaterial.fileUrl.includes('youtube.com') || currentMaterial.fileUrl.includes('vimeo.com')) ? (
+                            embedVideoUrl ? (
                                 <iframe
-                                    src={currentMaterial.fileUrl}
+                                    src={embedVideoUrl}
                                     className="w-full h-full border-none"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    referrerPolicy="strict-origin-when-cross-origin"
                                     allowFullScreen
                                     title={currentMaterial.title}
                                 />
@@ -117,7 +121,7 @@ export default function MaterialViewerPage() {
                         )}
 
                         {/* Playback Controls Overlay (Simulado se não for iframe) */}
-                        {!currentMaterial?.fileUrl.includes('youtube') && !currentMaterial?.fileUrl.includes('vimeo') && currentMaterial?.fileType === 'VIDEO' && (
+                        {!embedVideoUrl && currentMaterial?.fileType === 'VIDEO' && (
                             <div className="absolute bottom-0 left-0 right-0 p-8 pt-20 bg-gradient-to-t from-slate-950 to-transparent">
                                 <div className="h-1 w-full bg-slate-700 rounded-full mb-4">
                                     <div className="h-full w-1/3 bg-primary rounded-full" />
