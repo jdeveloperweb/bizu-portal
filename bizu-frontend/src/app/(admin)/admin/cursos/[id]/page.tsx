@@ -840,13 +840,34 @@ export default function CourseEditorPage() {
                                     /* Preview Area */
                                     <div className="flex-1 bg-slate-100 overflow-y-auto p-12">
                                         <div className="max-w-4xl mx-auto bg-white rounded-[48px] shadow-2xl overflow-hidden min-h-full border border-white">
-                                            <div className="p-20 text-center">
-                                                <span className="bg-blue-600/10 text-blue-600 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-8 inline-block">Artigo</span>
-                                                <h1 className="text-6xl font-[900] text-slate-900 mb-12 tracking-tight leading-tight">{materialForm.title || "Sem Título"}</h1>
-                                                <div className="prose prose-xl max-w-none text-left font-medium text-slate-600 leading-[1.8] whitespace-pre-wrap">
-                                                    {materialForm.content || "Sem conteúdo para pré-visualizar."}
+                                            {materialForm.fileType === "ARTICLE" ? (
+                                                <div className="p-20 text-center">
+                                                    <span className="bg-blue-600/10 text-blue-600 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-8 inline-block">Artigo</span>
+                                                    <h1 className="text-6xl font-[900] text-slate-900 mb-12 tracking-tight leading-tight">{materialForm.title || "Sem Título"}</h1>
+                                                    <div className="prose prose-xl max-w-none text-left font-medium text-slate-600 leading-[1.8] whitespace-pre-wrap">
+                                                        {materialForm.content || "Sem conteúdo para pré-visualizar."}
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            ) : (
+                                                <div className="p-20 min-h-[600px] flex flex-col items-center justify-center text-center">
+                                                    <div className="w-24 h-24 rounded-[32px] bg-blue-50 text-blue-600 flex items-center justify-center mb-8 shadow-inner ring-8 ring-blue-50/50">
+                                                        {materialForm.fileType === "VIDEO" ? <Video className="w-10 h-10" /> : <FileText className="w-10 h-10" />}
+                                                    </div>
+                                                    <span className="bg-slate-900/5 text-slate-500 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-8 inline-block">
+                                                        {materialForm.fileType === "VIDEO" ? "Vídeo" : "Documento"}
+                                                    </span>
+                                                    <h1 className="text-5xl font-[900] text-slate-900 mb-8 tracking-tight leading-tight">{materialForm.title || "Sem Título"}</h1>
+                                                    <p className="text-slate-500 font-medium text-lg max-w-2xl leading-relaxed mb-8">
+                                                        {materialForm.fileType === "VIDEO"
+                                                            ? "Pré-visualização de vídeo disponível no player do aluno."
+                                                            : "Pré-visualização de documento disponível no player do aluno quando o link for PDF compatível."}
+                                                    </p>
+                                                    <div className="w-full max-w-2xl bg-slate-50 border-2 border-slate-100 rounded-[28px] px-8 py-6 text-left">
+                                                        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">URL do conteúdo</p>
+                                                        <p className="font-bold text-slate-700 break-all">{materialForm.fileUrl || "Sem URL informada."}</p>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}

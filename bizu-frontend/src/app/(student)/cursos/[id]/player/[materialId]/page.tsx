@@ -89,8 +89,11 @@ export default function CoursePlayerPage() {
     );
 
     const materials = module?.materials || [];
-    const isVideo = currentMaterial.fileType === "VIDEO";
-    const isPdf = currentMaterial.fileType === "PDF" || currentMaterial.fileUrl?.toLowerCase().includes(".pdf");
+    const normalizedFileType = currentMaterial.fileType?.trim().toUpperCase();
+    const isVideo = normalizedFileType === "VIDEO";
+    const isArticle = normalizedFileType === "ARTICLE";
+    const isPdf = normalizedFileType === "PDF" || currentMaterial.fileUrl?.toLowerCase().includes(".pdf");
+    const hasDownloadUrl = Boolean(currentMaterial.fileUrl?.trim());
 
     return (
         <div className="w-full px-4 lg:px-8 py-6 lg:py-8">
@@ -115,13 +118,15 @@ export default function CoursePlayerPage() {
                         <Share2 className="w-4 h-4" />
                         <span className="hidden sm:inline">Compartilhar</span>
                     </Button>
-                    <Button
-                        className="rounded-lg px-6 flex items-center gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/10"
-                        onClick={() => window.open(currentMaterial.fileUrl, '_blank')}
-                    >
-                        <Download className="w-4 h-4" />
-                        Download Material
-                    </Button>
+                    {hasDownloadUrl && (
+                        <Button
+                            className="rounded-lg px-6 flex items-center gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/10"
+                            onClick={() => window.open(currentMaterial.fileUrl, '_blank')}
+                        >
+                            <Download className="w-4 h-4" />
+                            Download Material
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -152,18 +157,34 @@ export default function CoursePlayerPage() {
                                 className="w-full h-full border-none bg-white"
                                 title={currentMaterial.title}
                             />
+                        ) : isArticle ? (
+                            <div className="w-full h-full bg-white text-slate-900 overflow-y-auto">
+                                <article className="max-w-4xl mx-auto px-8 sm:px-12 lg:px-20 py-16 sm:py-20">
+                                    <div className="text-center mb-14">
+                                        <span className="bg-blue-600/10 text-blue-600 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] inline-block">Artigo</span>
+                                        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-[900] text-slate-900 mt-8 tracking-tight leading-tight">
+                                            {currentMaterial.title}
+                                        </h1>
+                                    </div>
+                                    <div className="prose prose-lg max-w-none text-slate-600 leading-[1.8] whitespace-pre-wrap">
+                                        {currentMaterial.content || currentMaterial.description || "Sem conteúdo para este artigo."}
+                                    </div>
+                                </article>
+                            </div>
                         ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center bg-muted/10 p-6 text-center">
                                 <FileText className="w-16 h-16 text-primary mb-4" />
                                 <p className="text-xl font-bold text-white">{currentMaterial.title}</p>
                                 <p className="text-sm text-slate-300 mt-2">Pré-visualização não disponível para este formato.</p>
-                                <Button
-                                    className="mt-6 rounded-lg"
-                                    onClick={() => window.open(currentMaterial.fileUrl, '_blank')}
-                                >
-                                    <ExternalLink className="w-4 h-4" />
-                                    Abrir Documento
-                                </Button>
+                                {hasDownloadUrl && (
+                                    <Button
+                                        className="mt-6 rounded-lg"
+                                        onClick={() => window.open(currentMaterial.fileUrl, '_blank')}
+                                    >
+                                        <ExternalLink className="w-4 h-4" />
+                                        Abrir Documento
+                                    </Button>
+                                )}
                             </div>
                         )}
                     </div>
