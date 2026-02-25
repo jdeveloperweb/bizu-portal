@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -14,4 +15,7 @@ public interface AttemptRepository extends JpaRepository<Attempt, UUID> {
 
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT a.question.id) FROM Attempt a WHERE a.user.id = :userId AND a.question.module.course.id = :courseId")
     long countDistinctQuestionByUserIdAndCourseId(UUID userId, UUID courseId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT a.question.id FROM Attempt a WHERE a.user.id = :userId AND a.question.module.course.id = :courseId")
+    Set<UUID> findDistinctQuestionIdsByUserIdAndCourseId(UUID userId, UUID courseId);
 }
