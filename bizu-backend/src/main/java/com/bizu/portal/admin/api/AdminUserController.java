@@ -135,7 +135,10 @@ public class AdminUserController {
         }
 
         String status = user.getStatus() != null ? user.getStatus() : "ACTIVE";
-        
+        String planName = null;
+        String planId = null;
+        String courseTitle = null;
+
         if (sub != null && sub.getPlan() != null) {
             planName = sub.getPlan().getName();
             planId = sub.getPlan().getId().toString();
