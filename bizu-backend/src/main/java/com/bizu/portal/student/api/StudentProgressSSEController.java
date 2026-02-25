@@ -53,7 +53,7 @@ public class StudentProgressSSEController {
                         .data(Map.of(
                             "xp", stats.getTotalXp(),
                             "streak", stats.getCurrentStreak(),
-                            "maxStreak", stats.getMax_streak()
+                            "maxStreak", stats.getMaxStreak()
                         )));
                 } catch (IOException e) {
                     log.debug("Failed to send initial SSE for user {}", userId);
