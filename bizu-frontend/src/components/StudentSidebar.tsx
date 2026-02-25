@@ -9,12 +9,14 @@ import {
     LayoutDashboard, BookOpen, ClipboardList, Layers,
     Swords, TrendingUp, User, Trophy, LogOut,
     ChevronRight, Search, Flame, Timer, CheckSquare,
-    StickyNote, Settings, BarChart3, Menu, X,
+    StickyNote, Settings, BarChart3, Menu, X, FileText, PlayCircle
 } from "lucide-react";
 
 const studyNav = [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/questoes/treino", icon: BookOpen, label: "Quiz" },
+    { href: "/cursos", icon: BookOpen, label: "Meus Cursos" },
+    { href: "/materiais", icon: FileText, label: "Materiais" },
+    { href: "/questoes/treino", icon: PlayCircle, label: "Quiz" },
     { href: "/simulados", icon: ClipboardList, label: "Simulados" },
     { href: "/pomodoro", icon: Timer, label: "Pomodoro" },
     { href: "/flashcards", icon: Layers, label: "Flashcards" },

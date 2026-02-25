@@ -129,12 +129,20 @@ export default function CourseDetailsPage() {
                                     <h2 className="text-3xl font-black mb-2">{course.modules[activeModule].title}</h2>
                                     <p className="text-muted-foreground">{course.modules[activeModule].description}</p>
                                 </div>
-                                <Link href={`/estudar/${course.modules[activeModule].id}`}>
-                                    <Button className="rounded-2xl h-14 px-8 font-black gap-2 text-lg shadow-xl shadow-primary/20 hover:scale-105 transition-transform">
-                                        <Play className="w-5 h-5 fill-current" />
-                                        Começar Estudo
-                                    </Button>
-                                </Link>
+                                <div className="flex items-center gap-4">
+                                    <Link href={`/materiais/1`}>
+                                        <Button variant="outline" className="rounded-2xl h-14 px-8 font-black gap-2 text-lg border-2 hover:bg-slate-50 transition-all">
+                                            <FileText className="w-5 h-5" />
+                                            Assistir Aula
+                                        </Button>
+                                    </Link>
+                                    <Link href={`/estudar/${course.modules[activeModule].id}`}>
+                                        <Button className="rounded-2xl h-14 px-8 font-black gap-2 text-lg shadow-xl shadow-primary/20 hover:scale-105 transition-transform">
+                                            <Play className="w-5 h-5 fill-current" />
+                                            Fazer Quiz
+                                        </Button>
+                                    </Link>
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

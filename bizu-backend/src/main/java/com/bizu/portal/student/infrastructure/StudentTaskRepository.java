@@ -9,5 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface StudentTaskRepository extends JpaRepository<StudentTask, UUID> {
-    List<StudentTask> findAllByStudentIdOrderByCreatedAtDesc(UUID studentId);
+    List<StudentTask> findAllByStudent_IdOrderByCreatedAtDesc(UUID studentId);
 }

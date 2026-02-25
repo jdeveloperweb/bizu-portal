@@ -21,7 +21,7 @@ public class StudentTaskService {
 
     @Transactional(readOnly = true)
     public List<StudentTaskDTO> getUserTasks(UUID userId) {
-        return studentTaskRepository.findAllByStudentIdOrderByCreatedAtDesc(userId)
+        return studentTaskRepository.findAllByStudent_IdOrderByCreatedAtDesc(userId)
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
