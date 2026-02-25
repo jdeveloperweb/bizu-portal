@@ -187,7 +187,7 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
         setSelectedCourseId(courseId);
 
         // Persist to backend
-        await apiFetch("/users/me/selected-course", {
+        await apiFetch("/student/courses/select", {
             method: "PUT",
             body: JSON.stringify({ courseId }),
         });

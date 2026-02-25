@@ -49,27 +49,6 @@ public class MeController {
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/me/selected-course")
-    public ResponseEntity<User> updateSelectedCourse(@AuthenticationPrincipal Jwt jwt, @RequestBody SelectedCourseRequest request) {
-        String email = jwt.getClaim("email");
-
-        if (request == null || request.courseId() == null || !courseRepository.existsById(request.courseId())) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        return userRepository.findByEmail(email)
-            .map(user -> {
-                Map<String, Object> metadata = user.getMetadata() != null
-                    ? new HashMap<>(user.getMetadata())
-                    : new HashMap<>();
-                metadata.put("selectedCourseId", request.courseId().toString());
-                user.setMetadata(metadata);
-                return ResponseEntity.ok(userRepository.save(user));
-            })
-            .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    public record SelectedCourseRequest(UUID courseId) {}
     public record UpdateMeRequest(String name, String phone) {}
 
     @PutMapping("/me/settings")

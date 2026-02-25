@@ -77,6 +77,7 @@ export default function CoursesPage() {
                             lessonsCount={course.modules?.length || 0}
                             themeColor={course.themeColor}
                             textColor={course.textColor}
+                            category={course.category}
                         />
                     ))}
                 </div>

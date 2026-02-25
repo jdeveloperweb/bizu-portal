@@ -13,6 +13,7 @@ interface CourseCardProps {
     lessonsCount?: number;
     themeColor?: string;
     textColor?: string;
+    category?: string;
 }
 
 export default function CourseCard({
@@ -25,6 +26,7 @@ export default function CourseCard({
     lessonsCount = 0,
     themeColor,
     textColor,
+    category,
 }: CourseCardProps) {
     return (
         <div className="group relative bg-card border rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
@@ -45,6 +47,12 @@ export default function CourseCard({
                     <Star className="w-3 h-3 text-accent fill-accent" />
                     {rating.toFixed(1)}
                 </div>
+
+                {category && (
+                    <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-xl bg-background/90 backdrop-blur-md text-[10px] font-black uppercase tracking-widest shadow-sm text-foreground">
+                        {category}
+                    </div>
+                )}
             </div>
 
             <div className="p-6 text-left">
@@ -75,6 +83,6 @@ export default function CourseCard({
                     </Button>
                 </Link>
             </div>
-        </div>
+        </div >
     );
 }

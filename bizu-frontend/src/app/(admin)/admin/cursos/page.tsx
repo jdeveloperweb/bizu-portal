@@ -32,7 +32,8 @@ export default function AdminCursosPage() {
         description: "",
         themeColor: "#8b5cf6",
         textColor: "#ffffff",
-        status: "PUBLISHED"
+        status: "PUBLISHED",
+        category: ""
     });
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
@@ -96,7 +97,7 @@ export default function AdminCursosPage() {
                 setIsCreating(false);
                 setIsEditing(false);
                 setEditingCourse(null);
-                setFormCourse({ title: "", description: "", themeColor: "#8b5cf6", textColor: "#ffffff", status: "PUBLISHED" });
+                setFormCourse({ title: "", description: "", themeColor: "#8b5cf6", textColor: "#ffffff", status: "PUBLISHED", category: "" });
             }
         } catch (error) {
             console.error(`Failed to ${isEditing ? 'update' : 'create'} course`, error);
@@ -110,7 +111,8 @@ export default function AdminCursosPage() {
             description: course.description || "",
             themeColor: course.themeColor || course.color || "#8b5cf6",
             textColor: course.textColor || "#ffffff",
-            status: course.status || "PUBLISHED"
+            status: course.status || "PUBLISHED",
+            category: course.category || ""
         });
         setIsEditing(true);
     };
@@ -139,7 +141,7 @@ export default function AdminCursosPage() {
                     className="h-14 rounded-xl font-black px-8 gap-2 shadow-xl shadow-primary/20"
                     onClick={() => {
                         setIsEditing(false);
-                        setFormCourse({ title: "", description: "", themeColor: "#8b5cf6", textColor: "#ffffff", status: "PUBLISHED" });
+                        setFormCourse({ title: "", description: "", themeColor: "#8b5cf6", textColor: "#ffffff", status: "PUBLISHED", category: "" });
                         setIsCreating(true);
                     }}
                 >
@@ -308,6 +310,27 @@ export default function AdminCursosPage() {
                                     onChange={e => setFormCourse({ ...formCourse, description: e.target.value })}
                                     className="flex w-full rounded-xl border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 min-h-[100px] resize-none"
                                 />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-muted-foreground">Categoria</label>
+                                <select
+                                    value={formCourse.category}
+                                    onChange={e => setFormCourse({ ...formCourse, category: e.target.value })}
+                                    className="w-full h-12 px-4 rounded-xl border border-input bg-background text-sm font-medium focus:outline-none focus:ring-1 focus:ring-ring"
+                                >
+                                    <option value="">Selecione...</option>
+                                    <option value="Direito">Direito</option>
+                                    <option value="Matemática">Matemática</option>
+                                    <option value="Português">Português</option>
+                                    <option value="Cultura">Cultura Geral</option>
+                                    <option value="Carreira Militar">Carreira Militar</option>
+                                    <option value="Formação">Formação</option>
+                                    <option value="Específicos">Conhecimentos Específicos</option>
+                                    <option value="Inglês">Inglês / Idiomas</option>
+                                    <option value="Administrativo">Administrativo</option>
+                                    <option value="Saúde">Saúde / Primeiros Socorros</option>
+                                </select>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">

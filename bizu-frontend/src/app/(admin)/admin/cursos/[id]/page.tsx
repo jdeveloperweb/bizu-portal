@@ -294,13 +294,19 @@ export default function CourseEditorPage() {
                                         <select
                                             value={course.category || ""}
                                             onChange={e => setCourse({ ...course, category: e.target.value })}
-                                            className="w-full h-14 px-4 rounded-2xl border-2 bg-transparent text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+                                            className="w-full h-14 px-4 rounded-2xl border-2 bg-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none shadow-sm cursor-pointer"
                                         >
                                             <option value="">Selecione...</option>
                                             <option value="Direito">Direito</option>
                                             <option value="Matemática">Matemática</option>
                                             <option value="Português">Português</option>
-                                            <option value="Cultura">Cultura</option>
+                                            <option value="Cultura">Cultura Geral</option>
+                                            <option value="Carreira Militar">Carreira Militar</option>
+                                            <option value="Formação">Formação</option>
+                                            <option value="Específicos">Conhecimentos Específicos</option>
+                                            <option value="Inglês">Inglês / Idiomas</option>
+                                            <option value="Administrativo">Administrativo</option>
+                                            <option value="Saúde">Saúde / Primeiros Socorros</option>
                                         </select>
                                     </div>
                                     <div className="space-y-2">

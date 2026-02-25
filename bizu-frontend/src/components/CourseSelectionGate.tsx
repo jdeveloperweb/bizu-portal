@@ -39,7 +39,7 @@ export default function CourseSelectionGate({ children }: { children: React.Reac
     const handleConfirm = async () => {
         if (!selected) return;
         setSaving(true);
-        const res = await apiFetch("/users/me/selected-course", {
+        const res = await apiFetch("/student/courses/select", {
             method: "PUT",
             body: JSON.stringify({ courseId: selected }),
         });
