@@ -76,7 +76,7 @@ export default function CourseEditorPage() {
 
     // Forms
     const [editingModule, setEditingModule] = useState<Module | null>(null);
-    const [moduleForm, setModuleForm] = useState({ title: "", description: "" });
+    const [moduleForm, setModuleForm] = useState({ title: "", description: "", orderIndex: 1 });
 
     const [studioTab, setStudioTab] = useState<"editor" | "preview">("editor");
     const [isUploading, setIsUploading] = useState(false);
@@ -137,7 +137,7 @@ export default function CourseEditorPage() {
                 body: JSON.stringify({
                     ...moduleForm,
                     course: { id: courseId },
-                    orderIndex: editingModule?.orderIndex || (course?.modules.length || 0)
+                    orderIndex: Number(moduleForm.orderIndex)
                 })
             });
 
@@ -146,7 +146,7 @@ export default function CourseEditorPage() {
                 fetchCourse();
                 setIsModuleModalOpen(false);
                 setEditingModule(null);
-                setModuleForm({ title: "", description: "" });
+                setModuleForm({ title: "", description: "", orderIndex: 1 });
             }
         } catch (error) {
             toast.error("Erro ao salvar módulo");
@@ -370,7 +370,11 @@ export default function CourseEditorPage() {
                                     className="h-12 px-6 rounded-2xl font-black bg-white border-2 text-blue-600 hover:bg-blue-50 gap-2"
                                     onClick={() => {
                                         setEditingModule(null);
-                                        setModuleForm({ title: "", description: "" });
+                                        setModuleForm({
+                                            title: "",
+                                            description: "",
+                                            orderIndex: (course.modules?.length || 0) + 1
+                                        });
                                         setIsModuleModalOpen(true);
                                     }}
                                 >
@@ -396,7 +400,11 @@ export default function CourseEditorPage() {
                                                 <button
                                                     onClick={() => {
                                                         setEditingModule(mod);
-                                                        setModuleForm({ title: mod.title, description: mod.description || "" });
+                                                        setModuleForm({
+                                                            title: mod.title,
+                                                            description: mod.description || "",
+                                                            orderIndex: mod.orderIndex
+                                                        });
                                                         setIsModuleModalOpen(true);
                                                     }}
                                                     className="p-2 hover:bg-slate-100 rounded-xl transition-all"
@@ -633,7 +641,13 @@ export default function CourseEditorPage() {
                                     <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Ordem de Exibição</label>
                                     <Input
                                         type="number"
-                                        value={editingModule?.orderIndex || course.modules.length + 1}
+                                        min={1}
+                                        required
+                                        value={moduleForm.orderIndex}
+                                        onChange={e => setModuleForm({
+                                            ...moduleForm,
+                                            orderIndex: Math.max(1, Number(e.target.value) || 1)
+                                        })}
                                         className="h-16 rounded-[24px] text-xl font-bold border-2 focus:ring-blue-500 bg-slate-50/50 w-32"
                                     />
                                 </div>
