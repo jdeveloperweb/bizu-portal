@@ -70,7 +70,7 @@ public class StudentCourseController {
             .collect(Collectors.toList());
 
         List<Course> courses = entitledCourses.stream()
-            .map(course -> courseRepository.findByIdWithModulesAndQuestions(course.getId()).orElse(course))
+            .map(course -> courseRepository.findByIdWithModules(course.getId()).orElse(course))
             .toList();
         
         List<Map<String, Object>> response = new ArrayList<>();
