@@ -17,6 +17,8 @@ export default function AdminSidebar() {
     const navItems = [
         { href: "/admin", icon: PieChart, label: "Visao Geral" },
         { href: "/admin/usuarios", icon: Users, label: "Usuarios" },
+        { href: "/admin/assinaturas", icon: ShieldAlert, label: "Assinaturas" },
+        { href: "/admin/pagamentos", icon: Ticket, label: "Fluxo de Caixa" },
         { href: "/admin/cursos", icon: BookOpen, label: "Cursos" },
         { href: "/admin/simulados", icon: BookOpen, label: "Simulados" },
         { href: "/admin/questoes", icon: HelpCircle, label: "Banco de Questoes" },

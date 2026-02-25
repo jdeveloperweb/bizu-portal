@@ -90,13 +90,16 @@ public class AdminUserController {
                 });
             
             // Cria nova assinatura baseada no intervalo do plano
-            int monthsCount = 12; // Default
-            String interval = plan.getBillingInterval() != null ? plan.getBillingInterval().toUpperCase() : "YEARLY";
+            int monthsCount = updateDto.getMonths() != null ? updateDto.getMonths() : 12;
             
-            if ("MONTHLY".equals(interval)) monthsCount = 1;
-            else if ("SEMESTRAL".equals(interval)) monthsCount = 6;
-            else if ("YEARLY".equals(interval)) monthsCount = 12;
-            else if ("ONE_TIME".equals(interval)) monthsCount = 1200; // Vitalício (100 anos)
+            if (updateDto.getMonths() == null) {
+                String interval = plan.getBillingInterval() != null ? plan.getBillingInterval().toUpperCase() : "YEARLY";
+                
+                if ("MONTHLY".equals(interval)) monthsCount = 1;
+                else if ("SEMESTRAL".equals(interval)) monthsCount = 6;
+                else if ("YEARLY".equals(interval)) monthsCount = 12;
+                else if ("ONE_TIME".equals(interval)) monthsCount = 1200; // Vitalício (100 anos)
+            }
 
             Subscription sub = Subscription.builder()
                 .user(user)
@@ -110,6 +113,14 @@ public class AdminUserController {
             // Garante o entitlement (acesso) ao curso vinculado ao plano
             if (plan.getCourse() != null) {
                 entitlementService.grantFromSubscription(user, plan.getCourse(), sub);
+                
+                // Atualiza o curso selecionado para o novo curso do plano
+                Map<String, Object> metadata = user.getMetadata() != null 
+                    ? new HashMap<>(user.getMetadata()) 
+                    : new HashMap<>();
+                metadata.put("selectedCourseId", plan.getCourse().getId().toString());
+                user.setMetadata(metadata);
+                userRepository.save(user);
             }
 
             // Notifica o frontend via SSE para recarregar permissões instantaneamente

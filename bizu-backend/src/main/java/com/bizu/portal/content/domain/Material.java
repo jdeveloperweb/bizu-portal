@@ -46,6 +46,9 @@ public class Material {
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
+    @Column(name = "duration_minutes")
+    private Integer durationMinutes;
+
     @PrePersist
     protected void onCreate() {
         createdAt = OffsetDateTime.now();

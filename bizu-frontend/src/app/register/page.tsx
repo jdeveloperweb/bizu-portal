@@ -38,8 +38,8 @@ export default function RegisterPage() {
         try {
             const success = await register(form.name, form.email, form.password);
             if (success) {
-                notify("Conta Criada! 🚀", "Sua jornada rumo à aprovação começou. Faça login para acessar a plataforma.", "success");
-                router.push("/login");
+                notify("Conta Criada! 🚀", "Agora escolha seu plano para começar os estudos.", "success");
+                router.push("/checkout");
             } else {
                 notify("Houve um problema", "Não conseguimos criar sua conta. Verifique se o e-mail já está em uso.", "error");
             }

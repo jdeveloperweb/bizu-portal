@@ -72,4 +72,11 @@ public class Course {
     protected void onUpdate() {
         updatedAt = OffsetDateTime.now();
     }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("durationMinutes")
+    public int getDurationMinutes() {
+        return (modules != null ? modules.stream()
+            .mapToInt(Module::getDurationMinutes)
+            .sum() : 0);
+    }
 }

@@ -49,4 +49,14 @@ public class Module {
     @Builder.Default
     @com.fasterxml.jackson.annotation.JsonManagedReference
     private List<Question> questions = new ArrayList<>();
+
+    @Column(columnDefinition = "TEXT")
+    private String objectives;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("durationMinutes")
+    public int getDurationMinutes() {
+        return (materials != null ? materials.stream()
+            .mapToInt(m -> m.getDurationMinutes() != null ? m.getDurationMinutes() : 0)
+            .sum() : 0);
+    }
 }

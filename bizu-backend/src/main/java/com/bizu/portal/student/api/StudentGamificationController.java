@@ -21,6 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class StudentGamificationController {
 
+    private final GamificationService gamificationService;
     private final GamificationRepository gamificationRepository;
     private final LevelCalculator levelCalculator;
 
@@ -28,12 +29,11 @@ public class StudentGamificationController {
     public ResponseEntity<Map<String, Object>> getMyStats(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getSubject());
         
+        // Passively update streak on every request to dashboard/stats
+        gamificationService.addXp(userId, 0);
+
         GamificationStats stats = gamificationRepository.findById(userId)
-            .orElseGet(() -> GamificationStats.builder()
-                .userId(userId)
-                .totalXp(0)
-                .currentStreak(0)
-                .build());
+            .orElseThrow(() -> new RuntimeException("Stats not found after sync"));
 
         Map<String, Object> response = new HashMap<>();
         response.put("totalXp", stats.getTotalXp());

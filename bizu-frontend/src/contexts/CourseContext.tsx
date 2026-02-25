@@ -196,6 +196,17 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
         await loadEntitlements();
     }, [setSelectedCourseId, refreshUserProfile, loadEntitlements]);
 
+    // Auto-select first active course if current selection is invalid/expired
+    useEffect(() => {
+        if (!loading && activeCourseId && !hasEntitlement && entitlements.length > 0) {
+            const firstActive = entitlements.find(e => (e as any).active);
+            if (firstActive && firstActive.courseId !== activeCourseId) {
+                console.log("Auto-switching course because current is invalid/expired");
+                selectCourse(firstActive.courseId);
+            }
+        }
+    }, [loading, activeCourseId, hasEntitlement, entitlements, selectCourse]);
+
     return (
         <CourseCtx.Provider
             value={{

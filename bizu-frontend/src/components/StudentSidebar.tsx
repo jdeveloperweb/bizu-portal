@@ -8,7 +8,7 @@ import {
     LayoutDashboard, BookOpen, ClipboardList, Layers,
     Swords, TrendingUp, User, Trophy, LogOut,
     ChevronRight, Search, Timer, CheckSquare,
-    StickyNote, Settings, BarChart3, Menu, X, FileText, PlayCircle
+    StickyNote, Settings, BarChart3, Menu, X, FileText, PlayCircle, CreditCard
 } from "lucide-react";
 
 const studyNav = [
@@ -34,6 +34,7 @@ const trackNav = [
 ];
 
 const bottomNav = [
+    { href: "/faturamento", icon: CreditCard, label: "Faturamento" },
     { href: "/configuracoes", icon: Settings, label: "Configuracoes" },
     { href: "/perfil", icon: User, label: "Meu Perfil" },
 ];

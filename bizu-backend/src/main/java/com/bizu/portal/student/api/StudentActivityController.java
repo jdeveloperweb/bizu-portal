@@ -80,7 +80,7 @@ public class StudentActivityController {
     }
 
     @PostMapping("/{attemptId}/finish")
-    public ResponseEntity<ActivityAttempt> finishAttempt(@PathVariable UUID attemptId) {
+    public ResponseEntity<com.bizu.portal.student.application.RewardDTO> finishAttempt(@PathVariable UUID attemptId) {
         return ResponseEntity.ok(activityService.finishAttempt(attemptId));
     }
 

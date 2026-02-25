@@ -12,6 +12,7 @@ import {
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useCourse } from "@/contexts/CourseContext";
+import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ const quickActions = [
 
 export default function DashboardPage() {
     const { user } = useAuth();
+    const router = useRouter();
     const { isGracePeriod } = useCourse();
     const [stats, setStats] = useState<any>(null);
     const [gamification, setGamification] = useState<any>(null);
@@ -52,7 +54,13 @@ export default function DashboardPage() {
                 if (rankingRes.ok) setRanking(await rankingRes.json());
                 if (coursesRes.ok) setCourses(await coursesRes.json());
                 if (materialsRes.ok) setRecentMaterials(await materialsRes.json());
-                if (subscriptionRes.ok) setSubscription(await subscriptionRes.json());
+                if (subscriptionRes.ok) {
+                    const data = await subscriptionRes.json();
+                    setSubscription(data);
+                } else if (subscriptionRes.status === 404 && user?.role !== 'ADMIN') {
+                    // Se não tem assinatura e não é admin, manda pro checkout
+                    router.push("/checkout");
+                }
             } catch (error) {
                 console.error("Dashboard fetch error:", error);
             }

@@ -94,6 +94,8 @@ public class StudentCourseController {
                 moduleMap.put("title", module.getTitle());
                 moduleMap.put("description", module.getDescription());
                 moduleMap.put("orderIndex", module.getOrderIndex());
+                moduleMap.put("objectives", module.getObjectives());
+                moduleMap.put("durationMinutes", module.getDurationMinutes());
 
                 List<com.bizu.portal.content.domain.Material> moduleMaterials = module.getMaterials() != null
                     ? module.getMaterials()
@@ -110,6 +112,7 @@ public class StudentCourseController {
                     materialMap.put("fileUrl", material.getFileUrl());
                     materialMap.put("fileType", material.getFileType());
                     materialMap.put("isFree", material.isFree());
+                    materialMap.put("durationMinutes", material.getDurationMinutes());
                     return materialMap;
                 }).toList());
 
@@ -168,6 +171,7 @@ public class StudentCourseController {
                 ? (int) Math.round((completedWeight / totalWeight) * 100D)
                 : 0;
             courseMap.put("progress", Math.max(0, Math.min(100, progress)));
+            courseMap.put("durationMinutes", course.getDurationMinutes());
 
             String nextModule = modules.stream()
                 .filter(module -> {

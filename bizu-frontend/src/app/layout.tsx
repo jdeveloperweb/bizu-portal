@@ -42,6 +42,7 @@ import CourseSelectionGate from "@/components/CourseSelectionGate";
 import PaywallGate from "@/components/PaywallGate";
 import { AppearanceProvider } from "@/components/AppearanceProvider";
 import { CourseProvider } from "@/contexts/CourseContext";
+import { GamificationProvider } from "@/components/gamification/GamificationProvider";
 
 export default function RootLayout({
   children,
@@ -58,7 +59,9 @@ export default function RootLayout({
               <NotificationProvider>
                 <CourseSelectionGate>
                   <PaywallGate>
-                    {children}
+                    <GamificationProvider>
+                      {children}
+                    </GamificationProvider>
                   </PaywallGate>
                 </CourseSelectionGate>
               </NotificationProvider>

@@ -25,6 +25,7 @@ public class DuelService {
     private final DuelQuestionRepository duelQuestionRepository;
     private final QuestionRepository questionRepository;
     private final NotificationService notificationService;
+    private final GamificationService gamificationService;
 
     @Transactional
     public Duel createDuel(UUID challengerId, UUID opponentId, String subject) {
@@ -148,5 +149,19 @@ public class DuelService {
         duel.setStatus("COMPLETED");
         duel.setWinner(winner);
         duel.setCompletedAt(OffsetDateTime.now());
+        
+        if (winner != null) {
+            gamificationService.addXp(winner.getId(), 100);
+            
+            // Recompensa menor para o perdedor
+            UUID loserId = duel.getChallenger().getId().equals(winner.getId()) 
+                ? duel.getOpponent().getId() 
+                : duel.getChallenger().getId();
+            gamificationService.addXp(loserId, 25);
+        } else {
+            // Empate
+            gamificationService.addXp(duel.getChallenger().getId(), 50);
+            gamificationService.addXp(duel.getOpponent().getId(), 50);
+        }
     }
 }

@@ -8,8 +8,10 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { getVideoEmbedUrl } from "@/lib/video-embed";
+import { useGamification } from "@/components/gamification/GamificationProvider";
 
 export default function CoursePlayerPage() {
+    const { showReward } = useGamification();
     const params = useParams<{ id: string | string[]; materialId: string | string[] }>();
     const courseId = Array.isArray(params.id) ? params.id[0] : params.id;
     const materialId = Array.isArray(params.materialId) ? params.materialId[0] : params.materialId;
@@ -72,7 +74,11 @@ export default function CoursePlayerPage() {
                 method: 'POST'
             });
             if (res.ok) {
+                const reward = await res.json();
                 setIsCompleted(!isCompleted);
+                if (reward) {
+                    showReward(reward);
+                }
             }
         } catch (error) {
             console.error("Failed to toggle completion", error);

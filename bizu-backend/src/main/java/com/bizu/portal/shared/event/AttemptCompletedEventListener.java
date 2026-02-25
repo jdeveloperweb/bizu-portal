@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 public class AttemptCompletedEventListener {
 
     private final RedisRankingService redisRankingService;
-    private final GamificationRepository gamificationRepository;
+    private final com.bizu.portal.student.application.GamificationService gamificationService;
 
     @Async
     @EventListener
@@ -37,12 +37,13 @@ public class AttemptCompletedEventListener {
                 log.debug("Updated ranking for attempt {}", attempt.getId());
             }
 
-            // 2. Award XP
-            gamificationRepository.findById(attempt.getUser().getId()).ifPresent(stats -> {
-                stats.setTotalXp(stats.getTotalXp() + attempt.getXpEarned());
-                stats.setLastActivityAt(java.time.OffsetDateTime.now());
-                gamificationRepository.save(stats);
-            });
+            // 2. Award XP and update streak
+            if (attempt.getXpEarned() > 0) {
+                gamificationService.addXp(attempt.getUser().getId(), attempt.getXpEarned());
+            } else {
+                // Se não ganhou XP, pelo menos atualiza a ofensiva pela atividade
+                gamificationService.addXp(attempt.getUser().getId(), 0);
+            }
 
             // 3. Log for analytics aggregation
             log.info("AttemptCompleted: user={}, course={}, type={}, score={}%, xp={}",

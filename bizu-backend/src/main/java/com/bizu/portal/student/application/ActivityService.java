@@ -31,6 +31,7 @@ public class ActivityService {
     private final SimuladoRepository simuladoRepository;
     private final QuestionRepository questionRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final GamificationService gamificationService;
 
     /**
      * Start an OfficialExam (Simulado) attempt.
@@ -160,12 +161,13 @@ public class ActivityService {
      * Finish an attempt (student submits or time runs out).
      */
     @Transactional
-    public ActivityAttempt finishAttempt(UUID attemptId) {
+    public RewardDTO finishAttempt(UUID attemptId) {
         ActivityAttempt attempt = attemptRepository.findById(attemptId)
             .orElseThrow(() -> new ResourceNotFoundException("Tentativa não encontrada"));
 
         if ("COMPLETED".equals(attempt.getStatus())) {
-            return attempt;
+            // Se já estiver completa, apenas retorna o estado atual (poderia recalcular se necessário)
+            return gamificationService.addXp(attempt.getUser().getId(), 0);
         }
 
         attempt.complete();
@@ -178,8 +180,9 @@ public class ActivityService {
 
         // Publish event for async processing (analytics, ranking update, gamification)
         eventPublisher.publishEvent(new StudentAttemptCompletedEvent(saved));
-
-        return saved;
+        
+        // Return Reward
+        return gamificationService.addXp(attempt.getUser().getId(), xp);
     }
 
     /**

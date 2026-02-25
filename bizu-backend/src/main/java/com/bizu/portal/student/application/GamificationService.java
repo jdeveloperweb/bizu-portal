@@ -96,21 +96,70 @@ public class GamificationService {
     }
 
     @Transactional
-    public void addXp(UUID userId, int amount) {
+    public RewardDTO addXp(UUID userId, int amount) {
         GamificationStats stats = gamificationRepository.findById(userId)
             .orElseGet(() -> GamificationStats.builder()
                 .userId(userId)
                 .totalXp(0)
                 .currentStreak(0)
+                .maxStreak(0)
                 .build());
 
-        stats.setTotalXp(stats.getTotalXp() + amount);
-        stats.setLastActivityAt(OffsetDateTime.now());
+        int previousXp = stats.getTotalXp();
+        int previousLevel = levelCalculator.calculateLevel(previousXp);
+        
+        stats.setTotalXp(previousXp + amount);
+        
+        // Update streak
+        updateStreakLogic(stats);
         
         gamificationRepository.save(stats);
-        log.info("Adicionado {} XP ao usuário {}. Total: {}", amount, userId, stats.getTotalXp());
         
-        checkXpBadges(userId, stats.getTotalXp());
+        int currentXp = stats.getTotalXp();
+        int currentLevel = levelCalculator.calculateLevel(currentXp);
+        boolean leveledUp = currentLevel > previousLevel;
+        
+        log.info("Adicionado {} XP ao usuário {}. Total: {}. Nível: {}", amount, userId, currentXp, currentLevel);
+        
+        checkXpBadges(userId, currentXp);
+        
+        return RewardDTO.builder()
+            .xpGained(amount)
+            .totalXp(currentXp)
+            .currentLevel(currentLevel)
+            .previousLevel(previousLevel)
+            .leveledUp(leveledUp)
+            .nextLevelProgress(levelCalculator.calculateProgressToNextLevel(currentXp))
+            .build();
+    }
+
+    private void updateStreakLogic(GamificationStats stats) {
+        java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
+        java.time.OffsetDateTime lastActivity = stats.getLastActivityAt();
+
+        if (lastActivity == null) {
+            stats.setCurrentStreak(1);
+            stats.setMaxStreak(1);
+        } else {
+            java.time.LocalDate lastDate = lastActivity.toLocalDate();
+            java.time.LocalDate nowDate = now.toLocalDate();
+
+            if (nowDate.isAfter(lastDate)) {
+                if (nowDate.minusDays(1).equals(lastDate)) {
+                    // Consecutivo
+                    stats.setCurrentStreak(stats.getCurrentStreak() + 1);
+                } else {
+                    // Quebrou a sequência
+                    stats.setCurrentStreak(1);
+                }
+                
+                if (stats.getMaxStreak() == null || stats.getCurrentStreak() > stats.getMaxStreak()) {
+                    stats.setMaxStreak(stats.getCurrentStreak());
+                }
+            }
+            // Se for o mesmo dia, não faz nada com o contador da streak, apenas atualiza o timestamp se quiser
+        }
+        stats.setLastActivityAt(now);
     }
 
     private void checkXpBadges(UUID userId, int totalXp) {

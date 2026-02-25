@@ -30,6 +30,7 @@ public class StudentMaterialController {
     private final UserRepository userRepository;
 
     private final com.bizu.portal.student.infrastructure.MaterialCompletionRepository completionRepository;
+    private final com.bizu.portal.student.application.GamificationService gamificationService;
 
     @GetMapping
     public ResponseEntity<List<Material>> getAllMaterials(@AuthenticationPrincipal Jwt jwt) {
@@ -60,10 +61,11 @@ public class StudentMaterialController {
     }
 
     @PostMapping("/{id}/complete")
-    public ResponseEntity<Void> toggleCompletion(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<com.bizu.portal.student.application.RewardDTO> toggleCompletion(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         UUID userId = userService.resolveUserId(jwt);
         java.util.Optional<com.bizu.portal.student.domain.MaterialCompletion> existing = completionRepository.findByUserIdAndMaterialId(userId, id);
         
+        boolean completed = false;
         if (existing.isPresent()) {
             completionRepository.delete(existing.get());
         } else {
@@ -73,9 +75,16 @@ public class StudentMaterialController {
                 .material(material)
                 .build();
             completionRepository.save(completion);
+            completed = true;
         }
         
-        return ResponseEntity.ok().build();
+        com.bizu.portal.student.application.RewardDTO reward = null;
+        if (completed) {
+            // Recompensa Fixa por material: 50 XP
+            reward = gamificationService.addXp(userId, 50);
+        }
+        
+        return ResponseEntity.ok(reward);
     }
 
     @GetMapping("/{id}")

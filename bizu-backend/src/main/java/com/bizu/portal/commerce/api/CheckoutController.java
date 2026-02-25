@@ -1,15 +1,15 @@
 package com.bizu.portal.commerce.api;
 
 import com.bizu.portal.commerce.application.PaymentService;
+import com.bizu.portal.commerce.domain.Plan;
 import com.bizu.portal.identity.domain.User;
-import com.bizu.portal.identity.infrastructure.UserRepository;
+import com.bizu.portal.identity.application.UserService;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.Map;
 import java.util.UUID;
 
@@ -19,21 +19,34 @@ import java.util.UUID;
 public class CheckoutController {
 
     private final PaymentService paymentService;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @PostMapping("/create-session")
-    public ResponseEntity<Map<String, String>> createCheckoutSession(
-            @AuthenticationPrincipal Jwt jwt,
-            @RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> createSession(@AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt, @RequestBody CheckoutRequest request) {
+        UUID userId = userService.resolveUserId(jwt);
+        User user = userService.syncUser(userId, jwt.getClaimAsString("email"), jwt.getClaimAsString("name"));
         
-        UUID userId = UUID.fromString(jwt.getSubject());
-        User user = userRepository.findById(userId).orElseThrow();
+        // Simulação de criação de sessão
+        String sessionId = paymentService.initiatePayment(user, request.getAmount(), request.getProvider());
         
-        BigDecimal amount = new BigDecimal(request.get("amount").toString());
-        String provider = (String) request.getOrDefault("provider", "STRIPE");
+        return ResponseEntity.ok(Map.of(
+            "sessionId", sessionId,
+            "url", "/confirmacao-pagamento?status=success&planId=" + request.getPlanId()
+        ));
+    }
 
-        String checkoutUrl = paymentService.initiatePayment(user, amount, provider);
+    @PostMapping("/confirm")
+    public ResponseEntity<?> confirmPayment(@AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt, @RequestBody Map<String, String> body) {
+        UUID userId = userService.resolveUserId(jwt);
+        UUID planId = UUID.fromString(body.get("planId"));
+        paymentService.activateSubscription(userId, planId);
+        return ResponseEntity.ok(Map.of("message", "Pagamento confirmado e plano ativado!"));
+    }
 
-        return ResponseEntity.ok(Map.of("checkoutUrl", "https://checkout.bizuportal.com.br/pay/" + checkoutUrl));
+    @Data
+    public static class CheckoutRequest {
+        private UUID planId;
+        private java.math.BigDecimal amount;
+        private String provider; // STRIPE, MERCADO_PAGO, SIMULATED
     }
 }

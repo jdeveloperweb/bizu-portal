@@ -1,6 +1,7 @@
 package com.bizu.portal.commerce.application;
 
 import com.bizu.portal.commerce.domain.Plan;
+import com.bizu.portal.commerce.domain.Subscription;
 import com.bizu.portal.commerce.domain.SubscriptionGroup;
 import com.bizu.portal.commerce.infrastructure.PlanRepository;
 import com.bizu.portal.identity.domain.User;
@@ -25,13 +26,27 @@ public class PaymentService {
     private final SubscriptionGroupService subscriptionGroupService;
     private final NotificationService notificationService;
     private final CouponService couponService;
+    private final com.bizu.portal.admin.application.SystemSettingsService settingsService;
+    private final com.bizu.portal.commerce.infrastructure.SubscriptionRepository subscriptionRepository;
 
     public String initiatePayment(User user, BigDecimal amount, String provider) {
-        // Em produção, este método criaria uma sessão no Stripe ou Pagar.me
-        // e retornaria a URL real de pagamento.
-        String sessionId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        com.bizu.portal.admin.domain.SystemSettings settings = settingsService.getSettings();
+        
         log.info("Iniciando pagamento via {} para usuário {} — valor: R$ {}", provider, user.getEmail(), amount);
-        return sessionId;
+
+        if ("STRIPE".equals(provider) && settings.getStripeSecretKey() != null && !settings.getStripeSecretKey().isEmpty()) {
+            // Aqui entraria a integração real com Stripe SDK
+            // Por enquanto, simulamos o retorno de uma URL ou ID
+            log.info("Chave Stripe detectada. Preparando checkout real...");
+            return "stripe_session_" + UUID.randomUUID().toString();
+        } else if ("MERCADO_PAGO".equals(provider) && settings.getMpAccessToken() != null && !settings.getMpAccessToken().isEmpty()) {
+            log.info("Chave Mercado Pago detectada. Preparando checkout real...");
+            return "mp_init_point_" + UUID.randomUUID().toString();
+        }
+
+        // Simulação se não houver chaves
+        log.warn("Nenhuma chave configurada para {}. Seguindo fluxo SIMULADO.", provider);
+        return "simulated_" + UUID.randomUUID().toString();
     }
 
     @Transactional
@@ -55,6 +70,17 @@ public class PaymentService {
         Plan plan = planRepository.findById(planId).orElseThrow();
 
         log.info("Ativando plano {} para usuário {}", plan.getName(), user.getEmail());
+
+        // Criar ou atualizar Assinatura
+        Subscription subscription = Subscription.builder()
+                .user(user)
+                .plan(plan)
+                .status("ACTIVE")
+                .currentPeriodStart(OffsetDateTime.now())
+                .currentPeriodEnd(OffsetDateTime.now().plusMonths(plan.getBillingInterval().equals("YEARLY") ? 12 : 1))
+                .build();
+        
+        subscriptionRepository.save(subscription);
 
         if (plan.isGroup()) {
             subscriptionGroupService.createGroup(user, plan);

@@ -121,14 +121,17 @@ export default function CourseDetailsPage() {
                             key={mod.id}
                             onClick={() => setActiveModule(idx)}
                             className={cn(
-                                "p-5 rounded-2xl border transition-all cursor-pointer group flex items-start gap-4",
-                                activeModule === idx ? "bg-card border-primary/30 shadow-xl ring-1 ring-primary/10" : "hover:bg-muted/50 border-transparent"
+                                "p-5 rounded-3xl border-2 transition-all cursor-pointer group flex items-start gap-4 backdrop-blur-sm",
+                                activeModule === idx
+                                    ? "bg-white border-primary shadow-[0_20px_40px_rgba(var(--primary),0.15)] ring-1 ring-primary/5 scale-[1.02]"
+                                    : "bg-white/40 border-slate-100 hover:border-slate-200 hover:bg-white/60"
                             )}
                         >
                             <div className={cn(
-                                "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 bg-primary/10 text-primary"
+                                "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-500 group-hover:rotate-6",
+                                activeModule === idx ? "bg-primary text-white shadow-lg shadow-primary/30" : "bg-slate-100 text-slate-400 group-hover:bg-slate-200"
                             )}>
-                                <Play className="w-6 h-6 fill-primary/20" />
+                                <Play className={cn("w-6 h-6", activeModule === idx ? "fill-white" : "fill-transparent")} />
                             </div>
 
                             <div className="flex-1">
@@ -170,38 +173,41 @@ export default function CourseDetailsPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
                                     <div className="space-y-6">
                                         <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                                            <Star className="w-4 h-4 text-primary" />
+                                            <Star className="w-4 h-4 text-primary animate-pulse" />
                                             Objetivos do Módulo
                                         </h4>
                                         <ul className="space-y-4">
-                                            <li className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                                                <div className="w-2 h-2 rounded-full bg-primary" />
-                                                Compreender a fundamentação teórica
-                                            </li>
-                                            <li className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                                                <div className="w-2 h-2 rounded-full bg-primary" />
-                                                Praticar com questões de concursos anteriores
-                                            </li>
-                                            <li className="flex items-center gap-3 text-sm font-bold text-slate-600">
-                                                <div className="w-2 h-2 rounded-full bg-primary" />
-                                                Dominar os principais pontos do edital
-                                            </li>
+                                            {currentModule.objectives ? (
+                                                currentModule.objectives.split('\n').filter((line: string) => line.trim() !== "").map((objective: string, index: number) => (
+                                                    <li key={index} className="flex items-start gap-3 text-sm font-bold text-slate-600 group/item transition-all hover:translate-x-1">
+                                                        <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0 shadow-[0_0_8px_rgba(var(--primary),0.6)] group-hover/item:scale-125 transition-transform" />
+                                                        {objective}
+                                                    </li>
+                                                ))
+                                            ) : (
+                                                <>
+                                                    <li className="flex items-start gap-3 text-sm font-bold text-slate-500/70 italic">
+                                                        <div className="w-2 h-2 rounded-full bg-slate-300 mt-1.5 shrink-0" />
+                                                        Objetivos ainda não definidos para este módulo.
+                                                    </li>
+                                                </>
+                                            )}
                                         </ul>
                                     </div>
 
                                     <div className="space-y-6">
                                         <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                                             <Clock className="w-4 h-4 text-primary" />
-                                            Informações
+                                            Informações do Percurso
                                         </h4>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div className="p-4 rounded-3xl bg-muted/30 text-center">
-                                                <div className="text-2xl font-black">{currentModule.materials?.length || 0}</div>
-                                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Aulas</div>
+                                            <div className="p-5 rounded-[2rem] bg-slate-50 border border-slate-100/50 flex flex-col items-center justify-center transition-all hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1">
+                                                <div className="text-3xl font-black text-slate-900">{currentModule.materials?.length || 0}</div>
+                                                <div className="text-[10px] uppercase font-bold text-primary tracking-tighter">Aulas</div>
                                             </div>
-                                            <div className="p-4 rounded-3xl bg-muted/30 text-center">
-                                                <div className="text-2xl font-black">?</div>
-                                                <div className="text-[10px] uppercase font-bold text-muted-foreground">Minutos</div>
+                                            <div className="p-5 rounded-[2rem] bg-slate-50 border border-slate-100/50 flex flex-col items-center justify-center transition-all hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1">
+                                                <div className="text-3xl font-black text-slate-900">{currentModule.durationMinutes || 0}</div>
+                                                <div className="text-[10px] uppercase font-bold text-primary tracking-tighter">Minutos</div>
                                             </div>
                                         </div>
                                     </div>

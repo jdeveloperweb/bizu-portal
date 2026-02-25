@@ -19,4 +19,6 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
     @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user"})
     List<Payment> findTop5ByOrderByCreatedAtDesc();
+
+    List<Payment> findByUserIdOrderByCreatedAtDesc(UUID userId);
 }

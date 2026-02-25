@@ -29,7 +29,7 @@ public class GamificationStats {
 
     @Builder.Default
     @Column(name = "max_streak")
-    private Integer max_streak = 0;
+    private Integer maxStreak = 0;
 
     @Column(name = "last_activity_at")
     private OffsetDateTime lastActivityAt;

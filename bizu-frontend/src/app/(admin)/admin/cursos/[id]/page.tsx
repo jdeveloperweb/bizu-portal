@@ -38,14 +38,17 @@ interface Material {
     fileUrl: string;
     fileType: string;
     isFree: boolean;
+    durationMinutes: number;
 }
 
 interface Module {
     id: string;
     title: string;
     description: string;
+    objectives: string;
     orderIndex: number;
     materials: Material[];
+    durationMinutes: number;
 }
 
 interface Course {
@@ -76,7 +79,7 @@ export default function CourseEditorPage() {
 
     // Forms
     const [editingModule, setEditingModule] = useState<Module | null>(null);
-    const [moduleForm, setModuleForm] = useState({ title: "", description: "", orderIndex: 1 });
+    const [moduleForm, setModuleForm] = useState({ title: "", description: "", objectives: "", orderIndex: 1 });
 
     const [studioTab, setStudioTab] = useState<"editor" | "preview">("editor");
     const [isUploading, setIsUploading] = useState(false);
@@ -88,7 +91,8 @@ export default function CourseEditorPage() {
         content: "",
         fileUrl: "",
         fileType: "VIDEO",
-        isFree: false
+        isFree: false,
+        durationMinutes: 30
     });
 
     const fetchCourse = useCallback(async () => {
@@ -146,7 +150,7 @@ export default function CourseEditorPage() {
                 fetchCourse();
                 setIsModuleModalOpen(false);
                 setEditingModule(null);
-                setModuleForm({ title: "", description: "", orderIndex: 1 });
+                setModuleForm({ title: "", description: "", objectives: "", orderIndex: 1 });
             }
         } catch (error) {
             toast.error("Erro ao salvar módulo");
@@ -162,7 +166,8 @@ export default function CourseEditorPage() {
                 method,
                 body: JSON.stringify({
                     ...materialForm,
-                    module: { id: activeModuleId }
+                    module: { id: activeModuleId },
+                    durationMinutes: Number(materialForm.durationMinutes)
                 })
             });
 
@@ -373,6 +378,7 @@ export default function CourseEditorPage() {
                                         setModuleForm({
                                             title: "",
                                             description: "",
+                                            objectives: "",
                                             orderIndex: (course.modules?.length || 0) + 1
                                         });
                                         setIsModuleModalOpen(true);
@@ -403,6 +409,7 @@ export default function CourseEditorPage() {
                                                         setModuleForm({
                                                             title: mod.title,
                                                             description: mod.description || "",
+                                                            objectives: mod.objectives || "",
                                                             orderIndex: mod.orderIndex
                                                         });
                                                         setIsModuleModalOpen(true);
@@ -430,7 +437,7 @@ export default function CourseEditorPage() {
                                                         <div>
                                                             <p className="font-bold text-slate-800">{mat.title}</p>
                                                             <div className="flex items-center gap-3 mt-1">
-                                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">30M</span>
+                                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{mat.durationMinutes || 0}M</span>
                                                                 <div className="w-1 h-1 rounded-full bg-slate-300" />
                                                                 <span className="text-[10px] font-black text-blue-500 uppercase tracking-tighter">{mat.fileType}</span>
                                                             </div>
@@ -446,7 +453,8 @@ export default function CourseEditorPage() {
                                                                     content: mat.content || "",
                                                                     fileUrl: mat.fileUrl,
                                                                     fileType: mat.fileType,
-                                                                    isFree: mat.isFree
+                                                                    isFree: mat.isFree,
+                                                                    durationMinutes: mat.durationMinutes || 0
                                                                 });
                                                                 setActiveModuleId(mod.id);
                                                                 setIsStudioOpen(true);
@@ -475,7 +483,8 @@ export default function CourseEditorPage() {
                                                         content: "",
                                                         fileUrl: "",
                                                         fileType: "VIDEO",
-                                                        isFree: false
+                                                        isFree: false,
+                                                        durationMinutes: 30
                                                     });
                                                     setActiveModuleId(mod.id);
                                                     setIsStudioOpen(true);
@@ -638,6 +647,16 @@ export default function CourseEditorPage() {
                                 </div>
 
                                 <div className="space-y-4">
+                                    <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Objetivos do Módulo (um por linha)</label>
+                                    <textarea
+                                        value={moduleForm.objectives}
+                                        onChange={e => setModuleForm({ ...moduleForm, objectives: e.target.value })}
+                                        className="w-full min-h-[120px] p-5 rounded-[24px] border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium resize-none bg-slate-50/50"
+                                        placeholder="Ex: Dominar os conceitos de CRM&#10;Praticar abordagens de vendas"
+                                    />
+                                </div>
+
+                                <div className="space-y-4">
                                     <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Ordem de Exibição</label>
                                     <Input
                                         type="number"
@@ -759,6 +778,16 @@ export default function CourseEditorPage() {
                                                             <option value="PDF">Documento (PDF/Google Drive)</option>
                                                             <option value="QUIZ">Quiz / Desafio</option>
                                                         </select>
+                                                    </div>
+                                                    <div className="space-y-3">
+                                                        <label className="text-[11px] font-black text-slate-400 ml-1 uppercase">Duração (Minutos)</label>
+                                                        <Input
+                                                            type="number"
+                                                            min={1}
+                                                            value={materialForm.durationMinutes}
+                                                            onChange={e => setMaterialForm({ ...materialForm, durationMinutes: Number(e.target.value) })}
+                                                            className="h-14 rounded-2xl border-2 font-bold focus:ring-blue-500"
+                                                        />
                                                     </div>
                                                     <div className="pt-4 flex items-center justify-between p-6 bg-white rounded-3xl border-2 shadow-sm">
                                                         <div className="flex items-center gap-3">

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Swords, Trophy, Timer, CheckCircle2, XCircle, Zap, Shield, Crown } from "lucide-react";
 import { Duel, DuelQuestion, DuelService } from "@/lib/duelService";
 import { useDuelWebSocket } from "@/hooks/useDuelWebSocket";
+import { useGamification } from "@/components/gamification/GamificationProvider";
 import confetti from "canvas-confetti";
 
 interface ArenaDuelScreenProps {
@@ -14,6 +15,7 @@ interface ArenaDuelScreenProps {
 }
 
 export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: ArenaDuelScreenProps) {
+    const { showReward } = useGamification();
     const [duel, setDuel] = useState<Duel | null>(null);
     const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
     const [timeLeft, setTimeLeft] = useState(30);
@@ -56,10 +58,24 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
     useEffect(() => {
         if (duel?.status === "COMPLETED") {
             if (duel.winner?.id === currentUserId) {
-                confetti({
-                    particleCount: 150,
-                    spread: 70,
-                    origin: { y: 0.6 }
+                // Show reward animation
+                showReward({
+                    xpGained: 100,
+                    totalXp: 0, // Not strictly necessary for animation
+                    currentLevel: 0,
+                    previousLevel: 0,
+                    leveledUp: false,
+                    nextLevelProgress: 0
+                });
+            } else if (duel.status === "COMPLETED") {
+                // Participou mas perdeu
+                showReward({
+                    xpGained: 25,
+                    totalXp: 0,
+                    currentLevel: 0,
+                    previousLevel: 0,
+                    leveledUp: false,
+                    nextLevelProgress: 0
                 });
             }
         }
