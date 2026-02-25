@@ -1,5 +1,7 @@
 package com.bizu.portal.student.api;
 
+import com.bizu.portal.commerce.domain.SubscriptionGroup;
+import com.bizu.portal.commerce.infrastructure.SubscriptionGroupRepository;
 import com.bizu.portal.content.domain.Course;
 import com.bizu.portal.content.infrastructure.CourseRepository;
 import com.bizu.portal.student.infrastructure.AttemptRepository;
@@ -9,11 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -23,11 +21,20 @@ public class StudentCourseController {
 
     private final CourseRepository courseRepository;
     private final AttemptRepository attemptRepository;
+    private final SubscriptionGroupRepository subscriptionGroupRepository;
 
     @GetMapping("/me")
     public ResponseEntity<List<Map<String, Object>>> getMyCourses(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getSubject());
-        List<Course> courses = courseRepository.findAll(); // Simplificado: todos os cursos publicados
+        
+        // Busca planos assinados pelo usuário (como dono ou membro)
+        List<SubscriptionGroup> activeSubscriptions = subscriptionGroupRepository.findAllByUserIdAndActiveIsTrue(userId);
+        
+        List<Course> courses = activeSubscriptions.stream()
+            .map(sg -> sg.getPlan().getCourse())
+            .filter(Objects::nonNull)
+            .distinct()
+            .collect(Collectors.toList());
         
         List<Map<String, Object>> response = new ArrayList<>();
         
@@ -46,7 +53,6 @@ public class StudentCourseController {
             
             long attemptedQuestions = 0;
             if (totalQuestions > 0) {
-                // Aqui precisaríamos de uma query mais eficiente, mas para efeito prático:
                 attemptedQuestions = attemptRepository.countDistinctQuestionByUserIdAndCourseId(userId, course.getId());
             }
             

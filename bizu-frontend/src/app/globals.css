@@ -18,10 +18,10 @@
   --font-sans: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
   --font-mono: var(--font-mono), "JetBrains Mono", monospace;
 
-  --color-primary: var(--primary);
+  --color-primary: hsl(var(--primary));
   --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -30,17 +30,17 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
+  --color-accent: hsl(var(--accent));
   --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
+  --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
-  --color-ring: var(--ring);
+  --color-ring: hsl(var(--ring));
 
   --color-success: #059669;
   --color-danger: #DC2626;
-  --color-surface: #F8FAFF;
+  --color-surface: var(--surface);
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
@@ -103,20 +103,26 @@
   --card-foreground: #0F172A;
   --popover: #FFFFFF;
   --popover-foreground: #0F172A;
-  --primary: #6366F1;
-  --primary-dark: #4F46E5;
+  --primary: 234 89% 67%;
+  /* #6366F1 */
+  --primary-dark: 243 75% 59%;
+  /* #4F46E5 */
   --primary-foreground: #FFFFFF;
-  --secondary: #EEF2FF;
-  --secondary-foreground: #4338CA;
+  --secondary: 226 100% 97%;
+  /* #EEF2FF */
+  --secondary-foreground: 238 62% 53%;
+  /* #4338CA */
   --muted: #F1F5F9;
   --muted-foreground: #64748B;
-  --accent: #F59E0B;
+  --accent: 38 92% 50%;
+  /* #F59E0B */
   --accent-foreground: #FFFFFF;
-  --destructive: #DC2626;
+  --destructive: 0 72% 51%;
+  /* #DC2626 */
   --destructive-foreground: #FFFFFF;
   --border: #E2E8F0;
   --input: #F8FAFC;
-  --ring: #6366F1;
+  --ring: 234 89% 67%;
   --radius: 0.875rem;
 }
 
@@ -129,15 +135,17 @@
   --popover-foreground: #F8FAFC;
   --muted: #1E293B;
   --muted-foreground: #94A3B8;
-  --accent: #F59E0B;
+  --accent: 38 92% 50%;
   --accent-foreground: #FFFFFF;
-  --destructive: #DC2626;
+  --destructive: 0 72% 51%;
   --destructive-foreground: #FFFFFF;
   --border: #1E293B;
   --input: #0F172A;
-  --ring: #6366F1;
-  --secondary: #1E293B;
-  --secondary-foreground: #F1F5F9;
+  --ring: 234 89% 67%;
+  --secondary: 222 47% 11%;
+  /* #1E293B */
+  --secondary-foreground: 210 40% 96%;
+  /* #F1F5F9 */
   --surface: #020617;
 }
 
@@ -206,7 +214,7 @@
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, var(--primary), #8B5CF6);
+  background: linear-gradient(135deg, hsl(var(--primary)), #8B5CF6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -223,8 +231,8 @@
 }
 
 .pill-primary {
-  background: var(--secondary, #EEF2FF);
-  color: var(--primary, #6366F1);
+  background: hsl(var(--secondary, 226 100% 97%));
+  color: hsl(var(--primary, 234 89% 67%));
   border: 1px solid var(--border, #E2E8F0);
 }
 
@@ -251,9 +259,9 @@
   font-weight: 700;
   font-size: 0.875rem;
   color: var(--primary-foreground, #FFFFFF);
-  background-color: var(--primary, #6366F1);
-  background-image: linear-gradient(135deg, var(--primary, #6366F1), var(--ring, #4F46E5));
-  border: 1px solid color-mix(in srgb, var(--primary, #6366F1) 70%, #000 10%);
+  background-color: hsl(var(--primary, 234 89% 67%));
+  background-image: linear-gradient(135deg, hsl(var(--primary, 234 89% 67%)), hsl(var(--primary-dark, 243 75% 59%)));
+  border: 1px solid hsl(var(--primary-dark, 243 75% 59%));
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
   transition: all 0.2s ease;
 }
@@ -261,6 +269,7 @@
 .btn-primary:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+  filter: brightness(1.1);
 }
 
 .btn-ghost {
@@ -269,12 +278,12 @@
   gap: 0.375rem;
   font-weight: 600;
   font-size: 0.875rem;
-  color: var(--primary);
+  color: hsl(var(--primary));
   transition: color 0.15s ease;
 }
 
 .btn-ghost:hover {
-  color: var(--ring);
+  color: hsl(var(--ring));
 }
 
 .input-field {

@@ -169,9 +169,31 @@ export default function CourseDetailsPage({ params }: { params: { id: string } }
 
                                 <div className="mt-12 pt-10 border-t">
                                     <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-6">Materiais Disponíveis</h4>
-                                    <div className="text-center py-6 bg-slate-50 rounded-3xl border border-dashed text-sm text-slate-400">
-                                        Clique em "Ver Materiais" para acessar os arquivos deste módulo.
-                                    </div>
+                                    {currentModule.materials && currentModule.materials.length > 0 ? (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {currentModule.materials.map((material: any) => (
+                                                <Link key={material.id} href={`/materiais/${material.id}`}>
+                                                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-lg transition-all group">
+                                                        <div className={cn(
+                                                            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                                                            material.fileType === 'VIDEO' ? "bg-indigo-50 text-indigo-600" : "bg-rose-50 text-rose-600"
+                                                        )}>
+                                                            {material.fileType === 'VIDEO' ? <Play className="w-5 h-5 fill-current" /> : <FileText className="w-5 h-5" />}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-sm font-bold text-slate-800 truncate group-hover:text-primary transition-colors">{material.title}</div>
+                                                            <div className="text-[10px] text-muted-foreground uppercase font-black">{material.fileType}</div>
+                                                        </div>
+                                                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
+                                                    </div>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-10 bg-slate-50 rounded-3xl border border-dashed text-sm text-slate-400">
+                                            Nenhum material disponível para este módulo ainda.
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

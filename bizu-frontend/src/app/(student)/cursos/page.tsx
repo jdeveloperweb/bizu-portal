@@ -16,7 +16,7 @@ export default function CoursesPage() {
         const fetchCourses = async () => {
             setIsLoading(true);
             try {
-                const res = await apiFetch("/public/courses");
+                const res = await apiFetch("/student/courses/me");
                 if (res.ok) {
                     const data = await res.json();
                     setCourses(data);
