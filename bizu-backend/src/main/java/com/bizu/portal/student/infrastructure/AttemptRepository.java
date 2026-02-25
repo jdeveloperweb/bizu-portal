@@ -11,4 +11,7 @@ import java.util.UUID;
 public interface AttemptRepository extends JpaRepository<Attempt, UUID> {
 
     List<Attempt> findAllByUser_Id(UUID userId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT a.question.id) FROM Attempt a WHERE a.user.id = :userId AND a.question.module.course.id = :courseId")
+    long countDistinctQuestionByUserIdAndCourseId(UUID userId, UUID courseId);
 }

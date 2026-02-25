@@ -12,6 +12,7 @@ import {
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { apiFetch } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 const quickActions = [
     { icon: Target, label: "Quiz", desc: "Questões personalizadas", href: "/questoes/treino" },
@@ -22,43 +23,44 @@ const quickActions = [
 
 export default function DashboardPage() {
     const { user } = useAuth();
-    const [performance, setPerformance] = useState<any>(null);
+    const [stats, setStats] = useState<any>(null);
     const [gamification, setGamification] = useState<any>(null);
+    const [ranking, setRanking] = useState<any>(null);
     const [badges, setBadges] = useState<any[]>([]);
+    const [recentMaterials, setRecentMaterials] = useState<any[]>([]);
     const [courses, setCourses] = useState<any[]>([]);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const [perfRes, gamiRes, badgeRes, rankRes, coursesRes] = await Promise.all([
+                const [statsRes, gamificationRes, badgesRes, rankingRes, coursesRes, materialsRes] = await Promise.all([
                     apiFetch("/student/performance/summary"),
                     apiFetch("/student/gamification/me"),
                     apiFetch("/student/badges/me"),
                     apiFetch("/student/ranking/me"),
-                    apiFetch("/public/courses")
+                    apiFetch("/student/courses/me"),
+                    apiFetch("/student/materials")
                 ]);
 
-                if (perfRes.ok) setPerformance(await perfRes.json());
-                if (gamiRes.ok) setGamification(await gamiRes.json());
-                if (badgeRes.ok) setBadges(await badgeRes.json());
+                if (statsRes.ok) setStats(await statsRes.json());
+                if (gamificationRes.ok) setGamification(await gamificationRes.json());
+                if (badgesRes.ok) setBadges(await badgesRes.json());
+                if (rankingRes.ok) setRanking(await rankingRes.json());
                 if (coursesRes.ok) setCourses(await coursesRes.json());
-                if (rankRes.ok) {
-                    const rankData = await rankRes.json();
-                    setGamification((prev: any) => ({ ...prev, rank: rankData.rank }));
-                }
-            } catch (err) {
-                console.error("Failed to fetch dashboard stats", err);
+                if (materialsRes.ok) setRecentMaterials(await materialsRes.json());
+            } catch (error) {
+                console.error("Dashboard fetch error:", error);
             }
         };
         fetchDashboardData();
     }, []);
 
-    const subjects = performance?.bySubject || [];
+    const subjects = stats?.subjectsProgress || [];
     const recentActivity: any[] = [];
     const pendingTasks: any[] = [];
 
-    const totalResolved = performance?.totalAttempted || 0;
-    const accuracy = performance?.overallAccuracy ? parseFloat(performance.overallAccuracy).toFixed(1) + "%" : "0%";
+    const totalResolved = stats?.totalAttempted || 0;
+    const accuracy = stats?.overallAccuracy ? parseFloat(stats.overallAccuracy).toFixed(1) + "%" : "0%";
     const totalXp = gamification?.totalXp || 0;
     const streak = gamification?.currentStreak || 0;
     const userName = typeof user?.name === "string" && user.name.trim().length > 0 ? user.name : "Aluno";
@@ -85,6 +87,8 @@ export default function DashboardPage() {
             if (index < earnedBadgesCount) achievement.unlocked = true;
         });
     }
+
+    const mainCourse = courses[0]; // Define mainCourse here
 
     return (
         <div className="p-6 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto min-h-screen font-sans bg-slate-50/30">
@@ -127,13 +131,11 @@ export default function DashboardPage() {
                     { label: "Questões Resolvidas", val: totalResolved.toString(), icon: BarChart3, color: "indigo" },
                     { label: "Taxa de Acerto", val: accuracy, icon: Target, color: "rose" },
                     { label: "Nível Atual", val: (gamification?.level || 1).toString(), icon: Zap, color: "amber" },
-                    { label: "Posição Ranking", val: gamification?.rank ? `#${gamification.rank}` : "-", icon: Trophy, color: "emerald" },
+                    { label: "Posição Ranking", val: ranking?.position ? `#${ranking.position}` : "-", icon: Trophy, color: "emerald" },
                 ].map((s) => (
                     <div key={s.label} className="bg-card p-5 md:p-6 rounded-3xl border border-border shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 group">
-                        <div className="flex items-start justify-between mb-5">
-                            <div className={`w-12 h-12 rounded-2xl bg-${s.color}-50 flex items-center justify-center border border-${s.color}-100 group-hover:scale-110 transition-transform`}>
-                                <s.icon size={22} className={`text-${s.color}-600`} />
-                            </div>
+                        <div className={`w-12 h-12 rounded-2xl bg-${s.color}-50 flex items-center justify-center border border-${s.color}-100 group-hover:scale-110 transition-transform`}>
+                            <s.icon size={22} className={`text-${s.color}-600`} />
                         </div>
                         <div>
                             <div className="text-2xl font-bold text-foreground tracking-tight">{s.val}</div>
@@ -159,13 +161,13 @@ export default function DashboardPage() {
                                     <PlayCircle size={14} /> Continue de onde parou
                                 </div>
                                 <h2 className="text-3xl md:text-4xl font-black text-white mb-4 leading-tight">
-                                    {courses.length > 0 ? courses[0].title : "Matemática Financeira"}
+                                    {mainCourse ? mainCourse.title : "Inicie sua Jornada"}
                                 </h2>
                                 <p className="text-slate-400 text-base leading-relaxed mb-8">
-                                    Próximo Módulo: <span className="text-white font-semibold">Juros Compostos e Amortização</span>
+                                    Próximo Módulo: <span className="text-white font-semibold">{mainCourse?.nextModule || "Primeiros Passos"}</span>
                                 </p>
                                 <div className="flex flex-col sm:flex-row items-center gap-4">
-                                    <Link href={courses.length > 0 ? `/cursos/${courses[0].id}` : "/cursos"} className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white text-slate-900 px-8 py-4 rounded-2xl text-base font-black hover:bg-indigo-50 transition-all hover:scale-105 shadow-xl">
+                                    <Link href={mainCourse ? `/cursos/${mainCourse.id}` : "/cursos"} className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white text-slate-900 px-8 py-4 rounded-2xl text-base font-black hover:bg-indigo-50 transition-all hover:scale-105 shadow-xl">
                                         Assistir Agora <ChevronRight size={18} />
                                     </Link>
                                 </div>
@@ -175,10 +177,10 @@ export default function DashboardPage() {
                                 <svg className="w-full h-full transform -rotate-90">
                                     <circle cx="88" cy="88" r="80" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-800" />
                                     <circle cx="88" cy="88" r="80" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-indigo-500"
-                                        strokeDasharray={502.6} strokeDashoffset={502.6 * (1 - (gamification?.nextLevelProgress || 35) / 100)} strokeLinecap="round" />
+                                        strokeDasharray={502.6} strokeDashoffset={502.6 * (1 - (mainCourse?.progress || 0) / 100)} strokeLinecap="round" />
                                 </svg>
                                 <div className="absolute inset-0 flex items-center justify-center flex-col">
-                                    <span className="text-3xl font-black text-white">{gamification?.nextLevelProgress || 35}%</span>
+                                    <span className="text-3xl font-black text-white">{mainCourse?.progress || 0}%</span>
                                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Concluído</span>
                                 </div>
                             </div>
@@ -215,26 +217,29 @@ export default function DashboardPage() {
                         <div className="bg-card border border-border rounded-[32px] p-6 shadow-sm">
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="text-base font-bold text-foreground flex items-center gap-2">
-                                    <FileText size={18} className="text-rose-500" /> Materiais de Estudo
+                                    <FileText size={18} className={`text-rose-500`} /> Materiais de Estudo
                                 </h3>
                                 <Link href="/materiais" className="text-xs font-bold text-indigo-600">Ver todos</Link>
                             </div>
                             <div className="space-y-3">
-                                {[
-                                    { title: "Apostila de Direito Adm.pdf", size: "2.4 MB", type: "PDF", color: "bg-red-50 text-red-600" },
-                                    { title: "Mapa Mental - Crimes.png", size: "1.1 MB", type: "IMG", color: "bg-blue-50 text-blue-600" },
-                                    { title: "Resumo Simulado 04.docx", size: "850 KB", type: "DOC", color: "bg-indigo-50 text-indigo-600" },
-                                ].map((m, i) => (
-                                    <div key={i} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all cursor-pointer group">
-                                        <div className={`w-10 h-10 rounded-xl ${m.color} flex items-center justify-center text-[10px] font-black group-hover:scale-110 transition-transform`}>
-                                            {m.type}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="text-[13px] font-bold text-foreground truncate">{m.title}</div>
-                                            <div className="text-[11px] text-muted-foreground font-medium">{m.size}</div>
-                                        </div>
-                                    </div>
-                                ))}
+                                {recentMaterials.length > 0 ? (
+                                    recentMaterials.slice(0, 3).map((m, i) => (
+                                        <Link key={m.id} href={`/materiais/${m.id}`} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all cursor-pointer group">
+                                            <div className={cn(
+                                                "w-10 h-10 rounded-xl flex items-center justify-center text-[10px] font-black group-hover:scale-110 transition-transform",
+                                                m.fileType === 'VIDEO' ? "bg-indigo-50 text-indigo-600" : "bg-rose-50 text-rose-600"
+                                            )}>
+                                                {m.fileType}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-[13px] font-bold text-foreground truncate">{m.title}</div>
+                                                <div className="text-[11px] text-muted-foreground font-medium">{m.description || "Material complementar"}</div>
+                                            </div>
+                                        </Link>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-10 text-xs text-muted-foreground">Nenhum material disponível.</div>
+                                )}
                             </div>
                         </div>
 
