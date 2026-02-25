@@ -11,18 +11,26 @@ import {
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { useParams } from "next/navigation";
 
-export default function CourseDetailsPage({ params }: { params: { id: string } }) {
+export default function CourseDetailsPage() {
+    const params = useParams<{ id: string | string[] }>();
+    const courseId = Array.isArray(params.id) ? params.id[0] : params.id;
     const [course, setCourse] = useState<any>(null);
     const [activeModule, setActiveModule] = useState(0);
     const [completedMaterials, setCompletedMaterials] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        if (!courseId) {
+            setIsLoading(false);
+            return;
+        }
+
         const fetchCourse = async () => {
             setIsLoading(true);
             try {
-                const res = await apiFetch(`/public/courses/${params.id}`);
+                const res = await apiFetch(`/public/courses/${courseId}`);
                 if (res.ok) {
                     const data = await res.json();
                     setCourse(data);
@@ -40,7 +48,7 @@ export default function CourseDetailsPage({ params }: { params: { id: string } }
             }
         };
         fetchCourse();
-    }, [params.id]);
+    }, [courseId]);
 
     if (isLoading) return <div className="p-20 text-center">Carregando detalhes do curso...</div>;
     if (!course) return <div className="p-20 text-center text-danger">Curso não encontrado.</div>;

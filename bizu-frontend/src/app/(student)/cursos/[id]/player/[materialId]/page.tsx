@@ -5,9 +5,13 @@ import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Download, Share2, Maximize2, FileText, ChevronLeft, Play, Info, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-export default function CoursePlayerPage({ params }: { params: { id: string, materialId: string } }) {
+export default function CoursePlayerPage() {
+    const params = useParams<{ id: string | string[]; materialId: string | string[] }>();
+    const courseId = Array.isArray(params.id) ? params.id[0] : params.id;
+    const materialId = Array.isArray(params.materialId) ? params.materialId[0] : params.materialId;
     const [course, setCourse] = useState<any>(null);
     const [module, setModule] = useState<any>(null);
     const [currentMaterial, setCurrentMaterial] = useState<any>(null);
@@ -15,10 +19,15 @@ export default function CoursePlayerPage({ params }: { params: { id: string, mat
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        if (!courseId || !materialId) {
+            setIsLoading(false);
+            return;
+        }
+
         const fetchContent = async () => {
             setIsLoading(true);
             try {
-                const courseRes = await apiFetch(`/public/courses/${params.id}`);
+                const courseRes = await apiFetch(`/public/courses/${courseId}`);
                 if (courseRes.ok) {
                     const courseData = await courseRes.json();
                     setCourse(courseData);
@@ -27,7 +36,7 @@ export default function CoursePlayerPage({ params }: { params: { id: string, mat
                     let foundMaterial = null;
 
                     for (const mod of (courseData.modules || [])) {
-                        const mat = mod.materials?.find((m: any) => m.id === params.materialId);
+                        const mat = mod.materials?.find((m: any) => m.id === materialId);
                         if (mat) {
                             foundModule = mod;
                             foundMaterial = mat;
@@ -43,7 +52,7 @@ export default function CoursePlayerPage({ params }: { params: { id: string, mat
                         const compRes = await apiFetch(`/student/materials/completed`);
                         if (compRes.ok) {
                             const completedIds = await compRes.json();
-                            setIsCompleted(completedIds.includes(params.materialId));
+                            setIsCompleted(completedIds.includes(materialId));
                         }
                     }
                 }
@@ -54,11 +63,11 @@ export default function CoursePlayerPage({ params }: { params: { id: string, mat
             }
         };
         fetchContent();
-    }, [params.id, params.materialId]);
+    }, [courseId, materialId]);
 
     const toggleCompletion = async () => {
         try {
-            const res = await apiFetch(`/student/materials/${params.materialId}/complete`, {
+            const res = await apiFetch(`/student/materials/${materialId}/complete`, {
                 method: 'POST'
             });
             if (res.ok) {
@@ -73,7 +82,7 @@ export default function CoursePlayerPage({ params }: { params: { id: string, mat
     if (!currentMaterial) return (
         <div className="p-20 text-center">
             <h2 className="text-2xl font-bold mb-4">Material não encontrado.</h2>
-            <Link href={`/cursos/${params.id}`}>
+            <Link href={`/cursos/${courseId}`}>
                 <Button>Voltar para o Curso</Button>
             </Link>
         </div>
@@ -86,7 +95,7 @@ export default function CoursePlayerPage({ params }: { params: { id: string, mat
             {/* Header / Breadcrumb */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
                 <div className="flex items-center gap-4">
-                    <Link href={`/cursos/${params.id}`}>
+                    <Link href={`/cursos/${courseId}`}>
                         <Button variant="ghost" className="rounded-xl flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800">
                             <ChevronLeft className="w-5 h-5 text-primary" />
                             Voltar ao Curso
@@ -183,16 +192,16 @@ export default function CoursePlayerPage({ params }: { params: { id: string, mat
                         </h3>
                         <div className="space-y-2 overflow-y-auto pr-2 custom-scrollbar">
                             {materials.map((item: any, idx: number) => (
-                                <Link key={item.id} href={`/cursos/${params.id}/player/${item.id}`}>
+                                <Link key={item.id} href={`/cursos/${courseId}/player/${item.id}`}>
                                     <div className={cn(
                                         "p-5 rounded-3xl text-sm transition-all cursor-pointer border group mb-2",
-                                        params.materialId === item.id
+                                        materialId === item.id
                                             ? "bg-primary border-primary text-primary-foreground shadow-xl shadow-primary/10"
                                             : "hover:bg-muted border-transparent text-foreground"
                                     )}>
                                         <div className="flex items-center justify-between mb-1">
-                                            <span className={params.materialId === item.id ? "opacity-80 text-[10px] font-bold" : "text-muted-foreground text-[10px] uppercase font-bold tracking-widest"}>Aula {idx + 1}</span>
-                                            {params.materialId === item.id && <div className="w-2 h-2 rounded-full bg-white animate-pulse" />}
+                                            <span className={materialId === item.id ? "opacity-80 text-[10px] font-bold" : "text-muted-foreground text-[10px] uppercase font-bold tracking-widest"}>Aula {idx + 1}</span>
+                                            {materialId === item.id && <div className="w-2 h-2 rounded-full bg-white animate-pulse" />}
                                         </div>
                                         <div className="font-bold flex items-center gap-2">
                                             {item.fileType === 'VIDEO' ? <Play className="w-3 h-3 fill-current" /> : <FileText className="w-3 h-3" />}
