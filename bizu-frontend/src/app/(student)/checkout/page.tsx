@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
+    Anchor,
     ArrowLeft,
     Calendar,
     Check,
@@ -33,6 +34,17 @@ interface Plan {
     features: string;
     highlight: boolean;
     badge: string;
+    course?: {
+        id: string;
+        title: string;
+        themeColor?: string;
+    };
+}
+
+interface Course {
+    id: string;
+    title: string;
+    themeColor?: string;
 }
 
 type CheckoutStep = "PLANS" | "DETAILS" | "PAYMENT_METHOD" | "PAYING" | "SUCCESS";
@@ -110,6 +122,8 @@ const getPaymentModeLabel = (billingInterval?: string) => {
 export default function CheckoutPage() {
     const [step, setStep] = useState<CheckoutStep>("PLANS");
     const [plans, setPlans] = useState<Plan[]>([]);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
     const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("PIX");
     const [loading, setLoading] = useState(true);
@@ -127,6 +141,10 @@ export default function CheckoutPage() {
     const router = useRouter();
 
     const cardBrand = useMemo(() => detectCardBrand(cardNumber), [cardNumber]);
+    const filteredPlans = useMemo(
+        () => plans.filter((plan) => !selectedCourseId || !plan.course || plan.course.id === selectedCourseId),
+        [plans, selectedCourseId],
+    );
 
     const isCardFormValid =
         digitsOnly(cardNumber).length >= 13 &&
@@ -138,10 +156,19 @@ export default function CheckoutPage() {
     useEffect(() => {
         const fetchPlans = async () => {
             try {
-                const res = await apiFetch("/public/plans");
-                if (res.ok) {
-                    const data = await res.json();
-                    setPlans(data);
+                const [coursesRes, plansRes] = await Promise.all([apiFetch("/public/courses"), apiFetch("/public/plans")]);
+
+                if (coursesRes.ok) {
+                    const coursesData: Course[] = await coursesRes.json();
+                    setCourses(coursesData);
+                    if (coursesData.length > 0) {
+                        setSelectedCourseId(coursesData[0].id);
+                    }
+                }
+
+                if (plansRes.ok) {
+                    const plansData: Plan[] = await plansRes.json();
+                    setPlans(plansData);
                 }
             } catch (error) {
                 console.error("Erro ao carregar planos", error);
@@ -233,11 +260,29 @@ export default function CheckoutPage() {
                     <div className="text-center mb-14">
                         <p className="inline-flex px-4 py-1 rounded-full bg-yellow-300 text-[11px] font-black tracking-widest uppercase mb-4">Investimento</p>
                         <h1 className="text-5xl font-black text-slate-900 mb-3 tracking-tight">Planos & Preços</h1>
-                        <p className="text-slate-500 font-medium">Escolha o plano ideal para o seu objetivo.</p>
+                        <p className="text-slate-500 font-medium">Escolha o curso e veja os planos daquele curso.</p>
                     </div>
 
+                    {courses.length > 0 && (
+                        <div className="flex flex-wrap items-center justify-center gap-3 max-w-4xl mx-auto px-6 mb-10">
+                            {courses.map((course) => (
+                                <button
+                                    key={course.id}
+                                    onClick={() => setSelectedCourseId(course.id)}
+                                    className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition-all ${selectedCourseId === course.id
+                                        ? "bg-white border-2 border-indigo-500 text-indigo-600 shadow-lg"
+                                        : "bg-white border border-slate-200 text-slate-500 hover:border-indigo-300"
+                                        }`}
+                                >
+                                    <Anchor size={16} style={{ color: selectedCourseId === course.id ? (course.themeColor || "#4f46e5") : "#94a3b8" }} />
+                                    {course.title}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {plans.map((plan) => {
+                        {filteredPlans.map((plan) => {
                             const features = plan.features ? JSON.parse(plan.features) : [];
                             return (
                                 <div
@@ -249,12 +294,17 @@ export default function CheckoutPage() {
                                     </div>
                                     <h2 className="text-3xl font-black text-slate-900">{plan.name}</h2>
                                     <p className="text-sm text-slate-500 mt-2 min-h-[40px]">{plan.description}</p>
+                                    {plan.course?.title && (
+                                        <p className="text-xs font-bold uppercase tracking-wider text-indigo-600 mt-3">Curso: {plan.course.title}</p>
+                                    )}
 
                                     <div className="mt-6 mb-8">
                                         <span className="text-sm text-slate-400">R$</span>
                                         <span className="text-5xl font-black text-slate-900 ml-1">{plan.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                                         <span className="text-slate-400 font-bold ml-1">{getBillingSuffix(plan.billingInterval)}</span>
                                     </div>
+                                    <h2 className="text-3xl font-black text-slate-900">{plan.name}</h2>
+                                    <p className="text-sm text-slate-500 mt-2 min-h-[40px]">{plan.description}</p>
 
                                     <div className="space-y-3 mb-8 flex-1">
                                         {features.map((f: string, index: number) => (
@@ -272,6 +322,12 @@ export default function CheckoutPage() {
                             );
                         })}
                     </div>
+
+                    {filteredPlans.length === 0 && (
+                        <div className="mt-10 text-center py-12 bg-white rounded-3xl border border-dashed border-slate-200">
+                            <p className="text-slate-500 font-semibold">Nenhum plano encontrado para o curso selecionado.</p>
+                        </div>
+                    )}
                 </div>
             </div>
         );
