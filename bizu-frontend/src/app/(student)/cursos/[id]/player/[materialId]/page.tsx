@@ -9,8 +9,7 @@ import { useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { getVideoEmbedUrl } from "@/lib/video-embed";
 import { useGamification } from "@/components/gamification/GamificationProvider";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import MarkdownViewer from "@/components/MarkdownViewer";
 
 export default function CoursePlayerPage() {
     const { showReward } = useGamification();
@@ -178,10 +177,10 @@ export default function CoursePlayerPage() {
                                             {currentMaterial.title}
                                         </h1>
                                     </div>
-                                    <div className="prose prose-lg max-w-none text-slate-600 leading-[1.8]">
-                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                            {currentMaterial.content || currentMaterial.description || "Sem conteúdo para este artigo."}
-                                        </ReactMarkdown>
+                                    <div className="text-slate-600 leading-[1.8]">
+                                        <MarkdownViewer
+                                            content={currentMaterial.content || currentMaterial.description || "Sem conteúdo para este artigo."}
+                                        />
                                     </div>
                                 </article>
                             </div>
@@ -219,16 +218,14 @@ export default function CoursePlayerPage() {
                                 {isCompleted ? "Concluída" : "Marcar como Concluída"}
                             </Button>
                         </div>
-                        <div className="text-muted-foreground leading-relaxed prose dark:prose-invert max-w-none">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {currentMaterial.description || "Nenhuma descrição disponível para esta aula."}
-                            </ReactMarkdown>
+                        <div className="text-muted-foreground leading-relaxed">
+                            <MarkdownViewer
+                                content={currentMaterial.description || "Nenhuma descrição disponível para esta aula."}
+                            />
                         </div>
                         {currentMaterial.content && (
-                            <div className="mt-8 pt-8 border-t prose dark:prose-invert max-w-none">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                    {currentMaterial.content}
-                                </ReactMarkdown>
+                            <div className="mt-8 pt-8 border-t">
+                                <MarkdownViewer content={currentMaterial.content} />
                             </div>
                         )}
                     </div>

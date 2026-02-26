@@ -11,8 +11,7 @@ import {
     ArrowLeft, Calendar, FileType, Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import MarkdownViewer from "@/components/MarkdownViewer";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -490,10 +489,10 @@ export default function RedacaoPage() {
 
                             <div className="bg-card border border-border rounded-3xl p-8 shadow-sm">
                                 <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground mb-6">Feedback Detalhado</h3>
-                                <div className="text-sm leading-relaxed prose prose-indigo max-w-none">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                        {selectedEssay.feedback || "Aguardando correção..."}
-                                    </ReactMarkdown>
+                                <div className="text-sm leading-relaxed max-w-none">
+                                    <MarkdownViewer
+                                        content={selectedEssay.feedback || "Aguardando correção..."}
+                                    />
                                 </div>
                             </div>
                         </div>

@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @plugin "tailwindcss-animate";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -340,6 +341,7 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+
   h1,
   h2,
   h3,
@@ -349,4 +351,73 @@
     letter-spacing: -0.03em;
     font-weight: 800;
   }
+}
+
+/* ─── Markdown Viewer Stylings ─── */
+.markdown-viewer {
+  counter-reset: h1;
+  line-height: 1.8;
+}
+
+.markdown-viewer h1 {
+  counter-reset: h2;
+  margin-top: 3rem !important;
+  margin-bottom: 1.5rem !important;
+  font-weight: 900 !important;
+}
+
+.markdown-viewer h1::before {
+  counter-increment: h1;
+  content: counter(h1) ". ";
+  color: hsl(var(--primary));
+  margin-right: 0.5rem;
+}
+
+.markdown-viewer h2 {
+  counter-reset: h3;
+  margin-top: 2.5rem !important;
+  margin-bottom: 1.25rem !important;
+  font-weight: 800 !important;
+}
+
+.markdown-viewer h2::before {
+  counter-increment: h2;
+  content: counter(h1) "." counter(h2) " ";
+  color: hsl(var(--primary));
+  opacity: 0.7;
+  margin-right: 0.5rem;
+}
+
+.markdown-viewer h3 {
+  counter-reset: h4;
+  margin-top: 2rem !important;
+  margin-bottom: 1rem !important;
+  font-weight: 700 !important;
+}
+
+.markdown-viewer h3::before {
+  counter-increment: h3;
+  content: counter(h1) "." counter(h2) "." counter(h3) " ";
+  color: hsl(var(--primary));
+  opacity: 0.5;
+  margin-right: 0.5rem;
+}
+
+.markdown-viewer p {
+  margin-bottom: 1.75rem !important;
+}
+
+.markdown-viewer ul,
+.markdown-viewer ol {
+  margin-bottom: 1.75rem !important;
+  padding-left: 1.5rem !important;
+}
+
+.markdown-viewer li {
+  margin-bottom: 0.5rem !important;
+}
+
+.markdown-viewer img {
+  border-radius: 1rem;
+  margin: 2rem 0 !important;
 }
