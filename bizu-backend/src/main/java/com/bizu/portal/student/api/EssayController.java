@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,5 +36,24 @@ public class EssayController {
             @RequestBody SubmitEssayRequest request) {
         UUID studentId = userService.resolveUserId(jwt);
         return ResponseEntity.ok(essayService.submitEssay(studentId, request));
+    }
+
+    @PostMapping("/extract-text")
+    public ResponseEntity<Map<String, String>> extractText(@RequestBody Map<String, String> request) {
+        String imageUrl = request.get("imageUrl");
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        String text = essayService.extractText(imageUrl);
+        return ResponseEntity.ok(Map.of("text", text));
+    }
+
+    @DeleteMapping("/{essayId}")
+    public ResponseEntity<Void> deleteEssay(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID essayId) {
+        UUID studentId = userService.resolveUserId(jwt);
+        essayService.deleteEssay(studentId, essayId);
+        return ResponseEntity.noContent().build();
     }
 }

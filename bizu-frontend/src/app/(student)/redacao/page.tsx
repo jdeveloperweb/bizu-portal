@@ -8,7 +8,7 @@ import {
     FileText, Send, Upload, History, CheckCircle2,
     AlertCircle, Loader2, Sparkles, Image as ImageIcon,
     File as FileIcon, ChevronRight, Star, Plus,
-    ArrowLeft, Calendar, FileType, Check
+    ArrowLeft, Calendar, FileType, Check, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MarkdownViewer from "@/components/MarkdownViewer";
@@ -32,6 +32,7 @@ export default function RedacaoPage() {
     const [selectedFont, setSelectedFont] = useState<string>("var(--font-kalam)");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [lineCount, setLineCount] = useState(0);
+    const [isExtracting, setIsExtracting] = useState(false);
 
     // Efeito para calcular as linhas visuais reais
     useEffect(() => {
@@ -92,10 +93,56 @@ export default function RedacaoPage() {
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setFileBase64(reader.result as string);
+            reader.onloadend = async () => {
+                const base64 = reader.result as string;
+                setFileBase64(base64);
+
+                // Automatic extraction
+                setIsExtracting(true);
+                setError(null);
+                try {
+                    const res = await apiFetch("/student/essays/extract-text", {
+                        method: "POST",
+                        body: JSON.stringify({ imageUrl: base64 })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        setContent(data.text);
+                    } else {
+                        setError("Não foi possível extrair o texto automaticamente. Você pode digitar manualmente se preferir.");
+                    }
+                } catch (err) {
+                    console.error("Failed to extract text", err);
+                    setError("Erro na extração de texto.");
+                } finally {
+                    setIsExtracting(false);
+                }
             };
             reader.readAsDataURL(file);
+        }
+    };
+
+    const handleDelete = async (essayId: string, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+
+        if (!window.confirm("Tem certeza que deseja excluir esta redação? Esta ação não pode ser desfeita.")) {
+            return;
+        }
+
+        try {
+            const res = await apiFetch(`/student/essays/${essayId}`, {
+                method: "DELETE"
+            });
+
+            if (res.ok) {
+                setEssays(essays.filter(e => e.id !== essayId));
+                if (selectedEssay?.id === essayId) {
+                    setSelectedEssay(null);
+                    setView("list");
+                }
+            }
+        } catch (error) {
+            console.error("Failed to delete essay", error);
         }
     };
 
@@ -153,21 +200,31 @@ export default function RedacaoPage() {
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
             <div className="flex items-center justify-between mb-8">
-                <PageHeader
-                    title="Seção de Redação"
-                    description="Escreva ou envie sua redação para correção instantânea com nossa IA avançada."
-                    badge="INTELIGÊNCIA ARTIFICIAL"
-                />
-                <Button
-                    onClick={() => setView(view === "new" ? "list" : "new")}
-                    className="h-12 rounded-xl px-6 font-bold shadow-lg shadow-primary/20 gap-2"
-                >
-                    {view === "new" ? (
-                        <><ArrowLeft className="w-4 h-4" /> Voltar</>
-                    ) : (
-                        <><Plus className="w-4 h-4" /> Nova Redação</>
+                <div className="flex items-center gap-4">
+                    {view !== "list" && (
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setView("list")}
+                            className="h-10 w-10 rounded-xl"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                        </Button>
                     )}
-                </Button>
+                    <PageHeader
+                        title="Seção de Redação"
+                        description="Escreva ou envie sua redação para correção instantânea com nossa IA avançada."
+                        badge="INTELIGÊNCIA ARTIFICIAL"
+                    />
+                </div>
+                {view !== "new" && (
+                    <Button
+                        onClick={() => setView("new")}
+                        className="h-12 rounded-xl px-6 font-bold shadow-lg shadow-primary/20 gap-2"
+                    >
+                        <Plus className="w-4 h-4" /> Nova Redação
+                    </Button>
+                )}
             </div>
 
             <AnimatePresence mode="wait">
@@ -199,8 +256,16 @@ export default function RedacaoPage() {
                                     className="group text-left p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/5 relative overflow-hidden"
                                 >
                                     <div className="flex justify-between items-start mb-4">
-                                        <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
-                                            {essay.type === "TEXT" ? <FileText className="w-5 h-5" /> : <ImageIcon className="w-5 h-5" />}
+                                        <div className="flex gap-2">
+                                            <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+                                                {essay.type === "TEXT" ? <FileText className="w-5 h-5" /> : <ImageIcon className="w-5 h-5" />}
+                                            </div>
+                                            <button
+                                                onClick={(e) => handleDelete(essay.id, e)}
+                                                className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
                                         </div>
                                         <div className={`px-3 py-1 rounded-full border text-[11px] font-black uppercase tracking-wider ${getGradeColor(essay.grade || 0)}`}>
                                             Nota: {essay.grade?.toFixed(2) || "---"}
@@ -259,11 +324,13 @@ export default function RedacaoPage() {
                                 </button>
                             </div>
 
-                            {uploadType === "TEXT" ? (
+                            {uploadType === "TEXT" || fileBase64 ? (
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-end px-2">
                                         <div className="flex flex-col gap-2">
-                                            <label className="text-sm font-black uppercase tracking-widest text-muted-foreground">Texto da Redação</label>
+                                            <label className="text-sm font-black uppercase tracking-widest text-muted-foreground">
+                                                {uploadType === "TEXT" ? "Texto da Redação" : "Extraído da Imagem (Revise aqui)"}
+                                            </label>
                                             <div className="flex gap-2 p-1 bg-muted/50 rounded-xl">
                                                 {[
                                                     { name: "Manuscrita 1", value: "var(--font-kalam)" },
@@ -288,10 +355,28 @@ export default function RedacaoPage() {
                                         </div>
                                     </div>
 
+                                    {uploadType === "IMAGE" && fileBase64 && (
+                                        <div className="relative group mb-4">
+                                            <div className="rounded-2xl border border-border overflow-hidden bg-muted max-h-40 relative">
+                                                <img src={fileBase64} alt="Original" className="w-full h-auto object-cover opacity-50" />
+                                                <div className="absolute inset-0 flex items-center justify-center bg-black/20 text-white font-bold text-xs uppercase tracking-widest">
+                                                    Imagem Carregada
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setFileBase64(null); setContent(""); }}
+                                                    className="absolute top-2 right-2 p-1.5 bg-rose-500 rounded-lg text-white hover:bg-rose-600 transition-colors"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div className="relative bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden transition-all duration-500 focus-within:ring-8 focus-within:ring-primary/5">
                                         {/* Margem e Números de Linha */}
                                         <div className="absolute left-0 top-0 bottom-0 w-12 bg-slate-50 border-r border-rose-100 flex flex-col pt-[32px] items-center text-[10px] font-mono text-slate-300 select-none z-10">
-                                            {Array.from({ length: 30 }).map((_, i) => (
+                                            {Array.from({ length: Math.max(30, lineCount + 5) }).map((_, i) => (
                                                 <div key={i} className="h-8 flex items-center">{String(i + 1).padStart(2, '0')}</div>
                                             ))}
                                         </div>
@@ -301,24 +386,31 @@ export default function RedacaoPage() {
                                             className="ml-12 min-h-[960px] bg-[linear-gradient(#f1f5f9_1px,transparent_1px)] bg-[length:100%_32px]"
                                             style={{ backgroundPosition: '0 31px' }}
                                         >
-                                            <textarea
-                                                ref={textareaRef}
-                                                required
-                                                value={content}
-                                                onChange={e => {
-                                                    setContent(e.target.value);
-                                                    if (error) setError(null);
-                                                }}
-                                                placeholder="Desenvolva seu texto aqui, respeitando as normas da ABNT e o limite de linhas..."
-                                                className="w-full min-h-[960px] p-0 bg-transparent border-none text-base leading-[32px] resize-none focus:ring-0 text-slate-700 px-8 py-0 selection:bg-primary/20 placeholder:text-slate-300"
-                                                style={{
-                                                    outline: 'none',
-                                                    paddingTop: '0px',
-                                                    fontFamily: selectedFont,
-                                                    hyphens: 'auto',
-                                                    textAlign: 'justify'
-                                                }}
-                                            />
+                                            {isExtracting ? (
+                                                <div className="flex flex-col items-center justify-center h-[400px] gap-4">
+                                                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                                                    <p className="text-sm font-bold text-muted-foreground animate-pulse">Extraindo texto da imagem...</p>
+                                                </div>
+                                            ) : (
+                                                <textarea
+                                                    ref={textareaRef}
+                                                    required
+                                                    value={content}
+                                                    onChange={e => {
+                                                        setContent(e.target.value);
+                                                        if (error) setError(null);
+                                                    }}
+                                                    placeholder="Desenvolva seu texto aqui, respeitando as normas da ABNT e o limite de linhas..."
+                                                    className="w-full min-h-[960px] p-0 bg-transparent border-none text-base leading-[32px] resize-none focus:ring-0 text-slate-700 px-8 py-0 selection:bg-primary/20 placeholder:text-slate-300"
+                                                    style={{
+                                                        outline: 'none',
+                                                        paddingTop: '0px',
+                                                        fontFamily: selectedFont,
+                                                        hyphens: 'auto',
+                                                        textAlign: 'justify'
+                                                    }}
+                                                />
+                                            )}
                                         </div>
                                     </div>
                                     <AnimatePresence>
@@ -345,25 +437,13 @@ export default function RedacaoPage() {
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                         />
                                         <div className="h-64 rounded-3xl border-2 border-dashed border-border group-hover:border-primary/50 group-hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-4">
-                                            {fileBase64 ? (
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-                                                        <Check size={32} />
-                                                    </div>
-                                                    <p className="text-sm font-bold text-emerald-500">Arquivo carregado com sucesso</p>
-                                                    <button type="button" onClick={() => setFileBase64(null)} className="text-xs text-muted-foreground hover:underline">Trocar arquivo</button>
-                                                </div>
-                                            ) : (
-                                                <>
-                                                    <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                        <Upload size={32} />
-                                                    </div>
-                                                    <div className="text-center">
-                                                        <p className="text-sm font-bold">Clique ou arraste para enviar</p>
-                                                        <p className="text-xs text-muted-foreground">Suporta imagens (JPG, PNG) ou PDF</p>
-                                                    </div>
-                                                </>
-                                            )}
+                                            <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                <Upload size={32} />
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-sm font-bold">Clique ou arraste para enviar</p>
+                                                <p className="text-xs text-muted-foreground">Suporta imagens (JPG, PNG) ou PDF</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -382,7 +462,7 @@ export default function RedacaoPage() {
 
                             <Button
                                 type="submit"
-                                disabled={isSubmitting || (uploadType === "TEXT" ? !content : !fileBase64)}
+                                disabled={isSubmitting || isExtracting || !content}
                                 className="w-full h-16 rounded-2xl text-lg font-black uppercase tracking-widest shadow-xl shadow-primary/20 gap-3"
                             >
                                 {isSubmitting ? (
@@ -404,16 +484,26 @@ export default function RedacaoPage() {
                     >
                         <div className="lg:col-span-2 space-y-8">
                             <div className="bg-card border border-border rounded-3xl p-8 shadow-sm">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="p-3 rounded-2xl bg-primary/10 text-primary">
-                                        <FileText className="w-6 h-6" />
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+                                            <FileText className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-2xl font-black">{selectedEssay.title}</h2>
+                                            <p className="text-sm text-muted-foreground font-medium">
+                                                {format(new Date(selectedEssay.createdAt), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h2 className="text-2xl font-black">{selectedEssay.title}</h2>
-                                        <p className="text-sm text-muted-foreground font-medium">
-                                            {format(new Date(selectedEssay.createdAt), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                                        </p>
-                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => handleDelete(selectedEssay.id)}
+                                        className="rounded-2xl border-rose-200 text-rose-500 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all active:scale-95"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </Button>
                                 </div>
 
                                 {selectedEssay.type === "TEXT" ? (

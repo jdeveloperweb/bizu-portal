@@ -68,10 +68,12 @@ public class EssayService {
                 "No final de tudo, inclua obrigatoriamente a tag [NOTA: X.XX] onde X.XX é a nota.";
 
         String aiResponse;
-        if (("IMAGE".equals(essay.getType()) || "PDF".equals(essay.getType())) && essay.getAttachmentUrl() != null) {
+        if (essay.getContent() != null && !essay.getContent().trim().isEmpty()) {
+            aiResponse = aiService.analyze(prompt, essay.getContent());
+        } else if (("IMAGE".equals(essay.getType()) || "PDF".equals(essay.getType())) && essay.getAttachmentUrl() != null) {
             aiResponse = aiService.analyzeWithImage(prompt, essay.getAttachmentUrl());
         } else {
-            aiResponse = aiService.analyze(prompt, essay.getContent());
+            aiResponse = "Nenhum conteúdo enviado para correção.";
         }
 
         essay.setFeedback(aiResponse);
@@ -92,5 +94,21 @@ public class EssayService {
             // handle extraction error
         }
         return BigDecimal.ZERO;
+    }
+
+    @Transactional
+    public void deleteEssay(UUID studentId, UUID essayId) {
+        Essay essay = essayRepository.findById(essayId)
+                .orElseThrow(() -> new RuntimeException("Essay not found"));
+
+        if (!essay.getStudent().getId().equals(studentId)) {
+            throw new RuntimeException("You can only delete your own essays");
+        }
+
+        essayRepository.delete(essay);
+    }
+
+    public String extractText(String imageUrl) {
+        return aiService.extractTextFromImage(imageUrl);
     }
 }

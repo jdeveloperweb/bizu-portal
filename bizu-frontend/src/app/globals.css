@@ -373,6 +373,11 @@
   margin-right: 0.5rem;
 }
 
+/* Permitir override manual com data-label */
+.markdown-viewer h1[data-label]::before {
+  content: attr(data-label) ". " !important;
+}
+
 .markdown-viewer h2 {
   counter-reset: h3;
   margin-top: 2.5rem !important;
@@ -388,6 +393,10 @@
   margin-right: 0.5rem;
 }
 
+.markdown-viewer h2[data-label]::before {
+  content: attr(data-label) " " !important;
+}
+
 .markdown-viewer h3 {
   counter-reset: h4;
   margin-top: 2rem !important;
@@ -401,6 +410,10 @@
   color: hsl(var(--primary));
   opacity: 0.5;
   margin-right: 0.5rem;
+}
+
+.markdown-viewer h3[data-label]::before {
+  content: attr(data-label) " " !important;
 }
 
 .markdown-viewer p {
