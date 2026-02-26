@@ -30,6 +30,7 @@ export default function RedacaoPage() {
     const [uploadType, setUploadType] = useState<"TEXT" | "IMAGE" | "PDF">("TEXT");
     const [fileBase64, setFileBase64] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [selectedFont, setSelectedFont] = useState<string>("var(--font-kalam)");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [lineCount, setLineCount] = useState(0);
 
@@ -262,7 +263,27 @@ export default function RedacaoPage() {
                             {uploadType === "TEXT" ? (
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-end px-2">
-                                        <label className="text-sm font-black uppercase tracking-widest text-muted-foreground">Texto da Redação</label>
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-sm font-black uppercase tracking-widest text-muted-foreground">Texto da Redação</label>
+                                            <div className="flex gap-2 p-1 bg-muted/50 rounded-xl">
+                                                {[
+                                                    { name: "Manuscrita 1", value: "var(--font-kalam)" },
+                                                    { name: "Manuscrita 2", value: "var(--font-caveat)" },
+                                                    { name: "Manual", value: "var(--font-indie)" },
+                                                    { name: "Times New Roman", value: "'Times New Roman', Times, serif" }
+                                                ].map((font) => (
+                                                    <button
+                                                        key={font.value}
+                                                        type="button"
+                                                        onClick={() => setSelectedFont(font.value)}
+                                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all ${selectedFont === font.value ? 'bg-card shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                                                        style={{ fontFamily: font.value }}
+                                                    >
+                                                        {font.name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
                                         <div className={`text-[10px] font-black uppercase tracking-tighter px-3 py-1 rounded-full transition-all duration-300 shadow-sm ${lineCount < 20 || lineCount > 30 ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}`}>
                                             {lineCount} / 30 LINHAS {lineCount < 20 && "• MÍNIMO 20"}
                                         </div>
@@ -290,10 +311,13 @@ export default function RedacaoPage() {
                                                     if (error) setError(null);
                                                 }}
                                                 placeholder="Desenvolva seu texto aqui, respeitando as normas da ABNT e o limite de linhas..."
-                                                className="w-full min-h-[960px] p-0 bg-transparent border-none text-base leading-[32px] resize-none focus:ring-0 font-serif text-slate-700 px-8 py-0 selection:bg-primary/20 placeholder:text-slate-300"
+                                                className="w-full min-h-[960px] p-0 bg-transparent border-none text-base leading-[32px] resize-none focus:ring-0 text-slate-700 px-8 py-0 selection:bg-primary/20 placeholder:text-slate-300"
                                                 style={{
                                                     outline: 'none',
-                                                    paddingTop: '0px'
+                                                    paddingTop: '0px',
+                                                    fontFamily: selectedFont,
+                                                    hyphens: 'auto',
+                                                    textAlign: 'justify'
                                                 }}
                                             />
                                         </div>
@@ -404,7 +428,14 @@ export default function RedacaoPage() {
                                                 className="ml-12 p-8 pt-0 bg-[linear-gradient(#f8fafc_1px,transparent_1px)] bg-[length:100%_32px]"
                                                 style={{ backgroundPosition: '0 31px' }}
                                             >
-                                                <div className="font-serif text-slate-700 text-base leading-[32px] whitespace-pre-wrap py-2">
+                                                <div
+                                                    className="text-slate-700 text-base leading-[32px] whitespace-pre-wrap py-2"
+                                                    style={{
+                                                        fontFamily: selectedFont,
+                                                        hyphens: 'auto',
+                                                        textAlign: 'justify'
+                                                    }}
+                                                >
                                                     {selectedEssay.content}
                                                 </div>
                                             </div>

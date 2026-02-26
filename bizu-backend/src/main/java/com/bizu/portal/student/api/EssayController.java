@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/student/essays")
+@RequestMapping("/api/v1/student/essays")
 @RequiredArgsConstructor
 public class EssayController {
 

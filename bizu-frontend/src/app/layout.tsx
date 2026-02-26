@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono, Kalam, Caveat, Indie_Flower } from "next/font/google";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -13,6 +13,26 @@ const jetbrains = JetBrains_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
   display: "swap",
+});
+
+const kalam = Kalam({
+  variable: "--font-kalam",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["300", "400", "700"],
+});
+
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const indieFlower = Indie_Flower({
+  variable: "--font-indie",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400"],
 });
 
 export const viewport: Viewport = {
@@ -50,7 +70,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${jakarta.variable} ${jetbrains.variable} antialiased font-sans`}
+      <body className={`${jakarta.variable} ${jetbrains.variable} ${kalam.variable} ${caveat.variable} ${indieFlower.variable} antialiased font-sans`}
         style={{ fontFamily: "var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif" }}
       >
         <AuthProvider>
