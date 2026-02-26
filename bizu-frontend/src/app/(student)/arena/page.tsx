@@ -125,6 +125,7 @@ function ArenaPageContent() {
         return () => clearInterval(interval);
     }, []);
 
+
     useChallengeNotifications(currentUserId, (newDuel: Duel) => {
         setPendingDuels(prev => {
             if (prev.find(d => d.id === newDuel.id)) return prev;
@@ -195,45 +196,7 @@ function ArenaPageContent() {
                 </div>
             </div>
 
-            {/* Challenge Overlay */}
-            {pendingDuels.length > 0 && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-300">
-                        {/* Background design */}
-                        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-indigo-600 to-violet-700" />
-                        <div className="absolute top-0 left-0 w-full h-32 opacity-10" style={{
-                            backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)",
-                            backgroundSize: "20px 20px"
-                        }} />
 
-                        <div className="relative pt-12 pb-8 px-8 flex flex-col items-center text-center">
-                            <div className="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center mb-6 -mt-10 transform -rotate-3 transition-transform hover:rotate-0">
-                                <Swords size={40} className="text-indigo-600" />
-                            </div>
-
-                            <h3 className="text-2xl font-black text-slate-900 mb-2">Desafio Recebido!</h3>
-                            <p className="text-slate-500 mb-8 max-w-[280px]">
-                                <span className="font-bold text-indigo-600">{pendingDuels[0].challenger.name}</span> te convidou para um duelo de <span className="font-bold">{pendingDuels[0].subject}</span>.
-                            </p>
-
-                            <div className="flex flex-col w-full gap-3">
-                                <button
-                                    onClick={() => handleAccept(pendingDuels[0].id)}
-                                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-700 text-white font-bold text-lg shadow-lg shadow-indigo-200 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                                >
-                                    Aceitar Desafio
-                                </button>
-                                <button
-                                    onClick={() => handleDecline(pendingDuels[0].id)}
-                                    className="w-full py-4 rounded-2xl bg-slate-50 text-slate-400 font-bold hover:bg-slate-100 transition-all"
-                                >
-                                    Recusar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Stats */}
             <div className="grid grid-cols-4 gap-3 mb-6">

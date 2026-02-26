@@ -165,6 +165,7 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2 text-sm font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3.5 py-2 rounded-full shadow-sm">
                         <Trophy size={15} /> {totalXp} XP
                     </div>
+
                     <button className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all relative shadow-sm">
                         <Bell size={17} />
                         <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border border-white" />

@@ -20,12 +20,16 @@ export default function FloatingPomodoro() {
         toggleTimer,
         resetTimer,
         skipSession,
+        isOpen,
+        setIsOpen,
     } = usePomodoro();
 
     const [isExpanded, setIsExpanded] = useState(false);
     const [showQuickAction, setShowQuickAction] = useState<"none" | "task" | "note">("none");
     const [quickValue, setQuickValue] = useState("");
     const [isSaving, setIsSaving] = useState(false);
+
+    if (!isOpen) return null;
 
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
@@ -180,6 +184,16 @@ export default function FloatingPomodoro() {
                             <ChevronLeft size={14} />
                         </button>
                     )}
+
+                    <div className="h-4 w-[1px] bg-slate-100 mx-0.5" />
+
+                    <button
+                        onClick={() => setIsOpen(false)}
+                        className="w-7 h-7 rounded-lg hover:bg-red-50 hover:text-red-500 flex items-center justify-center text-slate-300 transition-all"
+                        title="Fechar Pomodoro"
+                    >
+                        <X size={14} />
+                    </button>
                 </div>
 
                 {/* Drag handle hint */}

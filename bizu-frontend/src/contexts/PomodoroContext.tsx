@@ -18,6 +18,8 @@ interface PomodoroContextType {
     selectedSubject: string;
     availableModules: string[];
 
+    isOpen: boolean;
+    setIsOpen: (open: boolean) => void;
     toggleTimer: () => void;
     resetTimer: () => void;
     skipSession: () => void;
@@ -35,6 +37,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
     const [longBreakDuration, setLongBreakDuration] = useState(15);
     const [timeLeft, setTimeLeft] = useState(25 * 60);
     const [isRunning, setIsRunning] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
     const [sessionType, setSessionType] = useState<SessionType>("focus");
     const [completedCycles, setCompletedCycles] = useState(0);
     const [selectedSubject, setSelectedSubject] = useState("Selecione um módulo");
@@ -163,8 +166,10 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         const saved = localStorage.getItem("bizu-pomodoro-state");
         if (saved) {
             try {
-                const { timeLeft: sTime, sessionType: sType, isRunning: sRunning, lastUpdate } = JSON.parse(saved);
+                const { timeLeft: sTime, sessionType: sType, isRunning: sRunning, isOpen: sOpen, lastUpdate } = JSON.parse(saved);
                 const elapsedSinceLastUpdate = Math.floor((Date.now() - lastUpdate) / 1000);
+
+                if (sOpen !== undefined) setIsOpen(sOpen);
 
                 if (sRunning) {
                     const newTime = Math.max(0, sTime - elapsedSinceLastUpdate);
@@ -187,10 +192,11 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
             timeLeft,
             sessionType,
             isRunning,
+            isOpen,
             lastUpdate: Date.now()
         };
         localStorage.setItem("bizu-pomodoro-state", JSON.stringify(state));
-    }, [timeLeft, sessionType, isRunning]);
+    }, [timeLeft, sessionType, isRunning, isOpen]);
 
     const toggleTimer = () => setIsRunning(prev => !prev);
 
@@ -232,6 +238,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         timeLeft,
         isRunning,
         sessionType,
+        isOpen,
         completedCycles,
         totalFocusToday,
         focusDuration,
@@ -242,6 +249,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         toggleTimer,
         resetTimer,
         skipSession,
+        setIsOpen,
         setSessionType: changeSessionType,
         setSelectedSubject,
         setDurations,

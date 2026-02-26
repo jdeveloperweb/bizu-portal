@@ -98,9 +98,16 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
     const opponentAnswer = isChallenger ? currentRoundQuestion?.opponentAnswerIndex : currentRoundQuestion?.challengerAnswerIndex;
 
     const handleAnswer = async (index: number) => {
-        if (selectedAnswer !== null || myAnswer !== undefined) return;
+        if (selectedAnswer !== null || (myAnswer !== undefined && myAnswer !== null)) return;
         setSelectedAnswer(index);
         await DuelService.submitAnswer(duelId, index);
+    };
+
+    const handleCancel = async () => {
+        if (confirm("Tem certeza que deseja abandonar e cancelar este duelo?")) {
+            await DuelService.declineDuel(duelId);
+            onClose();
+        }
     };
 
     return (
@@ -202,8 +209,8 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
 
                                 <div className="grid grid-cols-1 gap-3">
                                     {Object.entries(currentRoundQuestion.question.options).map(([key, option], idx) => {
-                                        const isSelected = selectedAnswer === Number(key) || myAnswer === Number(key);
-                                        const isWaitingOpponent = myAnswer !== undefined && opponentAnswer === undefined;
+                                        const isSelected = selectedAnswer === Number(key) || (myAnswer !== undefined && myAnswer !== null && myAnswer === Number(key));
+                                        const isWaitingOpponent = (myAnswer !== undefined && myAnswer !== null) && (opponentAnswer === undefined || opponentAnswer === null);
 
                                         return (
                                             <motion.button
@@ -211,7 +218,7 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                                                 whileHover={{ scale: 1.01 }}
                                                 whileTap={{ scale: 0.99 }}
                                                 onClick={() => handleAnswer(Number(key))}
-                                                disabled={myAnswer !== undefined}
+                                                disabled={myAnswer !== undefined && myAnswer !== null}
                                                 className={`p-4 rounded-2xl border-2 text-left transition-all relative ${isSelected ? "border-indigo-500 bg-indigo-50 shadow-md" :
                                                     "border-slate-100 hover:border-indigo-200 hover:bg-slate-50"
                                                     }`}
@@ -258,6 +265,27 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                                     </div>
                                 </div>
                             </motion.div>
+                        ) : duel.status === "CANCELLED" ? (
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="flex flex-col items-center gap-6"
+                            >
+                                <div className="w-24 h-24 rounded-full flex items-center justify-center shadow-xl bg-red-100 text-red-500">
+                                    <XCircle size={48} />
+                                </div>
+                                <div className="text-center">
+                                    <h2 className="text-3xl font-black text-slate-900 mb-2">
+                                        DUELO CANCELADO
+                                    </h2>
+                                    <p className="text-slate-500">O duelo foi abandonado por um dos jogadores.</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="px-6 py-3 rounded-2xl bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-200 cursor-pointer" onClick={onClose}>
+                                        Voltar para Arena
+                                    </div>
+                                </div>
+                            </motion.div>
                         ) : (
                             <div className="flex flex-col items-center gap-4 text-slate-400">
                                 <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
@@ -276,6 +304,14 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                             <Shield size={14} className="text-slate-400" /> Matéria: {duel.subject}
                         </div>
                     </div>
+                    {duel.status === "IN_PROGRESS" && (
+                        <button
+                            onClick={handleCancel}
+                            className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1 transition-colors"
+                        >
+                            <XCircle size={14} /> Abandonar Duelo
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

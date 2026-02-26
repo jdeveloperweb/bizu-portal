@@ -89,7 +89,8 @@ public class DuelController {
     public ResponseEntity<Void> declineDuel(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID duelId) {
         Duel duel = duelRepository.findById(duelId).orElseThrow();
         duel.setStatus("CANCELLED");
-        duelRepository.save(duel);
+        Duel savedDuel = duelRepository.save(duel);
+        messagingTemplate.convertAndSend("/topic/duelos/" + duelId, savedDuel);
         return ResponseEntity.ok().build();
     }
 

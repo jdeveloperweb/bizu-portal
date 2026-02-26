@@ -3,6 +3,8 @@
 import { usePathname } from "next/navigation";
 import StudentSidebar from "@/components/StudentSidebar";
 import FloatingPomodoro from "@/components/pomodoro/FloatingPomodoro";
+import ChallengeOverlay from "@/components/arena/ChallengeOverlay";
+
 
 export default function StudentLayout({
     children,
@@ -23,6 +25,7 @@ export default function StudentLayout({
                 {children}
             </main>
             <FloatingPomodoro />
+            <ChallengeOverlay />
         </div>
     );
 }
