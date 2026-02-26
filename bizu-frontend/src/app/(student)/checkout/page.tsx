@@ -303,6 +303,8 @@ export default function CheckoutPage() {
                                         <span className="text-5xl font-black text-slate-900 ml-1">{plan.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                                         <span className="text-slate-400 font-bold ml-1">{getBillingSuffix(plan.billingInterval)}</span>
                                     </div>
+                                    <h2 className="text-3xl font-black text-slate-900">{plan.name}</h2>
+                                    <p className="text-sm text-slate-500 mt-2 min-h-[40px]">{plan.description}</p>
 
                                     <div className="space-y-3 mb-8 flex-1">
                                         {features.map((f: string, index: number) => (
