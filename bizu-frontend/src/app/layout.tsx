@@ -43,7 +43,6 @@ import PaywallGate from "@/components/PaywallGate";
 import { AppearanceProvider } from "@/components/AppearanceProvider";
 import { CourseProvider } from "@/contexts/CourseContext";
 import { PomodoroProvider } from "@/contexts/PomodoroContext";
-import FloatingPomodoro from "@/components/pomodoro/FloatingPomodoro";
 import { GamificationProvider } from "@/components/gamification/GamificationProvider";
 
 export default function RootLayout({
@@ -64,7 +63,6 @@ export default function RootLayout({
                     <PaywallGate>
                       <GamificationProvider>
                         {children}
-                        <FloatingPomodoro />
                       </GamificationProvider>
                     </PaywallGate>
                   </CourseSelectionGate>

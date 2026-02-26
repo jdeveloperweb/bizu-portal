@@ -81,61 +81,63 @@ export default function FloatingPomodoro() {
     };
 
     return (
-        <div className="fixed bottom-24 right-6 z-[9999] flex flex-col items-end gap-3 pointer-events-none">
-            <AnimatePresence>
-                {showQuickAction !== "none" && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                        className="pointer-events-auto w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 p-4"
-                    >
-                        <div className="flex items-center justify-between mb-3">
-                            <h4 className="text-[12px] font-bold text-slate-800 flex items-center gap-2">
-                                {showQuickAction === "task" ? <CheckSquare size={13} className="text-indigo-500" /> : <StickyNote size={13} className="text-amber-500" />}
-                                {showQuickAction === "task" ? "Nova Tarefa Rápida" : "Nova Anotação Rápida"}
-                            </h4>
-                            <button onClick={() => setShowQuickAction("none")} className="text-slate-400 hover:text-slate-600">
-                                <X size={14} />
-                            </button>
-                        </div>
-                        {showQuickAction === "task" ? (
-                            <input
-                                value={quickValue}
-                                onChange={e => setQuickValue(e.target.value)}
-                                placeholder="O que você precisa fazer?"
-                                autoFocus
-                                className="input-field !h-10 text-[12px] mb-3"
-                                onKeyDown={e => e.key === 'Enter' && handleSaveQuick()}
-                            />
-                        ) : (
-                            <textarea
-                                value={quickValue}
-                                onChange={e => setQuickValue(e.target.value)}
-                                placeholder="Eescreva seu insight..."
-                                autoFocus
-                                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-[12px] text-slate-700 leading-relaxed outline-none mb-3 h-24 resize-none"
-                            />
-                        )}
-                        <div className="flex gap-2">
-                            <button
-                                onClick={handleSaveQuick}
-                                disabled={isSaving || !quickValue.trim()}
-                                className="btn-primary !h-8 !text-[11px] flex-1 disabled:opacity-50"
-                            >
-                                {isSaving ? "Salvando..." : "Salvar"}
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
+        <div className="fixed bottom-24 right-6 z-[9999] pointer-events-none">
             <motion.div
                 drag
                 dragMomentum={false}
-                layout
-                className={`pointer-events-auto relative flex items-center gap-3 p-1.5 rounded-2xl bg-white border border-slate-200 shadow-xl ${shadowColors} group transition-all`}
+                dragConstraints={{ top: -800, left: -1200, right: 0, bottom: 0 }}
+                dragElastic={0.1}
+                className={`pointer-events-auto relative flex items-center gap-3 p-1.5 rounded-2xl bg-white border border-slate-200 shadow-xl ${shadowColors} group`}
             >
+                {/* Floating Quick Action Panel */}
+                <AnimatePresence>
+                    {showQuickAction !== "none" && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                            className="absolute bottom-full right-0 mb-3 w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 p-4"
+                        >
+                            <div className="flex items-center justify-between mb-3">
+                                <h4 className="text-[12px] font-bold text-slate-800 flex items-center gap-2">
+                                    {showQuickAction === "task" ? <CheckSquare size={13} className="text-indigo-500" /> : <StickyNote size={13} className="text-amber-500" />}
+                                    {showQuickAction === "task" ? "Nova Tarefa Rápida" : "Nova Anotação Rápida"}
+                                </h4>
+                                <button onClick={() => setShowQuickAction("none")} className="text-slate-400 hover:text-slate-600">
+                                    <X size={14} />
+                                </button>
+                            </div>
+                            {showQuickAction === "task" ? (
+                                <input
+                                    value={quickValue}
+                                    onChange={e => setQuickValue(e.target.value)}
+                                    placeholder="O que você precisa fazer?"
+                                    autoFocus
+                                    className="input-field !h-10 text-[12px] mb-3"
+                                    onKeyDown={e => e.key === 'Enter' && handleSaveQuick()}
+                                />
+                            ) : (
+                                <textarea
+                                    value={quickValue}
+                                    onChange={e => setQuickValue(e.target.value)}
+                                    placeholder="Escreva seu insight..."
+                                    autoFocus
+                                    className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-[12px] text-slate-700 leading-relaxed outline-none mb-3 h-24 resize-none"
+                                />
+                            )}
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleSaveQuick}
+                                    disabled={isSaving || !quickValue.trim()}
+                                    className="btn-primary !h-8 !text-[11px] flex-1 disabled:opacity-50"
+                                >
+                                    {isSaving ? "Salvando..." : "Salvar"}
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 <div className="flex items-center gap-2 pl-1">
                     <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${colors} flex items-center justify-center text-white shadow-md`}>
                         {sessionType === "focus" ? <Brain size={16} /> : <Coffee size={16} />}
