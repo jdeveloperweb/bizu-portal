@@ -195,24 +195,33 @@ export default function RankingStudentPage() {
                 <div className="lg:col-span-2 space-y-5">
                     {/* Podium */}
                     <div className="card-elevated !rounded-2xl p-6 hover:!transform-none">
-                        <div className="flex items-end justify-center gap-4 pt-4 pb-2">
-                            {podiumOrder.map((user, i) => (
-                                <div key={user.rank} className="flex flex-col items-center">
-                                    <div className="relative mb-3">
-                                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${podiumColors[i].bg} flex items-center justify-center text-white font-extrabold text-sm shadow-lg`}>
-                                            {user.avatar}
+                        <div className="flex items-end justify-center gap-4 pt-4 pb-2 text-center">
+                            {podiumOrder.map((user, i) => {
+                                const rank = user.rank;
+                                const colors = rank === 1
+                                    ? { bg: "from-amber-400 to-yellow-500", text: "text-amber-800", badge: "bg-amber-100" }
+                                    : rank === 2
+                                        ? { bg: "from-slate-300 to-slate-400", text: "text-slate-700", badge: "bg-slate-200" }
+                                        : { bg: "from-orange-300 to-amber-400", text: "text-orange-800", badge: "bg-orange-100" };
+
+                                return (
+                                    <div key={`${user.name}-${i}`} className="flex flex-col items-center">
+                                        <div className="relative mb-3">
+                                            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${colors.bg} flex items-center justify-center text-white font-extrabold text-sm shadow-lg border-2 border-white/20`}>
+                                                {user.avatar}
+                                            </div>
+                                            {rank === 1 && (
+                                                <Crown size={16} className="text-amber-500 absolute -top-3.5 left-1/2 -translate-x-1/2 drop-shadow-sm" />
+                                            )}
                                         </div>
-                                        {user.rank === 1 && (
-                                            <Crown size={16} className="text-amber-500 absolute -top-3 left-1/2 -translate-x-1/2" />
-                                        )}
+                                        <span className="text-[12px] font-bold text-slate-800 mb-0.5 max-w-[70px] truncate">{user.name.split(" ")[0]}</span>
+                                        <span className="text-[10px] text-slate-400 font-semibold mb-2">{user.xp.toLocaleString()} XP</span>
+                                        <div className={`${podiumHeights[i]} w-20 rounded-t-xl bg-gradient-to-t ${colors.bg} flex items-start justify-center pt-3 opacity-90 shadow-sm relative group`}>
+                                            <span className="text-white font-extrabold text-lg drop-shadow-md">#{rank}</span>
+                                        </div>
                                     </div>
-                                    <span className="text-[12px] font-bold text-slate-800 mb-0.5">{user.name.split(" ")[0]}</span>
-                                    <span className="text-[10px] text-slate-400 font-semibold mb-2">{user.xp.toLocaleString()} XP</span>
-                                    <div className={`${podiumHeights[i]} w-20 rounded-t-xl bg-gradient-to-t ${podiumColors[i].bg} flex items-start justify-center pt-3`}>
-                                        <span className="text-white font-extrabold text-lg">#{user.rank}</span>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -225,8 +234,8 @@ export default function RankingStudentPage() {
                             </h3>
                         </div>
                         <div className="divide-y divide-slate-50">
-                            {myRank?.rank && displayUsers.map(user => (
-                                <div key={user.rank} className={`flex items-center gap-3 px-5 py-3 hover:bg-slate-50/50 transition-colors ${user.rank <= 3 ? "bg-indigo-50/30" : ""}`}>
+                            {displayUsers.length > 0 && displayUsers.map(user => (
+                                <div key={user.rank} className={`flex items-center gap-3 px-5 py-3 hover:bg-slate-50/50 transition-colors ${user.rank <= 3 ? "bg-indigo-50/10" : ""}`}>
                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-extrabold text-[12px] ${user.rank === 1 ? "bg-amber-100 text-amber-700" :
                                         user.rank === 2 ? "bg-slate-200 text-slate-600" :
                                             user.rank === 3 ? "bg-orange-100 text-orange-700" :
@@ -241,7 +250,7 @@ export default function RankingStudentPage() {
                                         <div className="text-[13px] font-bold text-slate-800">{user.name}</div>
                                         <div className="text-[10px] text-slate-400 flex items-center gap-2">
                                             <span className="flex items-center gap-0.5"><Flame size={9} className="text-amber-500" /> {user.streak}d</span>
-                                            {user.accuracy !== undefined && <span className="flex items-center gap-0.5"><Target size={9} /> {user.accuracy}%</span>}
+                                            {user.accuracy !== undefined && user.accuracy > 0 ? <span className="flex items-center gap-0.5"><Target size={9} /> {user.accuracy}%</span> : null}
                                         </div>
                                     </div>
                                     <div className="text-right">
@@ -253,9 +262,9 @@ export default function RankingStudentPage() {
 
                             {/* My position */}
                             {myRank && (
-                                <div className="flex items-center gap-3 px-5 py-3 bg-indigo-50 border-t-2 border-indigo-200">
+                                <div className="flex items-center gap-3 px-5 py-3 bg-indigo-50 border-t-2 border-indigo-200 sticky bottom-0">
                                     <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center font-extrabold text-[11px] text-white">
-                                        {myRank.rank}
+                                        {myRank.rank > 0 ? myRank.rank : "-"}
                                     </div>
                                     <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-[11px] font-bold text-white">
                                         {myRank.avatar}
@@ -264,12 +273,14 @@ export default function RankingStudentPage() {
                                         <div className="text-[13px] font-bold text-indigo-800">{myRank.name} (sua posicao)</div>
                                         <div className="text-[10px] text-indigo-500 flex items-center gap-2">
                                             <span className="flex items-center gap-0.5"><Flame size={9} /> {myRank.streak}d</span>
-                                            {myRank.accuracy !== undefined && <span className="flex items-center gap-0.5"><Target size={9} /> {myRank.accuracy}%</span>}
+                                            {myRank.accuracy !== undefined && myRank.accuracy > 0 ? <span className="flex items-center gap-0.5"><Target size={9} /> {myRank.accuracy}%</span> : null}
                                         </div>
                                     </div>
                                     <div className="text-right">
                                         <div className="text-[12px] font-extrabold text-indigo-800">{myRank.xp.toLocaleString()} XP</div>
-                                        <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-0.5 justify-end"><ArrowUp size={9} />{myRank.delta || 0}</span>
+                                        <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-0.5 justify-end">
+                                            {myRank.delta !== undefined && myRank.delta > 0 ? <><ArrowUp size={9} />{myRank.delta}</> : <span>-</span>}
+                                        </span>
                                     </div>
                                 </div>
                             )}
@@ -286,10 +297,10 @@ export default function RankingStudentPage() {
                         </h3>
                         <div className="space-y-3">
                             {myRank && [
-                                { label: "Posicao atual", value: `#${myRank.rank}`, color: "text-indigo-600" },
-                                { label: "XP total", value: myRank.xp.toLocaleString(), color: "text-violet-600" },
-                                { label: "Ofensiva", value: `${myRank.streak} dias`, color: "text-amber-600" },
-                                { label: "Precisao", value: `${myRank.accuracy || 0}%`, color: "text-emerald-600" },
+                                { label: "Posicao atual", value: myRank.rank > 0 ? `#${myRank.rank}` : "-", color: "text-indigo-600" },
+                                { label: "XP total", value: myRank.xp > 0 ? myRank.xp.toLocaleString() : "0", color: "text-violet-600" },
+                                { label: "Ofensiva", value: myRank.streak > 0 ? `${myRank.streak} dias` : "0 dias", color: "text-amber-600" },
+                                { label: "Precisao", value: myRank.accuracy !== undefined && myRank.accuracy > 0 ? `${myRank.accuracy}%` : "0%", color: "text-emerald-600" },
                                 { label: "Questoes/semana", value: String(myRank.questionsThisWeek || 0), color: "text-indigo-600" },
                             ].map(s => (
                                 <div key={s.label} className="flex items-center justify-between py-1.5">

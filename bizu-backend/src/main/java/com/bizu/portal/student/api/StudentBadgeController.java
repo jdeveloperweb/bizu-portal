@@ -1,5 +1,6 @@
 package com.bizu.portal.student.api;
 
+import com.bizu.portal.identity.application.UserService;
 import com.bizu.portal.student.domain.UserBadge;
 import com.bizu.portal.student.infrastructure.UserBadgeRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +23,14 @@ import com.bizu.portal.student.application.BadgeDTO;
 public class StudentBadgeController {
 
     private final GamificationService gamificationService;
+    private final UserService userService;
 
     @GetMapping("/me")
     public ResponseEntity<List<BadgeDTO>> getMyBadges(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        String email = jwt.getClaimAsString("email");
+        String name = jwt.getClaimAsString("name");
+        UUID subjectId = UUID.fromString(jwt.getSubject());
+        UUID userId = userService.syncUser(subjectId, email, name).getId();
         return ResponseEntity.ok(gamificationService.getBadgesWithProgress(userId));
     }
 }

@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import Cookies from 'js-cookie';
 
 const WS_URL = (process.env.NEXT_PUBLIC_API_URL || "https://bizu.mjolnix.com.br/api/v1").replace("/api/v1", "/ws");
 
-export function useDuelWebSocket(duelId: string | null, onMessage: (msg: any) => void) {
+export function useChallengeNotifications(userId: string | null, onChallengeReceived: (duel: any) => void) {
     const stompClientRef = useRef<Client | null>(null);
 
     useEffect(() => {
-        if (!duelId) return;
+        if (!userId) return;
 
         const socket = new SockJS(WS_URL);
         const client = new Client({
@@ -20,8 +20,8 @@ export function useDuelWebSocket(duelId: string | null, onMessage: (msg: any) =>
                 Authorization: `Bearer ${Cookies.get("token")}`
             },
             onConnect: () => {
-                client.subscribe(`/topic/duelos/${duelId}`, (message) => {
-                    onMessage(JSON.parse(message.body));
+                client.subscribe(`/topic/desafios/${userId}`, (message) => {
+                    onChallengeReceived(JSON.parse(message.body));
                 });
             },
             onStompError: (frame) => {
@@ -37,7 +37,7 @@ export function useDuelWebSocket(duelId: string | null, onMessage: (msg: any) =>
                 stompClientRef.current.deactivate();
             }
         };
-    }, [duelId, onMessage]);
+    }, [userId]);
 
     return stompClientRef.current;
 }

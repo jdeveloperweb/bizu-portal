@@ -18,15 +18,15 @@ public class RankingService {
     public List<Map<String, Object>> getGlobalRanking(int limit) {
         String sql = """
             SELECT 
-                g.user_id as "id",
+                u.id as "id",
                 u.name as "name",
                 u.avatar_url as "avatar",
                 COALESCE(g.total_xp, 0) as "xp",
                 COALESCE(g.current_streak, 0) as "streak",
-                RANK() OVER (ORDER BY g.total_xp DESC) as "rank"
-            FROM student.gamification_stats g
-            JOIN identity.users u ON g.user_id = u.id
-            ORDER BY g.total_xp DESC
+                RANK() OVER (ORDER BY COALESCE(g.total_xp, 0) DESC) as "rank"
+            FROM identity.users u
+            LEFT JOIN student.gamification_stats g ON u.id = g.user_id
+            ORDER BY "rank" ASC
             LIMIT ?
             """;
         
@@ -37,21 +37,23 @@ public class RankingService {
         String sql = """
             WITH RankedUsers AS (
                 SELECT 
-                    user_id,
-                    total_xp,
-                    current_streak,
-                    RANK() OVER (ORDER BY total_xp DESC) as rank
-                FROM student.gamification_stats
+                    u.id as user_id,
+                    u.name,
+                    u.avatar_url,
+                    COALESCE(g.total_xp, 0) as total_xp,
+                    COALESCE(g.current_streak, 0) as current_streak,
+                    RANK() OVER (ORDER BY COALESCE(g.total_xp, 0) DESC) as rank
+                FROM identity.users u
+                LEFT JOIN student.gamification_stats g ON u.id = g.user_id
             )
             SELECT 
-                COALESCE(r.rank, 0) as "rank",
-                u.name as "name",
-                u.avatar_url as "avatar",
-                COALESCE(r.total_xp, 0) as "xp",
-                COALESCE(r.current_streak, 0) as "streak"
-            FROM identity.users u
-            LEFT JOIN RankedUsers r ON u.id = r.user_id
-            WHERE u.id = ?
+                r.rank as "rank",
+                r.name as "name",
+                r.avatar_url as "avatar",
+                r.total_xp as "xp",
+                r.current_streak as "streak"
+            FROM RankedUsers r
+            WHERE r.user_id = ?
             """;
         
         List<Map<String, Object>> result = jdbcTemplate.queryForList(sql, userId);

@@ -1,5 +1,6 @@
 package com.bizu.portal.student.api;
 
+import com.bizu.portal.identity.application.UserService;
 import com.bizu.portal.student.application.RankingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import java.util.UUID;
 public class RankingController {
 
     private final RankingService rankingService;
+    private final UserService userService;
 
     @GetMapping("/global")
     public ResponseEntity<List<Map<String, Object>>> getGlobalRanking(@RequestParam(defaultValue = "10") int limit) {
@@ -28,7 +30,10 @@ public class RankingController {
 
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getMyRanking(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        String email = jwt.getClaimAsString("email");
+        String name = jwt.getClaimAsString("name");
+        UUID subjectId = UUID.fromString(jwt.getSubject());
+        UUID userId = userService.syncUser(subjectId, email, name).getId();
         return ResponseEntity.ok(rankingService.getUserRanking(userId));
     }
 }

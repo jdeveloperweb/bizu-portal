@@ -2,6 +2,7 @@ package com.bizu.portal.commerce.api;
 
 import com.bizu.portal.commerce.application.SubscriptionGroupService;
 import com.bizu.portal.commerce.domain.SubscriptionGroup;
+import com.bizu.portal.identity.application.UserService;
 import com.bizu.portal.identity.domain.User;
 import com.bizu.portal.identity.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,18 +19,18 @@ import java.util.UUID;
 public class SubscriptionGroupController {
 
     private final SubscriptionGroupService groupService;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping("/my-group")
     public ResponseEntity<SubscriptionGroup> getMyGroup(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        UUID userId = resolveUserId(jwt);
         // For now, simplify finding group where user is owner
         return ResponseEntity.ok(groupService.findGroupByOwner(userId));
     }
 
     @PostMapping("/invite")
     public ResponseEntity<Void> inviteMember(@AuthenticationPrincipal Jwt jwt, @RequestParam String email) {
-        UUID ownerId = UUID.fromString(jwt.getSubject());
+        UUID ownerId = resolveUserId(jwt);
         SubscriptionGroup group = groupService.findGroupByOwner(ownerId);
         groupService.addMember(group.getId(), email);
         return ResponseEntity.ok().build();
@@ -37,9 +38,16 @@ public class SubscriptionGroupController {
 
     @DeleteMapping("/members/{memberId}")
     public ResponseEntity<Void> removeMember(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID memberId) {
-        UUID ownerId = UUID.fromString(jwt.getSubject());
+        UUID ownerId = resolveUserId(jwt);
         SubscriptionGroup group = groupService.findGroupByOwner(ownerId);
         groupService.removeMember(group.getId(), memberId);
         return ResponseEntity.ok().build();
+    }
+
+    private UUID resolveUserId(Jwt jwt) {
+        String email = jwt.getClaimAsString("email");
+        String name = jwt.getClaimAsString("name");
+        UUID subjectId = UUID.fromString(jwt.getSubject());
+        return userService.syncUser(subjectId, email, name).getId();
     }
 }

@@ -29,8 +29,9 @@ public class GamificationService {
     private final LevelCalculator levelCalculator;
     private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public java.util.List<BadgeDTO> getBadgesWithProgress(UUID userId) {
+        ensureBadgesExist();
         java.util.List<Badge> allBadges = badgeRepository.findAll();
         java.util.List<UserBadge> earnedBadges = userBadgeRepository.findAllByUserId(userId);
 
@@ -39,7 +40,7 @@ public class GamificationService {
 
         // Get stats for progress estimation
         int totalQuestions = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM student.attempts WHERE user_id = ?", Integer.class, userId);
-        int totalDuels = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM student.duels WHERE (challenger_id = ? OR opponent_id = ?) AND status = 'COMPLETED'", Integer.class, userId, userId);
+        int totalWins = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM student.duels WHERE winner_id = ? AND status = 'COMPLETED'", Integer.class, userId);
         int totalFlashcards = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM student.flashcard_progress WHERE user_id = ?", Integer.class, userId);
         
         // Time spent today (Maratonista)
@@ -49,7 +50,7 @@ public class GamificationService {
 
         // Sniper progress (last 10 hard questions)
         int correctHardStreak = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM (SELECT correct FROM student.attempts a JOIN content.questions q ON a.question_id = q.id WHERE a.user_id = ? AND q.difficulty = 'HARD' ORDER BY a.created_at DESC LIMIT 10) sub WHERE correct = true",
+            "SELECT COUNT(*) FROM (SELECT is_correct FROM student.attempts a JOIN content.questions q ON a.question_id = q.id WHERE a.user_id = ? AND q.difficulty = 'HARD' ORDER BY a.created_at DESC LIMIT 10) sub WHERE is_correct = true",
             Integer.class, userId);
 
         GamificationStats stats = gamificationRepository.findById(userId).orElse(null);
@@ -78,25 +79,14 @@ public class GamificationService {
                 currentVal = target;
             } else {
                 // Calculate progress based on logic
-                if ("EARLY_BIRD".equals(badge.getCode()) || "FIRST_SIMULADO".equals(badge.getCode())) {
-                    currentVal = 0; 
-                } else if ("STREAK_7".equals(badge.getCode()) || "TOTAL_DEDICATION".equals(badge.getCode())) {
-                    currentVal = streak;
-                } else if ("QUESTIONS_1000".equals(badge.getCode()) || "MASTER_100".equals(badge.getCode())) {
-                    currentVal = totalQuestions;
-                } else if ("GLADIATOR_10".equals(badge.getCode())) {
-                    currentVal = totalDuels;
-                } else if ("STUDIOUS_50".equals(badge.getCode())) {
-                    currentVal = totalFlashcards;
-                } else if ("MARATHON_4H".equals(badge.getCode())) {
-                    currentVal = timeTodayMinutes;
-                } else if ("SNIPER_10".equals(badge.getCode())) {
-                    currentVal = correctHardStreak;
-                }
+                currentVal = calculateCurrentProgressValue(userId, badge.getCode(), streak, totalQuestions, totalWins, totalFlashcards, timeTodayMinutes, correctHardStreak);
 
                 // CAP at target
                 if (currentVal >= target) {
                     currentVal = target;
+                    // Auto-award if not earned (lazy evaluation)
+                    awardBadge(userId, badge.getCode());
+                    dto.setEarned(true);
                 }
                 
                 int percent = (int) Math.round(((double) currentVal / target) * 100);
@@ -114,6 +104,58 @@ public class GamificationService {
             
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    private int calculateCurrentProgressValue(UUID userId, String code, int streak, int totalQuestions, int totalWins, int totalFlashcards, int timeTodayMinutes, int correctHardStreak) {
+        if ("EARLY_BIRD".equals(code)) {
+            // Check if solved any question between 00:00 and 06:00
+            return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM student.attempts WHERE user_id = ? AND EXTRACT(HOUR FROM created_at AT TIME ZONE 'UTC') < 6", 
+                Integer.class, userId) > 0 ? 1 : 0;
+        } else if ("FIRST_SIMULADO".equals(code)) {
+             return jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM student.simulado_results WHERE user_id = ?", 
+                Integer.class, userId) > 0 ? 1 : 0;
+        } else if ("STREAK_7".equals(code) || "TOTAL_DEDICATION".equals(code)) {
+            return streak;
+        } else if ("QUESTIONS_1000".equals(code) || "MASTER_100".equals(code)) {
+            return totalQuestions;
+        } else if ("GLADIATOR_10".equals(code)) {
+            return totalWins;
+        } else if ("STUDIOUS_50".equals(code)) {
+            return totalFlashcards;
+        } else if ("MARATHON_4H".equals(code)) {
+            return timeTodayMinutes;
+        } else if ("SNIPER_10".equals(code)) {
+            return correctHardStreak;
+        } else if ("FIRST_1000_XP".equals(code)) {
+            GamificationStats stats = gamificationRepository.findById(userId).orElse(null);
+            return stats != null ? stats.getTotalXp() : 0;
+        }
+        return 0;
+    }
+
+    private void ensureBadgesExist() {
+        if (badgeRepository.count() > 0) return;
+
+        log.info("Seeding default badges...");
+        
+        java.util.List<Badge> defaults = new java.util.ArrayList<>();
+        
+        defaults.add(Badge.builder().code("EARLY_BIRD").name("Madrugador").description("Resolveu questões antes das 6h da manhã.").iconUrl("sunrise").category("consistencia").xp(50).color("from-amber-400 to-orange-500").targetProgress(1).requirement("1/1").build());
+        defaults.add(Badge.builder().code("STREAK_7").name("Fogo Amigo").description("Manteve uma ofensiva de 7 dias.").iconUrl("flame").category("consistencia").xp(100).color("from-red-400 to-rose-500").targetProgress(7).requirement("7/7 dias").build());
+        defaults.add(Badge.builder().code("MASTER_100").name("Centenário").description("Resolveu 100 questões com aproveitamento > 80%.").iconUrl("target").category("performance").xp(200).color("from-emerald-400 to-teal-500").targetProgress(100).requirement("100/100").build());
+        defaults.add(Badge.builder().code("FIRST_SIMULADO").name("Primeiro Passo").description("Concluiu seu primeiro simulado completo.").iconUrl("play").category("performance").xp(75).color("from-blue-400 to-indigo-500").targetProgress(1).requirement("1/1").build());
+        defaults.add(Badge.builder().code("MARATHON_4H").name("Maratonista").description("Estudou por mais de 4 horas seguidas.").iconUrl("clock").category("consistencia").xp(150).color("from-indigo-400 to-violet-500").targetProgress(240).requirement("240/240 minutos").build());
+        defaults.add(Badge.builder().code("SNIPER_10").name("Sniper").description("Acertou 10 questões seguidas de nível difícil.").iconUrl("target").category("performance").xp(300).color("from-red-500 to-pink-600").targetProgress(10).requirement("10/10 consecutivas").build());
+        defaults.add(Badge.builder().code("GLADIATOR_10").name("Gladiador").description("Venceu 10 duelos na Arena PVP.").iconUrl("swords").category("social").xp(150).color("from-violet-500 to-purple-600").targetProgress(10).requirement("10/10 duelos").build());
+        defaults.add(Badge.builder().code("STUDIOUS_50").name("Estudioso").description("Criou 50 flashcards.").iconUrl("layers").category("especial").xp(100).color("from-teal-400 to-cyan-500").targetProgress(50).requirement("50/50 flashcards").build());
+        defaults.add(Badge.builder().code("TOTAL_DEDICATION").name("Dedicação Total").description("Manteve ofensiva de 30 dias.").iconUrl("flame").category("consistencia").xp(500).color("from-orange-500 to-red-600").targetProgress(30).requirement("30/30 dias").build());
+        defaults.add(Badge.builder().code("QUESTIONS_1000").name("1000 Questões").description("Resolveu 1000 questões na plataforma.").iconUrl("checkCircle2").category("performance").xp(250).color("from-emerald-500 to-green-600").targetProgress(1000).requirement("1000/1000").build());
+        defaults.add(Badge.builder().code("FIRST_1000_XP").name("Rumo ao Topo").description("Alcançou a marca de 1000 XP totais.").iconUrl("zap").category("especial").xp(100).color("from-indigo-400 to-violet-500").targetProgress(1000).requirement("1000/1000 XP").build());
+
+        badgeRepository.saveAll(defaults);
+        log.info("Badges seeded.");
     }
 
     @Transactional
@@ -184,10 +226,15 @@ public class GamificationService {
     }
 
     private void checkXpBadges(UUID userId, int totalXp) {
-        // Simple logic for XP-based badges
-        if (totalXp >= 1000) {
-            awardBadge(userId, "FIRST_1000_XP");
-        }
+        // Broad check for badges that might be earned
+        badgeRepository.findAll().forEach(badge -> {
+            int target = badge.getTargetProgress() != null && badge.getTargetProgress() > 0 ? badge.getTargetProgress() : 1;
+            
+            // For FIRST_1000_XP specifically
+            if ("FIRST_1000_XP".equals(badge.getCode()) && totalXp >= target) {
+                awardBadge(userId, badge.getCode());
+            }
+        });
     }
 
     @Transactional
@@ -208,6 +255,11 @@ public class GamificationService {
                 
                 userBadgeRepository.save(userBadge);
                 log.info("Badge {} concedida ao usuário {}", badgeCode, userId);
+
+                // Grant XP for the badge
+                if (badge.getXp() != null && badge.getXp() > 0) {
+                    addXp(userId, badge.getXp());
+                }
             }
         }
     }

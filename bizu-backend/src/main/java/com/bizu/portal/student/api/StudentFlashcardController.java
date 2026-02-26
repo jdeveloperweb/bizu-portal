@@ -2,6 +2,7 @@ package com.bizu.portal.student.api;
 
 import com.bizu.portal.content.domain.Flashcard;
 import com.bizu.portal.content.domain.FlashcardDeck;
+import com.bizu.portal.identity.application.UserService;
 import com.bizu.portal.student.application.StudentFlashcardDeckDTO;
 import com.bizu.portal.student.application.StudentFlashcardService;
 import lombok.RequiredArgsConstructor;
@@ -27,16 +28,17 @@ import java.util.UUID;
 public class StudentFlashcardController {
 
     private final StudentFlashcardService studentFlashcardService;
+    private final UserService userService;
 
     @GetMapping("/decks")
     public ResponseEntity<List<StudentFlashcardDeckDTO>> getDecks(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        UUID userId = resolveUserId(jwt);
         return ResponseEntity.ok(studentFlashcardService.getDecksForUser(userId));
     }
 
     @GetMapping("/summary")
     public ResponseEntity<Map<String, Object>> getSummary(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        UUID userId = resolveUserId(jwt);
         List<StudentFlashcardDeckDTO> decks = studentFlashcardService.getDecksForUser(userId);
         
         long totalDue = decks.stream().mapToLong(StudentFlashcardDeckDTO::getDueCards).sum();
@@ -55,13 +57,13 @@ public class StudentFlashcardController {
 
     @GetMapping("/decks/{id}/cards")
     public ResponseEntity<List<Flashcard>> getCards(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        UUID userId = resolveUserId(jwt);
         return ResponseEntity.ok(studentFlashcardService.getCardsToStudy(id, userId));
     }
 
     @PostMapping("/cards/{id}/result")
     public ResponseEntity<Void> recordCardResult(@PathVariable UUID id, @RequestParam String rating, @AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        UUID userId = resolveUserId(jwt);
         studentFlashcardService.recordResult(id, userId, rating);
         return ResponseEntity.ok().build();
     }
@@ -70,7 +72,7 @@ public class StudentFlashcardController {
     public ResponseEntity<FlashcardDeck> createDeck(
             @RequestBody Map<String, String> body,
             @AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        UUID userId = resolveUserId(jwt);
         return ResponseEntity.ok(studentFlashcardService.createDeck(
             userId, 
             body.get("title"), 
@@ -78,6 +80,13 @@ public class StudentFlashcardController {
             body.get("icon"), 
             body.get("color")
         ));
+    }
+
+    private UUID resolveUserId(Jwt jwt) {
+        String email = jwt.getClaimAsString("email");
+        String name = jwt.getClaimAsString("name");
+        UUID subjectId = UUID.fromString(jwt.getSubject());
+        return userService.syncUser(subjectId, email, name).getId();
     }
 
     @PostMapping("/decks/{deckId}/cards")

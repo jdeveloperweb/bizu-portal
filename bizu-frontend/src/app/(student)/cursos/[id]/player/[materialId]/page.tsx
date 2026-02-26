@@ -9,6 +9,8 @@ import { useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { getVideoEmbedUrl } from "@/lib/video-embed";
 import { useGamification } from "@/components/gamification/GamificationProvider";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function CoursePlayerPage() {
     const { showReward } = useGamification();
@@ -172,12 +174,14 @@ export default function CoursePlayerPage() {
                                 <article className="max-w-4xl mx-auto px-8 sm:px-12 lg:px-20 py-16 sm:py-20">
                                     <div className="text-center mb-14">
                                         <span className="bg-blue-600/10 text-blue-600 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] inline-block">Artigo</span>
-                                        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-[900] text-slate-900 mt-8 tracking-tight leading-tight">
+                                        <h1 className="text-3xl sm:text-4xl font-[900] text-slate-900 mt-8 tracking-tight leading-tight">
                                             {currentMaterial.title}
                                         </h1>
                                     </div>
-                                    <div className="prose prose-lg max-w-none text-slate-600 leading-[1.8] whitespace-pre-wrap">
-                                        {currentMaterial.content || currentMaterial.description || "Sem conteúdo para este artigo."}
+                                    <div className="prose prose-lg max-w-none text-slate-600 leading-[1.8]">
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                            {currentMaterial.content || currentMaterial.description || "Sem conteúdo para este artigo."}
+                                        </ReactMarkdown>
                                     </div>
                                 </article>
                             </div>
@@ -215,11 +219,17 @@ export default function CoursePlayerPage() {
                                 {isCompleted ? "Concluída" : "Marcar como Concluída"}
                             </Button>
                         </div>
-                        <div className="text-muted-foreground leading-relaxed">
-                            {currentMaterial.description || "Nenhuma descrição disponível para esta aula."}
+                        <div className="text-muted-foreground leading-relaxed prose dark:prose-invert max-w-none">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {currentMaterial.description || "Nenhuma descrição disponível para esta aula."}
+                            </ReactMarkdown>
                         </div>
                         {currentMaterial.content && (
-                            <div className="mt-8 pt-8 border-t prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: currentMaterial.content }} />
+                            <div className="mt-8 pt-8 border-t prose dark:prose-invert max-w-none">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                    {currentMaterial.content}
+                                </ReactMarkdown>
+                            </div>
                         )}
                     </div>
                 </div>

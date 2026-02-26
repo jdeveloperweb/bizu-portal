@@ -1,5 +1,6 @@
 package com.bizu.portal.student.api;
 
+import com.bizu.portal.identity.application.UserService;
 import com.bizu.portal.identity.domain.User;
 import com.bizu.portal.identity.infrastructure.UserRepository;
 import com.bizu.portal.student.application.DuelService;
@@ -23,6 +24,7 @@ public class DuelController {
     private final DuelRepository duelRepository;
     private final DuelService duelService;
     private final UserRepository userRepository;
+    private final UserService userService;
     private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     @GetMapping("/online")
@@ -32,13 +34,13 @@ public class DuelController {
 
     @GetMapping("/me/stats")
     public ResponseEntity<Map<String, Object>> getMyStats(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        UUID userId = resolveUserId(jwt);
         return ResponseEntity.ok(duelRepository.getMyDuelStats(userId));
     }
 
     @GetMapping("/pendentes")
     public ResponseEntity<List<Duel>> getPendingDuels(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        UUID userId = resolveUserId(jwt);
         return ResponseEntity.ok(duelRepository.findAllByOpponentIdAndStatus(userId, "PENDING"));
     }
 
@@ -60,17 +62,27 @@ public class DuelController {
 
     @PostMapping("/desafiar")
     public ResponseEntity<Duel> createDuel(@AuthenticationPrincipal Jwt jwt, @RequestParam UUID opponentId, @RequestParam String subject) {
-        UUID challengerId = UUID.fromString(jwt.getSubject());
-        return ResponseEntity.ok(duelService.createDuel(challengerId, opponentId, subject));
+        UUID challengerId = resolveUserId(jwt);
+        Duel duel = duelService.createDuel(challengerId, opponentId, subject);
+        // Send real-time notification via WebSocket
+        messagingTemplate.convertAndSend("/topic/desafios/" + opponentId, duel);
+        return ResponseEntity.ok(duel);
     }
 
     @PostMapping("/{duelId}/responder")
     public ResponseEntity<Duel> submitAnswer(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID duelId, @RequestParam int answerIndex) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        UUID userId = resolveUserId(jwt);
         Duel duel = duelService.submitAnswer(duelId, userId, answerIndex);
         // Send state update
         messagingTemplate.convertAndSend("/topic/duelos/" + duelId, duel);
         return ResponseEntity.ok(duel);
+    }
+
+    private UUID resolveUserId(Jwt jwt) {
+        String email = jwt.getClaimAsString("email");
+        String name = jwt.getClaimAsString("name");
+        UUID subjectId = UUID.fromString(jwt.getSubject());
+        return userService.syncUser(subjectId, email, name).getId();
     }
 
     @GetMapping("/{duelId}")

@@ -242,7 +242,9 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                         ) : (
                             <div className="flex flex-col items-center gap-4 text-slate-400">
                                 <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                                <p className="font-bold">Sincronizando duelo...</p>
+                                <p className="font-bold">
+                                    {duel.status === "PENDING" ? "Aguardando oponente aceitar..." : "Sincronizando duelo..."}
+                                </p>
                             </div>
                         )}
                     </AnimatePresence>

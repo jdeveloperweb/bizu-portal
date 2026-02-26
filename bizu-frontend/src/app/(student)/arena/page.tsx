@@ -13,6 +13,8 @@ import { getStoredSelectedCourseId } from "@/lib/course-selection";
 import { DuelService, Duel } from "@/lib/duelService";
 import ArenaDuelScreen from "@/components/arena/ArenaDuelScreen";
 import Cookies from "js-cookie";
+import { useChallengeNotifications } from "@/hooks/useChallengeNotifications";
+import { useAuth } from "@/components/AuthProvider";
 
 type ArenaTab = "online" | "ranking" | "historico";
 
@@ -30,6 +32,7 @@ interface OnlineUser {
 
 
 export default function ArenaPage() {
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<ArenaTab>("online");
     const [selectedSubject, setSelectedSubject] = useState("Aleatorio");
     const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
@@ -41,15 +44,14 @@ export default function ArenaPage() {
 
 
     useEffect(() => {
-        const token = Cookies.get("token");
-        if (token) {
-            try {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                setCurrentUserId(payload.sub);
-            } catch (e) {
-                console.error("Failed to decode token", e);
-            }
+        if (user && user.sub) {
+            setCurrentUserId(user.sub as string);
+        } else if (user && user.id) {
+            setCurrentUserId(user.id as string);
         }
+    }, [user]);
+
+    useEffect(() => {
 
         const loadData = async () => {
             try {
@@ -103,21 +105,31 @@ export default function ArenaPage() {
         return () => clearInterval(interval);
     }, []);
 
+    useChallengeNotifications(currentUserId, (newDuel: Duel) => {
+        setPendingDuels(prev => {
+            if (prev.find(d => d.id === newDuel.id)) return prev;
+            return [newDuel, ...prev];
+        });
+    });
+
     const handleChallenge = async (opponentId: string) => {
         try {
-            await DuelService.createDuel(opponentId, selectedSubject);
-            alert("Desafio enviado!");
+            const duel = await DuelService.createDuel(opponentId, selectedSubject);
+            setActiveDuelId(duel.id);
         } catch (error) {
             console.error(error);
+            alert("Erro ao enviar desafio. Tente novamente.");
         }
     };
 
     const handleAccept = async (duelId: string) => {
         try {
             await DuelService.acceptDuel(duelId);
+            setPendingDuels(prev => prev.filter(d => d.id !== duelId));
             setActiveDuelId(duelId);
         } catch (error) {
             console.error(error);
+            alert("Erro ao aceitar o duelo.");
         }
     };
 

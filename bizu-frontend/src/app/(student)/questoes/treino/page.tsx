@@ -2,7 +2,7 @@
 
 import QuestionViewer from "@/components/questions/QuestionViewer";
 import PageHeader from "@/components/PageHeader";
-import { Timer, LayoutGrid, ChevronLeft, Sparkles, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { Timer, LayoutGrid, ChevronLeft, Sparkles, SlidersHorizontal, ChevronDown, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -16,7 +16,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense, useMemo } from "react";
 import { apiFetch } from "@/lib/api";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/AuthProvider";
 
 interface Module {
@@ -160,8 +160,10 @@ function TreinoContent() {
         }
     };
 
+    const [showConfig, setShowConfig] = useState(false);
+
     if (isLoading) {
-        return <div className="p-8 text-center text-muted-foreground">Carregando questões...</div>;
+        return <div className="p-8 text-center text-muted-foreground uppercase tracking-widest animate-pulse">Carregando questões...</div>;
     }
 
     if (!simulado || !simulado.questions || simulado.questions.length === 0) {
@@ -191,6 +193,10 @@ function TreinoContent() {
                 <div className="bg-card border rounded-3xl p-8 text-center">
                     <h2 className="text-xl font-bold mb-2">Sem questões para este módulo</h2>
                     <p className="text-muted-foreground mb-6">Tente escolher outro módulo ou aplique uma nova configuração.</p>
+                    <Button onClick={() => setShowConfig(true)} variant="outline" className="mb-4">
+                        Abrir Configurações
+                    </Button>
+                    <br />
                     <Button onClick={handleApplyConfig} disabled={isApplyingConfig || !!simuladoId}>
                         {isApplyingConfig ? "Atualizando..." : "Atualizar questões"}
                     </Button>
@@ -230,10 +236,21 @@ function TreinoContent() {
                     </Button>
                 </Link>
 
-                <div className="flex items-center gap-2 sm:gap-6">
+                <div className="flex items-center gap-2 sm:gap-4">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowConfig(!showConfig)}
+                        className={`rounded-xl h-9 sm:h-10 px-3 sm:px-4 flex items-center gap-2 transition-all ${showConfig ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90' : 'hover:bg-primary/5 hover:border-primary/30'}`}
+                    >
+                        <Settings className="w-4 h-4" />
+                        <span className="hidden xs:inline">Configurar Quiz</span>
+                    </Button>
+
                     <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-muted-foreground bg-muted px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl">
                         <Timer className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        Treino Livre
+                        <span className="hidden sm:inline">Treino Livre</span>
+                        <span className="sm:hidden">Treino</span>
                     </div>
                     <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-primary bg-primary/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl">
                         <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -248,117 +265,120 @@ function TreinoContent() {
                 badge="ESTUDO ATIVO"
             />
 
-            {!simuladoId && (
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35 }}
-                    className="mt-6 mb-8 p-5 sm:p-6 rounded-3xl border bg-card/90 backdrop-blur-sm shadow-lg shadow-primary/5"
-                >
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                        <div>
-                            <div className="flex items-center gap-2 text-sm font-bold text-primary mb-1">
-                                <Sparkles className="w-4 h-4" />
-                                Configuração rápida do quiz
+            <AnimatePresence>
+                {!simuladoId && showConfig && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                        animate={{ opacity: 1, height: "auto", marginTop: 24 }}
+                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="mb-8 p-5 sm:p-6 rounded-3xl border bg-card/90 backdrop-blur-sm shadow-xl shadow-primary/5 overflow-hidden"
+                    >
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                            <div>
+                                <div className="flex items-center gap-2 text-sm font-bold text-primary mb-1">
+                                    <Sparkles className="w-4 h-4" />
+                                    Configuração rápida do quiz
+                                </div>
+                                <p className="text-sm text-muted-foreground">Escolha o módulo e a quantidade sem sair desta tela.</p>
                             </div>
-                            <p className="text-sm text-muted-foreground">Escolha o módulo e a quantidade sem sair desta tela.</p>
+
+                            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                <SlidersHorizontal className="w-4 h-4" />
+                                Modo dinâmico
+                            </div>
                         </div>
 
-                        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                            <SlidersHorizontal className="w-4 h-4" />
-                            Modo dinâmico
-                        </div>
-                    </div>
-
-                    <div className="mt-5 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr_auto] gap-3 items-end">
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Assunto / módulo</span>
-                                <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-full">
-                                    {modules.length} MÓDULOS NO TOTAL
-                                </span>
-                            </div>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        className="h-11 w-full rounded-2xl border bg-background px-4 text-sm font-medium justify-between hover:bg-background/80"
-                                    >
-                                        <span className="truncate mr-2">{selectedModulesText}</span>
-                                        <ChevronDown className="w-4 h-4 shrink-0 opacity-50" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[300px] overflow-y-auto rounded-xl border-muted/30 p-2 shadow-2xl">
-                                    <DropdownMenuLabel className="flex items-center justify-between py-2 px-3">
-                                        <span>Selecionar Módulos</span>
-                                        {selectedModuleIds.length > 0 && (
-                                            <button
-                                                onClick={(e) => { e.preventDefault(); setSelectedModuleIds([]); }}
-                                                className="text-[10px] font-bold text-primary hover:underline"
-                                            >
-                                                LIMPAR TODOS
-                                            </button>
-                                        )}
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuCheckboxItem
-                                        checked={selectedModuleIds.length === 0}
-                                        onCheckedChange={() => setSelectedModuleIds([])}
-                                        className="rounded-lg mb-1"
-                                    >
-                                        Todos os módulos
-                                    </DropdownMenuCheckboxItem>
-                                    <DropdownMenuSeparator />
-                                    {modules.map((module) => (
-                                        <DropdownMenuCheckboxItem
-                                            key={module.id}
-                                            className="rounded-lg mb-1"
-                                            checked={selectedModuleIds.includes(module.id)}
-                                            onCheckedChange={(checked) => {
-                                                if (checked) {
-                                                    setSelectedModuleIds(prev => [...prev, module.id]);
-                                                } else {
-                                                    setSelectedModuleIds(prev => prev.filter(id => id !== module.id));
-                                                }
-                                            }}
+                        <div className="mt-5 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr_auto] gap-3 items-end">
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Assunto / módulo</span>
+                                    <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-full">
+                                        {modules.length} MÓDULOS NO TOTAL
+                                    </span>
+                                </div>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className="h-11 w-full rounded-2xl border bg-background px-4 text-sm font-medium justify-between hover:bg-background/80"
                                         >
-                                            {module.title}
+                                            <span className="truncate mr-2">{selectedModulesText}</span>
+                                            <ChevronDown className="w-4 h-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[300px] overflow-y-auto rounded-xl border-muted/30 p-2 shadow-2xl">
+                                        <DropdownMenuLabel className="flex items-center justify-between py-2 px-3">
+                                            <span>Selecionar Módulos</span>
+                                            {selectedModuleIds.length > 0 && (
+                                                <button
+                                                    onClick={(e) => { e.preventDefault(); setSelectedModuleIds([]); }}
+                                                    className="text-[10px] font-bold text-primary hover:underline"
+                                                >
+                                                    LIMPAR TODOS
+                                                </button>
+                                            )}
+                                        </DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuCheckboxItem
+                                            checked={selectedModuleIds.length === 0}
+                                            onCheckedChange={() => setSelectedModuleIds([])}
+                                            className="rounded-lg mb-1"
+                                        >
+                                            Todos os módulos
                                         </DropdownMenuCheckboxItem>
+                                        <DropdownMenuSeparator />
+                                        {modules.map((module) => (
+                                            <DropdownMenuCheckboxItem
+                                                key={module.id}
+                                                className="rounded-lg mb-1"
+                                                checked={selectedModuleIds.includes(module.id)}
+                                                onCheckedChange={(checked) => {
+                                                    if (checked) {
+                                                        setSelectedModuleIds(prev => [...prev, module.id]);
+                                                    } else {
+                                                        setSelectedModuleIds(prev => prev.filter(id => id !== module.id));
+                                                    }
+                                                }}
+                                            >
+                                                {module.title}
+                                            </DropdownMenuCheckboxItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+
+                            <label className="space-y-2">
+                                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quantidade</span>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {[10, 50, 100].map((value) => (
+                                        <button
+                                            type="button"
+                                            key={value}
+                                            onClick={() => setQuestionCount(value)}
+                                            className={`h-11 rounded-xl border text-sm font-extrabold transition ${questionCount === value ? "border-primary bg-primary/10 text-primary" : "hover:border-primary/40 text-muted-foreground"}`}
+                                        >
+                                            {value}
+                                        </button>
                                     ))}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                                </div>
+                            </label>
+
+                            <Button
+                                onClick={handleApplyConfig}
+                                disabled={isApplyingConfig}
+                                className="h-11 rounded-2xl font-bold px-6 shadow-lg shadow-primary/20"
+                            >
+                                {isApplyingConfig ? "Aplicando..." : "Aplicar"}
+                            </Button>
                         </div>
 
-                        <label className="space-y-2">
-                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quantidade</span>
-                            <div className="grid grid-cols-3 gap-2">
-                                {[10, 50, 100].map((value) => (
-                                    <button
-                                        type="button"
-                                        key={value}
-                                        onClick={() => setQuestionCount(value)}
-                                        className={`h-11 rounded-xl border text-sm font-extrabold transition ${questionCount === value ? "border-primary bg-primary/10 text-primary" : "hover:border-primary/40 text-muted-foreground"}`}
-                                    >
-                                        {value}
-                                    </button>
-                                ))}
-                            </div>
-                        </label>
-
-                        <Button
-                            onClick={handleApplyConfig}
-                            disabled={isApplyingConfig}
-                            className="h-11 rounded-2xl font-bold px-6 shadow-lg shadow-primary/20"
-                        >
-                            {isApplyingConfig ? "Aplicando..." : "Aplicar"}
-                        </Button>
-                    </div>
-
-                    <p className="text-xs text-muted-foreground mt-3">
-                        Filtro atual: <span className="font-bold text-foreground">{selectedModulesText}</span>
-                    </p>
-                </motion.div>
-            )}
+                        <p className="text-xs text-muted-foreground mt-3">
+                            Filtro atual: <span className="font-bold text-foreground">{selectedModulesText}</span>
+                        </p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div key={mappedQuestion.id}>
                 <QuestionViewer {...mappedQuestion} onNext={handleNext} />

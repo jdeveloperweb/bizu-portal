@@ -57,19 +57,33 @@ public class DuelService {
         duel.setStatus("IN_PROGRESS");
         duel.setCurrentRound(1);
         
+        String subject = "Aleatorio".equalsIgnoreCase(duel.getSubject()) ? null : duel.getSubject();
+        
         // Select initial 10 questions: 3 Easy, 4 Medium, 3 Hard
-        List<Question> easy = questionRepository.findByFilters(null, null, duel.getSubject(), null, "EASY", "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 10)).getContent();
-        List<Question> medium = questionRepository.findByFilters(null, null, duel.getSubject(), null, "MEDIUM", "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 10)).getContent();
-        List<Question> hard = questionRepository.findByFilters(null, null, duel.getSubject(), null, "HARD", "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 10)).getContent();
+        List<Question> easy = questionRepository.findByFilters(null, null, subject, null, "EASY", "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
+        List<Question> medium = questionRepository.findByFilters(null, null, subject, null, "MEDIUM", "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
+        List<Question> hard = questionRepository.findByFilters(null, null, subject, null, "HARD", "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
         
-        // Fallback if not enough questions in filters
+        // Fallback to any difficulty if specific ones are empty
+        if (easy.isEmpty()) easy = questionRepository.findByFilters(null, null, subject, null, null, "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
+        if (medium.isEmpty()) medium = easy;
+        if (hard.isEmpty()) hard = medium;
+
+        // Ultimate fallback — Any question if everything above failed
         if (easy.isEmpty()) easy = questionRepository.findAll();
+        if (medium.isEmpty()) medium = easy;
+        if (hard.isEmpty()) hard = medium;
         
+        java.util.List<DuelQuestion> duelQuestions = new java.util.ArrayList<>();
         Random rand = new Random();
         for (int i = 1; i <= 10; i++) {
             List<Question> pool = i <= 3 ? easy : i <= 7 ? medium : hard;
-            if (pool.isEmpty()) pool = easy; 
-            if (pool.isEmpty()) pool = questionRepository.findAll();
+            if (pool == null || pool.isEmpty()) pool = easy; 
+            if (pool == null || pool.isEmpty()) pool = questionRepository.findAll();
+            
+            if (pool.isEmpty()) {
+                 continue; // Should not happen with fallbacks
+            }
 
             Question q = pool.get(rand.nextInt(pool.size()));
             DuelQuestion dq = DuelQuestion.builder()
@@ -78,9 +92,10 @@ public class DuelService {
                     .roundNumber(i)
                     .difficulty(i <= 3 ? "EASY" : i <= 7 ? "MEDIUM" : "HARD")
                     .build();
-            duelQuestionRepository.save(dq);
+            duelQuestions.add(duelQuestionRepository.save(dq));
         }
         
+        duel.setQuestions(duelQuestions);
         return duelRepository.save(duel);
     }
 

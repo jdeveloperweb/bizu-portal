@@ -24,50 +24,45 @@ public class NoteController {
 
     @GetMapping
     public ResponseEntity<List<NoteDTO>> getUserNotes(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
-        syncUser(jwt, userId);
+        UUID userId = syncUser(jwt);
         return ResponseEntity.ok(noteService.getUserNotes(userId));
     }
 
     @PostMapping
     public ResponseEntity<NoteDTO> createNote(@AuthenticationPrincipal Jwt jwt, @RequestBody CreateNoteRequest request) {
-        UUID userId = UUID.fromString(jwt.getSubject());
-        syncUser(jwt, userId);
+        UUID userId = syncUser(jwt);
         return ResponseEntity.ok(noteService.createNote(userId, request));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<NoteDTO> updateNote(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt, @RequestBody UpdateNoteRequest request) {
-        UUID userId = UUID.fromString(jwt.getSubject());
-        syncUser(jwt, userId);
+        UUID userId = syncUser(jwt);
         return ResponseEntity.ok(noteService.updateNote(id, userId, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNote(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
-        syncUser(jwt, userId);
+        UUID userId = syncUser(jwt);
         noteService.deleteNote(id, userId);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{id}/pin")
     public ResponseEntity<NoteDTO> togglePin(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
-        syncUser(jwt, userId);
+        UUID userId = syncUser(jwt);
         return ResponseEntity.ok(noteService.togglePin(id, userId));
     }
 
     @PatchMapping("/{id}/star")
     public ResponseEntity<NoteDTO> toggleStar(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
-        syncUser(jwt, userId);
+        UUID userId = syncUser(jwt);
         return ResponseEntity.ok(noteService.toggleStar(id, userId));
     }
 
-    private void syncUser(Jwt jwt, UUID userId) {
+    private UUID syncUser(Jwt jwt) {
         String email = jwt.getClaimAsString("email");
         String name = jwt.getClaimAsString("name");
-        userService.syncUser(userId, email, name);
+        UUID subjectId = UUID.fromString(jwt.getSubject());
+        return userService.syncUser(subjectId, email, name).getId();
     }
 }

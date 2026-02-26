@@ -13,6 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class DuelQuestion {
 
     @Id
@@ -21,6 +22,7 @@ public class DuelQuestion {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "duel_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Duel duel;
 
     @ManyToOne(fetch = FetchType.LAZY)

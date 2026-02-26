@@ -29,6 +29,8 @@ import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Material {
     id: string;
@@ -886,9 +888,15 @@ export default function CourseEditorPage() {
                                             {materialForm.fileType === "ARTICLE" ? (
                                                 <div className="p-20 text-center">
                                                     <span className="bg-blue-600/10 text-blue-600 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-8 inline-block">Artigo</span>
-                                                    <h1 className="text-6xl font-[900] text-slate-900 mb-12 tracking-tight leading-tight">{materialForm.title || "Sem Título"}</h1>
-                                                    <div className="prose prose-xl max-w-none text-left font-medium text-slate-600 leading-[1.8] whitespace-pre-wrap">
-                                                        {materialForm.content || "Sem conteúdo para pré-visualizar."}
+                                                    <h1 className="text-4xl font-[900] text-slate-900 mb-10 tracking-tight leading-tight">{materialForm.title || "Sem Título"}</h1>
+                                                    <div className="prose prose-xl max-w-none text-left font-medium text-slate-600 leading-[1.8] min-h-[400px]">
+                                                        {materialForm.content ? (
+                                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                                {materialForm.content}
+                                                            </ReactMarkdown>
+                                                        ) : (
+                                                            "Sem conteúdo para pré-visualizar."
+                                                        )}
                                                     </div>
                                                 </div>
                                             ) : (
