@@ -15,22 +15,34 @@ public class RankingService {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public List<Map<String, Object>> getGlobalRanking(int limit) {
+    public List<Map<String, Object>> getGlobalRanking(UUID courseId, int limit) {
+        String condition = courseId != null ? "JOIN commerce.course_entitlements ce ON u.id = ce.user_id WHERE ce.course_id = ? AND ce.active = true " : "";
+        Object[] args = courseId != null ? new Object[]{limit, courseId} : new Object[]{limit};
+        
         String sql = """
-            SELECT 
-                u.id as "id",
-                u.name as "name",
-                u.avatar_url as "avatar",
-                COALESCE(g.total_xp, 0) as "xp",
-                COALESCE(g.current_streak, 0) as "streak",
-                RANK() OVER (ORDER BY COALESCE(g.total_xp, 0) DESC) as "rank"
-            FROM identity.users u
-            LEFT JOIN student.gamification_stats g ON u.id = g.user_id
-            ORDER BY "rank" ASC
+            WITH RankedUsers AS (
+                SELECT 
+                    u.id as id,
+                    u.name as name,
+                    u.avatar_url as avatar,
+                    COALESCE(g.total_xp, 0) as xp,
+                    FLOOR(POWER(COALESCE(g.total_xp, 0) / 1000.0, 2.0/3.0)) + 1 as level,
+                    COALESCE(g.current_streak, 0) as streak,
+                    RANK() OVER (ORDER BY COALESCE(g.total_xp, 0) DESC) as rank
+                FROM identity.users u
+                LEFT JOIN student.gamification_stats g ON u.id = g.user_id
+                """ + condition + """
+            )
+            SELECT * FROM RankedUsers 
+            ORDER BY rank ASC
             LIMIT ?
             """;
         
-        return jdbcTemplate.queryForList(sql, limit);
+        if (courseId != null) {
+            return jdbcTemplate.queryForList(sql, courseId, limit);
+        } else {
+            return jdbcTemplate.queryForList(sql, limit);
+        }
     }
 
     public Map<String, Object> getUserRanking(UUID userId) {

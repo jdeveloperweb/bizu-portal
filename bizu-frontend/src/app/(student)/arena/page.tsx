@@ -55,16 +55,19 @@ export default function ArenaPage() {
 
         const loadData = async () => {
             try {
-                const res = await apiFetch("/duelos/online");
+                const currentCourseId = getStoredSelectedCourseId();
+                const courseQuery = currentCourseId ? `?courseId=${currentCourseId}` : "";
+
+                const res = await apiFetch(`/duelos/online${courseQuery}`);
                 if (res.ok) {
                     const users = await res.json();
                     setOnlineUsers(users.map((u: any) => ({
                         id: u.id,
                         name: u.name || "Usuário",
-                        avatar: u.name?.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || "US",
-                        level: 1, // Need separate gamification call per user or include in DTO
-                        xp: 0,
-                        winRate: 0,
+                        avatar: u.avatar || u.name?.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || "US",
+                        level: parseInt(Math.floor(Number(u.level) || 1).toString()),
+                        xp: Number(u.xp) || 0,
+                        winRate: Number(u.winRate) || 0,
                         status: "online"
                     })));
                 }
@@ -84,9 +87,8 @@ export default function ArenaPage() {
                 }
 
                 // Fetch modules for the selected course
-                const selectedCourseId = getStoredSelectedCourseId();
-                if (selectedCourseId) {
-                    const courseRes = await apiFetch(`/public/courses/${selectedCourseId}`);
+                if (currentCourseId) {
+                    const courseRes = await apiFetch(`/public/courses/${currentCourseId}`);
                     if (courseRes.ok) {
                         const courseData = await courseRes.json();
                         if (courseData.modules) {
@@ -173,35 +175,45 @@ export default function ArenaPage() {
                 </div>
             </div>
 
-            {/* Pending Challenges */}
-            {pendingDuels.map(duel => (
-                <div key={duel.id} className="relative rounded-2xl overflow-hidden p-5 text-white mb-6"
-                    style={{ background: "linear-gradient(135deg, #6366F1 0%, #7C3AED 50%, #9333EA 100%)" }}>
-                    <div className="absolute inset-0 opacity-[0.08]" style={{
-                        backgroundImage: "radial-gradient(circle, white 0.8px, transparent 0.8px)",
-                        backgroundSize: "24px 24px",
-                    }} />
-                    <div className="relative z-10 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
-                            <Swords size={20} />
-                        </div>
-                        <div className="flex-1">
-                            <h4 className="text-[14px] font-extrabold">Novo Desafio!</h4>
-                            <p className="text-[12px] text-indigo-200">{duel.challenger.name} te desafiou em {duel.subject}</p>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                            <button onClick={() => handleAccept(duel.id)}
-                                className="px-4 py-2 rounded-xl bg-white text-indigo-700 text-[12px] font-bold hover:bg-indigo-50 transition-all">
-                                Aceitar
-                            </button>
-                            <button onClick={() => handleDecline(duel.id)}
-                                className="px-4 py-2 rounded-xl bg-white/10 text-white text-[12px] font-bold hover:bg-white/20 transition-all">
-                                Recusar
-                            </button>
+            {/* Challenge Overlay */}
+            {pendingDuels.length > 0 && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-300">
+                        {/* Background design */}
+                        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-indigo-600 to-violet-700" />
+                        <div className="absolute top-0 left-0 w-full h-32 opacity-10" style={{
+                            backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)",
+                            backgroundSize: "20px 20px"
+                        }} />
+
+                        <div className="relative pt-12 pb-8 px-8 flex flex-col items-center text-center">
+                            <div className="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center mb-6 -mt-10 transform -rotate-3 transition-transform hover:rotate-0">
+                                <Swords size={40} className="text-indigo-600" />
+                            </div>
+
+                            <h3 className="text-2xl font-black text-slate-900 mb-2">Desafio Recebido!</h3>
+                            <p className="text-slate-500 mb-8 max-w-[280px]">
+                                <span className="font-bold text-indigo-600">{pendingDuels[0].challenger.name}</span> te convidou para um duelo de <span className="font-bold">{pendingDuels[0].subject}</span>.
+                            </p>
+
+                            <div className="flex flex-col w-full gap-3">
+                                <button
+                                    onClick={() => handleAccept(pendingDuels[0].id)}
+                                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-700 text-white font-bold text-lg shadow-lg shadow-indigo-200 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                >
+                                    Aceitar Desafio
+                                </button>
+                                <button
+                                    onClick={() => handleDecline(pendingDuels[0].id)}
+                                    className="w-full py-4 rounded-2xl bg-slate-50 text-slate-400 font-bold hover:bg-slate-100 transition-all"
+                                >
+                                    Recusar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            ))}
+            )}
 
             {/* Stats */}
             <div className="grid grid-cols-4 gap-3 mb-6">

@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class DuelService {
 
     private final DuelRepository duelRepository;
@@ -31,6 +32,7 @@ public class DuelService {
 
     @Transactional
     public Duel createDuel(UUID challengerId, UUID opponentId, String subject) {
+        log.info("Creating duel: challenger={}, opponent={}, subject={}", challengerId, opponentId, subject);
         User challenger = userRepository.findById(challengerId)
                 .orElseThrow(() -> new RuntimeException("Challenger not found"));
         User opponent = userRepository.findById(opponentId)
@@ -53,24 +55,39 @@ public class DuelService {
 
     @Transactional
     public Duel acceptDuel(UUID duelId) {
+        log.info("Accepting duel: {}", duelId);
         Duel duel = duelRepository.findById(duelId).orElseThrow();
+        
+        // Force initialization of LAZY proxies to avoid serialization issues
+        if (duel.getChallenger() != null) duel.getChallenger().getName();
+        if (duel.getOpponent() != null) duel.getOpponent().getName();
+        
         duel.setStatus("IN_PROGRESS");
         duel.setCurrentRound(1);
         
         String subject = "Aleatorio".equalsIgnoreCase(duel.getSubject()) ? null : duel.getSubject();
+        log.info("Duel subject: {}", subject);
         
         // Select initial 10 questions: 3 Easy, 4 Medium, 3 Hard
         List<Question> easy = questionRepository.findByFilters(null, null, subject, null, "EASY", "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
         List<Question> medium = questionRepository.findByFilters(null, null, subject, null, "MEDIUM", "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
         List<Question> hard = questionRepository.findByFilters(null, null, subject, null, "HARD", "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
         
+        log.info("Initial questions pools sizes: easy={}, medium={}, hard={}", easy.size(), medium.size(), hard.size());
+
         // Fallback to any difficulty if specific ones are empty
-        if (easy.isEmpty()) easy = questionRepository.findByFilters(null, null, subject, null, null, "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
+        if (easy.isEmpty()) {
+            easy = questionRepository.findByFilters(null, null, subject, null, null, "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
+            log.info("Fallback SIMULADO pool size: {}", easy.size());
+        }
         if (medium.isEmpty()) medium = easy;
         if (hard.isEmpty()) hard = medium;
 
         // Ultimate fallback — Any question if everything above failed
-        if (easy.isEmpty()) easy = questionRepository.findAll();
+        if (easy.isEmpty()) {
+            easy = questionRepository.findAll();
+            log.info("Ultimate fallback (all questions) size: {}", easy.size());
+        }
         if (medium.isEmpty()) medium = easy;
         if (hard.isEmpty()) hard = medium;
         
@@ -82,7 +99,8 @@ public class DuelService {
             if (pool == null || pool.isEmpty()) pool = questionRepository.findAll();
             
             if (pool.isEmpty()) {
-                 continue; // Should not happen with fallbacks
+                 log.warn("Pool is still empty for round {}", i);
+                 continue; 
             }
 
             Question q = pool.get(rand.nextInt(pool.size()));
@@ -95,7 +113,15 @@ public class DuelService {
             duelQuestions.add(duelQuestionRepository.save(dq));
         }
         
-        duel.setQuestions(duelQuestions);
+        log.info("Duel {} started with {} questions", duelId, duelQuestions.size());
+        
+        if (duel.getQuestions() == null) {
+            duel.setQuestions(new java.util.ArrayList<>());
+        } else {
+            duel.getQuestions().clear();
+        }
+        duel.getQuestions().addAll(duelQuestions);
+        
         return duelRepository.save(duel);
     }
 

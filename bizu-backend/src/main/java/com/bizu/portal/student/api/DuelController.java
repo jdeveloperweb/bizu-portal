@@ -26,10 +26,33 @@ public class DuelController {
     private final UserRepository userRepository;
     private final UserService userService;
     private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @GetMapping("/online")
-    public ResponseEntity<List<User>> getOnlineUsers() {
-        return ResponseEntity.ok(userRepository.findTop10ByOrderByUpdatedAtDesc());
+    public ResponseEntity<List<Map<String, Object>>> getOnlineUsers(@RequestParam(required = false) UUID courseId) {
+        String condition = courseId != null ? "JOIN commerce.course_entitlements ce ON u.id = ce.user_id WHERE ce.course_id = ? AND ce.active = true " : "";
+        Object[] args = courseId != null ? new Object[]{courseId} : new Object[]{};
+        
+        String sql = """
+            SELECT 
+                u.id as "id",
+                u.name as "name",
+                u.avatar_url as "avatar",
+                COALESCE(g.total_xp, 0) as "xp",
+                FLOOR(POWER(COALESCE(g.total_xp, 0) / 1000.0, 2.0/3.0)) + 1 as "level",
+                COALESCE(
+                    (SELECT ROUND(COUNT(*) FILTER (WHERE winner_id = u.id AND status = 'COMPLETED') * 100.0 / NULLIF(COUNT(*) FILTER (WHERE status = 'COMPLETED'), 0)) 
+                     FROM student.duels 
+                     WHERE (challenger_id = u.id OR opponent_id = u.id)), 0
+                ) as "winRate"
+            FROM identity.users u
+            LEFT JOIN student.gamification_stats g ON u.id = g.user_id
+            """ + condition + """
+            ORDER BY u.updated_at DESC
+            LIMIT 10
+            """;
+        
+        return ResponseEntity.ok(jdbcTemplate.queryForList(sql, args));
     }
 
     @GetMapping("/me/stats")

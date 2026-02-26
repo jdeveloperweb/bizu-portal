@@ -40,10 +40,13 @@ export default function RankingStudentPage() {
         async function fetchRanking() {
             setLoading(true);
             try {
+                const selectedCourseId = getStoredSelectedCourseId();
+                const courseQuery = selectedCourseId ? `courseId=${selectedCourseId}` : "";
+
                 // Fetch ranking data
                 const [globalRes, meRes] = await Promise.all([
-                    apiFetch("/student/ranking/global?limit=50"),
-                    apiFetch("/student/ranking/me")
+                    apiFetch(`/student/ranking/global?limit=50${courseQuery ? `&${courseQuery}` : ""}`),
+                    apiFetch(`/student/ranking/me${courseQuery ? `?${courseQuery}` : ""}`)
                 ]);
 
                 if (globalRes.ok) {

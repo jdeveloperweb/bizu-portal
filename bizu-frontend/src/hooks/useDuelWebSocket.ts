@@ -21,7 +21,11 @@ export function useDuelWebSocket(duelId: string | null, onMessage: (msg: any) =>
             },
             onConnect: () => {
                 client.subscribe(`/topic/duelos/${duelId}`, (message) => {
-                    onMessage(JSON.parse(message.body));
+                    try {
+                        onMessage(JSON.parse(message.body));
+                    } catch (e) {
+                        console.error("Error parsing duel message:", e);
+                    }
                 });
             },
             onStompError: (frame) => {

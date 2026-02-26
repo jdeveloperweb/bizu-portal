@@ -37,7 +37,16 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
             setDuel(data);
         };
         fetchDuel();
-    }, [duelId]);
+
+        // Fallback polling if status is PENDING
+        const interval = setInterval(() => {
+            if (duel?.status === "PENDING") {
+                fetchDuel();
+            }
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, [duelId, duel?.status]);
 
     useEffect(() => {
         if (!duel || duel.status !== "IN_PROGRESS") return;

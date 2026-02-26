@@ -24,8 +24,8 @@ public class RankingController {
     private final UserService userService;
 
     @GetMapping("/global")
-    public ResponseEntity<List<Map<String, Object>>> getGlobalRanking(@RequestParam(defaultValue = "10") int limit) {
-        return ResponseEntity.ok(rankingService.getGlobalRanking(limit));
+    public ResponseEntity<List<Map<String, Object>>> getGlobalRanking(@RequestParam(required = false) UUID courseId, @RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(rankingService.getGlobalRanking(courseId, limit));
     }
 
     @GetMapping("/me")
