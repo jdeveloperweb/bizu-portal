@@ -48,10 +48,20 @@ export const metadata: Metadata = {
   description:
     "A plataforma definitiva para concurseiros de elite. Simulados com IA, banco de 50k+ questoes e trilhas personalizadas.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icons/icon-192x192.png",
+    apple: "/icons/icon-192x192.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "Bizu! Portal",
+    startupImage: [
+      {
+        url: "/icons/icon-512x512.png",
+        media: "(device-width: 768px) and (device-height: 1024px)",
+      },
+    ],
   },
 };
 
@@ -64,6 +74,7 @@ import { AppearanceProvider } from "@/components/AppearanceProvider";
 import { CourseProvider } from "@/contexts/CourseContext";
 import { PomodoroProvider } from "@/contexts/PomodoroContext";
 import { GamificationProvider } from "@/components/gamification/GamificationProvider";
+import { InstallPWA } from "@/components/pwa/InstallPWA";
 
 export default function RootLayout({
   children,
@@ -83,6 +94,7 @@ export default function RootLayout({
                     <PaywallGate>
                       <GamificationProvider>
                         {children}
+                        <InstallPWA />
                       </GamificationProvider>
                     </PaywallGate>
                   </CourseSelectionGate>

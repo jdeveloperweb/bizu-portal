@@ -47,7 +47,7 @@ export const DuelService = {
 
     getActiveDuel: async () => {
         const res = await apiFetch("/duelos/me/ativo");
-        if (res.status === 204) return null;
+        if (res.status === 204 || !res.ok) return null;
         return res.json();
     },
 

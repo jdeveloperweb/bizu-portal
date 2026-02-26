@@ -70,9 +70,11 @@ public class DuelController {
     @GetMapping("/me/ativo")
     public ResponseEntity<Duel> getActiveDuel(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = resolveUserId(jwt);
-        return duelRepository.findActiveDuelByUserId(userId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.noContent().build());
+        List<Duel> duels = duelRepository.findActiveDuelsByUserId(userId);
+        if (duels.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(duels.get(0));
     }
 
     @PostMapping("/{duelId}/aceitar")

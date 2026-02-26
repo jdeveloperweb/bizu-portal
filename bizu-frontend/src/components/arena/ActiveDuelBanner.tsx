@@ -51,7 +51,7 @@ export default function ActiveDuelBanner({ onReturn }: ActiveDuelBannerProps) {
                         <div>
                             <h3 className="text-base font-bold text-white">Duelo em andamento!</h3>
                             <p className="text-sm text-indigo-100">
-                                Você tem um duelo contra <span className="font-semibold">{activeDuel.challenger.id === userId ? activeDuel.opponent.name : activeDuel.challenger.name}</span> em <span className="font-semibold">{activeDuel.subject}</span>.
+                                Você tem um duelo contra <span className="font-semibold">{activeDuel.challenger?.id === userId ? activeDuel.opponent?.name : activeDuel.challenger?.name}</span> em <span className="font-semibold">{activeDuel.subject}</span>.
                             </p>
                         </div>
                     </div>

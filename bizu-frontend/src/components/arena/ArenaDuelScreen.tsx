@@ -112,9 +112,9 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                         {/* Challenger */}
                         <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
                             <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-lg md:text-xl font-bold shadow-lg ${isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
-                                {duel.challenger.name?.slice(0, 2).toUpperCase()}
+                                {duel.challenger?.name?.slice(0, 2).toUpperCase()}
                             </div>
-                            <span className="text-[10px] md:text-sm font-bold text-slate-800 truncate w-full text-center">{duel.challenger.name}</span>
+                            <span className="text-[10px] md:text-sm font-bold text-slate-800 truncate w-full text-center">{duel.challenger?.name}</span>
                             <div className="flex gap-0.5 md:gap-1 mt-0.5">
                                 {Array.from({ length: 10 }).map((_, i) => (
                                     <div key={i} className={`w-1.5 h-1.5 md:w-2.5 md:h-2.5 rounded-full ${duel.questions[i]?.challengerCorrect === true ? "bg-emerald-500" :
@@ -157,9 +157,9 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                         {/* Opponent */}
                         <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
                             <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-600 text-lg md:text-xl font-bold shadow-lg ${!isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
-                                {duel.opponent.name?.slice(0, 2).toUpperCase()}
+                                {duel.opponent?.name?.slice(0, 2).toUpperCase()}
                             </div>
-                            <span className="text-[10px] md:text-sm font-bold text-slate-800 truncate w-full text-center">{duel.opponent.name}</span>
+                            <span className="text-[10px] md:text-sm font-bold text-slate-800 truncate w-full text-center">{duel.opponent?.name}</span>
                             <div className="flex gap-0.5 md:gap-1 mt-0.5">
                                 {Array.from({ length: 10 }).map((_, i) => (
                                     <div key={i} className={`w-1.5 h-1.5 md:w-2.5 md:h-2.5 rounded-full ${duel.questions[i]?.opponentCorrect === true ? "bg-emerald-500" :
@@ -250,7 +250,7 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                                     <h2 className="text-3xl font-black text-slate-900 mb-2">
                                         {duel.winner?.id === currentUserId ? "VOCÊ VENCEU!" : "DERROTA"}
                                     </h2>
-                                    <p className="text-slate-500">{duel.winner?.name} é o campeão da Arena.</p>
+                                    <p className="text-slate-500">{duel.winner?.name || "O adversário"} é o campeão da Arena.</p>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="px-6 py-3 rounded-2xl bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-200 cursor-pointer" onClick={onClose}>
