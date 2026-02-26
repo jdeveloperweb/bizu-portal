@@ -102,6 +102,8 @@ public class AiService {
         } catch (Exception e) {
              return "Exception calling AI API: " + e.getMessage();
         }
+    }
+
     public String extractTextFromImage(String imageUrl) {
          if (apiKey == null || apiKey.isEmpty()) {
             return "AI API Key not configured.";

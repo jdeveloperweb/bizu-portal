@@ -9,6 +9,7 @@ C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bi
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\admin\domain\SystemSettings.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\admin\infrastructure\BrandingRepository.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\admin\infrastructure\SystemSettingsRepository.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\ai\AiService.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\analytics\application\AnalyticsService.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\analytics\domain\DailyActivity.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\analytics\infrastructure\DailyActivityRepository.java
@@ -100,9 +101,11 @@ C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bi
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\shared\security\CourseContextFilter.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\shared\security\CourseContextGuard.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\shared\security\CourseContextHolder.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\shared\security\DeviceValidationFilter.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\shared\security\KeycloakJwtAuthenticationConverter.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\shared\security\SecurityConfig.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\api\DuelController.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\api\EssayController.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\api\NoteController.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\api\PomodoroController.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\api\RankingController.java
@@ -123,6 +126,7 @@ C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bi
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\CreateNoteRequest.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\CreateStudentTaskDTO.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\DuelService.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\EssayService.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\GamificationService.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\LevelCalculator.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\NoteDTO.java
@@ -144,6 +148,7 @@ C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bi
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\StudentTaskDTO.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\StudentTaskService.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\SubjectStatsDTO.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\SubmitEssayRequest.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\TaskSuggestionDTO.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\UpdateNoteRequest.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\UpdateStudentTaskStatusDTO.java
@@ -154,6 +159,7 @@ C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bi
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\domain\Badge.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\domain\Duel.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\domain\DuelQuestion.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\domain\Essay.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\domain\FlashcardProgress.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\domain\GamificationStats.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\domain\MaterialCompletion.java
@@ -170,6 +176,7 @@ C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bi
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\infrastructure\BadgeRepository.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\infrastructure\DuelQuestionRepository.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\infrastructure\DuelRepository.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\infrastructure\EssayRepository.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\infrastructure\FlashcardProgressRepository.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\infrastructure\GamificationRepository.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\infrastructure\MaterialCompletionRepository.java
