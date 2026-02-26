@@ -34,6 +34,7 @@ public class AdminCourseController {
         existing.setCategory(course.getCategory());
         existing.setLevel(course.getLevel());
         existing.setMandatory(course.isMandatory());
+        existing.setHasEssay(course.isHasEssay());
         return ResponseEntity.ok(courseService.save(existing));
     }
 

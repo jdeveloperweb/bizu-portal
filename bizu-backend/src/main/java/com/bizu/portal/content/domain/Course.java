@@ -62,6 +62,10 @@ public class Course {
     @com.fasterxml.jackson.annotation.JsonManagedReference
     private List<Module> modules = new ArrayList<>();
 
+    @Builder.Default
+    @Column(name = "has_essay")
+    private boolean hasEssay = false;
+
     @PrePersist
     protected void onCreate() {
         createdAt = OffsetDateTime.now();

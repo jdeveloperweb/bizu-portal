@@ -98,6 +98,9 @@ export default function StudentSidebar() {
                     <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] px-3 mb-1.5 mt-1">Estudar</p>
                     <div className="space-y-px mb-3">
                         {studyNav.map((i) => <Item key={i.href} {...i} />)}
+                        {entitlements?.find(e => e.course?.id === selectedCourseId)?.course?.hasEssay && (
+                            <Item href="/redacao" icon={FileText} label="Redação" />
+                        )}
                     </div>
                     <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] px-3 mb-1.5">Planejar</p>
                     <div className="space-y-px mb-3">

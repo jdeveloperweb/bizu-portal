@@ -33,7 +33,8 @@ export default function AdminCursosPage() {
         themeColor: "#8b5cf6",
         textColor: "#ffffff",
         status: "PUBLISHED",
-        category: ""
+        category: "",
+        hasEssay: false
     });
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
@@ -97,7 +98,7 @@ export default function AdminCursosPage() {
                 setIsCreating(false);
                 setIsEditing(false);
                 setEditingCourse(null);
-                setFormCourse({ title: "", description: "", themeColor: "#8b5cf6", textColor: "#ffffff", status: "PUBLISHED", category: "" });
+                setFormCourse({ title: "", description: "", themeColor: "#8b5cf6", textColor: "#ffffff", status: "PUBLISHED", category: "", hasEssay: false });
             }
         } catch (error) {
             console.error(`Failed to ${isEditing ? 'update' : 'create'} course`, error);
@@ -112,7 +113,8 @@ export default function AdminCursosPage() {
             themeColor: course.themeColor || course.color || "#8b5cf6",
             textColor: course.textColor || "#ffffff",
             status: course.status || "PUBLISHED",
-            category: course.category || ""
+            category: course.category || "",
+            hasEssay: course.hasEssay || false
         });
         setIsEditing(true);
     };
@@ -141,7 +143,7 @@ export default function AdminCursosPage() {
                     className="h-14 rounded-xl font-black px-8 gap-2 shadow-xl shadow-primary/20"
                     onClick={() => {
                         setIsEditing(false);
-                        setFormCourse({ title: "", description: "", themeColor: "#8b5cf6", textColor: "#ffffff", status: "PUBLISHED", category: "" });
+                        setFormCourse({ title: "", description: "", themeColor: "#8b5cf6", textColor: "#ffffff", status: "PUBLISHED", category: "", hasEssay: false });
                         setIsCreating(true);
                     }}
                 >
@@ -358,6 +360,19 @@ export default function AdminCursosPage() {
                                         <span className="font-mono font-bold text-lg">{formCourse.textColor.toUpperCase()}</span>
                                     </div>
                                 </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 p-4 rounded-xl bg-indigo-50 border border-indigo-100">
+                                <input
+                                    type="checkbox"
+                                    id="hasEssay"
+                                    checked={formCourse.hasEssay}
+                                    onChange={e => setFormCourse({ ...formCourse, hasEssay: e.target.checked })}
+                                    className="w-5 h-5 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <label htmlFor="hasEssay" className="text-sm font-bold text-indigo-900 cursor-pointer">
+                                    Habilitar Seção de Redação com IA
+                                </label>
                             </div>
 
                             <div className="flex gap-4 pt-4">

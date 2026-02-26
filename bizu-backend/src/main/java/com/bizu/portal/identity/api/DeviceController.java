@@ -3,6 +3,7 @@ package com.bizu.portal.identity.api;
 import com.bizu.portal.identity.application.DeviceService;
 import com.bizu.portal.identity.application.UserService;
 import com.bizu.portal.identity.domain.Device;
+import com.bizu.portal.identity.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
