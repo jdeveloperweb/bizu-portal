@@ -1,10 +1,16 @@
 package com.bizu.portal.student.application;
 
+import com.bizu.portal.content.domain.Flashcard;
+import com.bizu.portal.content.domain.FlashcardDeck;
+import com.bizu.portal.identity.domain.User;
+import com.bizu.portal.student.domain.FlashcardProgress;
 import com.bizu.portal.content.infrastructure.FlashcardDeckRepository;
 import com.bizu.portal.content.infrastructure.FlashcardRepository;
+import com.bizu.portal.identity.infrastructure.UserRepository;
 import com.bizu.portal.student.infrastructure.FlashcardProgressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -19,36 +25,66 @@ public class StudentFlashcardService {
     private final FlashcardDeckRepository deckRepository;
     private final FlashcardRepository flashcardRepository;
     private final FlashcardProgressRepository progressRepository;
+    private final UserRepository userRepository;
 
     public List<StudentFlashcardDeckDTO> getDecksForUser(UUID userId) {
         OffsetDateTime now = OffsetDateTime.now();
         
-        return deckRepository.findAll().stream().map(deck -> {
-            long total = deck.getCards().size();
-            long due = progressRepository.countDueByDeckAndUser(deck.getId(), userId, now);
-            long newCards = progressRepository.countNewByDeckAndUser(deck.getId(), userId);
-            
-            // Progress is calculated as (studied cards / total cards) * 100
-            // Studied cards are those that have a progress entry
-            long studied = total - newCards;
-            int progressPercent = total > 0 ? (int) ((studied * 100) / total) : 0;
+        // Show global decks (userId is null) and user's own decks
+        return deckRepository.findAll().stream()
+            .filter(deck -> deck.getUserId() == null || deck.getUserId().equals(userId))
+            .map(deck -> {
+                long total = deck.getCards().size();
+                long due = progressRepository.countDueByDeckAndUser(deck.getId(), userId, now);
+                long newCards = progressRepository.countNewByDeckAndUser(deck.getId(), userId);
+                
+                // Progress is calculated as (studied cards / total cards) * 100
+                // Studied cards are those that have a progress entry
+                long studied = total - newCards;
+                int progressPercent = total > 0 ? (int) ((studied * 100) / total) : 0;
 
-            return StudentFlashcardDeckDTO.builder()
-                .id(deck.getId())
-                .title(deck.getTitle())
-                .description(deck.getDescription())
-                .icon(deck.getIcon())
-                .color(deck.getColor())
-                .totalCards(total)
-                .dueCards(due)
-                .newCards(newCards)
-                .progress(progressPercent)
-                .lastStudied("Há pouco") // For now, could be dynamic
-                .build();
-        }).collect(Collectors.toList());
+                return StudentFlashcardDeckDTO.builder()
+                    .id(deck.getId())
+                    .title(deck.getTitle())
+                    .description(deck.getDescription())
+                    .icon(deck.getIcon())
+                    .color(deck.getColor())
+                    .totalCards(total)
+                    .dueCards(due)
+                    .newCards(newCards)
+                    .progress(progressPercent)
+                    .lastStudied("Há pouco")
+                    .build();
+            }).collect(Collectors.toList());
     }
 
-    public List<com.bizu.portal.content.domain.Flashcard> getCardsToStudy(UUID deckId, UUID userId) {
+    @Transactional
+    public FlashcardDeck createDeck(UUID userId, String title, String description, String icon, String color) {
+        FlashcardDeck deck = FlashcardDeck.builder()
+            .userId(userId)
+            .title(title)
+            .description(description)
+            .icon(icon != null ? icon : "Layers")
+            .color(color != null ? color : "from-indigo-500 to-violet-600")
+            .build();
+        return deckRepository.save(deck);
+    }
+
+    @Transactional
+    public Flashcard createCard(UUID deckId, String front, String back) {
+        FlashcardDeck deck = deckRepository.findById(deckId)
+            .orElseThrow(() -> new RuntimeException("Deck not found"));
+            
+        Flashcard card = Flashcard.builder()
+            .deck(deck)
+            .front(front)
+            .back(back)
+            .build();
+            
+        return flashcardRepository.save(card);
+    }
+
+    public List<Flashcard> getCardsToStudy(UUID deckId, UUID userId) {
         OffsetDateTime now = OffsetDateTime.now();
         
         // Get due cards
@@ -63,15 +99,18 @@ public class StudentFlashcardService {
         }).orElse(List.of());
     }
 
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public void recordResult(UUID flashcardId, UUID userId, String rating) {
         var progress = progressRepository.findByUserIdAndFlashcardId(userId, flashcardId)
             .orElseGet(() -> {
-                com.bizu.portal.content.domain.Flashcard flashcard = flashcardRepository.findById(flashcardId)
+                Flashcard flashcard = flashcardRepository.findById(flashcardId)
                     .orElseThrow(() -> new RuntimeException("Flashcard not found"));
                 
-                return com.bizu.portal.student.domain.FlashcardProgress.builder()
-                    .user(com.bizu.portal.identity.domain.User.builder().id(userId).build())
+                User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+                
+                return FlashcardProgress.builder()
+                    .user(user)
                     .flashcard(flashcard)
                     .intervalDays(0)
                     .easeFactor(new BigDecimal("2.5"))

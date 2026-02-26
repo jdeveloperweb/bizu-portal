@@ -66,9 +66,9 @@ export default function LoginPage() {
                     <img
                         src="https://images.unsplash.com/photo-1517673132405-a56a62b18caf?q=80&w=2076&auto=format&fit=crop"
                         alt="Study Background"
-                        className="w-full h-full object-cover opacity-[0.08] animate-ken-burns scale-110"
+                        className="w-full h-full object-cover opacity-40 animate-ken-burns scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-50/80 via-transparent to-indigo-50/80"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-50/40 via-transparent to-indigo-50/40"></div>
                 </div>
 
                 {/* Background Decorativo (Grid) */}

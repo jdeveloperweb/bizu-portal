@@ -28,4 +28,18 @@ public class LevelCalculator {
         if (nextLevelXp == currentLevelXp) return 0;
         return (double) (totalXp - currentLevelXp) / (nextLevelXp - currentLevelXp) * 100;
     }
+
+    public java.util.List<LevelInfo> getAllLevelRequirements(int maxLevel) {
+        java.util.List<LevelInfo> levels = new java.util.ArrayList<>();
+        for (int i = 1; i <= maxLevel; i++) {
+            levels.add(new LevelInfo(i, calculateXpForLevel(i)));
+        }
+        return levels;
+    }
+
+    @lombok.Value
+    public static class LevelInfo {
+        int level;
+        int requiredXp;
+    }
 }

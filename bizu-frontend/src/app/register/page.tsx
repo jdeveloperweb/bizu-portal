@@ -61,9 +61,9 @@ export default function RegisterPage() {
                     <img
                         src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop"
                         alt="Study Group Background"
-                        className="w-full h-full object-cover opacity-[0.08] animate-ken-burns scale-110"
+                        className="w-full h-full object-cover opacity-40 animate-ken-burns scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-50/80 via-transparent to-violet-50/80"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-50/40 via-transparent to-violet-50/40"></div>
                 </div>
 
                 {/* Background Decorativo (Grid) */}

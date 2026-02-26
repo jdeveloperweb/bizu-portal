@@ -15,6 +15,7 @@ import { useCourse } from "@/contexts/CourseContext";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import LevelTable from "@/components/gamification/LevelTable";
 
 const quickActions = [
     { icon: Target, label: "Quiz", desc: "Questões personalizadas", href: "/questoes/treino" },
@@ -329,6 +330,15 @@ export default function DashboardPage() {
                                 Começar Agora
                             </Link>
                         </div>
+                    </div>
+
+                    {/* Level Progress Table */}
+                    <div className="lg:col-span-1">
+                        <LevelTable
+                            levels={gamification?.levelTable || []}
+                            currentLevel={gamification?.level || 1}
+                            currentXp={totalXp}
+                        />
                     </div>
 
                     {/* Achievements */}

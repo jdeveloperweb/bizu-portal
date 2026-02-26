@@ -6,7 +6,7 @@ import {
     Layers, Plus, BookOpen, Shield, Scale, Gavel,
     ChevronRight, Target, Brain, Zap, Clock,
     Star, TrendingUp, CheckCircle2, BarChart3,
-    Flame, PlayCircle, Loader2
+    Flame, PlayCircle, Loader2, XCircle
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
@@ -38,30 +38,54 @@ export default function FlashcardsPage() {
     const [decks, setDecks] = useState<Deck[]>([]);
     const [summary, setSummary] = useState<Summary | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [newDeck, setNewDeck] = useState({ title: "", description: "", icon: "Layers", color: "from-indigo-500 to-violet-600" });
+    const [isSaving, setIsSaving] = useState(false);
+
+    const fetchData = async () => {
+        try {
+            const [decksRes, summaryRes] = await Promise.all([
+                apiFetch("/student/flashcards/decks"),
+                apiFetch("/student/flashcards/summary")
+            ]);
+
+            if (decksRes.ok && summaryRes.ok) {
+                const decksData = await decksRes.json();
+                const summaryData = await summaryRes.json();
+                setDecks(decksData);
+                setSummary(summaryData);
+            }
+        } catch (error) {
+            console.error("Error fetching flashcards:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [decksRes, summaryRes] = await Promise.all([
-                    apiFetch("/student/flashcards/decks"),
-                    apiFetch("/student/flashcards/summary")
-                ]);
-
-                if (decksRes.ok && summaryRes.ok) {
-                    const decksData = await decksRes.json();
-                    const summaryData = await summaryRes.json();
-                    setDecks(decksData);
-                    setSummary(summaryData);
-                }
-            } catch (error) {
-                console.error("Error fetching flashcards:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchData();
     }, []);
+
+    const handleCreateDeck = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSaving(true);
+        try {
+            const res = await apiFetch("/student/flashcards/decks", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newDeck)
+            });
+            if (res.ok) {
+                setIsModalOpen(false);
+                setNewDeck({ title: "", description: "", icon: "Layers", color: "from-indigo-500 to-violet-600" });
+                fetchData();
+            }
+        } catch (error) {
+            console.error("Error creating deck:", error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -94,7 +118,7 @@ export default function FlashcardsPage() {
                     <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-full">
                         <Clock size={13} /> {totalDue} pendentes
                     </div>
-                    <button className="btn-primary !h-10 !text-[12px] !px-5">
+                    <button onClick={() => setIsModalOpen(true)} className="btn-primary !h-10 !text-[12px] !px-5 whitespace-nowrap">
                         <Plus size={15} /> Nova Coleção
                     </button>
                 </div>
@@ -162,10 +186,16 @@ export default function FlashcardsPage() {
                                                 <span>{deck.lastStudied}</span>
                                             </div>
                                         </div>
-                                        <Link href={`/flashcards/estudar?deckId=${deck.id}`}
-                                            className="btn-primary !h-9 !text-[11px] !px-4 shrink-0">
-                                            <PlayCircle size={13} /> Revisar
-                                        </Link>
+                                        <div className="flex flex-col gap-2 shrink-0">
+                                            <Link href={`/flashcards/estudar?deckId=${deck.id}`}
+                                                className="btn-primary !h-9 !text-[11px] !px-4 whitespace-nowrap">
+                                                <PlayCircle size={13} /> Revisar
+                                            </Link>
+                                            <Link href={`/flashcards/gerenciar?deckId=${deck.id}`}
+                                                className="btn-outline !h-9 !text-[11px] !px-4 !border-slate-200 !text-slate-600 hover:!bg-slate-50 whitespace-nowrap flex items-center justify-center gap-1.5 rounded-xl font-bold">
+                                                <Plus size={12} /> Cartas
+                                            </Link>
+                                        </div>
                                     </div>
                                 </div>
                             );
@@ -185,7 +215,7 @@ export default function FlashcardsPage() {
                     )}
 
                     {/* Add New Collection */}
-                    <button className="w-full card-elevated !rounded-2xl p-6 hover:!transform-none border-2 border-dashed !border-slate-200 hover:!border-indigo-300 transition-all group">
+                    <button onClick={() => setIsModalOpen(true)} className="w-full card-elevated !rounded-2xl p-6 hover:!transform-none border-2 border-dashed !border-slate-200 hover:!border-indigo-300 transition-all group">
                         <div className="flex flex-col items-center gap-2">
                             <div className="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-indigo-50 flex items-center justify-center transition-colors">
                                 <Brain size={18} className="text-slate-400 group-hover:text-indigo-500 transition-colors" />
@@ -195,6 +225,86 @@ export default function FlashcardsPage() {
                         </div>
                     </button>
                 </div>
+
+                {/* Modal for New Collection */}
+                {isModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-black text-slate-900">Nova Coleção</h2>
+                                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                                    <XCircle size={20} />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleCreateDeck} className="space-y-4">
+                                <div>
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Título</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-indigo-500 transition-all"
+                                        placeholder="Ex: Legislação de Trânsito"
+                                        value={newDeck.title}
+                                        onChange={e => setNewDeck({ ...newDeck, title: e.target.value })}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Descrição</label>
+                                    <textarea
+                                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-indigo-500 transition-all resize-none"
+                                        rows={3}
+                                        placeholder="Uma breve descrição sobre o que será estudado..."
+                                        value={newDeck.description}
+                                        onChange={e => setNewDeck({ ...newDeck, description: e.target.value })}
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Ícone</label>
+                                        <select
+                                            className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-indigo-500 transition-all appearance-none"
+                                            value={newDeck.icon}
+                                            onChange={e => setNewDeck({ ...newDeck, icon: e.target.value })}
+                                        >
+                                            <option value="Layers">Camadas</option>
+                                            <option value="Brain">Cérebro</option>
+                                            <option value="Target">Alvo</option>
+                                            <option value="Zap">Raio</option>
+                                            <option value="BookOpen">Livro</option>
+                                            <option value="Shield">Escudo</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Cor</label>
+                                        <select
+                                            className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-indigo-500 transition-all appearance-none"
+                                            value={newDeck.color}
+                                            onChange={e => setNewDeck({ ...newDeck, color: e.target.value })}
+                                        >
+                                            <option value="from-indigo-500 to-violet-600">Índigo</option>
+                                            <option value="from-emerald-500 to-teal-600">Esmeralda</option>
+                                            <option value="from-rose-500 to-pink-600">Rosa</option>
+                                            <option value="from-amber-500 to-orange-600">Âmbar</option>
+                                            <option value="from-blue-500 to-indigo-600">Azul</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={isSaving}
+                                    className="w-full btn-primary !h-12 !text-md mt-4 gap-2"
+                                >
+                                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus size={20} />}
+                                    Criar Coleção
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                )}
 
                 {/* Sidebar */}
                 <div className="space-y-5">

@@ -1,5 +1,7 @@
 package com.bizu.portal.student.api;
 
+import com.bizu.portal.content.domain.Flashcard;
+import com.bizu.portal.content.domain.FlashcardDeck;
 import com.bizu.portal.student.application.StudentFlashcardDeckDTO;
 import com.bizu.portal.student.application.StudentFlashcardService;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +11,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,7 +54,7 @@ public class StudentFlashcardController {
     }
 
     @GetMapping("/decks/{id}/cards")
-    public ResponseEntity<List<com.bizu.portal.content.domain.Flashcard>> getCards(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<List<Flashcard>> getCards(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getSubject());
         return ResponseEntity.ok(studentFlashcardService.getCardsToStudy(id, userId));
     }
@@ -61,5 +64,30 @@ public class StudentFlashcardController {
         UUID userId = UUID.fromString(jwt.getSubject());
         studentFlashcardService.recordResult(id, userId, rating);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/decks")
+    public ResponseEntity<FlashcardDeck> createDeck(
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(studentFlashcardService.createDeck(
+            userId, 
+            body.get("title"), 
+            body.get("description"), 
+            body.get("icon"), 
+            body.get("color")
+        ));
+    }
+
+    @PostMapping("/decks/{deckId}/cards")
+    public ResponseEntity<Flashcard> createCard(
+            @PathVariable UUID deckId,
+            @RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(studentFlashcardService.createCard(
+            deckId, 
+            body.get("front"), 
+            body.get("back")
+        ));
     }
 }

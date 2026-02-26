@@ -31,6 +31,9 @@ public class FlashcardDeck {
 
     private String color; // Tailind gradient classes or hex
 
+    @Column(name = "user_id")
+    private UUID userId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 

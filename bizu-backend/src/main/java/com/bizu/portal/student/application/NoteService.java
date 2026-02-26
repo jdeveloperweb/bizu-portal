@@ -2,6 +2,7 @@ package com.bizu.portal.student.application;
 
 import com.bizu.portal.content.infrastructure.ModuleRepository;
 import com.bizu.portal.identity.domain.User;
+import com.bizu.portal.identity.infrastructure.UserRepository;
 import com.bizu.portal.student.domain.Note;
 import com.bizu.portal.student.infrastructure.NoteRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class NoteService {
 
     private final NoteRepository noteRepository;
     private final ModuleRepository moduleRepository;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public List<NoteDTO> getUserNotes(UUID userId) {
@@ -31,7 +33,9 @@ public class NoteService {
     @Transactional
     public NoteDTO createNote(UUID userId, CreateNoteRequest request) {
         Note note = new Note();
-        note.setUser(User.builder().id(userId).build());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        note.setUser(user);
         note.setTitle(request.getTitle());
         note.setContent(request.getContent());
         if (request.getModuleId() != null) {

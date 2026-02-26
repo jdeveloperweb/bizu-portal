@@ -42,7 +42,7 @@ public class CourseContextFilter extends OncePerRequestFilter {
     public static final String COURSE_HEADER = "X-Selected-Course-Id";
 
     private final EntitlementService entitlementService;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -76,19 +76,7 @@ public class CourseContextFilter extends OncePerRequestFilter {
     private UUID extractUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth instanceof JwtAuthenticationToken jwtAuth) {
-            Jwt jwt = jwtAuth.getToken();
-            String sub = jwt.getSubject();
-            try {
-                return UUID.fromString(sub);
-            } catch (IllegalArgumentException e) {
-                // Subject might be email in some Keycloak configs
-                String email = jwt.getClaim("email");
-                if (email != null) {
-                    return userRepository.findByEmail(email)
-                        .map(u -> u.getId())
-                        .orElse(null);
-                }
-            }
+            return userService.resolveUserId(jwtAuth.getToken());
         }
         return null;
     }

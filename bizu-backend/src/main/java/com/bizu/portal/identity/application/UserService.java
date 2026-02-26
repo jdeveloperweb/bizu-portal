@@ -93,16 +93,13 @@ public class UserService {
         });
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public java.util.UUID resolveUserId(org.springframework.security.oauth2.jwt.Jwt jwt) {
         String email = jwt.getClaimAsString("email");
         String name = jwt.getClaimAsString("name");
         java.util.UUID subjectId = java.util.UUID.fromString(jwt.getSubject());
         
-        // For efficiency, we can usually just look up by email, 
-        // but calling syncUser (or a trimmed version of it) ensures the record exists.
-        return userRepository.findByEmail(email)
-                .map(User::getId)
-                .orElse(subjectId);
+        // Ensure user exists locally and return its ID
+        return syncUser(subjectId, email, name).getId();
     }
 }

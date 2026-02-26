@@ -3,6 +3,7 @@ package com.bizu.portal.student.application;
 import com.bizu.portal.content.domain.Question;
 import com.bizu.portal.content.infrastructure.QuestionRepository;
 import com.bizu.portal.identity.domain.User;
+import com.bizu.portal.identity.infrastructure.UserRepository;
 import com.bizu.portal.student.domain.Duel;
 import com.bizu.portal.student.domain.DuelQuestion;
 import com.bizu.portal.student.infrastructure.DuelQuestionRepository;
@@ -26,12 +27,18 @@ public class DuelService {
     private final QuestionRepository questionRepository;
     private final NotificationService notificationService;
     private final GamificationService gamificationService;
+    private final UserRepository userRepository;
 
     @Transactional
     public Duel createDuel(UUID challengerId, UUID opponentId, String subject) {
+        User challenger = userRepository.findById(challengerId)
+                .orElseThrow(() -> new RuntimeException("Challenger not found"));
+        User opponent = userRepository.findById(opponentId)
+                .orElseThrow(() -> new RuntimeException("Opponent not found"));
+
         Duel duel = Duel.builder()
-                .challenger(User.builder().id(challengerId).build())
-                .opponent(User.builder().id(opponentId).build())
+                .challenger(challenger)
+                .opponent(opponent)
                 .subject(subject)
                 .status("PENDING")
                 .build();

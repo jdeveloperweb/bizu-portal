@@ -13,7 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GamificationStats {
+public class GamificationStats implements org.springframework.data.domain.Persistable<UUID> {
 
     @Id
     @Column(name = "user_id")
@@ -33,4 +33,23 @@ public class GamificationStats {
 
     @Column(name = "last_activity_at")
     private OffsetDateTime lastActivityAt;
+
+    @Transient
+    private boolean isNew = true;
+
+    @Override
+    public UUID getId() {
+        return userId;
+    }
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
+
+    @PostLoad
+    @PostPersist
+    void markNotNew() {
+        this.isNew = false;
+    }
 }

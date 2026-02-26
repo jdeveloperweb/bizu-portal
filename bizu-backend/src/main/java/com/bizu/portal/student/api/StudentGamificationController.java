@@ -24,10 +24,11 @@ public class StudentGamificationController {
     private final GamificationService gamificationService;
     private final GamificationRepository gamificationRepository;
     private final LevelCalculator levelCalculator;
+    private final com.bizu.portal.identity.application.UserService userService;
 
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getMyStats(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = UUID.fromString(jwt.getSubject());
+        UUID userId = userService.resolveUserId(jwt);
         
         // Passively update streak on every request to dashboard/stats
         gamificationService.addXp(userId, 0);
@@ -38,9 +39,11 @@ public class StudentGamificationController {
         Map<String, Object> response = new HashMap<>();
         response.put("totalXp", stats.getTotalXp());
         response.put("currentStreak", stats.getCurrentStreak());
-        response.put("level", levelCalculator.calculateLevel(stats.getTotalXp()));
+        int currentLevel = levelCalculator.calculateLevel(stats.getTotalXp());
+        response.put("level", currentLevel);
         response.put("nextLevelProgress", levelCalculator.calculateProgressToNextLevel(stats.getTotalXp()));
-        response.put("xpToNextLevel", levelCalculator.calculateXpForLevel(levelCalculator.calculateLevel(stats.getTotalXp()) + 1));
+        response.put("xpToNextLevel", levelCalculator.calculateXpForLevel(currentLevel + 1));
+        response.put("levelTable", levelCalculator.getAllLevelRequirements(50));
 
         return ResponseEntity.ok(response);
     }
