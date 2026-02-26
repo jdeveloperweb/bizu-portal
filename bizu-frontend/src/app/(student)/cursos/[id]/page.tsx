@@ -83,6 +83,29 @@ export default function CourseDetailsPage() {
         return { overallProgress, moduleProgressMap };
     }, [course, completedMaterialsSet]);
 
+    const moduleStatus = useMemo(() => {
+        if (!currentModule) return null;
+        const progress = progressData.moduleProgressMap[currentModule.id] || 0;
+        if (progress === 100) return {
+            label: "Refazer Módulo",
+            color: "bg-success hover:bg-success/90",
+            shadow: "shadow-success/20",
+            status: "completed"
+        };
+        if (progress > 0) return {
+            label: "Continuar",
+            color: "bg-[#F59E0B] hover:bg-[#F59E0B]/90",
+            shadow: "shadow-[#F59E0B]/20",
+            status: "in_progress"
+        };
+        return {
+            label: "Começar Módulo",
+            color: "bg-danger hover:bg-danger/90",
+            shadow: "shadow-danger/20",
+            status: "not_started"
+        };
+    }, [currentModule, progressData.moduleProgressMap]);
+
     if (isLoading) return <div className="p-20 text-center">Carregando detalhes do curso...</div>;
     if (!course) return <div className="p-20 text-center text-danger">Curso não encontrado.</div>;
 
@@ -129,9 +152,15 @@ export default function CourseDetailsPage() {
                         >
                             <div className={cn(
                                 "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-500 group-hover:rotate-6",
-                                activeModule === idx ? "bg-primary text-white shadow-lg shadow-primary/30" : "bg-slate-100 text-slate-400 group-hover:bg-slate-200"
+                                activeModule === idx
+                                    ? (progressData.moduleProgressMap[mod.id] === 100 ? "bg-success text-white shadow-lg shadow-success/30" :
+                                        progressData.moduleProgressMap[mod.id] > 0 ? "bg-[#F59E0B] text-white shadow-lg shadow-[#F59E0B]/30" :
+                                            "bg-danger text-white shadow-lg shadow-danger/30")
+                                    : (progressData.moduleProgressMap[mod.id] === 100 ? "bg-success/10 text-success" :
+                                        progressData.moduleProgressMap[mod.id] > 0 ? "bg-[#F59E0B]/10 text-[#F59E0B]" :
+                                            "bg-danger/10 text-danger")
                             )}>
-                                <Play className={cn("w-6 h-6", activeModule === idx ? "fill-white" : "fill-transparent")} />
+                                <Play className={cn("w-6 h-6", activeModule === idx || progressData.moduleProgressMap[mod.id] > 0 ? "fill-current" : "fill-transparent")} />
                             </div>
 
                             <div className="flex-1">
@@ -163,9 +192,13 @@ export default function CourseDetailsPage() {
                                         <p className="text-muted-foreground">{currentModule.description}</p>
                                     </div>
                                     <Link href={`/cursos/${course.id}/player/${currentModule.materials[0]?.id || ""}`}>
-                                        <Button className="rounded-2xl h-14 px-8 font-black gap-2 text-lg shadow-xl shadow-primary/20 hover:scale-105 transition-transform shrink-0">
+                                        <Button className={cn(
+                                            "rounded-2xl h-14 px-8 font-black gap-2 text-lg shadow-xl transition-all hover:scale-105 shrink-0 border-none text-white",
+                                            moduleStatus?.color,
+                                            moduleStatus?.shadow
+                                        )}>
                                             <Play className="w-5 h-5 fill-current" />
-                                            Começar Módulo
+                                            {moduleStatus?.label}
                                         </Button>
                                     </Link>
                                 </div>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, Loader2, ArrowLeft, Rocket, BookOpen, Target, GraduationCap } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowLeft, Rocket, BookOpen, Target, GraduationCap, Sparkles, ShieldCheck, Zap } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
@@ -26,8 +26,8 @@ export default function RegisterPage() {
         if (/[^A-Za-z0-9]/.test(p)) s++;
         return s;
     })();
-    const sColors = ["", "#DC2626", "#F59E0B", "#6366F1", "#059669"];
-    const sLabels = ["", "Fraca", "Razoável", "Boa", "Forte"];
+    const sColors = ["", "#ef4444", "#f59e0b", "#6366f1", "#10b981"];
+    const sLabels = ["", "VULNERÁVEL", "RAZOÁVEL", "SEGURA", "INVIOLÁVEL"];
     const mismatch = !!form.confirm && form.password !== form.confirm;
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -51,95 +51,108 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen flex font-sans selection:bg-indigo-100 selection:text-indigo-900 bg-white">
+        <div className="min-h-screen flex font-sans selection:bg-indigo-100 selection:text-indigo-900 bg-white overflow-hidden">
 
-            {/* ── Left: Visual Branding (Academy Style) ── */}
-            <div className="hidden lg:flex w-[45%] xl:w-[50%] relative overflow-hidden bg-slate-50 items-center justify-center">
+            {/* ── Left: Premium Hero Section ── */}
+            <div className="hidden lg:flex w-[42%] xl:w-[48%] relative overflow-hidden bg-[#0a0c10] items-center justify-center p-8">
 
-                {/* Imagem de Fundo de Estudo com Movimento */}
+                {/* Background Artwork */}
                 <div className="absolute inset-0 z-0">
                     <img
                         src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop"
-                        alt="Study Group Background"
-                        className="w-full h-full object-cover opacity-40 animate-ken-burns scale-110"
+                        alt="Education"
+                        className="w-full h-full object-cover opacity-25 animate-ken-burns scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-50/40 via-transparent to-violet-50/40"></div>
+                    {/* Deep Overlays */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#0a0c10] via-[#0a0c10]/90 to-violet-900/40"></div>
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(139,92,246,0.15),transparent_50%)]"></div>
+
+                    {/* Animated Glows */}
+                    <div className="absolute -top-[10%] -right-[10%] w-[60%] h-[60%] bg-violet-500/10 rounded-full blur-[120px] animate-pulse" />
+                    <div className="absolute -bottom-[10%] -left-[10%] w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[100px]" />
                 </div>
 
-                {/* Background Decorativo (Grid) */}
-                <div className="absolute inset-0 z-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+                {/* Grid Pattern Overlay */}
+                <div className="absolute inset-0 z-10 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px]"></div>
 
-                {/* Efeitos de Luz Sutis */}
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-100/50 rounded-full blur-[100px] opacity-70 pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-100/40 rounded-full blur-[80px] pointer-events-none" />
-
-                <div className="relative z-10 w-full max-w-xl p-12 xl:p-16">
-                    <div className="mb-12">
-                        <BrandLogo size="xl" variant="dark" link={false} />
+                <div className="relative z-20 w-full max-w-2xl px-12 animate-in fade-in slide-in-from-left-8 duration-700">
+                    <div className="mb-14 drop-shadow-2xl">
+                        <BrandLogo size="xl" variant="light" link={false} />
                     </div>
 
-                    <div className="space-y-6">
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-50 border border-violet-100 text-violet-700 text-[12px] font-bold uppercase tracking-wider mb-2 shadow-sm">
-                            <Target size={14} />
-                            Início da Jornada
+                    <div className="space-y-8">
+                        <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/90 text-[13px] font-semibold tracking-wide backdrop-blur-md shadow-2xl">
+                            <Zap size={14} className="text-amber-400" />
+                            INÍCIO DA SUA JORNADA
                         </div>
 
-                        <h2 className="text-4xl xl:text-5xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
+                        <h2 className="text-5xl xl:text-6xl font-black text-white leading-[1.05] tracking-tight">
                             Junte-se à elite <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-500">
-                                da aprovação
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-indigo-400 to-cyan-400">
+                                da aprovação.
                             </span>
                         </h2>
 
-                        <p className="text-slate-600 text-lg max-w-md leading-relaxed font-medium">
+                        <p className="text-slate-400 text-lg max-w-md leading-relaxed font-medium">
                             Construa sua base, teste seus limites em simulados semanais e conquiste a vaga dos seus sonhos.
                         </p>
 
-                        {/* Steps em formato de cards limpos */}
-                        <div className="grid grid-cols-1 gap-5 py-8">
+                        <div className="grid grid-cols-1 gap-4 py-6">
                             {[
-                                { step: "1", title: "Crie sua conta. É grátis.", icon: Rocket },
-                                { step: "2", title: "Construa sua base sólida", icon: BookOpen },
-                                { step: "3", title: "Domine seu edital em tempo recorde", icon: GraduationCap },
-                            ].map((s, i) => {
-                                const Icon = s.icon;
-                                return (
-                                    <div key={s.step} className="flex items-center gap-4 text-slate-700 group bg-white/60 p-4 rounded-2xl border border-white shadow-sm backdrop-blur-md transition-all hover:bg-white hover:shadow-md hover:-translate-y-0.5" style={{ animationDelay: `${400 + i * 100}ms` }}>
-                                        <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center shrink-0 border border-violet-100">
-                                            <Icon size={20} className="text-violet-600" />
-                                        </div>
-                                        <span className="text-[15px] font-bold tracking-tight text-slate-800">{s.title}</span>
+                                { text: "Crie sua conta. É grátis por 7 dias.", icon: Rocket, delay: "500ms" },
+                                { text: "Construa uma base sólida de conhecimento", icon: BookOpen, delay: "600ms" },
+                                { text: "Domine seu edital em tempo recorde", icon: GraduationCap, delay: "700ms" },
+                            ].map((item, i) => (
+                                <div
+                                    key={i}
+                                    className="flex items-center gap-5 p-5 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl transition-all hover:bg-white/[0.06] hover:border-white/[0.15] hover:-translate-y-1 group group cursor-default"
+                                    style={{ animation: `slideIn 0.5s ease-out forwards ${item.delay}` }}
+                                >
+                                    <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center shrink-0 border border-violet-500/20 group-hover:bg-violet-500/20 group-hover:scale-110 transition-all">
+                                        <item.icon size={22} className="text-violet-400" />
                                     </div>
-                                )
-                            })}
+                                    <span className="text-[15px] font-bold tracking-tight text-white/90">{item.text}</span>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
+
+                {/* Visual Accent */}
+                <div className="absolute bottom-12 left-12 flex items-center gap-4 text-white/20 select-none animate-pulse">
+                    <Sparkles size={20} />
+                    <span className="text-xs font-bold tracking-widest uppercase">O padrão de excelência</span>
+                </div>
             </div>
 
-            {/* ── Right: Form (Clean Light) ── */}
-            <div className="flex-1 flex flex-col bg-white overflow-y-auto">
-                <main className="flex-1 flex flex-col justify-center px-8 lg:px-16 xl:px-24 py-16">
-                    <div className="w-full max-w-[420px] mx-auto">
+            {/* ── Right: Sophisticated Register Form ── */}
+            <div className="flex-1 flex flex-col bg-white overflow-y-auto relative">
+                <main className="flex-1 flex flex-col justify-center px-8 sm:px-16 lg:px-24 xl:px-32 py-20 relative z-10">
+                    <div className="w-full max-w-[460px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-1000">
 
-                        <div className="mb-8">
-                            <Link href="/" className="inline-flex items-center gap-2 text-[14px] font-semibold text-slate-400 hover:text-slate-700 transition-all group">
-                                <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Voltar
+                        <div className="mb-12 flex items-center justify-between">
+                            <Link href="/" className="inline-flex items-center gap-2.5 text-[14px] font-bold text-slate-400 hover:text-indigo-600 transition-all group">
+                                <div className="p-2 rounded-lg bg-slate-50 group-hover:bg-indigo-50 transition-colors">
+                                    <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                                </div>
+                                Voltar
                             </Link>
+
+                            <div className="lg:hidden scale-75 origin-right">
+                                <BrandLogo size="lg" variant="dark" />
+                            </div>
                         </div>
 
-                        <div className="lg:hidden mb-12 flex justify-center">
-                            <BrandLogo size="lg" variant="dark" />
-                        </div>
-
-                        <div className="mb-10 text-center lg:text-left">
-                            <h1 className="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">Sua nova conta</h1>
-                            <p className="text-[15px] text-slate-500 font-medium">Experimente a plataforma por 7 dias grátis.</p>
+                        <div className="mb-10">
+                            <h1 className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mb-3">
+                                Sua nova <span className="text-indigo-600">conta</span>
+                            </h1>
+                            <p className="text-[16px] text-slate-500 font-medium">Experimente a plataforma gratuitamente.</p>
                         </div>
 
                         {/* Google Social Login */}
-                        <button className="w-full h-[52px] rounded-xl font-bold text-[14px] text-slate-700 bg-white border border-slate-200 shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center gap-3 mb-8 group">
-                            <svg width="20" height="20" viewBox="0 0 24 24" className="group-hover:scale-110 transition-transform">
+                        <button className="w-full h-[58px] rounded-2xl font-bold text-[15px] text-slate-700 bg-white border-2 border-slate-100 hover:border-indigo-100 hover:bg-slate-50 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all flex items-center justify-center gap-3.5 mb-8 group active:scale-[0.98]">
+                            <svg width="22" height="22" viewBox="0 0 24 24" className="group-hover:scale-110 transition-transform duration-500">
                                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
@@ -148,84 +161,115 @@ export default function RegisterPage() {
                             Cadastrar com o Google
                         </button>
 
-                        <div className="flex items-center gap-4 mb-8">
-                            <div className="flex-1 h-px bg-slate-100" />
-                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Ou email</span>
-                            <div className="flex-1 h-px bg-slate-100" />
+                        <div className="flex items-center gap-5 mb-8">
+                            <div className="flex-1 h-[2px] bg-slate-50" />
+                            <span className="text-[12px] font-extrabold text-slate-300 uppercase tracking-widest px-2">Ou com e-mail</span>
+                            <div className="flex-1 h-[2px] bg-slate-50" />
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            <div className="space-y-1.5">
-                                <label className="block text-[12px] font-bold text-slate-700 ml-1">Nome completo</label>
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="block text-[13px] font-extrabold text-slate-800 ml-1 uppercase tracking-wider">Nome Completo</label>
                                 <input type="text" required value={form.name}
                                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    placeholder="Ex: Jaime Vicente" className="w-full h-[52px] px-4 rounded-xl text-[15px] bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-400 outline-none transition-all shadow-sm" />
+                                    placeholder="Ex: Jaime Vicente"
+                                    className="w-full h-[60px] px-5 rounded-2xl text-[15px] bg-slate-50 border-2 border-transparent focus:bg-white focus:border-indigo-500 focus:ring-0 placeholder:text-slate-400 outline-none transition-all shadow-sm font-medium" />
                             </div>
-                            <div className="space-y-1.5">
-                                <label className="block text-[12px] font-bold text-slate-700 ml-1">E-mail</label>
+                            <div className="space-y-2">
+                                <label className="block text-[13px] font-extrabold text-slate-800 ml-1 uppercase tracking-wider">E-mail</label>
                                 <input type="email" required value={form.email}
                                     onChange={(e) => setForm({ ...form, email: e.target.value })}
-                                    placeholder="jaime@email.com" className="w-full h-[52px] px-4 rounded-xl text-[15px] bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-400 outline-none transition-all shadow-sm" />
+                                    placeholder="seu@email.com"
+                                    className="w-full h-[60px] px-5 rounded-2xl text-[15px] bg-slate-50 border-2 border-transparent focus:bg-white focus:border-indigo-500 focus:ring-0 placeholder:text-slate-400 outline-none transition-all shadow-sm font-medium" />
                             </div>
-                            <div className="space-y-1.5">
-                                <label className="block text-[12px] font-bold text-slate-700 ml-1">Senha</label>
-                                <div className="relative">
+                            <div className="space-y-2">
+                                <label className="block text-[13px] font-extrabold text-slate-800 ml-1 uppercase tracking-wider">Senha</label>
+                                <div className="relative group">
                                     <input type={show ? "text" : "password"} required value={form.password}
                                         onChange={(e) => setForm({ ...form, password: e.target.value })}
-                                        placeholder="Crie uma senha forte" className="w-full h-[52px] px-4 pr-12 rounded-xl text-[15px] bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-400 outline-none transition-all shadow-sm" />
+                                        placeholder="Crie uma senha segura"
+                                        className="w-full h-[60px] px-5 pr-14 rounded-2xl text-[15px] bg-slate-50 border-2 border-transparent focus:bg-white focus:border-indigo-500 focus:ring-0 placeholder:text-slate-400 outline-none transition-all shadow-sm font-medium" />
                                     <button type="button" onClick={() => setShow(!show)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                                        {show ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none p-1">
+                                        {show ? <EyeOff size={20} /> : <Eye size={20} />}
                                     </button>
                                 </div>
                                 {form.password && (
-                                    <div className="mt-2.5 px-1">
-                                        <div className="flex gap-1.5 mb-1.5">
+                                    <div className="mt-3 px-1 animate-in fade-in zoom-in-95 duration-300">
+                                        <div className="flex gap-2 mb-2">
                                             {[1, 2, 3, 4].map(i => (
-                                                <div key={i} className="h-[4px] flex-1 rounded-full transition-all duration-300"
+                                                <div key={i} className="h-[5px] flex-1 rounded-full transition-all duration-500 shadow-sm"
                                                     style={{ background: i <= strength ? sColors[strength] : "#F1F5F9" }} />
                                             ))}
                                         </div>
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-right" style={{ color: sColors[strength] }}>{sLabels[strength]}</p>
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1" style={{ color: sColors[strength] }}>
+                                                {strength >= 3 && <ShieldCheck size={12} />}
+                                                Força: {sLabels[strength]}
+                                            </p>
+                                        </div>
                                     </div>
                                 )}
                             </div>
-                            <div className="space-y-1.5">
-                                <label className="block text-[12px] font-bold text-slate-700 ml-1">Confirmar senha</label>
+                            <div className="space-y-2">
+                                <label className="block text-[13px] font-extrabold text-slate-800 ml-1 uppercase tracking-wider">Confirmar Senha</label>
                                 <input type={show ? "text" : "password"} required value={form.confirm}
                                     onChange={(e) => setForm({ ...form, confirm: e.target.value })}
-                                    placeholder="Repita a nova senha"
-                                    className={`w-full h-[52px] px-4 rounded-xl text-[15px] bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 placeholder:text-slate-400 outline-none transition-all shadow-sm ${mismatch ? "!border-red-400 focus:!ring-red-500/10" : ""}`} />
-                                {mismatch && <p className="text-[11px] text-red-500 mt-1 font-bold ml-1">As senhas não coincidem</p>}
+                                    placeholder="Repita sua senha"
+                                    className={`w-full h-[60px] px-5 rounded-2xl text-[15px] bg-slate-50 border-2 border-transparent focus:bg-white focus:border-indigo-500 focus:ring-0 placeholder:text-slate-400 outline-none transition-all shadow-sm font-medium ${mismatch ? "!border-red-500 !bg-red-50" : ""}`} />
+                                {mismatch && (
+                                    <p className="text-[12px] text-red-500 mt-2 font-bold ml-1 animate-bounce">
+                                        As senhas não coincidem
+                                    </p>
+                                )}
                             </div>
 
                             <button type="submit" disabled={loading || mismatch}
-                                className="w-full h-[52px] rounded-xl font-bold text-[15px] text-white bg-indigo-600 hover:bg-indigo-700 flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-600/20 hover:shadow-xl hover:shadow-indigo-600/30 hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 mt-6">
-                                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Rocket size={18} /> Validar Conta</>}
+                                className="group relative w-full h-[62px] rounded-2xl font-black text-[16px] text-white bg-indigo-600 hover:bg-slate-900 transition-all shadow-[0_15px_30px_-5px_rgba(79,70,229,0.35)] hover:shadow-[0_20px_40px_-10px_rgba(15,23,42,0.4)] hover:-translate-y-1 disabled:opacity-70 disabled:hover:translate-y-0 disabled:bg-slate-400 mt-6 overflow-hidden active:scale-[0.98]">
+                                {loading ? (
+                                    <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+                                ) : (
+                                    <span className="flex items-center justify-center gap-2.5">
+                                        Validar minha conta
+                                        <Rocket size={20} className="group-hover:-translate-y-1 group-hover:translate-x-1 transition-transform duration-300" />
+                                    </span>
+                                )}
                             </button>
 
-                            <p className="text-[12px] text-center text-slate-400 pt-2">
+                            <p className="text-[12px] text-center text-slate-400 pt-2 font-medium">
                                 Ao se cadastrar, você concorda com nossos{" "}
                                 <Link href="/termos" className="text-indigo-600 font-bold hover:underline">Termos</Link> e{" "}
                                 <Link href="/privacidade" className="text-indigo-600 font-bold hover:underline">Privacidade</Link>.
                             </p>
                         </form>
 
-                        <div className="mt-8 text-center">
-                            <p className="text-[14px] text-slate-500 font-medium">
-                                Já tem uma conta?{" "}
-                                <Link href="/login" className="text-indigo-600 font-bold hover:text-indigo-800 transition-all hover:underline decoration-2 underline-offset-4">Entrar</Link>
-                            </p>
+                        <div className="mt-12 text-center">
+                            <div className="inline-block p-1 bg-slate-50 rounded-2xl">
+                                <p className="text-[15px] text-slate-500 font-bold px-6 py-3">
+                                    Já faz parte?{" "}
+                                    <Link href="/login" className="text-indigo-600 font-extrabold hover:text-indigo-800 transition-all">
+                                        Fazer login
+                                    </Link>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </main>
 
-                <footer className="py-8 text-center bg-white">
-                    <p className="text-[12px] text-slate-400 font-medium">
-                        &copy; {new Date().getFullYear()} Bizu! Academy · O padrão de excelência.
+                <footer className="py-10 text-center relative z-10 bg-white">
+                    <p className="text-[13px] text-slate-400 font-bold tracking-tight">
+                        &copy; {new Date().getFullYear()} Bizu! Academy <span className="mx-2 text-slate-200">|</span> O padrão de excelência acadêmica.
                     </p>
                 </footer>
             </div>
+
+            {/* Custom Animations Inline to avoid CSS bloat */}
+            <style jsx global>{`
+                @keyframes slideIn {
+                    from { opacity: 0; transform: translateX(-20px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+            `}</style>
         </div>
     );
 }

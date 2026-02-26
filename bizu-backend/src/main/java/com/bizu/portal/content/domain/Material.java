@@ -43,6 +43,11 @@ public class Material {
     @com.fasterxml.jackson.annotation.JsonBackReference
     private Module module;
 
+    @com.fasterxml.jackson.annotation.JsonProperty("moduleId")
+    public UUID getModuleId() {
+        return module != null ? module.getId() : null;
+    }
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 

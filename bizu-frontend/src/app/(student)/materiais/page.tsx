@@ -111,7 +111,7 @@ function MaterialsContent() {
                             </div>
 
                             <div className="flex items-center gap-2 relative z-10">
-                                <Link href={`/materiais/${material.id}`} className="flex-1">
+                                <Link href={`/materiais/${material.moduleId}?materialId=${material.id}`} className="flex-1">
                                     <button className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white py-3 rounded-2xl text-sm font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">
                                         <Eye size={16} /> Visualizar
                                     </button>

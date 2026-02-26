@@ -132,8 +132,6 @@ public class StudentCourseController {
                 .map(completion -> completion.getMaterial().getId())
                 .collect(Collectors.toSet());
 
-            Set<UUID> attemptedQuestionIds = attemptRepository.findDistinctQuestionIdsByUserIdAndCourseId(userId, course.getId());
-
             double totalWeight = 0D;
             double completedWeight = 0D;
 
@@ -141,11 +139,8 @@ public class StudentCourseController {
                 List<com.bizu.portal.content.domain.Material> moduleMaterials = module.getMaterials() != null
                     ? module.getMaterials()
                     : Collections.emptyList();
-                List<com.bizu.portal.content.domain.Question> moduleQuestions = module.getQuestions() != null
-                    ? module.getQuestions()
-                    : Collections.emptyList();
 
-                double moduleWeight = moduleMaterials.size() + (moduleQuestions.size() * 0.5D);
+                double moduleWeight = moduleMaterials.size();
 
                 if (moduleWeight <= 0D) {
                     continue;
@@ -157,12 +152,7 @@ public class StudentCourseController {
                     .filter(material -> completedMaterialIds.contains(material.getId()))
                     .count();
 
-                long attemptedQuestionsInModule = moduleQuestions.stream()
-                    .filter(question -> attemptedQuestionIds.contains(question.getId()))
-                    .count();
-
-                double moduleCompletedWeight = completedMaterialsInModule + (attemptedQuestionsInModule * 0.5D);
-                double moduleProgress = Math.min(1D, moduleCompletedWeight / moduleWeight);
+                double moduleProgress = Math.min(1D, (double) completedMaterialsInModule / moduleWeight);
 
                 completedWeight += moduleProgress * moduleWeight;
             }
@@ -173,35 +163,30 @@ public class StudentCourseController {
             courseMap.put("progress", Math.max(0, Math.min(100, progress)));
             courseMap.put("durationMinutes", course.getDurationMinutes());
 
-            String nextModule = modules.stream()
-                .filter(module -> {
-                    List<com.bizu.portal.content.domain.Material> moduleMaterials = module.getMaterials() != null
-                        ? module.getMaterials()
-                        : Collections.emptyList();
-                    List<com.bizu.portal.content.domain.Question> moduleQuestions = module.getQuestions() != null
-                        ? module.getQuestions()
-                        : Collections.emptyList();
-
-                    if (moduleMaterials.isEmpty() && moduleQuestions.isEmpty()) {
-                        return false;
-                    }
-
-                    boolean materialsDone = moduleMaterials.stream()
-                        .allMatch(material -> completedMaterialIds.contains(material.getId()));
-                    boolean questionsDone = moduleQuestions.stream()
-                        .allMatch(question -> attemptedQuestionIds.contains(question.getId()));
-
-                    return !(materialsDone && questionsDone);
-                })
-                .map(com.bizu.portal.content.domain.Module::getTitle)
+            com.bizu.portal.content.domain.Material nextMaterial = modules.stream()
+                .flatMap(module -> (module.getMaterials() != null ? module.getMaterials() : Collections.<com.bizu.portal.content.domain.Material>emptyList()).stream())
+                .filter(material -> !completedMaterialIds.contains(material.getId()))
                 .findFirst()
-                .orElse(modules.isEmpty() ? "Bizu Academy" : modules.get(0).getTitle());
+                .orElse(null);
+
+            String nextModule = "Concluído!";
+            if (nextMaterial != null) {
+                courseMap.put("nextMaterialId", nextMaterial.getId());
+                // Encontrar o módulo do material para pegar o título
+                nextModule = modules.stream()
+                    .filter(m -> m.getMaterials() != null && m.getMaterials().contains(nextMaterial))
+                    .map(com.bizu.portal.content.domain.Module::getTitle)
+                    .findFirst()
+                    .orElse("Próxima Aula");
+            } else if (!modules.isEmpty()) {
+                // Se tudo concluído, pode mostrar o primeiro módulo ou uma mensagem
+                nextModule = "Curso Concluído! \uD83C\uDF89";
+            }
 
             courseMap.put("nextModule", nextModule);
             
             // Contagem de alunos (simulada ou real se o repositório permitir)
-            // Para ser preciso, deveríamos injetar o CourseEntitlementRepository e contar
-            courseMap.put("studentsCount", 0); // Pode ser melhorado depois
+            courseMap.put("studentsCount", 0); 
             
             response.add(courseMap);
         }

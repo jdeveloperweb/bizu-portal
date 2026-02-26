@@ -1,17 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Download, Share2, ZoomIn, ZoomOut, Maximize2, FileText, ChevronLeft, Play, Info, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { getVideoEmbedUrl } from "@/lib/video-embed";
 
-export default function MaterialViewerPage() {
+function MaterialViewerContent() {
     const params = useParams<{ id: string | string[] }>();
+    const searchParams = useSearchParams();
     const moduleId = Array.isArray(params.id) ? params.id[0] : params.id;
+    const materialId = searchParams.get("materialId");
+
     const [module, setModule] = useState<any>(null);
     const [activeMaterialIdx, setActiveMaterialIdx] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
@@ -29,6 +32,13 @@ export default function MaterialViewerPage() {
                 if (res.ok) {
                     const data = await res.json();
                     setModule(data);
+
+                    if (materialId && data.materials) {
+                        const idx = data.materials.findIndex((m: any) => m.id === materialId);
+                        if (idx !== -1) {
+                            setActiveMaterialIdx(idx);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error("Failed to fetch module", error);
@@ -37,7 +47,7 @@ export default function MaterialViewerPage() {
             }
         };
         fetchModule();
-    }, [moduleId]);
+    }, [moduleId, materialId]);
 
     if (isLoading) return <div className="p-20 text-center text-foreground">Carregando conteúdo do módulo...</div>;
     if (!module) return <div className="p-20 text-center text-danger">Módulo não encontrado.</div>;
@@ -201,3 +211,10 @@ export default function MaterialViewerPage() {
     );
 }
 
+export default function MaterialViewerPage() {
+    return (
+        <Suspense fallback={<div className="p-20 text-center text-foreground">Carregando player...</div>}>
+            <MaterialViewerContent />
+        </Suspense>
+    );
+}

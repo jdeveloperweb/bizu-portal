@@ -7,8 +7,9 @@ import {
     BarChart3, Zap, ChevronRight, Bell, Rocket,
     PlayCircle, CheckCircle2, Timer, CheckSquare,
     StickyNote, Brain, Star, Crown, MoreHorizontal,
-    Search, FileText
+    Search, FileText, PartyPopper
 } from "lucide-react";
+import confetti from "canvas-confetti";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useCourse } from "@/contexts/CourseContext";
@@ -68,6 +69,20 @@ export default function DashboardPage() {
         };
         fetchDashboardData();
     }, []);
+
+    useEffect(() => {
+        if (courses.length > 0 && courses[0]?.progress === 100) {
+            const timer = setTimeout(() => {
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#6366f1', '#a855f7', '#ec4899']
+                });
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [courses]);
 
     const subjects = stats?.subjectsProgress || [];
     const recentActivity: any[] = [];
@@ -198,8 +213,11 @@ export default function DashboardPage() {
                                     Próximo Módulo: <span className="text-white font-semibold">{mainCourse?.nextModule || "Primeiros Passos"}</span>
                                 </p>
                                 <div className="flex flex-col sm:flex-row items-center gap-4">
-                                    <Link href={mainCourse ? `/cursos/${mainCourse.id}` : "/cursos"} className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white text-slate-900 px-8 py-4 rounded-2xl text-base font-black hover:bg-indigo-50 transition-all hover:scale-105 shadow-xl">
-                                        Assistir Agora <ChevronRight size={18} />
+                                    <Link
+                                        href={mainCourse ? (mainCourse.nextMaterialId ? `/cursos/${mainCourse.id}/player/${mainCourse.nextMaterialId}` : `/cursos/${mainCourse.id}`) : "/cursos"}
+                                        className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white text-slate-900 px-8 py-4 rounded-2xl text-base font-black hover:bg-indigo-50 transition-all hover:scale-105 shadow-xl"
+                                    >
+                                        {mainCourse?.progress === 100 ? "Revisar Curso" : "Assistir Agora"} <ChevronRight size={18} />
                                     </Link>
                                 </div>
                             </div>
@@ -207,12 +225,21 @@ export default function DashboardPage() {
                             <div className="shrink-0 relative w-44 h-44">
                                 <svg className="w-full h-full transform -rotate-90">
                                     <circle cx="88" cy="88" r="80" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-800" />
-                                    <circle cx="88" cy="88" r="80" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-indigo-500"
+                                    <circle cx="88" cy="88" r="80" stroke="currentColor" strokeWidth="8" fill="transparent" className={cn(mainCourse?.progress === 100 ? "text-emerald-500" : "text-indigo-500")}
                                         strokeDasharray={502.6} strokeDashoffset={502.6 * (1 - (mainCourse?.progress || 0) / 100)} strokeLinecap="round" />
                                 </svg>
                                 <div className="absolute inset-0 flex items-center justify-center flex-col">
-                                    <span className="text-3xl font-black text-white">{mainCourse?.progress || 0}%</span>
-                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Concluído</span>
+                                    {mainCourse?.progress === 100 ? (
+                                        <>
+                                            <PartyPopper className="w-10 h-10 text-emerald-400 mb-1 animate-bounce" />
+                                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Concluído!</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="text-3xl font-black text-white">{mainCourse?.progress || 0}%</span>
+                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Concluído</span>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
