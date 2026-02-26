@@ -209,7 +209,7 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
 
                                 <div className="grid grid-cols-1 gap-3">
                                     {Object.entries(currentRoundQuestion.question.options).map(([key, option], idx) => {
-                                        const isSelected = selectedAnswer === Number(key) || (myAnswer !== undefined && myAnswer !== null && myAnswer === Number(key));
+                                        const isSelected = selectedAnswer === idx || (myAnswer !== undefined && myAnswer !== null && myAnswer === idx);
                                         const isWaitingOpponent = (myAnswer !== undefined && myAnswer !== null) && (opponentAnswer === undefined || opponentAnswer === null);
 
                                         return (
@@ -217,7 +217,7 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                                                 key={key}
                                                 whileHover={{ scale: 1.01 }}
                                                 whileTap={{ scale: 0.99 }}
-                                                onClick={() => handleAnswer(Number(key))}
+                                                onClick={() => handleAnswer(idx)}
                                                 disabled={myAnswer !== undefined && myAnswer !== null}
                                                 className={`p-4 rounded-2xl border-2 text-left transition-all relative ${isSelected ? "border-indigo-500 bg-indigo-50 shadow-md" :
                                                     "border-slate-100 hover:border-indigo-200 hover:bg-slate-50"

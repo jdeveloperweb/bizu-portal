@@ -131,7 +131,10 @@ public class DuelService {
         DuelQuestion currentRoundQuestion = duelQuestionRepository.findByDuelIdAndRoundNumber(duelId, duel.getCurrentRound());
 
         boolean isChallenger = duel.getChallenger().getId().equals(userId);
-        boolean isCorrect = String.valueOf(answerIndex).equals(currentRoundQuestion.getQuestion().getCorrectOption());
+        
+        // Convert integer index (0, 1, 2) to ('A', 'B', 'C') to match correctOption
+        String answerStr = String.valueOf((char) ('A' + answerIndex));
+        boolean isCorrect = answerStr.equals(currentRoundQuestion.getQuestion().getCorrectOption());
 
         if (isChallenger) {
             currentRoundQuestion.setChallengerAnswerIndex(answerIndex);
