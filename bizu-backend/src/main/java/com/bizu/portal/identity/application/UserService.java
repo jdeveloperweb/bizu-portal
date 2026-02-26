@@ -15,6 +15,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final KeycloakService keycloakService;
 
+    public java.util.Optional<User> findById(java.util.UUID id) {
+        return userRepository.findById(id);
+    }
+
     @Transactional
     public User registerUser(String name, String email, String password) {
         if (userRepository.findByEmail(email).isPresent()) {
