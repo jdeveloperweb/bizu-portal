@@ -33,6 +33,8 @@ interface PerformanceData {
         questions: number;
         accuracy: number;
     }[];
+    ranking: string;
+    suggestions: string[];
 }
 
 const dayMap: Record<string, string> = {
@@ -136,7 +138,7 @@ export default function DesempenhoPage() {
                     { label: "Questoes resolvidas", val: totalQuestions.toLocaleString(), icon: BarChart3, bg: "bg-indigo-50", text: "text-indigo-600", delta: `+${weeklyTotal} esta semana` },
                     { label: "Taxa de acerto", val: `${overallAccuracy}%`, icon: Target, bg: "bg-emerald-50", text: "text-emerald-600", delta: "vs anterior" },
                     { label: "Tempo de estudo", val: `${totalHours}h`, icon: Clock, bg: "bg-violet-50", text: "text-violet-600", delta: `${weeklyHours}h esta semana` },
-                    { label: "Ranking geral", val: "#--", icon: Trophy, bg: "bg-amber-50", text: "text-amber-600", delta: "Em breve" },
+                    { label: "Ranking geral", val: data.ranking || "#--", icon: Trophy, bg: "bg-amber-50", text: "text-amber-600", delta: "Atualizado agora" },
                 ].map(s => {
                     const Icon = s.icon;
                     return (
@@ -356,15 +358,15 @@ export default function DesempenhoPage() {
                             <Brain size={14} className="text-indigo-500" /> Sugestoes da IA
                         </h3>
                         <div className="space-y-2">
-                            <Link href="/questoes/treino" className="flex items-center gap-2.5 py-2 px-3 rounded-xl text-[12px] font-medium text-slate-600 hover:bg-slate-50 transition-all">
-                                <Target size={14} className="text-slate-400" /> Focar em Direito Civil
-                            </Link>
-                            <Link href="/pomodoro" className="flex items-center gap-2.5 py-2 px-3 rounded-xl text-[12px] font-medium text-slate-600 hover:bg-slate-50 transition-all">
-                                <Clock size={14} className="text-slate-400" /> Sessao de Processo Penal
-                            </Link>
-                            <Link href="/flashcards" className="flex items-center gap-2.5 py-2 px-3 rounded-xl text-[12px] font-medium text-slate-600 hover:bg-slate-50 transition-all">
-                                <BookOpen size={14} className="text-slate-400" /> Revisar flashcards atrasados
-                            </Link>
+                            {data.suggestions?.map((item, idx) => (
+                                <Link key={idx} href="/questoes/treino" className="flex items-center gap-2.5 py-2 px-3 rounded-xl text-[12px] font-medium text-slate-600 hover:bg-slate-50 transition-all">
+                                    {idx === 0 ? <Target size={14} className="text-slate-400" /> : idx === 1 ? <Clock size={14} className="text-slate-400" /> : <BookOpen size={14} className="text-slate-400" />}
+                                    {item}
+                                </Link>
+                            ))}
+                            {(!data.suggestions || data.suggestions.length === 0) && (
+                                <p className="text-[11px] text-slate-400 p-3 italic">Estude mais para receber sugestões personalizadas.</p>
+                            )}
                         </div>
                     </div>
                 </div>

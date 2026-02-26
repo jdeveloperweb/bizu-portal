@@ -26,12 +26,43 @@ public class DeviceController {
         return ResponseEntity.ok(deviceService.findByUserId(userId));
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<Device> registerDevice(
+        @AuthenticationPrincipal Jwt jwt,
+        @RequestBody RegisterDeviceRequest request,
+        jakarta.servlet.http.HttpServletRequest httpRequest
+    ) {
+        UUID userId = resolveUserId(jwt);
+        User user = userService.findById(userId).orElseThrow();
+        
+        String ip = httpRequest.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty()) {
+            ip = httpRequest.getRemoteAddr();
+        }
+
+        Device device = deviceService.registerOrUpdateDevice(
+            user,
+            request.getFingerprint(),
+            request.getOs(),
+            request.getBrowser(),
+            ip
+        );
+        
+        return ResponseEntity.ok(device);
+    }
+
     @DeleteMapping("/{deviceId}")
     public ResponseEntity<Void> removeDevice(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID deviceId) {
         UUID userId = resolveUserId(jwt);
-        // Simple security check: device must belong to user
         deviceService.removeDevice(userId, deviceId);
         return ResponseEntity.noContent().build();
+    }
+
+    @lombok.Data
+    public static class RegisterDeviceRequest {
+        private String fingerprint;
+        private String os;
+        private String browser;
     }
 
     private UUID resolveUserId(Jwt jwt) {

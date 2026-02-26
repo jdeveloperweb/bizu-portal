@@ -11,12 +11,23 @@ export interface ApiErrorBody {
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     const token = Cookies.get("token");
-
     const selectedCourseId = getStoredSelectedCourseId();
+
+    let deviceFingerprint = "";
+    if (typeof window !== "undefined") {
+        deviceFingerprint = localStorage.getItem("device_fingerprint") || "";
+        if (!deviceFingerprint && token) {
+            // Se houver token mas não houver fingerprint, algo está errado ou é o primeiro acesso
+            // O AuthProvider deve cuidar de gerar e registrar, mas como fallback:
+            deviceFingerprint = crypto.randomUUID();
+            localStorage.setItem("device_fingerprint", deviceFingerprint);
+        }
+    }
 
     const headers: Record<string, string> = {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(selectedCourseId ? { "X-Selected-Course-Id": selectedCourseId } : {}),
+        ...(deviceFingerprint ? { "X-Device-Fingerprint": deviceFingerprint } : {}),
         ...Object.fromEntries(Object.entries(options.headers || {}).map(([k, v]) => [k, String(v)])),
     };
 
@@ -41,11 +52,22 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
         }
     }
 
-    // Handle entitlement denied — dispatch event for PaywallGate
+    // Handle errors
     if (response.status === 403) {
         try {
             const clone = response.clone();
-            const body: ApiErrorBody = await clone.json();
+            const body = await clone.json();
+
+            // Handle device mismatch
+            if (body.error === "DEVICE_MISMATCH") {
+                if (typeof window !== "undefined") {
+                    localStorage.removeItem("device_fingerprint");
+                    Cookies.remove("token");
+                    window.location.href = "/login?error=device_mismatch";
+                }
+            }
+
+            // Handle entitlement denied — dispatch event for PaywallGate
             if (body.code === "ENTITLEMENT_DENIED" && typeof window !== "undefined") {
                 window.dispatchEvent(new CustomEvent("entitlement:denied", { detail: body }));
             }

@@ -18,6 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final CourseContextFilter courseContextFilter;
+    private final DeviceValidationFilter deviceValidationFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -35,8 +36,9 @@ public class SecurityConfig {
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(new KeycloakJwtAuthenticationConverter()))
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            // CourseContextFilter runs after JWT auth to populate CourseContextHolder
-            .addFilterAfter(courseContextFilter, UsernamePasswordAuthenticationFilter.class);
+            // DeviceValidationFilter runs before CourseContextFilter to ensure device is valid
+            .addFilterAfter(deviceValidationFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(courseContextFilter, DeviceValidationFilter.class);
 
         return http.build();
     }

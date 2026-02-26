@@ -17,7 +17,7 @@ import java.util.UUID;
 public class DeviceService {
 
     private final DeviceRepository deviceRepository;
-    private static final int MAX_DEVICES_PER_USER = 3;
+    private static final int MAX_DEVICES_PER_USER = 1;
 
     @Transactional
     public Device registerOrUpdateDevice(User user, String fingerprint, String os, String browser, String ip) {
@@ -67,5 +67,20 @@ public class DeviceService {
         }
         
         deviceRepository.delete(device);
+    }
+    @Transactional(readOnly = true)
+    public boolean isValidDevice(UUID userId, String fingerprint) {
+        if (fingerprint == null || fingerprint.isBlank()) {
+            return false;
+        }
+        
+        List<Device> userDevices = deviceRepository.findAllByUserId(userId);
+        if (userDevices.isEmpty()) {
+            // Se não houver nenhum dispositivo registrado, consideramos válido até o próximo registro
+            return true;
+        }
+
+        return userDevices.stream()
+            .anyMatch(d -> d.getDeviceFingerprint().equals(fingerprint));
     }
 }

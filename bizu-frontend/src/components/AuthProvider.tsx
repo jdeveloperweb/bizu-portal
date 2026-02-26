@@ -56,9 +56,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const registerDevice = useCallback(async () => {
+        if (typeof window === "undefined") return;
+
+        let fingerprint = localStorage.getItem("device_fingerprint");
+        if (!fingerprint) {
+            fingerprint = crypto.randomUUID();
+            localStorage.setItem("device_fingerprint", fingerprint);
+        }
+
+        const userAgent = window.navigator.userAgent;
+        let os = "Unknown OS";
+        if (userAgent.indexOf("Win") !== -1) os = "Windows";
+        if (userAgent.indexOf("Mac") !== -1) os = "MacOS";
+        if (userAgent.indexOf("X11") !== -1) os = "UNIX";
+        if (userAgent.indexOf("Linux") !== -1) os = "Linux";
+        if (userAgent.indexOf("Android") !== -1) os = "Android";
+        if (userAgent.indexOf("like Mac") !== -1) os = "iOS";
+
+        let browser = "Unknown Browser";
+        if (userAgent.indexOf("Chrome") !== -1) browser = "Chrome";
+        else if (userAgent.indexOf("Safari") !== -1) browser = "Safari";
+        else if (userAgent.indexOf("Firefox") !== -1) browser = "Firefox";
+        else if (userAgent.indexOf("MSIE") !== -1 || !!(document as any).documentMode) browser = "IE";
+
+        try {
+            const { apiFetch } = await import("@/lib/api");
+            await apiFetch("/devices/register", {
+                method: "POST",
+                body: JSON.stringify({
+                    fingerprint,
+                    os,
+                    browser
+                })
+            });
+        } catch (err) {
+            console.error("Failed to register device", err);
+        }
+    }, []);
+
     const refreshUserProfile = useCallback(async () => {
         const token = Cookies.get("token");
         if (!token) return;
+
+        // Register device first to ensure backend has it before we make other calls
+        await registerDevice();
 
         const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
         const endpoint = apiBase.endsWith('/api/v1')
@@ -225,6 +267,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         Cookies.remove("token");
         if (typeof window !== "undefined") {
             window.localStorage.removeItem("selectedCourseId");
+            window.localStorage.removeItem("device_fingerprint");
         }
         keycloak?.logout({ redirectUri: window.location.origin });
     };
