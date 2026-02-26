@@ -57,15 +57,19 @@ const categoryConfig: Record<BadgeCategory, { label: string; icon: typeof Trophy
 export default function ConquistasPage() {
     const [activeCategory, setActiveCategory] = useState<BadgeCategory>("todas");
     const [badges, setBadges] = useState<Badge[]>([]);
+    const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        async function fetchBadges() {
+        async function fetchData() {
             try {
-                const res = await apiFetch("/student/badges/me");
-                if (res.ok) {
-                    const data = await res.json();
+                const [badgesRes, statsRes] = await Promise.all([
+                    apiFetch("/student/badges/me"),
+                    apiFetch("/student/gamification/me")
+                ]);
 
+                if (badgesRes.ok) {
+                    const data = await badgesRes.json();
                     const mappedData = data.map((b: any) => ({
                         id: b.id,
                         name: b.name,
@@ -81,27 +85,32 @@ export default function ConquistasPage() {
                         color: b.color || "from-slate-400 to-slate-500",
                     }));
 
-                    // Sort earned first, then by progress
                     mappedData.sort((a: Badge, b: Badge) => {
                         if (a.earned && !b.earned) return -1;
                         if (!a.earned && b.earned) return 1;
                         return (b.progress || 0) - (a.progress || 0);
                     });
-
                     setBadges(mappedData);
                 }
+
+                if (statsRes.ok) {
+                    const statsData = await statsRes.json();
+                    setStats(statsData);
+                }
             } catch (error) {
-                console.error("Failed to fetch badges:", error);
+                console.error("Failed to fetch gamification data:", error);
             } finally {
                 setLoading(false);
             }
         }
-        fetchBadges();
+        fetchData();
     }, []);
 
     const filteredBadges = activeCategory === "todas" ? badges : badges.filter(b => b.category === activeCategory);
     const earnedCount = badges.filter(b => b.earned).length;
-    const totalXP = badges.filter(b => b.earned).reduce((a, b) => a + (b.xp || 0), 0);
+    const badgeXP = badges.filter(b => b.earned).reduce((a, b) => a + (b.xp || 0), 0);
+    const totalXP = stats?.totalXp || badgeXP;
+    const currentLevel = stats?.level || Math.floor(totalXP / 1000) + 1;
 
     if (loading) {
         return (
@@ -129,7 +138,7 @@ export default function ConquistasPage() {
                         <Trophy size={13} /> {earnedCount}/{badges.length}
                     </div>
                     <div className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full">
-                        <Zap size={13} /> {totalXP} XP ganhos
+                        <Zap size={13} /> {totalXP} XP totais
                     </div>
                 </div>
             </div>
@@ -138,9 +147,9 @@ export default function ConquistasPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                 {[
                     { label: "Badges obtidos", val: `${earnedCount}/${badges.length}`, icon: Trophy, bg: "bg-amber-50", text: "text-amber-600" },
-                    { label: "XP de badges", val: String(totalXP), icon: Zap, bg: "bg-indigo-50", text: "text-indigo-600" },
-                    { label: "Nivel atual", val: `Lv. ${Math.floor(totalXP / 1000) + 1}`, icon: Star, bg: "bg-violet-50", text: "text-violet-600" },
-                    { label: "Proximo badge", val: badges.filter(b => !b.earned).sort((a, b) => (b.progress || 0) - (a.progress || 0))[0]?.progress + "%" || "100%", icon: Target, bg: "bg-emerald-50", text: "text-emerald-600" },
+                    { label: "XP acumulado", val: String(totalXP), icon: Zap, bg: "bg-indigo-50", text: "text-indigo-600" },
+                    { label: "Nivel atual", val: `Lv. ${currentLevel}`, icon: Star, bg: "bg-violet-50", text: "text-violet-600" },
+                    { label: "Proximo badge", val: (badges.filter(b => !b.earned).sort((a, b) => (b.progress || 0) - (a.progress || 0))[0]?.progress || 0) + "%", icon: Target, bg: "bg-emerald-50", text: "text-emerald-600" },
                 ].map(s => {
                     const Icon = s.icon;
                     return (

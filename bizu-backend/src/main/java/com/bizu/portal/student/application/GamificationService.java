@@ -37,17 +37,28 @@ public class GamificationService {
         Map<UUID, UserBadge> earnedMap = earnedBadges.stream()
                 .collect(Collectors.toMap(ub -> ub.getBadge().getId(), ub -> ub));
 
-        // Let's get generic counts for progress estimation
+        // Get stats for progress estimation
         int totalQuestions = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM student.attempts WHERE user_id = ?", Integer.class, userId);
         int totalDuels = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM student.duels WHERE (challenger_id = ? OR opponent_id = ?) AND status = 'COMPLETED'", Integer.class, userId, userId);
         int totalFlashcards = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM student.flashcard_progress WHERE user_id = ?", Integer.class, userId);
         
+        // Time spent today (Maratonista)
+        int timeTodayMinutes = jdbcTemplate.queryForObject(
+            "SELECT COALESCE(SUM(time_spent_seconds), 0) / 60 FROM student.attempts WHERE user_id = ? AND created_at >= CURRENT_DATE", 
+            Integer.class, userId);
+
+        // Sniper progress (last 10 hard questions)
+        int correctHardStreak = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM (SELECT correct FROM student.attempts a JOIN content.questions q ON a.question_id = q.id WHERE a.user_id = ? AND q.difficulty = 'HARD' ORDER BY a.created_at DESC LIMIT 10) sub WHERE correct = true",
+            Integer.class, userId);
+
         GamificationStats stats = gamificationRepository.findById(userId).orElse(null);
         int streak = stats != null ? stats.getCurrentStreak() : 0;
 
         return allBadges.stream().map(badge -> {
             UserBadge userBadge = earnedMap.get(badge.getId());
             boolean earned = userBadge != null;
+            int target = badge.getTargetProgress() != null && badge.getTargetProgress() > 0 ? badge.getTargetProgress() : 1;
             
             BadgeDTO dto = BadgeDTO.builder()
                     .id(badge.getId())
@@ -57,21 +68,19 @@ public class GamificationService {
                     .earned(earned)
                     .category(badge.getCategory() != null ? badge.getCategory() : "todas")
                     .xp(badge.getXp() != null ? badge.getXp() : badge.getRequiredXp())
-                    .requirement(badge.getRequirement())
                     .color(badge.getColor())
                     .build();
 
+            int currentVal = 0;
             if (earned) {
                 dto.setEarnedDate(userBadge.getEarnedAt());
                 dto.setProgress(100);
+                currentVal = target;
             } else {
                 // Calculate progress based on logic
-                int currentVal = 0;
                 if ("EARLY_BIRD".equals(badge.getCode()) || "FIRST_SIMULADO".equals(badge.getCode())) {
-                    currentVal = 0; // Usually triggered by explicit action, not a count.
-                } else if ("STREAK_7".equals(badge.getCode())) {
-                    currentVal = streak;
-                } else if ("TOTAL_DEDICATION".equals(badge.getCode())) {
+                    currentVal = 0; 
+                } else if ("STREAK_7".equals(badge.getCode()) || "TOTAL_DEDICATION".equals(badge.getCode())) {
                     currentVal = streak;
                 } else if ("QUESTIONS_1000".equals(badge.getCode()) || "MASTER_100".equals(badge.getCode())) {
                     currentVal = totalQuestions;
@@ -79,16 +88,28 @@ public class GamificationService {
                     currentVal = totalDuels;
                 } else if ("STUDIOUS_50".equals(badge.getCode())) {
                     currentVal = totalFlashcards;
+                } else if ("MARATHON_4H".equals(badge.getCode())) {
+                    currentVal = timeTodayMinutes;
+                } else if ("SNIPER_10".equals(badge.getCode())) {
+                    currentVal = correctHardStreak;
                 }
 
-                int target = badge.getTargetProgress() != null && badge.getTargetProgress() > 0 ? badge.getTargetProgress() : 1;
                 // CAP at target
                 if (currentVal >= target) {
-                    currentVal = target; // Though if it reached target it should have been earned technically. We just cap progress until they earn it.
+                    currentVal = target;
                 }
                 
                 int percent = (int) Math.round(((double) currentVal / target) * 100);
                 dto.setProgress(Math.min(percent, 100));
+            }
+
+            // Dynamic requirement string
+            String reqBase = badge.getRequirement() != null ? badge.getRequirement() : "";
+            if (reqBase.contains("/")) {
+                String suffix = reqBase.substring(reqBase.indexOf("/") + 1).replaceAll("^[0-9]+", "").trim();
+                dto.setRequirement(currentVal + "/" + target + (suffix.isEmpty() ? "" : " " + suffix));
+            } else {
+                dto.setRequirement(currentVal + "/" + target + " " + reqBase);
             }
             
             return dto;
