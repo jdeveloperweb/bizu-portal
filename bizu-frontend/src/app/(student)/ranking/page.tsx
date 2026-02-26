@@ -78,7 +78,6 @@ export default function RankingStudentPage() {
                 }
 
                 // Fetch modules for the selected course
-                const selectedCourseId = getStoredSelectedCourseId();
                 if (selectedCourseId) {
                     const courseRes = await apiFetch(`/public/courses/${selectedCourseId}`);
                     if (courseRes.ok) {
