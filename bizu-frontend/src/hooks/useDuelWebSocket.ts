@@ -10,6 +10,9 @@ const WS_URL = (process.env.NEXT_PUBLIC_API_URL || "https://bizu.mjolnix.com.br/
 export function useDuelWebSocket(duelId: string | null, onMessage: (msg: any) => void) {
     const stompClientRef = useRef<Client | null>(null);
 
+    const onMessageRef = useRef(onMessage);
+    onMessageRef.current = onMessage;
+
     useEffect(() => {
         if (!duelId) return;
 
@@ -22,7 +25,7 @@ export function useDuelWebSocket(duelId: string | null, onMessage: (msg: any) =>
             onConnect: () => {
                 client.subscribe(`/topic/duelos/${duelId}`, (message) => {
                     try {
-                        onMessage(JSON.parse(message.body));
+                        onMessageRef.current(JSON.parse(message.body));
                     } catch (e) {
                         console.error("Error parsing duel message:", e);
                     }
@@ -41,7 +44,7 @@ export function useDuelWebSocket(duelId: string | null, onMessage: (msg: any) =>
                 stompClientRef.current.deactivate();
             }
         };
-    }, [duelId, onMessage]);
+    }, [duelId]);
 
     return stompClientRef.current;
 }

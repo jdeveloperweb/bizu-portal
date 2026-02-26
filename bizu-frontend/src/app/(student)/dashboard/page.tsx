@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import LevelTable from "@/components/gamification/LevelTable";
+import ActiveDuelBanner from "@/components/arena/ActiveDuelBanner";
 
 const quickActions = [
     { icon: Target, label: "Quiz", desc: "Questões personalizadas", href: "/questoes/treino" },
@@ -170,6 +171,8 @@ export default function DashboardPage() {
                     </button>
                 </div>
             </div>
+
+            <ActiveDuelBanner />
 
             {/* Top Stats Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10">

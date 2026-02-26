@@ -19,6 +19,9 @@ public interface DuelRepository extends JpaRepository<Duel, UUID> {
                    "ORDER BY wins DESC LIMIT 10", nativeQuery = true)
     List<Object[]> getRanking();
 
+    @org.springframework.data.jpa.repository.Query("SELECT d FROM Duel d WHERE (d.challenger.id = :userId OR d.opponent.id = :userId) AND d.status = 'IN_PROGRESS'")
+    java.util.Optional<Duel> findActiveDuelByUserId(@org.springframework.data.repository.query.Param("userId") java.util.UUID userId);
+
     @Query(value = "SELECT " +
                    "(SELECT COUNT(*) FROM student.duels WHERE winner_id = :userId AND status = 'COMPLETED') as wins, " +
                    "(SELECT COUNT(*) FROM student.duels WHERE (challenger_id = :userId OR opponent_id = :userId) AND (winner_id != :userId OR winner_id IS NULL) AND status = 'COMPLETED') as losses",

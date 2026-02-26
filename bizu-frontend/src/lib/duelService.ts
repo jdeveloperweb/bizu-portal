@@ -45,6 +45,12 @@ export const DuelService = {
         return res.json();
     },
 
+    getActiveDuel: async () => {
+        const res = await apiFetch("/duelos/me/ativo");
+        if (res.status === 204) return null;
+        return res.json();
+    },
+
     createDuel: async (opponentId: string, subject: string) => {
         const res = await apiFetch(`/duelos/desafiar?opponentId=${opponentId}&subject=${subject}`, {
             method: "POST",

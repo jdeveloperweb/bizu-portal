@@ -67,6 +67,14 @@ public class DuelController {
         return ResponseEntity.ok(duelRepository.findAllByOpponentIdAndStatus(userId, "PENDING"));
     }
 
+    @GetMapping("/me/ativo")
+    public ResponseEntity<Duel> getActiveDuel(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = resolveUserId(jwt);
+        return duelRepository.findActiveDuelByUserId(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
     @PostMapping("/{duelId}/aceitar")
     public ResponseEntity<Duel> acceptDuel(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID duelId) {
         Duel duel = duelService.acceptDuel(duelId);

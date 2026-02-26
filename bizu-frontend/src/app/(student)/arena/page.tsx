@@ -12,9 +12,12 @@ import { apiFetch } from "@/lib/api";
 import { getStoredSelectedCourseId } from "@/lib/course-selection";
 import { DuelService, Duel } from "@/lib/duelService";
 import ArenaDuelScreen from "@/components/arena/ArenaDuelScreen";
+import ActiveDuelBanner from "@/components/arena/ActiveDuelBanner";
 import Cookies from "js-cookie";
 import { useChallengeNotifications } from "@/hooks/useChallengeNotifications";
 import { useAuth } from "@/components/AuthProvider";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 type ArenaTab = "online" | "ranking" | "historico";
 
@@ -32,6 +35,14 @@ interface OnlineUser {
 
 
 export default function ArenaPage() {
+    return (
+        <Suspense fallback={<div>Carregando Arena...</div>}>
+            <ArenaPageContent />
+        </Suspense>
+    );
+}
+
+function ArenaPageContent() {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<ArenaTab>("online");
     const [selectedSubject, setSelectedSubject] = useState("Aleatorio");
@@ -41,7 +52,14 @@ export default function ArenaPage() {
     const [currentUserId, setCurrentUserId] = useState<string>("");
     const [myStats, setMyStats] = useState({ wins: 0, losses: 0, winRate: 0, streak: 0 });
     const [availableModules, setAvailableModules] = useState<string[]>([]);
+    const searchParams = useSearchParams();
 
+    useEffect(() => {
+        const urlDuelId = searchParams.get("duelId");
+        if (urlDuelId) {
+            setActiveDuelId(urlDuelId);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         if (user && user.sub) {
@@ -146,6 +164,8 @@ export default function ArenaPage() {
 
     return (
         <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
+            {!activeDuelId && <ActiveDuelBanner onReturn={(id) => setActiveDuelId(id)} />}
+
             {activeDuelId && (
                 <ArenaDuelScreen
                     duelId={activeDuelId}
