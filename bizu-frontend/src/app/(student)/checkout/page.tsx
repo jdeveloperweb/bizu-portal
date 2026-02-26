@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api";
 import { useNotification } from "@/components/NotificationProvider";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import BrandLogo from "@/components/BrandLogo";
 
 interface Plan {
@@ -104,6 +105,25 @@ const getBillingSuffix = (billingInterval?: string) => {
             return "/vitalício";
         default:
             return "";
+    }
+};
+
+
+
+const getCardBrandLogo = (brand: string) => {
+    switch (brand) {
+        case "Visa":
+            return "/card-brands/visa.svg";
+        case "Mastercard":
+            return "/card-brands/mastercard.svg";
+        case "Amex":
+            return "/card-brands/amex.svg";
+        case "Elo":
+            return "/card-brands/elo.svg";
+        case "Hipercard":
+            return "/card-brands/hipercard.svg";
+        default:
+            return "/card-brands/generic.svg";
     }
 };
 
@@ -303,8 +323,6 @@ export default function CheckoutPage() {
                                         <span className="text-5xl font-black text-slate-900 ml-1">{plan.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                                         <span className="text-slate-400 font-bold ml-1">{getBillingSuffix(plan.billingInterval)}</span>
                                     </div>
-                                    <h2 className="text-3xl font-black text-slate-900">{plan.name}</h2>
-                                    <p className="text-sm text-slate-500 mt-2 min-h-[40px]">{plan.description}</p>
 
                                     <div className="space-y-3 mb-8 flex-1">
                                         {features.map((f: string, index: number) => (
@@ -439,22 +457,32 @@ export default function CheckoutPage() {
 
                             {paymentMethod === "CARD" && (
                                 <div className="p-6 bg-white rounded-3xl border border-slate-200 space-y-5 animate-in fade-in duration-300">
-                                    <div className={`relative overflow-hidden rounded-2xl p-5 text-white transition-all duration-300 ${isCardFocused ? "scale-[1.02]" : "scale-100"} bg-gradient-to-br from-indigo-600 via-indigo-500 to-slate-900`}>
-                                        <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,.2),transparent)] animate-[pulse_2.5s_ease-in-out_infinite]" />
-                                        <div className="relative space-y-4">
-                                            <div className="flex items-center justify-between text-xs uppercase tracking-widest">
-                                                <span className="opacity-80">{cardBrand}</span>
-                                                <CardIcon size={18} />
-                                            </div>
-                                            <div className="text-xl font-black tracking-[0.18em]">{cardNumber || "0000 0000 0000 0000"}</div>
-                                            <div className="flex justify-between text-xs uppercase tracking-widest">
-                                                <div>
-                                                    <p className="opacity-70">Nome</p>
-                                                    <p className="font-bold truncate max-w-[180px]">{cardName || "SEU NOME"}</p>
+                                    <div className="w-full flex justify-center">
+                                        <div className={`relative w-full max-w-[420px] aspect-[1.586/1] overflow-hidden rounded-2xl p-5 text-white transition-all duration-300 ${isCardFocused ? "scale-[1.02]" : "scale-100"} bg-gradient-to-br from-indigo-600 via-indigo-500 to-slate-900`}>
+                                            <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,.2),transparent)] animate-[pulse_2.5s_ease-in-out_infinite]" />
+                                            <div className="relative h-full flex flex-col justify-between">
+                                                <div className="flex items-center justify-between text-[11px] uppercase tracking-widest">
+                                                    <span className="opacity-80">Cartão</span>
+                                                    <Image
+                                                        src={getCardBrandLogo(cardBrand)}
+                                                        alt={cardBrand}
+                                                        width={76}
+                                                        height={24}
+                                                        className="h-6 w-auto rounded-md"
+                                                    />
                                                 </div>
-                                                <div>
-                                                    <p className="opacity-70">Validade</p>
-                                                    <p className="font-bold">{cardExpiry || "MM/AA"}</p>
+
+                                                <div className="text-[clamp(1.15rem,2.3vw,1.65rem)] font-black tracking-[0.18em] leading-none">{cardNumber || "0000 0000 0000 0000"}</div>
+
+                                                <div className="flex justify-between text-xs uppercase tracking-widest">
+                                                    <div className="min-w-0">
+                                                        <p className="opacity-70">Nome</p>
+                                                        <p className="font-bold truncate max-w-[180px]">{cardName || "SEU NOME"}</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="opacity-70">Validade</p>
+                                                        <p className="font-bold">{cardExpiry || "MM/AA"}</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
