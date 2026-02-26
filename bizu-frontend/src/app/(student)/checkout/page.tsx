@@ -472,7 +472,7 @@ export default function CheckoutPage() {
                                                     />
                                                 </div>
 
-                                                <div className="text-[clamp(1.15rem,2.3vw,1.65rem)] font-black tracking-[0.18em] leading-none">{cardNumber || "0000 0000 0000 0000"}</div>
+                                                <div className="text-[clamp(1rem,2vw,1.4rem)] font-black tracking-[0.12em] leading-none whitespace-nowrap">{cardNumber || "0000 0000 0000 0000"}</div>
 
                                                 <div className="flex justify-between text-xs uppercase tracking-widest">
                                                     <div className="min-w-0">
@@ -623,15 +623,15 @@ export default function CheckoutPage() {
                         <div className="space-y-3 pt-6 border-t border-slate-50">
                             <div className="flex justify-between text-sm font-bold text-slate-500">
                                 <span>Subtotal</span>
-                                <span>R$ {selectedPlan?.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                                <span className="whitespace-nowrap">R$ {selectedPlan?.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between text-sm font-bold text-emerald-500">
                                 <span>Descontos</span>
-                                <span>- R$ 0,00</span>
+                                <span className="whitespace-nowrap">- R$ 0,00</span>
                             </div>
-                            <div className="pt-4">
+                            <div className="pt-4 flex items-center justify-between">
                                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total a pagar</div>
-                                <div className="text-3xl font-black text-indigo-600 tracking-tighter">R$ {selectedPlan?.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+                                <div className="text-xl font-black text-indigo-600 tracking-tighter whitespace-nowrap">R$ {selectedPlan?.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
                             </div>
                         </div>
 

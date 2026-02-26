@@ -17,7 +17,7 @@ public class MaterialService {
     private final MaterialRepository materialRepository;
 
     public List<Material> findByModuleId(UUID moduleId) {
-        return materialRepository.findByModuleId(moduleId);
+        return materialRepository.findByModule_Id(moduleId);
     }
 
     public Material findById(UUID id) {
