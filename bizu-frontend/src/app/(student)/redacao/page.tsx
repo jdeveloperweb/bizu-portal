@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { apiFetch } from "@/lib/api";
 import PageHeader from "@/components/PageHeader";
@@ -30,8 +30,42 @@ export default function RedacaoPage() {
     const [uploadType, setUploadType] = useState<"TEXT" | "IMAGE" | "PDF">("TEXT");
     const [fileBase64, setFileBase64] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const [lineCount, setLineCount] = useState(0);
 
-    const lineCount = content.trim() === "" ? 0 : content.split("\n").length;
+    // Efeito para calcular as linhas visuais reais
+    useEffect(() => {
+        const updateLineCount = () => {
+            if (content.trim() === "") {
+                setLineCount(0);
+                return;
+            }
+            // Criamos um elemento fantasma para medir a altura exata do texto com as mesmas propriedades do textarea
+            const div = document.createElement("div");
+            const styles = window.getComputedStyle(textareaRef.current!);
+            div.style.fontFamily = styles.fontFamily;
+            div.style.fontSize = styles.fontSize;
+            div.style.lineHeight = styles.lineHeight;
+            div.style.whiteSpace = "pre-wrap";
+            div.style.wordBreak = "break-word";
+            div.style.width = `${textareaRef.current?.clientWidth}px`;
+            div.style.position = "absolute";
+            div.style.visibility = "hidden";
+            div.style.padding = styles.padding;
+            div.innerHTML = content.replace(/\n/g, "<br/>") + " "; // Adiciona um espaço para garantir que a última linha seja contada
+            document.body.appendChild(div);
+
+            const height = div.offsetHeight;
+            const lines = Math.floor(height / 32);
+            setLineCount(lines);
+
+            document.body.removeChild(div);
+        };
+
+        if (textareaRef.current && uploadType === "TEXT") {
+            updateLineCount();
+        }
+    }, [content, uploadType]);
 
     useEffect(() => {
         if (selectedCourseId) {
@@ -248,14 +282,12 @@ export default function RedacaoPage() {
                                             style={{ backgroundPosition: '0 31px' }}
                                         >
                                             <textarea
+                                                ref={textareaRef}
                                                 required
                                                 value={content}
                                                 onChange={e => {
-                                                    const lines = e.target.value.split('\n');
-                                                    if (lines.length <= 30) {
-                                                        setContent(e.target.value);
-                                                        if (error) setError(null);
-                                                    }
+                                                    setContent(e.target.value);
+                                                    if (error) setError(null);
                                                 }}
                                                 placeholder="Desenvolva seu texto aqui, respeitando as normas da ABNT e o limite de linhas..."
                                                 className="w-full min-h-[960px] p-0 bg-transparent border-none text-base leading-[32px] resize-none focus:ring-0 font-serif text-slate-700 px-8 py-0 selection:bg-primary/20 placeholder:text-slate-300"
