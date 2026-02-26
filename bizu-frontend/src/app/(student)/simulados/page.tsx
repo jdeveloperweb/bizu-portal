@@ -6,7 +6,7 @@ import {
     FileText, CheckCircle2, PlayCircle,
     Calendar, Target,
     Clock, Trophy,
-    Lock, Star, BookOpen
+    Lock, Star, BookOpen, Sparkles
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
@@ -18,6 +18,10 @@ const statusConfig: Record<string, any> = {
     concluido: { label: "Concluido", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
     bloqueado: { label: "Em breve", color: "text-slate-500", bg: "bg-slate-50", border: "border-slate-200" },
 };
+
+import { motion } from "framer-motion";
+import PageHeader from "@/components/PageHeader";
+import { Button } from "@/components/ui/button";
 
 export default function SimuladosPage() {
     const [activeTab, setActiveTab] = useState<SimuladoTab>("disponiveis");
@@ -76,114 +80,146 @@ export default function SimuladosPage() {
             : mappedSimulados;
 
     return (
-        <div className="p-6 lg:p-8 w-full max-w-[1100px] mx-auto">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                <div>
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className="pill pill-primary text-[10px] font-bold uppercase tracking-[0.15em]">Simulados</span>
-                    </div>
-                    <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-0.5">
-                        Simulados
-                    </h1>
-                    <p className="text-sm text-slate-500">Treine com tempo real e questoes selecionadas para o seu concurso.</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
-                        <CheckCircle2 size={13} /> {completed.length} concluidos
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full">
-                        <Target size={13} /> {avgScore}% media
-                    </div>
-                </div>
-            </div>
+        <div className="min-h-screen bg-background relative overflow-hidden pb-12">
+            {/* Design Background elements */}
+            <div className="pointer-events-none absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px]" />
+            <div className="pointer-events-none absolute top-1/2 -left-40 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px]" />
 
-            {/* Stats */}
-            <div className="grid grid-cols-4 gap-3 mb-6">
-                {[
-                    { label: "Realizados", val: String(completed.length), icon: CheckCircle2, bg: "bg-emerald-50", text: "text-emerald-600" },
-                    { label: "Media geral", val: `${avgScore}%`, icon: Target, bg: "bg-indigo-50", text: "text-indigo-600" },
-                    { label: "Melhor nota", val: "-", icon: Star, bg: "bg-amber-50", text: "text-amber-600" },
-                    { label: "Melhor ranking", val: "-", icon: Trophy, bg: "bg-violet-50", text: "text-violet-600" },
-                ].map(s => {
-                    const Icon = s.icon;
-                    return (
-                        <div key={s.label} className="card-elevated p-4 hover:!transform-none">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className={`w-7 h-7 rounded-lg ${s.bg} flex items-center justify-center`}>
-                                    <Icon size={13} className={s.text} />
-                                </div>
-                            </div>
-                            <div className="text-xl font-extrabold text-slate-900">{s.val}</div>
-                            <div className="text-[11px] text-slate-400">{s.label}</div>
+            <div className="container mx-auto px-4 sm:px-6 py-8 md:py-12 max-w-5xl relative z-10">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 md:mb-12">
+                    <PageHeader
+                        title="Simulados de Concurso"
+                        description="Treine em tempo real com questões selecionadas e cronometradas."
+                        badge="MARIA PENHA ET AL."
+                    />
+
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 px-4 py-2.5 bg-success/10 text-success text-xs font-black rounded-2xl border border-success/20 shadow-sm">
+                            <CheckCircle2 size={16} />
+                            <span>{completed.length} CONCLUÍDOS</span>
                         </div>
-                    );
-                })}
-            </div>
-
-            {/* Tabs */}
-            <div className="flex items-center gap-2 mb-5">
-                {([
-                    { key: "disponiveis" as SimuladoTab, label: "Disponiveis" },
-                    { key: "concluidos" as SimuladoTab, label: "Concluidos" },
-                    { key: "meus" as SimuladoTab, label: "Todos" },
-                ]).map(f => (
-                    <button key={f.key} onClick={() => setActiveTab(f.key)}
-                        className={`px-3.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${activeTab === f.key ? "bg-indigo-50 text-indigo-700 border border-indigo-100" : "text-slate-400 hover:text-slate-600"
-                            }`}>
-                        {f.label}
-                    </button>
-                ))}
-            </div>
-
-            {/* Simulados List */}
-            <div className="space-y-3">
-                {isLoading ? (
-                    <div className="text-center p-8 text-muted-foreground">Carregando simulados...</div>
-                ) : displayedSimulados.length === 0 ? (
-                    <div className="text-center p-8 text-muted-foreground bg-slate-50 rounded-2xl border border-slate-100">
-                        Nenhum simulado encontrado nesta categoria.
+                        <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 text-primary text-xs font-black rounded-2xl border border-primary/20 shadow-sm">
+                            <Target size={16} />
+                            <span>{avgScore}% PERFORMANCE</span>
+                        </div>
                     </div>
-                ) : displayedSimulados.map(sim => {
-                    const sConfig = statusConfig[sim.status] || statusConfig["disponivel"];
-                    return (
-                        <div key={sim.id} className={`card-elevated !rounded-2xl p-5 hover:!transform-none ${sim.status === "bloqueado" ? "opacity-60" : ""}`}>
-                            <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${sConfig.bg} ${sConfig.color} ${sConfig.border} border`}>
-                                            {sConfig.label}
-                                        </span>
-                                        <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full"
-                                            style={sim.themeColor ? { backgroundColor: sim.themeColor + '15', color: sim.themeColor } : { backgroundColor: '#f1f5f9', color: '#64748b' }}>
-                                            {sim.course}
-                                        </span>
-                                    </div>
-                                    <h3 className="text-[14px] font-bold text-slate-800 mb-1">{sim.title}</h3>
-                                    <p className="text-[11px] text-slate-400 mb-2 line-clamp-1">{sim.description}</p>
-                                    <div className="flex items-center gap-3 flex-wrap">
-                                        <span className="text-[10px] text-slate-400 flex items-center gap-1"><FileText size={10} /> {sim.questions} questoes</span>
-                                        <span className="text-[10px] text-slate-400 flex items-center gap-1"><Calendar size={10} /> {sim.date}</span>
-                                    </div>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
+                    {[
+                        { label: "Realizados", val: String(completed.length), icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+                        { label: "Média Geral", val: `${avgScore}%`, icon: Target, color: "text-blue-500", bg: "bg-blue-500/10" },
+                        { label: "Melhor Nota", val: "-", icon: Star, color: "text-amber-500", bg: "bg-amber-500/10" },
+                        { label: "Ranking", val: "-", icon: Trophy, color: "text-violet-500", bg: "bg-violet-500/10" },
+                    ].map((s, idx) => {
+                        const Icon = s.icon;
+                        return (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                key={s.label}
+                                className="bg-card/40 backdrop-blur-md border border-border/50 p-5 rounded-[1.5rem] shadow-xl shadow-primary/5 hover:border-primary/30 transition-all"
+                            >
+                                <div className={`w-9 h-9 rounded-xl ${s.bg} ${s.color} flex items-center justify-center mb-3 shadow-inner`}>
+                                    <Icon size={18} />
                                 </div>
-                                <div className="flex items-center gap-2 shrink-0">
-                                    {sim.status === "disponivel" && (
-                                        <Link href={`/simulados/${sim.id}`}
-                                            className="btn-primary !h-9 !text-[12px] !px-5"
-                                            style={sim.themeColor ? { backgroundColor: sim.themeColor, color: sim.textColor || "#ffffff" } : {}}>
-                                            <PlayCircle size={14} /> Iniciar
-                                        </Link>
-                                    )}
-                                    {sim.status === "bloqueado" && (
-                                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
-                                            <Lock size={13} /> Em breve
+                                <div className="text-2xl font-black text-foreground">{s.val}</div>
+                                <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{s.label}</div>
+                            </motion.div>
+                        );
+                    })}
+                </div>
+
+                {/* Tabs & List Section */}
+                <div className="bg-card/50 backdrop-blur-xl border border-border/40 rounded-[2.5rem] p-6 md:p-8 shadow-2xl shadow-primary/5">
+                    <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+                        {([
+                            { key: "disponiveis" as SimuladoTab, label: "Disponíveis agora" },
+                            { key: "concluidos" as SimuladoTab, label: "Histórico" },
+                            { key: "meus" as SimuladoTab, label: "Todos" },
+                        ]).map(f => (
+                            <button
+                                key={f.key}
+                                onClick={() => setActiveTab(f.key)}
+                                className={`px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === f.key ? "bg-primary text-white shadow-lg shadow-primary/30" : "bg-muted/50 text-muted-foreground hover:bg-primary/5 hover:text-primary"}`}
+                            >
+                                {f.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="space-y-4">
+                        {isLoading ? (
+                            <div className="flex flex-col items-center justify-center p-20 gap-4 opacity-40">
+                                <Sparkles className="w-8 h-8 animate-spin text-primary" />
+                                <span className="font-black text-xs uppercase tracking-[0.2em]">Carregando simulados...</span>
+                            </div>
+                        ) : displayedSimulados.length === 0 ? (
+                            <div className="text-center p-16 rounded-[2rem] border-2 border-dashed border-border/40">
+                                <FileText className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
+                                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
+                                    Nenhum simulado disponível no momento.
+                                </p>
+                            </div>
+                        ) : displayedSimulados.map((sim, idx) => {
+                            const sConfig = statusConfig[sim.status] || statusConfig["disponivel"];
+                            return (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: idx * 0.05 }}
+                                    key={sim.id}
+                                    className={`group relative bg-background/50 hover:bg-background rounded-[1.5rem] md:rounded-[2rem] p-5 md:p-6 border border-border/50 hover:border-primary/30 transition-all duration-300 ${sim.status === "bloqueado" ? "opacity-50" : "hover:shadow-2xl hover:shadow-primary/5"}`}
+                                >
+                                    <div className="flex flex-col md:flex-row md:items-center gap-5">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-3 flex-wrap">
+                                                <div className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${sConfig.bg} ${sConfig.color} ${sConfig.border}`}>
+                                                    {sConfig.label}
+                                                </div>
+                                                <div className="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-muted text-muted-foreground border border-border/50">
+                                                    {sim.course}
+                                                </div>
+                                            </div>
+                                            <h3 className="text-lg md:text-xl font-black text-foreground mb-1 group-hover:text-primary transition-colors">{sim.title}</h3>
+                                            <p className="text-xs md:text-sm text-muted-foreground font-medium mb-4 line-clamp-1">{sim.description}</p>
+
+                                            <div className="flex items-center gap-5">
+                                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                                    <BookOpen className="w-4 h-4 text-primary/40" />
+                                                    {sim.questions} QUESTÕES
+                                                </div>
+                                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                                    <Clock className="w-4 h-4 text-primary/40" />
+                                                    {sim.date}
+                                                </div>
+                                            </div>
                                         </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
+
+                                        <div className="flex items-center gap-3 shrink-0 pt-4 md:pt-0">
+                                            {sim.status === "disponivel" && (
+                                                <Link href={`/simulados/${sim.id}`}>
+                                                    <Button className="rounded-2xl h-12 md:h-14 px-8 font-black uppercase tracking-widest text-xs gap-2 shadow-xl shadow-primary/20 hover:scale-105 transition-all">
+                                                        <PlayCircle className="w-5 h-5" />
+                                                        Iniciar Simulado
+                                                    </Button>
+                                                </Link>
+                                            )}
+                                            {sim.status === "bloqueado" && (
+                                                <div className="flex items-center gap-2 bg-muted/50 px-6 py-3 rounded-2xl">
+                                                    <Lock size={16} className="text-muted-foreground" />
+                                                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Em breve</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+                </div>
             </div>
         </div>
     );

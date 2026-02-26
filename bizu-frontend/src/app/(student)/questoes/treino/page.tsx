@@ -224,164 +224,165 @@ function TreinoContent() {
     };
 
     return (
-        <div className="w-full px-4 sm:px-6 py-6 sm:py-8 relative overflow-hidden">
-            <div className="pointer-events-none absolute -top-16 right-0 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
-            <div className="pointer-events-none absolute top-48 -left-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+        <div className="min-h-screen bg-background relative overflow-hidden pb-12">
+            {/* Design Background elements */}
+            <div className="pointer-events-none absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px]" />
+            <div className="pointer-events-none absolute top-1/2 -left-40 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px]" />
 
-            <div className="flex flex-wrap items-center justify-between mb-6 md:mb-8 gap-3 relative z-10">
-                <Link href="/dashboard">
-                    <Button variant="ghost" className="rounded-xl flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 -ml-2 sm:ml-0">
-                        <ChevronLeft className="w-4 h-4" />
-                        Voltar
-                    </Button>
-                </Link>
+            <div className="container mx-auto max-w-5xl px-4 sm:px-6 py-4 sm:py-8 relative z-10">
+                {/* Header Navigation */}
+                <div className="flex flex-wrap items-center justify-between mb-8 sm:mb-12 gap-3">
+                    <Link href="/dashboard">
+                        <Button variant="ghost" className="rounded-2xl flex items-center gap-2 px-4 hover:bg-primary/10 hover:text-primary group transition-all">
+                            <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                            <span className="font-bold">Voltar ao Início</span>
+                        </Button>
+                    </Link>
 
-                <div className="flex items-center gap-2 sm:gap-4">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowConfig(!showConfig)}
-                        className={`rounded-xl h-9 sm:h-10 px-3 sm:px-4 flex items-center gap-2 transition-all ${showConfig ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90' : 'hover:bg-primary/5 hover:border-primary/30'}`}
-                    >
-                        <Settings className="w-4 h-4" />
-                        <span className="hidden xs:inline">Configurar Quiz</span>
-                    </Button>
+                    <div className="flex items-center gap-2 sm:gap-4">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowConfig(!showConfig)}
+                            className={`rounded-2xl h-10 sm:h-12 px-4 sm:px-5 flex items-center gap-2 font-black transition-all shadow-sm ${showConfig ? 'bg-primary text-primary-foreground border-primary shadow-primary/20' : 'bg-card/50 backdrop-blur-sm border-border/50 hover:bg-primary/5'}`}
+                        >
+                            <Settings className="w-4 h-4" />
+                            <span className="hidden xs:inline">Configurações</span>
+                        </Button>
 
-                    <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-muted-foreground bg-muted px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl">
-                        <Timer className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        <span className="hidden sm:inline">Treino Livre</span>
-                        <span className="sm:hidden">Treino</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-primary bg-primary/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl">
-                        <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        {currentQuestionIdx + 1}/{filteredQuestions.length}
+                        <div className="flex items-center gap-2 text-xs font-black text-primary bg-primary/5 border border-primary/20 px-4 py-2 sm:py-3 rounded-2xl shadow-sm">
+                            <LayoutGrid className="w-4 h-4" />
+                            {currentQuestionIdx + 1}<span className="text-primary/40 font-bold mx-0.5">/</span>{filteredQuestions.length}
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <PageHeader
-                title={simulado.title}
-                description={simulado.description || "Foque na resolução e no aprendizado com gabaritos detalhados."}
-                badge="ESTUDO ATIVO"
-            />
-
-            <AnimatePresence>
-                {!simuladoId && showConfig && (
-                    <motion.div
-                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                        animate={{ opacity: 1, height: "auto", marginTop: 24 }}
-                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="mb-8 p-5 sm:p-6 rounded-3xl border bg-card/90 backdrop-blur-sm shadow-xl shadow-primary/5 overflow-hidden"
-                    >
-                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                            <div>
-                                <div className="flex items-center gap-2 text-sm font-bold text-primary mb-1">
-                                    <Sparkles className="w-4 h-4" />
-                                    Configuração rápida do quiz
-                                </div>
-                                <p className="text-sm text-muted-foreground">Escolha o módulo e a quantidade sem sair desta tela.</p>
-                            </div>
-
-                            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                <SlidersHorizontal className="w-4 h-4" />
-                                Modo dinâmico
-                            </div>
+                {/* Main Content Area */}
+                <div className="max-w-4xl mx-auto space-y-8">
+                    {!showConfig && (
+                        <div className="mb-2">
+                            <PageHeader
+                                title={simulado.title}
+                                description={simulado.description || "Foque na resolução e no aprendizado com gabaritos detalhados."}
+                                badge="PRÁTICA ATIVA"
+                            />
                         </div>
+                    )}
 
-                        <div className="mt-5 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr_auto] gap-3 items-end">
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Assunto / módulo</span>
-                                    <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-full">
-                                        {modules.length} MÓDULOS NO TOTAL
-                                    </span>
-                                </div>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            className="h-11 w-full rounded-2xl border bg-background px-4 text-sm font-medium justify-between hover:bg-background/80"
-                                        >
-                                            <span className="truncate mr-2">{selectedModulesText}</span>
-                                            <ChevronDown className="w-4 h-4 shrink-0 opacity-50" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[300px] overflow-y-auto rounded-xl border-muted/30 p-2 shadow-2xl">
-                                        <DropdownMenuLabel className="flex items-center justify-between py-2 px-3">
-                                            <span>Selecionar Módulos</span>
-                                            {selectedModuleIds.length > 0 && (
-                                                <button
-                                                    onClick={(e) => { e.preventDefault(); setSelectedModuleIds([]); }}
-                                                    className="text-[10px] font-bold text-primary hover:underline"
-                                                >
-                                                    LIMPAR TODOS
-                                                </button>
-                                            )}
-                                        </DropdownMenuLabel>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuCheckboxItem
-                                            checked={selectedModuleIds.length === 0}
-                                            onCheckedChange={() => setSelectedModuleIds([])}
-                                            className="rounded-lg mb-1"
-                                        >
-                                            Todos os módulos
-                                        </DropdownMenuCheckboxItem>
-                                        <DropdownMenuSeparator />
-                                        {modules.map((module) => (
-                                            <DropdownMenuCheckboxItem
-                                                key={module.id}
-                                                className="rounded-lg mb-1"
-                                                checked={selectedModuleIds.includes(module.id)}
-                                                onCheckedChange={(checked) => {
-                                                    if (checked) {
-                                                        setSelectedModuleIds(prev => [...prev, module.id]);
-                                                    } else {
-                                                        setSelectedModuleIds(prev => prev.filter(id => id !== module.id));
-                                                    }
-                                                }}
-                                            >
-                                                {module.title}
-                                            </DropdownMenuCheckboxItem>
-                                        ))}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-
-                            <label className="space-y-2">
-                                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quantidade</span>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {[10, 50, 100].map((value) => (
-                                        <button
-                                            type="button"
-                                            key={value}
-                                            onClick={() => setQuestionCount(value)}
-                                            className={`h-11 rounded-xl border text-sm font-extrabold transition ${questionCount === value ? "border-primary bg-primary/10 text-primary" : "hover:border-primary/40 text-muted-foreground"}`}
-                                        >
-                                            {value}
-                                        </button>
-                                    ))}
-                                </div>
-                            </label>
-
-                            <Button
-                                onClick={handleApplyConfig}
-                                disabled={isApplyingConfig}
-                                className="h-11 rounded-2xl font-bold px-6 shadow-lg shadow-primary/20"
+                    <AnimatePresence>
+                        {!simuladoId && showConfig && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: -20, height: 0 }}
+                                animate={{ opacity: 1, scale: 1, y: 0, height: "auto" }}
+                                exit={{ opacity: 0, scale: 0.95, y: -20, height: 0 }}
+                                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                                className="mb-12 overflow-hidden"
                             >
-                                {isApplyingConfig ? "Aplicando..." : "Aplicar"}
-                            </Button>
-                        </div>
+                                <div className="p-6 md:p-8 rounded-[2.5rem] border border-primary/20 bg-card/50 backdrop-blur-xl shadow-2xl shadow-primary/10">
+                                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
+                                        <div>
+                                            <div className="flex items-center gap-2 text-sm font-black text-primary uppercase tracking-[0.2em] mb-2">
+                                                <Sparkles className="w-4 h-4" />
+                                                Personalize seu Treino
+                                            </div>
+                                            <p className="text-sm text-muted-foreground font-medium">Ajuste os filtros sem perder o seu progresso atual.</p>
+                                        </div>
 
-                        <p className="text-xs text-muted-foreground mt-3">
-                            Filtro atual: <span className="font-bold text-foreground">{selectedModulesText}</span>
-                        </p>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                                        <div className="hidden lg:flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 bg-muted/50 px-4 py-2 rounded-full border border-border/50">
+                                            <SlidersHorizontal className="w-3.5 h-3.5" />
+                                            Filtros Dinâmicos
+                                        </div>
+                                    </div>
 
-            <div key={mappedQuestion.id}>
-                <QuestionViewer {...mappedQuestion} onNext={handleNext} />
+                                    <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr_auto] gap-6 items-end">
+                                        <div className="space-y-3">
+                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Módulos de Estudo</span>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        className="h-14 w-full rounded-[1.25rem] border-border/50 bg-background/50 px-5 text-sm font-bold justify-between hover:bg-background/80 transition-all"
+                                                    >
+                                                        <span className="truncate mr-2">{selectedModulesText}</span>
+                                                        <ChevronDown className="w-5 h-5 shrink-0 text-primary opacity-50" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-[350px] overflow-y-auto rounded-3xl border-border/40 p-3 shadow-2xl backdrop-blur-2xl">
+                                                    <DropdownMenuLabel className="flex items-center justify-between py-2 px-4 mb-2">
+                                                        <span className="text-xs font-black uppercase tracking-widest">Selecionar Módulos</span>
+                                                        {selectedModuleIds.length > 0 && (
+                                                            <button
+                                                                onClick={(e) => { e.preventDefault(); setSelectedModuleIds([]); }}
+                                                                className="text-[10px] font-black text-primary hover:underline uppercase tracking-wide"
+                                                            >
+                                                                Limpar
+                                                            </button>
+                                                        )}
+                                                    </DropdownMenuLabel>
+                                                    <DropdownMenuSeparator className="mb-2 opacity-50" />
+                                                    <DropdownMenuCheckboxItem
+                                                        checked={selectedModuleIds.length === 0}
+                                                        onCheckedChange={() => setSelectedModuleIds([])}
+                                                        className="rounded-xl mb-1 py-3 px-4 font-bold focus:bg-primary/10 focus:text-primary transition-colors"
+                                                    >
+                                                        Todos os módulos
+                                                    </DropdownMenuCheckboxItem>
+                                                    {modules.map((module) => (
+                                                        <DropdownMenuCheckboxItem
+                                                            key={module.id}
+                                                            className="rounded-xl mb-1 py-3 px-4 font-bold focus:bg-primary/10 focus:text-primary transition-colors"
+                                                            checked={selectedModuleIds.includes(module.id)}
+                                                            onCheckedChange={(checked) => {
+                                                                if (checked) {
+                                                                    setSelectedModuleIds(prev => [...prev, module.id]);
+                                                                } else {
+                                                                    setSelectedModuleIds(prev => prev.filter(id => id !== module.id));
+                                                                }
+                                                            }}
+                                                        >
+                                                            {module.title}
+                                                        </DropdownMenuCheckboxItem>
+                                                    ))}
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Questões</span>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {[10, 50, 100].map((value) => (
+                                                    <button
+                                                        type="button"
+                                                        key={value}
+                                                        onClick={() => setQuestionCount(value)}
+                                                        className={`h-14 rounded-[1.25rem] border-2 text-sm font-black transition-all ${questionCount === value ? "border-primary bg-primary/10 text-primary shadow-lg shadow-primary/5" : "border-border/50 hover:border-primary/30 text-muted-foreground/70"}`}
+                                                    >
+                                                        {value}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <Button
+                                            onClick={() => {
+                                                handleApplyConfig();
+                                                setShowConfig(false);
+                                            }}
+                                            disabled={isApplyingConfig}
+                                            className="h-14 rounded-[1.25rem] font-black px-8 shadow-xl shadow-primary/25 hover:scale-105 active:scale-95 transition-all text-base"
+                                        >
+                                            {isApplyingConfig ? "Salvando..." : "Aplicar"}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    <div key={mappedQuestion.id} className="pb-10">
+                        <QuestionViewer {...mappedQuestion} onNext={handleNext} />
+                    </div>
+                </div>
             </div>
         </div>
     );

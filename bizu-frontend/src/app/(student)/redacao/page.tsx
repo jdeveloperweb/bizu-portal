@@ -29,6 +29,9 @@ export default function RedacaoPage() {
     const [content, setContent] = useState("");
     const [uploadType, setUploadType] = useState<"TEXT" | "IMAGE" | "PDF">("TEXT");
     const [fileBase64, setFileBase64] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
+    const lineCount = content.trim() === "" ? 0 : content.split("\n").length;
 
     useEffect(() => {
         if (selectedCourseId) {
@@ -64,6 +67,19 @@ export default function RedacaoPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (uploadType === "TEXT") {
+            if (lineCount < 20) {
+                setError("Sua redação precisa ter no mínimo 20 linhas para ser avaliada.");
+                return;
+            }
+            if (lineCount > 30) {
+                setError("Sua redação ultrapassou o limite máximo de 30 linhas.");
+                return;
+            }
+        }
+
+        setError(null);
         setIsSubmitting(true);
 
         try {
@@ -211,14 +227,57 @@ export default function RedacaoPage() {
 
                             {uploadType === "TEXT" ? (
                                 <div className="space-y-4">
-                                    <label className="text-sm font-black uppercase tracking-widest text-muted-foreground">Texto da Redação</label>
-                                    <textarea
-                                        required
-                                        value={content}
-                                        onChange={e => setContent(e.target.value)}
-                                        placeholder="Comece a escrever sua redação aqui..."
-                                        className="w-full min-h-[400px] p-8 rounded-3xl bg-muted/50 border-none text-base leading-relaxed resize-none focus:ring-2 focus:ring-primary transition-all font-serif"
-                                    />
+                                    <div className="flex justify-between items-end px-2">
+                                        <label className="text-sm font-black uppercase tracking-widest text-muted-foreground">Texto da Redação</label>
+                                        <div className={`text-[10px] font-black uppercase tracking-tighter px-3 py-1 rounded-full transition-all duration-300 shadow-sm ${lineCount < 20 || lineCount > 30 ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}`}>
+                                            {lineCount} / 30 LINHAS {lineCount < 20 && "• MÍNIMO 20"}
+                                        </div>
+                                    </div>
+
+                                    <div className="relative bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden transition-all duration-500 focus-within:ring-8 focus-within:ring-primary/5">
+                                        {/* Margem e Números de Linha */}
+                                        <div className="absolute left-0 top-0 bottom-0 w-12 bg-slate-50 border-r border-rose-100 flex flex-col pt-[32px] items-center text-[10px] font-mono text-slate-300 select-none z-10">
+                                            {Array.from({ length: 30 }).map((_, i) => (
+                                                <div key={i} className="h-8 flex items-center">{String(i + 1).padStart(2, '0')}</div>
+                                            ))}
+                                        </div>
+
+                                        {/* Papel Pautado */}
+                                        <div
+                                            className="ml-12 min-h-[960px] bg-[linear-gradient(#f1f5f9_1px,transparent_1px)] bg-[length:100%_32px]"
+                                            style={{ backgroundPosition: '0 31px' }}
+                                        >
+                                            <textarea
+                                                required
+                                                value={content}
+                                                onChange={e => {
+                                                    const lines = e.target.value.split('\n');
+                                                    if (lines.length <= 30) {
+                                                        setContent(e.target.value);
+                                                        if (error) setError(null);
+                                                    }
+                                                }}
+                                                placeholder="Desenvolva seu texto aqui, respeitando as normas da ABNT e o limite de linhas..."
+                                                className="w-full min-h-[960px] p-0 bg-transparent border-none text-base leading-[32px] resize-none focus:ring-0 font-serif text-slate-700 px-8 py-0 selection:bg-primary/20 placeholder:text-slate-300"
+                                                style={{
+                                                    outline: 'none',
+                                                    paddingTop: '0px'
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                    <AnimatePresence>
+                                        {error && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="p-4 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 text-sm font-bold flex items-center gap-3 shadow-lg shadow-rose-500/5"
+                                            >
+                                                <AlertCircle size={18} className="shrink-0" /> {error}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             ) : (
                                 <div className="space-y-4">
@@ -301,8 +360,29 @@ export default function RedacaoPage() {
                                         </p>
                                     </div>
                                 </div>
-                                <div className="prose prose-slate dark:prose-invert max-w-none font-serif leading-loose whitespace-pre-wrap text-lg bg-muted/30 p-8 rounded-2xl border border-dashed">
-                                    {selectedEssay.content || "Redação enviada em formato de imagem/PDF."}
+                                <div className="relative bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+                                    {selectedEssay.content ? (
+                                        <>
+                                            <div className="absolute left-0 top-0 bottom-0 w-12 bg-slate-50 border-r border-rose-100 flex flex-col pt-[32px] items-center text-[10px] font-mono text-slate-300 select-none">
+                                                {Array.from({ length: Math.max(30, selectedEssay.content.split('\n').length) }).map((_, i) => (
+                                                    <div key={i} className="h-8 flex items-center">{String(i + 1).padStart(2, '0')}</div>
+                                                ))}
+                                            </div>
+                                            <div
+                                                className="ml-12 p-8 pt-0 bg-[linear-gradient(#f8fafc_1px,transparent_1px)] bg-[length:100%_32px]"
+                                                style={{ backgroundPosition: '0 31px' }}
+                                            >
+                                                <div className="font-serif text-slate-700 text-base leading-[32px] whitespace-pre-wrap py-2">
+                                                    {selectedEssay.content}
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="p-12 text-center text-muted-foreground italic font-serif flex flex-col items-center gap-4">
+                                            <ImageIcon size={48} className="opacity-10" />
+                                            Redação enviada em formato de imagem/PDF via upload.
+                                        </div>
+                                    )}
                                 </div>
                                 {selectedEssay.attachmentUrl && (
                                     <div className="mt-6">

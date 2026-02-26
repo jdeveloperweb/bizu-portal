@@ -11,7 +11,7 @@ import {
 import { apiFetch } from "@/lib/api";
 import { getStoredSelectedCourseId } from "@/lib/course-selection";
 
-type SessionType = "focus" | "shortBreak" | "longBreak";
+import { usePomodoro, SessionType } from "@/contexts/PomodoroContext";
 
 interface PomodoroSession {
     id: string;
@@ -27,170 +27,62 @@ const PRESETS = [
     { label: "Rapido", focus: 15, short: 3, long: 10 },
 ];
 
-// SUBJECTS will be fetched dynamically from the selected course
-
-
 export default function PomodoroPage() {
-    const [focusDuration, setFocusDuration] = useState(25);
-    const [shortBreakDuration, setShortBreakDuration] = useState(5);
-    const [longBreakDuration, setLongBreakDuration] = useState(15);
-    const [timeLeft, setTimeLeft] = useState(25 * 60);
-    const [isRunning, setIsRunning] = useState(false);
-    const [sessionType, setSessionType] = useState<SessionType>("focus");
-    const [completedCycles, setCompletedCycles] = useState(0);
-    const [selectedSubject, setSelectedSubject] = useState("Selecione um módulo");
-    const [availableModules, setAvailableModules] = useState<string[]>([]);
-    const [totalFocusToday, setTotalFocusToday] = useState(0);
+    const {
+        timeLeft,
+        isRunning,
+        sessionType,
+        completedCycles,
+        totalFocusToday,
+        focusDuration,
+        shortBreakDuration,
+        longBreakDuration,
+        selectedSubject,
+        availableModules,
+        toggleTimer,
+        resetTimer,
+        skipSession,
+        setSessionType,
+        setSelectedSubject,
+        setDurations
+    } = usePomodoro();
 
-    const [soundEnabled, setSoundEnabled] = useState(true);
     const [showSubjectPicker, setShowSubjectPicker] = useState(false);
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
+    const [soundEnabled, setSoundEnabled] = useState(true);
     const [recentSessions, setRecentSessions] = useState<PomodoroSession[]>([]);
 
     useEffect(() => {
-        const fetchSummary = async () => {
+        const fetchRecent = async () => {
             try {
                 const res = await apiFetch('/student/pomodoro/summary');
                 if (res.ok) {
                     const data = await res.json();
-                    setTotalFocusToday(data.totalFocusToday || 0);
-                    setCompletedCycles(data.completedCycles || 0);
                     setRecentSessions(data.recentSessions || []);
                 }
             } catch (error) {
-                console.error("Error fetching pomodoro summary:", error);
+                console.error("Error fetching recent sessions:", error);
             }
         };
-        fetchSummary();
-    }, []);
-
-    const getCurrentDuration = useCallback(() => {
-        switch (sessionType) {
-            case "focus": return focusDuration * 60;
-            case "shortBreak": return shortBreakDuration * 60;
-            case "longBreak": return longBreakDuration * 60;
-        }
-    }, [sessionType, focusDuration, shortBreakDuration, longBreakDuration]);
-
-    useEffect(() => {
-        if (isRunning && timeLeft > 0) {
-            intervalRef.current = setInterval(() => {
-                setTimeLeft(prev => prev - 1);
-            }, 1000);
-        } else if (timeLeft === 0) {
-            handleSessionComplete();
-        }
-        return () => {
-            if (intervalRef.current) clearInterval(intervalRef.current);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isRunning, timeLeft]);
-
-    useEffect(() => {
-        const fetchModules = async () => {
-            try {
-                const selectedCourseId = getStoredSelectedCourseId();
-                if (selectedCourseId) {
-                    const res = await apiFetch(`/public/courses/${selectedCourseId}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.modules && data.modules.length > 0) {
-                            const moduleTitles = data.modules.map((m: any) => m.title);
-                            setAvailableModules(moduleTitles);
-                            setSelectedSubject(moduleTitles[0]);
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching modules:", error);
-            }
-        };
-        fetchModules();
-    }, []);
-
-
-    const saveSession = async () => {
-        try {
-            const selectedCourseId = getStoredSelectedCourseId();
-            const res = await apiFetch('/student/pomodoro/session', {
-                method: "POST",
-                body: JSON.stringify({
-                    subject: selectedSubject,
-                    focusMinutes: focusDuration,
-                    cycles: 1,
-                    courseId: selectedCourseId || null
-                })
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setRecentSessions(prev => [data, ...prev].slice(0, 10));
-            }
-        } catch (error) {
-            console.error("Error saving pomodoro session:", error);
-        }
-    };
-
-    const handleSessionComplete = () => {
-        setIsRunning(false);
-        if (sessionType === "focus") {
-            saveSession();
-            const newCycles = completedCycles + 1;
-            setCompletedCycles(newCycles);
-            setTotalFocusToday(prev => prev + focusDuration);
-            if (newCycles % 4 === 0) {
-                setSessionType("longBreak");
-                setTimeLeft(longBreakDuration * 60);
-            } else {
-                setSessionType("shortBreak");
-                setTimeLeft(shortBreakDuration * 60);
-            }
-        } else {
-            setSessionType("focus");
-            setTimeLeft(focusDuration * 60);
-        }
-    };
-
-    const toggleTimer = () => setIsRunning(!isRunning);
-
-    const resetTimer = () => {
-        setIsRunning(false);
-        setTimeLeft(getCurrentDuration());
-    };
-
-    const skipSession = () => {
-        setIsRunning(false);
-        if (sessionType === "focus") {
-            setSessionType("shortBreak");
-            setTimeLeft(shortBreakDuration * 60);
-        } else {
-            setSessionType("focus");
-            setTimeLeft(focusDuration * 60);
-        }
-    };
+        fetchRecent();
+    }, [completedCycles]);
 
     const applyPreset = (preset: typeof PRESETS[0]) => {
-        setIsRunning(false);
-        setFocusDuration(preset.focus);
-        setShortBreakDuration(preset.short);
-        setLongBreakDuration(preset.long);
-        setSessionType("focus");
-        setTimeLeft(preset.focus * 60);
+        setDurations(preset.focus, preset.short, preset.long);
     };
 
     const switchSession = (type: SessionType) => {
-        setIsRunning(false);
         setSessionType(type);
-        switch (type) {
-            case "focus": setTimeLeft(focusDuration * 60); break;
-            case "shortBreak": setTimeLeft(shortBreakDuration * 60); break;
-            case "longBreak": setTimeLeft(longBreakDuration * 60); break;
-        }
     };
+
+    const totalSeconds = (sessionType === "focus"
+        ? focusDuration
+        : sessionType === "shortBreak"
+            ? shortBreakDuration
+            : longBreakDuration) * 60;
 
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
-    const progress = 1 - (timeLeft / getCurrentDuration());
+    const progress = 1 - (timeLeft / totalSeconds);
 
     const sessionColors = {
         focus: { bg: "from-indigo-500 to-violet-600", ring: "stroke-indigo-500", text: "text-indigo-600", light: "bg-indigo-50" },

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Bookmark, MessageSquare, Share2, CheckCircle2, XCircle } from "lucide-react";
+import { Bookmark, MessageSquare, Share2, CheckCircle2, XCircle, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Option {
@@ -68,43 +68,48 @@ export default function QuestionViewer({
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="bg-card border-2 border-border/50 rounded-3xl md:rounded-[2.5rem] p-6 md:p-10 shadow-xl shadow-black/5 relative overflow-hidden"
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="bg-card/70 backdrop-blur-xl border border-border/40 rounded-[1.5rem] md:rounded-[3rem] p-4 md:p-10 shadow-2xl shadow-primary/5 relative overflow-hidden"
         >
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary/40 via-primary to-primary/40 opacity-50" />
+            {/* Subtle Gradient Background Effect */}
+            <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-[80px] pointer-events-none" />
 
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 md:mb-10 gap-4 sm:gap-0 relative z-10">
-                <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-3 py-1 bg-primary/10 text-primary font-bold text-xs uppercase tracking-wider rounded-lg">
+            {/* Top Bar with Tags and Actions */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 md:mb-8 gap-3 sm:gap-0 relative z-10">
+                <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 md:px-3 md:py-1.5 bg-primary/10 text-primary font-black text-[9px] md:text-[10px] uppercase tracking-wider rounded-full border border-primary/20">
+                        <Sparkles className="w-3 h-3" />
                         {banca || "Bizu"}
-                    </span>
-                    <span className="px-3 py-1 bg-muted text-muted-foreground font-bold text-xs uppercase tracking-wider rounded-lg">
+                    </div>
+                    <div className="px-2.5 py-1 md:px-3 md:py-1.5 bg-muted/50 text-muted-foreground font-bold text-[9px] md:text-[10px] uppercase tracking-wider rounded-full border border-border/50">
                         {year || "2026"}
-                    </span>
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-2 border-l-2 border-border/50">
+                    </div>
+                    <div className="text-[9px] md:text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] pl-2.5 md:pl-3 border-l border-border/50">
                         {subject || "Geral"}
-                    </span>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2 absolute sm:relative top-0 right-0">
-                    <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 hover:bg-primary/10 hover:text-primary transition-colors">
-                        <Bookmark className="w-4 h-4" />
+                <div className="flex items-center gap-1 absolute sm:relative top-0 right-0">
+                    <Button variant="ghost" size="icon" className="rounded-full w-8 h-8 md:w-9 md:h-9 hover:bg-primary/10 hover:text-primary transition-all duration-300">
+                        <Bookmark className="w-3.5 h-3.5 md:w-4 md:h-4 shadow-sm" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="rounded-full w-10 h-10 hover:bg-primary/10 hover:text-primary transition-colors">
-                        <Share2 className="w-4 h-4" />
+                    <Button variant="ghost" size="icon" className="rounded-full w-8 h-8 md:w-9 md:h-9 hover:bg-primary/10 hover:text-primary transition-all duration-300">
+                        <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4 shadow-sm" />
                     </Button>
                 </div>
             </div>
 
+            {/* Question Statement */}
             <div
-                className="text-lg md:text-xl font-medium leading-relaxed mb-10 md:mb-12 text-foreground break-words prose prose-primary dark:prose-invert max-w-none [&>p]:mb-4 last:[&>p]:mb-0 [&_strong]:text-primary"
+                className="text-base md:text-2xl font-bold leading-tight md:leading-snug mb-6 md:mb-10 text-foreground break-words prose prose-primary dark:prose-invert max-w-none [&>p]:mb-3 md:mb-4 last:[&>p]:mb-0 [&_strong]:text-primary [&_strong]:bg-primary/5 [&_strong]:px-1 [&_strong]:rounded"
                 dangerouslySetInnerHTML={{ __html: statement }}
             />
 
-            <div className="space-y-4 mb-10 md:mb-12">
-                <AnimatePresence>
+            {/* Options List */}
+            <div className="grid grid-cols-1 gap-2.5 md:gap-4 mb-6 md:mb-10">
+                <AnimatePresence mode="popLayout">
                     {options.map((option, index) => {
                         const isCorrect = option.id === correctOptionId;
                         const isSelected = option.id === selectedOption;
@@ -112,42 +117,46 @@ export default function QuestionViewer({
                         return (
                             <motion.button
                                 key={option.id}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: index * 0.1, duration: 0.3 }}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.05, duration: 0.4, ease: "easeOut" }}
                                 onClick={() => handleSelect(option.id)}
                                 disabled={isSubmitted}
                                 className={cn(
-                                    "w-full flex items-center gap-4 p-5 md:p-6 rounded-2xl border-2 text-left transition-all duration-300 relative overflow-hidden group",
-                                    !isSubmitted && isSelected && "border-primary bg-primary/5 shadow-md shadow-primary/10 scale-[1.01] z-10",
-                                    !isSubmitted && !isSelected && "border-border hover:border-primary/40 hover:bg-primary/5 hover:scale-[1.01]",
-                                    isSubmitted && isCorrect && !isSimuladoMode && "border-success bg-success/10 shadow-md shadow-success/10",
-                                    isSubmitted && isSelected && !isCorrect && !isSimuladoMode && "border-danger bg-danger/10 shadow-md shadow-danger/10",
-                                    isSubmitted && !isCorrect && !isSelected && !isSimuladoMode && "opacity-40 scale-[0.98]",
-                                    isSubmitted && isSelected && isSimuladoMode && "border-primary bg-primary/5"
+                                    "w-full flex items-center gap-3 md:gap-4 p-3.5 md:p-6 rounded-[1.25rem] md:rounded-[2rem] border-2 text-left transition-all duration-500 relative overflow-hidden group",
+                                    !isSubmitted && isSelected && "border-primary bg-primary/5 shadow-xl shadow-primary/10 ring-4 ring-primary/5 z-10",
+                                    !isSubmitted && !isSelected && "border-border/60 bg-muted/10 hover:border-primary/30 hover:bg-primary/[0.02] hover:translate-x-1",
+                                    isSubmitted && isCorrect && !isSimuladoMode && "border-success bg-success/10 shadow-xl shadow-success/10 ring-4 ring-success/5 md:translate-x-2",
+                                    isSubmitted && isSelected && !isCorrect && !isSimuladoMode && "border-danger bg-danger/10 shadow-xl shadow-danger/10 ring-4 ring-danger/5",
+                                    isSubmitted && !isCorrect && !isSelected && !isSimuladoMode && "opacity-30 grayscale-[0.5] scale-[0.98]",
+                                    isSubmitted && isSelected && isSimuladoMode && "border-primary bg-primary/5 shadow-md"
                                 )}
                             >
                                 <div className={cn(
-                                    "flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm border-2 transition-colors",
-                                    isSelected && !isSubmitted ? "bg-primary border-primary text-primary-foreground shadow-sm shadow-primary/50" : "bg-muted/50 border-border text-muted-foreground group-hover:border-primary/50 group-hover:text-primary",
-                                    isSubmitted && isCorrect && !isSimuladoMode && "bg-success border-success text-success-foreground shadow-sm shadow-success/50",
-                                    isSubmitted && isSelected && !isCorrect && !isSimuladoMode && "bg-danger border-danger text-danger-foreground shadow-sm shadow-danger/50",
+                                    "flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl flex items-center justify-center font-black text-xs md:text-sm border-2 transition-all duration-500",
+                                    isSelected && !isSubmitted ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/40 rotate-12" : "bg-background border-border text-muted-foreground group-hover:border-primary/50 group-hover:text-primary",
+                                    isSubmitted && isCorrect && !isSimuladoMode && "bg-success border-success text-white shadow-lg shadow-success/40 scale-110",
+                                    isSubmitted && isSelected && !isCorrect && !isSimuladoMode && "bg-danger border-danger text-white shadow-lg shadow-danger/40",
                                     isSubmitted && isSelected && isSimuladoMode && "bg-primary border-primary text-primary-foreground"
                                 )}>
                                     {option.id}
                                 </div>
                                 <div
-                                    className="flex-1 text-base font-medium leading-relaxed prose prose-sm dark:prose-invert [&>p]:mb-0"
+                                    className="flex-1 text-[13px] md:text-base font-bold leading-relaxed prose prose-sm dark:prose-invert [&>p]:mb-0"
                                     dangerouslySetInnerHTML={{ __html: option.text }}
                                 />
                                 {isSubmitted && isCorrect && !isSimuladoMode && (
-                                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="shrink-0 relative z-10">
-                                        <CheckCircle2 className="w-6 h-6 text-success drop-shadow-sm bg-background rounded-full" />
+                                    <motion.div initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} className="shrink-0 relative z-10">
+                                        <div className="bg-white rounded-full p-0.5 shadow-sm">
+                                            <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-success" />
+                                        </div>
                                     </motion.div>
                                 )}
                                 {isSubmitted && isSelected && !isCorrect && !isSimuladoMode && (
-                                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="shrink-0 relative z-10">
-                                        <XCircle className="w-6 h-6 text-danger drop-shadow-sm bg-background rounded-full" />
+                                    <motion.div initial={{ scale: 0, rotate: 45 }} animate={{ scale: 1, rotate: 0 }} className="shrink-0 relative z-10">
+                                        <div className="bg-white rounded-full p-0.5 shadow-sm">
+                                            <XCircle className="w-5 h-5 md:w-6 md:h-6 text-danger" />
+                                        </div>
                                     </motion.div>
                                 )}
                             </motion.button>
@@ -156,10 +165,11 @@ export default function QuestionViewer({
                 </AnimatePresence>
             </div>
 
-            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-6 md:pt-8 border-t border-border/50">
-                <Button variant="ghost" className="rounded-xl font-bold flex items-center gap-2 h-12 md:h-14 justify-center text-sm md:text-base hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-                    <MessageSquare className="w-5 h-5" />
-                    Ver Comentários
+            {/* Bottom Section: Footer Actions and Feedback */}
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-5 md:pt-8 border-t border-border/30">
+                <Button variant="ghost" className="rounded-2xl font-black flex items-center gap-2 h-10 md:h-14 justify-center text-[10px] md:text-sm hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all duration-300">
+                    <MessageSquare className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    COMENTÁRIOS DA COMUNIDADE
                 </Button>
 
                 {isSimuladoMode ? (
@@ -168,53 +178,72 @@ export default function QuestionViewer({
                             onClick={handleSubmit}
                             disabled={!selectedOption}
                             className={cn(
-                                "rounded-2xl px-10 h-14 font-black text-lg transition-all duration-300",
-                                selectedOption ? "shadow-xl shadow-primary/30 hover:scale-105" : "opacity-50"
+                                "rounded-[1rem] md:rounded-[1.25rem] px-8 md:px-10 h-12 md:h-14 font-black text-sm md:text-base shadow-2xl transition-all duration-500",
+                                selectedOption ? "bg-primary text-white shadow-primary/40 hover:scale-[1.05] hover:shadow-primary/60 active:scale-95" : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
                             )}
                         >
-                            Responder Agora
+                            Confirmar Resposta
                         </Button>
                     ) : (
                         <Button
                             onClick={onNext}
-                            className="rounded-2xl px-10 h-14 font-black text-lg transition-all shadow-xl hover:scale-105 duration-300 bg-foreground text-background hover:bg-foreground/90"
+                            className="rounded-[1rem] md:rounded-[1.25rem] px-8 md:px-10 h-12 md:h-14 font-black text-sm md:text-base bg-foreground text-background shadow-2xl shadow-black/20 hover:scale-[1.05] active:scale-95 transition-all duration-500"
                         >
-                            Salvar e Continuar
+                            Próxima Questão
                         </Button>
                     )
                 ) : isSubmitted ? (
-                    <div className="w-full sm:w-[340px] h-14 px-5 rounded-2xl bg-primary/10 text-primary font-bold text-sm md:text-base flex flex-col justify-center gap-2 overflow-hidden">
-                        <span className="text-center">Próxima questão em 5 segundos...</span>
-                        <div className="h-1.5 w-full rounded-full bg-primary/25 overflow-hidden">
+                    <div className="w-full sm:w-[280px] h-12 md:h-14 p-3.5 md:p-4 rounded-[1rem] md:rounded-[1.25rem] bg-primary/[0.03] border border-primary/10 overflow-hidden relative">
+                        <div className="flex items-center justify-center gap-2 h-full relative z-10">
+                            <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                            >
+                                <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary/60" />
+                            </motion.div>
+                            <span className="text-[9px] md:text-xs font-black text-primary/80 uppercase tracking-widest">Avançando agora...</span>
+                        </div>
+                        <div className="absolute bottom-0 left-0 h-1 w-full bg-primary/5">
                             <motion.div
                                 key={countdownKey}
-                                className="h-full w-full bg-primary origin-left"
-                                initial={{ scaleX: 1 }}
-                                animate={{ scaleX: 0 }}
+                                className="h-full bg-primary/40 shadow-[0_0_10px_rgba(99,102,241,0.5)]"
+                                initial={{ width: "100%" }}
+                                animate={{ width: "0%" }}
                                 transition={{ duration: AUTO_NEXT_DELAY_MS / 1000, ease: "linear" }}
                             />
                         </div>
                     </div>
-                ) : null}
+                ) : (
+                    <div className="flex items-center gap-2 text-[9px] md:text-[10px] font-black text-muted-foreground/30 uppercase tracking-widest pr-4">
+                        <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+                        Escolha uma alternativa
+                    </div>
+                )}
             </div>
 
+            {/* Detailed Resolution Area */}
             <AnimatePresence>
                 {isSubmitted && resolution && !isSimuladoMode && (
                     <motion.div
-                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                        animate={{ opacity: 1, height: "auto", marginTop: 40 }}
-                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                        transition={{ duration: 0.4, ease: "easeOut" }}
-                        className="overflow-hidden"
+                        initial={{ opacity: 0, y: 30, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 20, scale: 0.98 }}
+                        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                        className="mt-6 md:mt-12"
                     >
-                        <div className="p-8 rounded-3xl bg-primary/5 border border-primary/20 relative">
-                            <div className="absolute top-0 left-0 w-1.5 h-full bg-primary rounded-l-3xl" />
-                            <h4 className="font-bold text-primary mb-4 flex items-center gap-2 text-lg">
-                                <CheckCircle2 className="w-6 h-6" />
-                                Resolução Detalhada
-                            </h4>
+                        <div className="p-5 md:p-10 rounded-[1.5rem] md:rounded-[2.5rem] bg-primary/[0.02] border border-primary/10 relative overflow-hidden group">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-success/40 via-success to-success/40 opacity-30" />
+                            <div className="flex items-center gap-2.5 md:gap-3 mb-5 md:mb-6">
+                                <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl bg-success/10 flex items-center justify-center text-success border border-success/20">
+                                    <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5" />
+                                </div>
+                                <div>
+                                    <h4 className="font-black text-foreground text-xs md:text-sm uppercase tracking-widest leading-none mb-1 md:mb-1.5">Gabarito Comentado</h4>
+                                    <p className="text-[9px] md:text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Aprenda com o erro ou reforce o acerto</p>
+                                </div>
+                            </div>
                             <div
-                                className="text-base leading-relaxed text-foreground/80 prose prose-sm max-w-none dark:prose-invert [&>p]:mb-4 last:[&>p]:mb-0"
+                                className="text-sm md:text-lg leading-relaxed text-foreground/80 font-medium prose prose-primary dark:prose-invert max-w-none [&>p]:mb-3 md:mb-4 last:[&>p]:mb-0 selection:bg-success/20"
                                 dangerouslySetInnerHTML={{ __html: resolution }}
                             />
                         </div>
@@ -224,3 +253,4 @@ export default function QuestionViewer({
         </motion.div>
     );
 }
+
