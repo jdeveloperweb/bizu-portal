@@ -1,5 +1,6 @@
 package com.bizu.portal.student.api;
 
+import com.bizu.portal.identity.application.UserService;
 import com.bizu.portal.student.application.EssayService;
 import com.bizu.portal.student.application.SubmitEssayRequest;
 import com.bizu.portal.student.domain.Essay;
@@ -18,12 +19,13 @@ import java.util.UUID;
 public class EssayController {
 
     private final EssayService essayService;
+    private final UserService userService;
 
     @GetMapping
     public ResponseEntity<List<Essay>> getMyEssays(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(required = false) UUID courseId) {
-        UUID studentId = UUID.fromString(jwt.getSubject());
+        UUID studentId = userService.resolveUserId(jwt);
         return ResponseEntity.ok(essayService.getStudentEssays(studentId, courseId));
     }
 
@@ -31,7 +33,7 @@ public class EssayController {
     public ResponseEntity<Essay> submitEssay(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody SubmitEssayRequest request) {
-        UUID studentId = UUID.fromString(jwt.getSubject());
+        UUID studentId = userService.resolveUserId(jwt);
         return ResponseEntity.ok(essayService.submitEssay(studentId, request));
     }
 }
