@@ -159,7 +159,7 @@ export default function CheckoutPage() {
 
     const handleProcessPayment = async () => {
         if (paymentMethod === "CARD" && !isCardFormValid) {
-            notify("Dados incompletos", "Preencha corretamente os dados do cartão para continuar.", "warning");
+            notify("Dados incompletos", "Preencha corretamente os dados do cartão para continuar.", "info");
             return;
         }
 
