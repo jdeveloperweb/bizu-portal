@@ -415,43 +415,59 @@ export default function RedacaoPage() {
                                         </p>
                                     </div>
                                 </div>
-                                <div className="relative bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
-                                    {selectedEssay.content ? (
-                                        <>
-                                            <div className="absolute left-0 top-0 bottom-0 w-12 bg-slate-50 border-r border-rose-100 flex flex-col pt-[32px] items-center text-[10px] font-mono text-slate-300 select-none">
-                                                {Array.from({ length: Math.max(30, selectedEssay.content.split('\n').length) }).map((_, i) => (
-                                                    <div key={i} className="h-8 flex items-center">{String(i + 1).padStart(2, '0')}</div>
-                                                ))}
-                                            </div>
+
+                                {selectedEssay.type === "TEXT" ? (
+                                    <div className="relative bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+                                        <div className="absolute left-0 top-0 bottom-0 w-12 bg-slate-50 border-r border-rose-100 flex flex-col pt-[32px] items-center text-[10px] font-mono text-slate-300 select-none">
+                                            {Array.from({ length: Math.max(30, selectedEssay.content.split('\n').length) }).map((_, i) => (
+                                                <div key={i} className="h-8 flex items-center">{String(i + 1).padStart(2, '0')}</div>
+                                            ))}
+                                        </div>
+                                        <div
+                                            className="ml-12 p-8 pt-0 bg-[linear-gradient(#f8fafc_1px,transparent_1px)] bg-[length:100%_32px]"
+                                            style={{ backgroundPosition: '0 31px' }}
+                                        >
                                             <div
-                                                className="ml-12 p-8 pt-0 bg-[linear-gradient(#f8fafc_1px,transparent_1px)] bg-[length:100%_32px]"
-                                                style={{ backgroundPosition: '0 31px' }}
+                                                className="text-slate-700 text-base leading-[32px] whitespace-pre-wrap py-2"
+                                                style={{
+                                                    fontFamily: selectedFont,
+                                                    hyphens: 'auto',
+                                                    textAlign: 'justify'
+                                                }}
                                             >
-                                                <div
-                                                    className="text-slate-700 text-base leading-[32px] whitespace-pre-wrap py-2"
-                                                    style={{
-                                                        fontFamily: selectedFont,
-                                                        hyphens: 'auto',
-                                                        textAlign: 'justify'
-                                                    }}
-                                                >
-                                                    {selectedEssay.content}
+                                                {selectedEssay.content}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        {selectedEssay.attachmentUrl && (
+                                            <div className="space-y-3">
+                                                <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">Original Enviado</p>
+                                                <div className="rounded-3xl border border-border overflow-hidden bg-muted shadow-lg">
+                                                    <img src={selectedEssay.attachmentUrl} alt="Redação original" className="w-full h-auto" />
                                                 </div>
                                             </div>
-                                        </>
-                                    ) : (
-                                        <div className="p-12 text-center text-muted-foreground italic font-serif flex flex-col items-center gap-4">
-                                            <ImageIcon size={48} className="opacity-10" />
-                                            Redação enviada em formato de imagem/PDF via upload.
+                                        )}
+
+                                        <div className="space-y-3">
+                                            <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">Texto Extraído (OCR)</p>
+                                            <div className="p-8 rounded-3xl bg-muted/30 border border-dashed border-border font-serif text-lg leading-relaxed text-slate-600 whitespace-pre-wrap">
+                                                {selectedEssay.content || "Nenhum texto pôde ser extraído da imagem."}
+                                            </div>
                                         </div>
-                                    )}
-                                </div>
-                                {selectedEssay.attachmentUrl && (
-                                    <div className="mt-6">
-                                        <p className="text-sm font-bold mb-3 text-muted-foreground">Original Enviado:</p>
-                                        <img src={selectedEssay.attachmentUrl} alt="Redação original" className="max-w-full rounded-2xl border bg-muted" />
                                     </div>
                                 )}
+                            </div>
+
+                            {/* Feedback movido para baixo da redação */}
+                            <div className="bg-card border border-border rounded-3xl p-8 shadow-sm">
+                                <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground mb-6">Feedback Detalhado</h3>
+                                <div className="text-sm leading-relaxed max-w-none">
+                                    <MarkdownViewer
+                                        content={selectedEssay.feedback || "Aguardando correção..."}
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -484,15 +500,6 @@ export default function RedacaoPage() {
                                 </div>
                                 <div className="absolute top-0 right-0 p-8 opacity-5">
                                     <Star size={150} />
-                                </div>
-                            </div>
-
-                            <div className="bg-card border border-border rounded-3xl p-8 shadow-sm">
-                                <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground mb-6">Feedback Detalhado</h3>
-                                <div className="text-sm leading-relaxed max-w-none">
-                                    <MarkdownViewer
-                                        content={selectedEssay.feedback || "Aguardando correção..."}
-                                    />
                                 </div>
                             </div>
                         </div>
