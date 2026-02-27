@@ -28,56 +28,66 @@ public class DevController {
     @PostMapping("/seed-questions")
     @Transactional
     public ResponseEntity<Map<String, Object>> seedQuestions(
-            @RequestParam UUID courseId,
-            @RequestParam(defaultValue = "50") int count) {
+            @RequestParam(required = false) UUID courseId,
+            @RequestParam(defaultValue = "100") int count) {
         
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+        Course course;
+        if (courseId == null) {
+            course = courseRepository.findAll().stream().findFirst().orElseGet(() -> {
+                Course c = Course.builder()
+                        .title("Curso de Testes Arena")
+                        .description("Criado automaticamente")
+                        .status("PUBLISHED")
+                        .build();
+                return courseRepository.save(c);
+            });
+        } else {
+            course = courseRepository.findById(courseId)
+                    .orElseThrow(() -> new RuntimeException("Course not found"));
+        }
 
-        if (course.getModules().isEmpty()) {
-            Module defaultModule = Module.builder()
-                    .title("Modulo Geral")
-                    .description("Modulo criado automaticamente para testes")
+        Module module;
+        if (course.getModules() == null || course.getModules().isEmpty()) {
+            module = Module.builder()
+                    .title("Módulo Geral")
                     .course(course)
                     .orderIndex(1)
                     .build();
-            moduleRepository.save(defaultModule);
-            course.getModules().add(defaultModule);
+            module = moduleRepository.save(module);
+        } else {
+            module = course.getModules().get(0);
         }
 
         Random rand = new Random();
-        int created = 0;
         String[] difficulties = {"EASY", "MEDIUM", "HARD"};
+        String[] subjects = {"Direito Constitucional", "Português", "Matemática", "Informática", "Direito Penal", "Aleatorio"};
 
         for (int i = 0; i < count; i++) {
-            Module module = course.getModules().get(rand.nextInt(course.getModules().size()));
-            
             Map<String, Object> options = new HashMap<>();
-            options.put("0", "Opção A para a questão " + i);
-            options.put("1", "Opção B para a questão " + i);
-            options.put("2", "Opção C para a questão " + i);
-            options.put("3", "Opção D para a questão " + i);
+            options.put("0", "Opção A (Correta) - Questão " + i);
+            options.put("1", "Opção B - Questão " + i);
+            options.put("2", "Opção C - Questão " + i);
+            options.put("3", "Opção D - Questão " + i);
 
-            Question question = Question.builder()
-                    .statement("<p>Questão de teste número " + (i + 1) + " para o módulo " + module.getTitle() + ".</p>")
+            Question q = Question.builder()
+                    .statement("<p>Questão simulada " + (i + 1) + ". Esta é uma questão gerada automaticamente para testes da Arena PVP.</p>")
                     .options(options)
-                    .correctOption("A") // char index 0 is 'A'
-                    .subject(module.getTitle())
-                    .difficulty(difficulties[i % 3])
+                    .correctOption("A")
+                    .difficulty(difficulties[rand.nextInt(3)])
+                    .subject(subjects[rand.nextInt(subjects.length)])
                     .category("SIMULADO")
                     .questionType("MULTIPLE_CHOICE")
                     .module(module)
                     .build();
             
-            questionRepository.save(question);
-            created++;
+            questionRepository.save(q);
         }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Seed completed");
-        response.put("created", created);
-        response.put("course", course.getTitle());
+        Map<String, Object> res = new HashMap<>();
+        res.put("message", "Seed completed successfully");
+        res.put("created", count);
+        res.put("target_course", course.getTitle());
         
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(res);
     }
 }

@@ -19,6 +19,7 @@ export default function ChallengeOverlay() {
             // Prioritize database 'id' over keycloak 'sub'
             const userId = (user.id || user.sub) as string;
             setCurrentUserId(userId);
+            console.log("ChallengeOverlay: setting currentUserId:", userId);
         }
     }, [user]);
 
@@ -38,6 +39,11 @@ export default function ChallengeOverlay() {
     }, [currentUserId]);
 
     useChallengeNotifications(currentUserId, (newDuel: Duel) => {
+        console.log("ChallengeOverlay: Received new duel:", newDuel);
+        if (!newDuel || !newDuel.id || !newDuel.challenger) {
+            console.warn("ChallengeOverlay: Received invalid duel object:", newDuel);
+            return;
+        }
         setPendingDuels(prev => {
             if (prev.find(d => d.id === newDuel.id)) return prev;
             return [newDuel, ...prev];

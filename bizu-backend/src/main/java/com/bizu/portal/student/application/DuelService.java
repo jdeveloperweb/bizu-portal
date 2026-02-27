@@ -50,6 +50,7 @@ public class DuelService {
         // Notify opponent
         notificationService.send(opponentId, "Novo Desafio!", "Você foi desafiado para um duelo em " + subject);
         
+        initializeDuel(duel);
         return duel;
     }
 
@@ -245,7 +246,11 @@ public class DuelService {
         if (duel.getWinner() != null) duel.getWinner().getName();
         if (duel.getQuestions() != null) {
             duel.getQuestions().forEach(dq -> {
-                if (dq.getQuestion() != null) dq.getQuestion().getStatement();
+                if (dq.getQuestion() != null) {
+                    dq.getQuestion().getStatement();
+                    dq.getQuestion().getOptions().size();
+                    dq.getQuestion().getCorrectOption();
+                }
             });
         }
     }
