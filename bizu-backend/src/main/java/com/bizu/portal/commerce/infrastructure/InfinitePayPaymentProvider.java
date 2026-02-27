@@ -46,7 +46,7 @@ public class InfinitePayPaymentProvider implements PaymentProvider {
         payload.put("itens", List.of(item));
         payload.put("order_nsu", UUID.randomUUID().toString()); // ID único para controle
         payload.put("redirect_url", "https://bizu.mjolnix.com.br/dashboard?status=success");
-        payload.put("webhook_url", "https://api.bizu.mjolnix.com.br/api/v1/public/webhooks/infinitepay");
+        payload.put("webhook_url", "https://bizu.mjolnix.com.br/api/v1/public/webhooks/infinitepay");
 
         // Metadados extras se a API aceitar ou para controle interno via link
         // A InfinitePay parece ser bem simples nesse POST público, 

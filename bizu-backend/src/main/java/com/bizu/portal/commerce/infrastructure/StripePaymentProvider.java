@@ -30,8 +30,8 @@ public class StripePaymentProvider implements PaymentProvider {
         try {
             SessionCreateParams.Builder builder = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)
-                    .setSuccessUrl("https://app.bizu-portal.com/dashboard?status=success&session_id={CHECKOUT_SESSION_ID}")
-                    .setCancelUrl("https://app.bizu-portal.com/checkout?status=cancel")
+                    .setSuccessUrl("https://bizu.mjolnix.com.br/dashboard?status=success&session_id={CHECKOUT_SESSION_ID}")
+                    .setCancelUrl("https://bizu.mjolnix.com.br/checkout?status=cancel")
                     .setCustomerEmail(user.getEmail())
                     .addLineItem(SessionCreateParams.LineItem.builder()
                             .setQuantity(1L)

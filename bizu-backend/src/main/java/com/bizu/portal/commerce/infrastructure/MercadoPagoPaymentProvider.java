@@ -50,7 +50,7 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
                     .transactionAmount(amount)
                     .description("Plano " + plan.getName() + " - " + user.getName())
                     .paymentMethodId("pix")
-                    .notificationUrl("https://api.bizu-portal.com/api/v1/public/webhooks/mercadopago") // Ajustar via settings se possível
+                    .notificationUrl("https://bizu.mjolnix.com.br/api/v1/public/webhooks/mercadopago") // Ajustar via settings se possível
                     .payer(PaymentPayerRequest.builder()
                             .email(user.getEmail())
                             .firstName(user.getName())
@@ -97,11 +97,11 @@ public class MercadoPagoPaymentProvider implements PaymentProvider {
                     .payer(com.mercadopago.client.preference.PreferencePayerRequest.builder()
                             .email(user.getEmail())
                             .build())
-                    .notificationUrl("https://api.bizu-portal.com/api/v1/public/webhooks/mercadopago")
+                    .notificationUrl("https://bizu.mjolnix.com.br/api/v1/public/webhooks/mercadopago")
                     .backUrls(PreferenceBackUrlsRequest.builder()
-                            .success("https://app.bizu-portal.com/dashboard?status=success")
-                            .failure("https://app.bizu-portal.com/dashboard?status=failure")
-                            .pending("https://app.bizu-portal.com/dashboard?status=pending")
+                            .success("https://bizu.mjolnix.com.br/dashboard?status=success")
+                            .failure("https://bizu.mjolnix.com.br/dashboard?status=failure")
+                            .pending("https://bizu.mjolnix.com.br/dashboard?status=pending")
                             .build())
                     .autoReturn("approved")
                     .metadata(Map.of(
