@@ -65,4 +65,16 @@ public interface CourseEntitlementRepository extends JpaRepository<CourseEntitle
           AND e.revokedAt IS NULL
         """)
     List<CourseEntitlement> findExpiredEntitlements(@Param("cutoff") OffsetDateTime cutoff);
+
+    @Query("""
+        SELECT COUNT(e) FROM CourseEntitlement e
+        WHERE e.course.id = :courseId
+          AND e.active = true
+          AND (e.expiresAt IS NULL OR e.expiresAt > :now)
+          AND e.revokedAt IS NULL
+        """)
+    long countActiveEntitlementsByCourse(
+        @Param("courseId") UUID courseId,
+        @Param("now") OffsetDateTime now
+    );
 }

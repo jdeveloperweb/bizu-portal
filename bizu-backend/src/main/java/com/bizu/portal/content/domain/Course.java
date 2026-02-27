@@ -66,6 +66,10 @@ public class Course {
     @Column(name = "has_essay")
     private boolean hasEssay = false;
 
+    @Transient
+    @Builder.Default
+    private long studentsCount = 0;
+
     @PrePersist
     protected void onCreate() {
         createdAt = OffsetDateTime.now();

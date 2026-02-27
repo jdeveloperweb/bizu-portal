@@ -50,6 +50,13 @@ public class EntitlementService {
     }
 
     /**
+     * Returns the number of students with active access to a course.
+     */
+    public long countStudentsByCourse(UUID courseId) {
+        return entitlementRepository.countActiveEntitlementsByCourse(courseId, OffsetDateTime.now());
+    }
+
+    /**
      * Grant entitlement from a subscription.
      */
     @Transactional

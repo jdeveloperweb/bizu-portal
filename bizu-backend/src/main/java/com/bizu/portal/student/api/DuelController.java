@@ -124,7 +124,19 @@ public class DuelController {
     }
 
     @GetMapping("/ranking")
-    public ResponseEntity<List<Object[]>> getDuelRanking() {
-        return ResponseEntity.ok(duelRepository.getRanking());
+    public ResponseEntity<List<Map<String, Object>>> getDuelRanking() {
+        List<Object[]> ranking = duelRepository.getWeeklyRanking();
+        return ResponseEntity.ok(ranking.stream().map(r -> Map.of(
+            "id", r[0],
+            "name", r[1],
+            "avatar", r[2] != null ? r[2] : "",
+            "wins", r[3]
+        )).collect(java.util.stream.Collectors.toList()));
+    }
+
+    @GetMapping("/historico")
+    public ResponseEntity<List<Duel>> getDuelHistory(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = resolveUserId(jwt);
+        return ResponseEntity.ok(duelRepository.findHistoryByUserId(userId));
     }
 }

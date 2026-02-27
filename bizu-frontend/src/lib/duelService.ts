@@ -38,6 +38,7 @@ export interface Duel {
     winner?: User;
     subject: string;
     questions: DuelQuestion[];
+    completedAt?: string;
 }
 
 export const DuelService = {
@@ -87,6 +88,12 @@ export const DuelService = {
 
     getRanking: async () => {
         const res = await apiFetch("/duelos/ranking");
+        if (!res.ok) return [];
+        return res.json();
+    },
+
+    getHistory: async () => {
+        const res = await apiFetch("/duelos/historico");
         if (!res.ok) return [];
         return res.json();
     }

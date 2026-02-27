@@ -3,6 +3,7 @@ package com.bizu.portal.student.application;
 import com.bizu.portal.identity.domain.User;
 import com.bizu.portal.identity.infrastructure.UserRepository;
 import com.bizu.portal.student.domain.SimuladoResult;
+import com.bizu.portal.student.infrastructure.DuelRepository;
 import com.bizu.portal.student.infrastructure.SimuladoResultRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -20,6 +22,7 @@ import java.util.List;
 public class RankingScheduler {
 
     private final SimuladoResultRepository resultRepository;
+    private final DuelRepository duelRepository;
     private final GamificationService gamificationService;
     private final NotificationService notificationService;
 
@@ -60,6 +63,37 @@ public class RankingScheduler {
         }
 
         log.info("Ranking semanal processado com sucesso.");
+    }
+
+    /**
+     * Roda todo Sábado às 23:55 para premiar os vencedores da Arena.
+     */
+    @Scheduled(cron = "0 55 23 * * SAT")
+    @Transactional
+    public void processWeeklyDuelRanking() {
+        log.info("Iniciando processamento do ranking semanal de duelos...");
+        
+        List<Object[]> ranking = duelRepository.getWeeklyRanking();
+        
+        for (int i = 0; i < ranking.size(); i++) {
+            Object[] r = ranking.get(i);
+            UUID userId = (UUID) r[0];
+            int position = i + 1;
+            
+            int xpReward = switch (position) {
+                case 1 -> 500;
+                case 2 -> 300;
+                case 3 -> 200;
+                default -> 0;
+            };
+
+            if (xpReward > 0) {
+                gamificationService.addXp(userId, xpReward);
+                notificationService.send(userId, "🏆 Ranking Arena", 
+                    "Parabéns! Você ficou em #" + position + " na Arena esta semana e ganhou " + xpReward + " XP!");
+                log.info("Usuário {} premiado na Arena na posição #{}", userId, position);
+            }
+        }
     }
 
     private int calculateXpReward(int position) {

@@ -185,8 +185,8 @@ public class StudentCourseController {
 
             courseMap.put("nextModule", nextModule);
             
-            // Contagem de alunos (simulada ou real se o repositório permitir)
-            courseMap.put("studentsCount", 0); 
+            // Contagem de alunos real via entitlementService
+            courseMap.put("studentsCount", entitlementService.countStudentsByCourse(course.getId())); 
             
             response.add(courseMap);
         }

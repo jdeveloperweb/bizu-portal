@@ -1,5 +1,6 @@
 package com.bizu.portal.content.application;
 
+import com.bizu.portal.commerce.application.EntitlementService;
 import com.bizu.portal.content.domain.Course;
 import com.bizu.portal.content.infrastructure.CourseRepository;
 import com.bizu.portal.shared.exception.ResourceNotFoundException;
@@ -15,15 +16,26 @@ import java.util.UUID;
 public class CourseService {
 
     private final CourseRepository courseRepository;
+    private final EntitlementService entitlementService;
 
     public List<Course> findAll() {
-        return courseRepository.findAll();
+        List<Course> courses = courseRepository.findAll();
+        courses.forEach(this::populateStudentsCount);
+        return courses;
     }
 
     @Transactional(readOnly = true)
     public Course findById(UUID id) {
-        return courseRepository.findByIdWithModules(id)
+        Course course = courseRepository.findByIdWithModules(id)
             .orElseThrow(() -> new ResourceNotFoundException("Curso não encontrado"));
+        populateStudentsCount(course);
+        return course;
+    }
+
+    private void populateStudentsCount(Course course) {
+        if (course != null && course.getId() != null) {
+            course.setStudentsCount(entitlementService.countStudentsByCourse(course.getId()));
+        }
     }
 
     @Transactional

@@ -32,7 +32,12 @@ interface OnlineUser {
     status: "online" | "em_duelo";
 }
 
-// SUBJECTS will be fetched dynamically from the selected course
+interface RankingUser {
+    id: string;
+    name: string;
+    avatar: string;
+    wins: number;
+}
 
 
 export default function ArenaPage() {
@@ -53,6 +58,10 @@ function ArenaPageContent() {
     const [currentUserId, setCurrentUserId] = useState<string>("");
     const [myStats, setMyStats] = useState({ wins: 0, losses: 0, winRate: 0, streak: 0 });
     const [availableModules, setAvailableModules] = useState<string[]>([]);
+    const [ranking, setRanking] = useState<RankingUser[]>([]);
+    const [history, setHistory] = useState<Duel[]>([]);
+    const [isLoadingRanking, setIsLoadingRanking] = useState(false);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const searchParams = useSearchParams();
 
     useEffect(() => {
@@ -100,7 +109,7 @@ function ArenaPageContent() {
                         wins: data.wins || 0,
                         losses: data.losses || 0,
                         winRate: data.wins + data.losses > 0 ? Math.round((data.wins / (data.wins + data.losses)) * 100) : 0,
-                        streak: 0
+                        streak: data.streak || 0
                     });
                 }
 
@@ -114,8 +123,37 @@ function ArenaPageContent() {
                         }
                     }
                 }
+
+                // Initial fetch for ranking and history if needed
+                fetchRanking();
+                fetchHistory();
+
             } catch (error) {
                 console.error("Failed to load arena data", error);
+            }
+        };
+
+        const fetchRanking = async () => {
+            setIsLoadingRanking(true);
+            try {
+                const data = await DuelService.getRanking();
+                setRanking(data);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setIsLoadingRanking(false);
+            }
+        };
+
+        const fetchHistory = async () => {
+            setIsLoadingHistory(true);
+            try {
+                const data = await DuelService.getHistory();
+                setHistory(data);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setIsLoadingHistory(false);
             }
         };
 
@@ -375,10 +413,81 @@ function ArenaPageContent() {
 
                     {/* Ranking & History placeholders simplified for real data soon */}
                     {activeTab === "ranking" && (
-                        <div className="p-8 text-center text-slate-400 italic">Carregando ranking global...</div>
+                        <div className="space-y-3">
+                            {isLoadingRanking ? (
+                                <div className="p-8 text-center text-slate-400 italic">Carregando ranking global...</div>
+                            ) : ranking.length === 0 ? (
+                                <div className="p-8 text-center text-slate-400 italic">Nenhum dado de ranking disponível.</div>
+                            ) : (
+                                ranking.map((r, i) => (
+                                    <div key={r.id} className="card-elevated !rounded-2xl p-4 flex items-center gap-4">
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${i === 0 ? "bg-amber-100 text-amber-600" :
+                                            i === 1 ? "bg-slate-100 text-slate-500" :
+                                                i === 2 ? "bg-orange-100 text-orange-600" : "bg-slate-50 text-slate-400"
+                                            }`}>
+                                            {i + 1}º
+                                        </div>
+                                        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center overflow-hidden">
+                                            {r.avatar ? (
+                                                <img src={getAvatarUrl(r.avatar)} className="w-full h-full object-cover" alt={r.name} />
+                                            ) : (
+                                                <span className="text-indigo-600 font-bold">{r.name.substring(0, 2).toUpperCase()}</span>
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="text-sm font-bold text-slate-800">{r.name}</div>
+                                            <div className="text-[10px] text-slate-500">Ganhador de {r.wins} duelos na semana</div>
+                                        </div>
+                                        {i < 3 && (
+                                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-bold">
+                                                <Crown size={12} /> XP Bônus: {i === 0 ? "500" : i === 1 ? "300" : "200"}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     )}
                     {activeTab === "historico" && (
-                        <div className="p-8 text-center text-slate-400 italic">Sem duelos recentes.</div>
+                        <div className="space-y-3">
+                            {isLoadingHistory ? (
+                                <div className="p-8 text-center text-slate-400 italic">Carregando histórico...</div>
+                            ) : history.length === 0 ? (
+                                <div className="p-8 text-center text-slate-400 italic">Sem duelos recentes.</div>
+                            ) : (
+                                history.map(duel => {
+                                    const isChallenger = duel.challenger.id === currentUserId;
+                                    const opponent = isChallenger ? duel.opponent : duel.challenger;
+                                    const myScore = isChallenger ? duel.challengerScore : duel.opponentScore;
+                                    const opScore = isChallenger ? duel.opponentScore : duel.challengerScore;
+                                    const result = duel.winner?.id === currentUserId ? "Vitoria" : duel.winner ? "Derrota" : "Empate";
+
+                                    return (
+                                        <div key={duel.id} className="card-elevated !rounded-2xl p-4 flex items-center gap-4">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${result === "Vitoria" ? "bg-emerald-50 text-emerald-600" :
+                                                result === "Derrota" ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-600"
+                                                }`}>
+                                                {result === "Vitoria" ? <Trophy size={20} /> : <Swords size={20} />}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-bold text-slate-800">Duelo contra {opponent.name}</span>
+                                                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${result === "Vitoria" ? "bg-emerald-50 text-emerald-600" :
+                                                        result === "Derrota" ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-600"
+                                                        }`}>{result}</span>
+                                                </div>
+                                                <div className="text-[10px] text-slate-500">
+                                                    Placar: {myScore} - {opScore} • {duel.subject} • {new Date(duel.completedAt!).toLocaleDateString()}
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-[12px] font-bold text-slate-800">+{result === "Vitoria" ? 100 : 25} XP</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
                     )}
                 </div>
 
