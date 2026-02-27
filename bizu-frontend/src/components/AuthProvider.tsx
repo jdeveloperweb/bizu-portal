@@ -42,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [subscription, setSubscription] = useState<any>(null);
     const [entitlements, setEntitlements] = useState<any[]>([]);
     const [selectedCourseId, setSelectedCourseIdState] = useState<string | undefined>(undefined);
+    const [refreshing, setRefreshing] = useState(false);
 
     const applySelectedCourseId = (nextUser: AuthUser) => {
         const nextSelectedCourseId = normalizeSelectedCourseId(nextUser?.metadata?.selectedCourseId);
@@ -94,6 +95,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error("Failed to register device", err);
         }
     }, []);
+
+    const refreshToken = useCallback(async () => {
+        if (typeof window === "undefined" || refreshing) return false;
+
+        // Tenta renovar via keycloak-js se ele estiver autenticado
+        if (keycloak && keycloak.token && keycloak.authenticated) {
+            try {
+                // Tenta renovar se o token expira em menos de 70 segundos
+                const refreshed = await keycloak.updateToken(70);
+                if (refreshed) {
+                    console.log("Token renovado via Keycloak JS");
+                    Cookies.set("token", keycloak.token || "", { expires: 1 });
+                    return true;
+                }
+                // Se retornou false, o token ainda é válido (mais de 70s)
+                return true;
+            } catch (err) {
+                console.warn("Falha ao renovar token via Keycloak JS, tentando manual...");
+            }
+        }
+
+        // Fallback manual usando refresh_token (necessário para loginDirect)
+        const rToken = Cookies.get("refresh_token");
+        if (!rToken) return false;
+
+        setRefreshing(true);
+        const params = new URLSearchParams();
+        params.append("client_id", process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID || "bizu-portal-app");
+        params.append("grant_type", "refresh_token");
+        params.append("refresh_token", rToken);
+
+        const authServerUrl = process.env.NEXT_PUBLIC_KEYCLOAK_URL || "https://bizu.mjolnix.com.br/auth";
+        const realm = process.env.NEXT_PUBLIC_KEYCLOAK_REALM || "bizu-portal";
+
+        try {
+            const res = await fetch(`${authServerUrl}/realms/${realm}/protocol/openid-connect/token`, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: params,
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                Cookies.set("token", data.access_token, { expires: 1 });
+                if (data.refresh_token) {
+                    Cookies.set("refresh_token", data.refresh_token, { expires: 1 });
+                }
+                setRefreshing(false);
+                return true;
+            } else {
+                console.warn("Refresh token expirado ou inválido.");
+                setRefreshing(false);
+                return false;
+            }
+        } catch (error) {
+            console.error("Erro na renovação manual do token", error);
+            setRefreshing(false);
+            return false;
+        }
+    }, [refreshing]);
 
     const refreshUserProfile = useCallback(async () => {
         const token = Cookies.get("token");
@@ -200,6 +261,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             });
     }, [refreshUserProfile]);
 
+    // Intervalo para verificar e renovar token a cada 1 minuto se autenticado
+    useEffect(() => {
+        if (!authenticated) return;
+
+        const interval = setInterval(() => {
+            refreshToken();
+        }, 60000);
+
+        return () => clearInterval(interval);
+    }, [authenticated, refreshToken]);
+
     const login = () => keycloak?.login();
 
     const loginDirect = async (username: string, password: string) => {
@@ -225,6 +297,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (res.ok) {
                 const data = await res.json();
                 Cookies.set("token", data.access_token, { expires: 1 });
+                if (data.refresh_token) {
+                    Cookies.set("refresh_token", data.refresh_token, { expires: 1 });
+                }
 
                 try {
                     const base64Url = data.access_token.split('.')[1];
@@ -265,6 +340,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const logout = () => {
         Cookies.remove("token");
+        Cookies.remove("refresh_token");
         if (typeof window !== "undefined") {
             window.localStorage.removeItem("selectedCourseId");
             window.localStorage.removeItem("device_fingerprint");
