@@ -11,7 +11,7 @@ import { useNotification } from "@/components/NotificationProvider";
 export default function RegisterPage() {
     const [show, setShow] = useState(false);
     const [loading, setLoading] = useState(false);
-    const { register } = useAuth();
+    const { register, loginDirect } = useAuth();
     const { notify } = useNotification();
     const router = useRouter();
     const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
@@ -42,6 +42,9 @@ export default function RegisterPage() {
         try {
             const success = await register(form.name, form.email, form.password);
             if (success) {
+                // Automatically log the user in so checkout can process authenticated requests
+                await loginDirect(form.email, form.password);
+
                 notify("Conta Criada! 🚀", "Agora vamos configurar seu acesso.", "success");
                 let checkoutUrl = "/checkout";
                 if (planId) {

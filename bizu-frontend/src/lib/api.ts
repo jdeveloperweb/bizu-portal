@@ -12,6 +12,7 @@ export interface ApiErrorBody {
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     const token = Cookies.get("token");
     const selectedCourseId = getStoredSelectedCourseId();
+    const isPublicEndpoint = endpoint.includes("/public/") || endpoint.includes("/branding/active");
 
     let deviceFingerprint = "";
     if (typeof window !== "undefined") {
@@ -25,7 +26,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     }
 
     const headers: Record<string, string> = {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(token && !isPublicEndpoint ? { Authorization: `Bearer ${token}` } : {}),
         ...(selectedCourseId ? { "X-Selected-Course-Id": selectedCourseId } : {}),
         ...(deviceFingerprint ? { "X-Device-Fingerprint": deviceFingerprint } : {}),
         ...Object.fromEntries(Object.entries(options.headers || {}).map(([k, v]) => [k, String(v)])),
@@ -44,7 +45,6 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
         if (typeof window !== "undefined") {
             const path = window.location.pathname.toLowerCase();
             const isAuthPage = path === "/login" || path === "/register" || path.startsWith("/forgot-password");
-            const isPublicEndpoint = endpoint.includes("/public/") || endpoint.includes("/branding/active");
 
             if (!isAuthPage && !isPublicEndpoint) {
                 window.location.href = "/login";
