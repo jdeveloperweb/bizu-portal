@@ -11,6 +11,7 @@ import {
     ArrowLeft, Calendar, FileType, Check, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 import MarkdownViewer from "@/components/MarkdownViewer";
 import { resolveMediaUrl } from "@/lib/media";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,7 +19,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function RedacaoPage() {
-    const { selectedCourseId } = useAuth();
+    const { selectedCourseId, isFree } = useAuth();
     const [essays, setEssays] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -197,6 +198,17 @@ export default function RedacaoPage() {
         if (grade >= 5) return "text-amber-500 bg-amber-500/10 border-amber-500/20";
         return "text-rose-500 bg-rose-500/10 border-rose-500/20";
     };
+
+    if (isFree) {
+        return (
+            <div className="p-6 lg:p-12 w-full max-w-4xl mx-auto flex items-center justify-center min-h-[60vh]">
+                <PremiumFeatureCard
+                    title="Correção de Redação Premium"
+                    description="A correção inteligente com IA é um recurso exclusivo para assinantes. Eleve o nível das suas redações e garanta a nota máxima!"
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">

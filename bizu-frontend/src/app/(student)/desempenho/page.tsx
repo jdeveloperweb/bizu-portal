@@ -9,6 +9,8 @@ import {
     ArrowUp, ArrowDown, Brain, Zap, Clock,
     Calendar, Star, Activity, PlayCircle,
 } from "lucide-react";
+import { useAuth } from "@/components/AuthProvider";
+import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 
 type DesempenhoTab = "geral" | "materias" | "evolucao";
 
@@ -53,6 +55,7 @@ const colors = [
 ];
 
 export default function DesempenhoPage() {
+    const { isFree } = useAuth();
     const [activeTab, setActiveTab] = useState<DesempenhoTab>("geral");
     const [selectedSubject, setSelectedSubject] = useState<SubjectStat | null>(null);
     const [data, setData] = useState<PerformanceData | null>(null);
@@ -85,6 +88,17 @@ export default function DesempenhoPage() {
     }
 
     if (!data) return null;
+
+    if (isFree) {
+        return (
+            <div className="p-6 lg:p-12 w-full max-w-4xl mx-auto flex items-center justify-center min-h-[60vh]">
+                <PremiumFeatureCard
+                    title="Desempenho Premium"
+                    description="O painel de desempenho detalhado é exclusivo para assinantes. Descubra seus pontos fracos e otimize seus estudos!"
+                />
+            </div>
+        );
+    }
 
     const subjectStats = data.bySubject.map((s, i) => ({
         ...s,

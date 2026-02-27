@@ -36,7 +36,11 @@ public class DeviceService {
         List<Device> userDevices = deviceRepository.findAllByUser(user);
         
         if (userDevices.size() >= MAX_DEVICES_PER_USER) {
-            throw new RuntimeException("Limite de dispositivos atingido (" + MAX_DEVICES_PER_USER + "). Remova um dispositivo antigo para conectar este.");
+            // Remove the oldest device to make room for the new one (as per policy)
+            Device oldest = userDevices.stream()
+                .min(Comparator.comparing(Device::getLastSeenAt))
+                .orElseThrow();
+            deviceRepository.delete(oldest);
         }
 
         return Device.builder()

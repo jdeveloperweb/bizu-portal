@@ -9,6 +9,8 @@ import {
     Flame, PlayCircle, Loader2, XCircle
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
+import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 
 interface Deck {
     id: string;
@@ -35,6 +37,7 @@ const ICON_MAP: Record<string, any> = {
 };
 
 export default function FlashcardsPage() {
+    const { isFree } = useAuth();
     const [decks, setDecks] = useState<Deck[]>([]);
     const [summary, setSummary] = useState<Summary | null>(null);
     const [loading, setLoading] = useState(true);
@@ -92,6 +95,17 @@ export default function FlashcardsPage() {
             <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
                 <Loader2 className="w-10 h-10 text-indigo-500 animate-spin" />
                 <p className="text-slate-500 font-medium">Carregando suas coleções...</p>
+            </div>
+        );
+    }
+
+    if (isFree) {
+        return (
+            <div className="p-6 lg:p-12 w-full max-w-4xl mx-auto flex items-center justify-center min-h-[60vh]">
+                <PremiumFeatureCard
+                    title="Flashcards Premium"
+                    description="O sistema inteligente de flashcards é exclusivo para assinantes. Estude de forma mais eficaz com repetição espaçada!"
+                />
             </div>
         );
     }

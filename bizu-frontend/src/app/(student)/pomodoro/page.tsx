@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { getStoredSelectedCourseId } from "@/lib/course-selection";
+import { useAuth } from "@/components/AuthProvider";
+import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 
 import { usePomodoro, SessionType } from "@/contexts/PomodoroContext";
 
@@ -48,6 +50,8 @@ export default function PomodoroPage() {
         setDurations,
         setIsOpen
     } = usePomodoro();
+
+    const { isFree } = useAuth();
 
     const [showSubjectPicker, setShowSubjectPicker] = useState(false);
     const [soundEnabled, setSoundEnabled] = useState(true);
@@ -92,6 +96,17 @@ export default function PomodoroPage() {
         longBreak: { bg: "from-amber-500 to-orange-600", ring: "stroke-amber-500", text: "text-amber-600", light: "bg-amber-50" },
     };
     const colors = sessionColors[sessionType];
+
+    if (isFree) {
+        return (
+            <div className="p-6 lg:p-12 w-full max-w-4xl mx-auto flex items-center justify-center min-h-[60vh]">
+                <PremiumFeatureCard
+                    title="Pomodoro Premium"
+                    description="O ciclo Pomodoro é um recurso exclusivo para assinantes. Desbloqueie todo o potencial de foco!"
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">

@@ -10,8 +10,11 @@ import { cn } from "@/lib/utils";
 import { getVideoEmbedUrl } from "@/lib/video-embed";
 import { useGamification } from "@/components/gamification/GamificationProvider";
 import MarkdownViewer from "@/components/MarkdownViewer";
+import { useAuth } from "@/components/AuthProvider";
+import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 
 export default function CoursePlayerPage() {
+    const { isFree } = useAuth();
     const { showReward } = useGamification();
     const params = useParams<{ id: string | string[]; materialId: string | string[] }>();
     const courseId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -95,6 +98,17 @@ export default function CoursePlayerPage() {
             </Link>
         </div>
     );
+
+    if (isFree && module && !module.isFree) {
+        return (
+            <div className="p-6 lg:p-12 w-full max-w-4xl mx-auto flex items-center justify-center min-h-[60vh]">
+                <PremiumFeatureCard
+                    title="Aula Premium"
+                    description="Esta aula faz parte de um módulo exclusivo para assinantes. Faça o upgrade para continuar assistindo!"
+                />
+            </div>
+        );
+    }
 
     const materials = module?.materials || [];
     const normalizedFileType = currentMaterial.fileType?.trim().toUpperCase();

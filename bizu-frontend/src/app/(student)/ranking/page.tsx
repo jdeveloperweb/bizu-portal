@@ -11,6 +11,8 @@ import {
 import { apiFetch } from "@/lib/api";
 import { getStoredSelectedCourseId } from "@/lib/course-selection";
 import { getAvatarUrl } from "@/lib/imageUtils";
+import { useAuth } from "@/components/AuthProvider";
+import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 
 type RankingTab = "geral" | "semanal" | "materia";
 
@@ -30,6 +32,7 @@ interface RankedUser {
 
 
 export default function RankingStudentPage() {
+    const { isFree } = useAuth();
     const [activeTab, setActiveTab] = useState<RankingTab>("geral");
     const [selectedSubject, setSelectedSubject] = useState("Todas");
     const [topUsers, setTopUsers] = useState<RankedUser[]>([]);
@@ -107,6 +110,17 @@ export default function RankingStudentPage() {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+            </div>
+        );
+    }
+
+    if (isFree) {
+        return (
+            <div className="p-6 lg:p-12 w-full max-w-4xl mx-auto flex items-center justify-center min-h-[60vh]">
+                <PremiumFeatureCard
+                    title="Ranking Premium"
+                    description="O Ranking de estudantes é exclusivo para assinantes. Veja sua posição e compita com os melhores!"
+                />
             </div>
         );
     }

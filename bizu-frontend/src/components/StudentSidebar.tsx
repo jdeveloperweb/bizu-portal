@@ -9,7 +9,7 @@ import {
     LayoutDashboard, BookOpen, ClipboardList, Layers,
     Swords, TrendingUp, User, Trophy, LogOut,
     ChevronRight, ChevronLeft, Search, Timer, CheckSquare,
-    StickyNote, Settings, BarChart3, Menu, X, FileText, PlayCircle, CreditCard, Users
+    StickyNote, Settings, BarChart3, Menu, X, FileText, PlayCircle, CreditCard, Users, Lock
 } from "lucide-react";
 import { getAvatarUrl } from "@/lib/imageUtils";
 import { usePomodoro } from "@/contexts/PomodoroContext";
@@ -45,13 +45,16 @@ const bottomNav = [
 
 export default function StudentSidebar() {
     const pathname = usePathname();
-    const { logout, user, subscription, entitlements, selectedCourseId } = useAuth();
+    const { logout, user, subscription, entitlements, selectedCourseId, isFree } = useAuth();
     const { setIsOpen: setPomodoroOpen } = usePomodoro();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     const Item = ({ href, icon: Icon, label }: { href: string; icon: typeof LayoutDashboard; label: string }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
+        const isPremiumRoute = ["/pomodoro", "/simulados", "/flashcards", "/arena", "/redacao", "/desempenho", "/ranking", "/conquistas", "/amigos"].some(r => href.startsWith(r));
+        const showLock = isFree && isPremiumRoute;
+
         const handleClick = () => {
             setIsMobileMenuOpen(false);
             if (label === "Pomodoro") {
@@ -69,7 +72,8 @@ export default function StudentSidebar() {
                     }`}>
                 <Icon size={16} className={active ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground opacity-70 group-hover:opacity-100"} />
                 {!isCollapsed && <span className="flex-1">{label}</span>}
-                {active && !isCollapsed && <ChevronRight size={12} className="text-indigo-400" />}
+                {showLock && !isCollapsed && <Lock size={12} className="text-amber-500 shrink-0" />}
+                {active && !isCollapsed && !showLock && <ChevronRight size={12} className="text-indigo-400 shrink-0" />}
             </Link>
         );
     };

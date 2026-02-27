@@ -5,10 +5,13 @@ import Link from "next/link";
 import { Users, Search, UserPlus, ShieldAlert, Loader2, Check, X, ArrowRight, Sparkles } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { getStoredSelectedCourseId } from "@/lib/course-selection";
+import { useAuth } from "@/components/AuthProvider";
+import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 
 type Tab = "amigos" | "pedidos" | "buscar";
 
 export default function AmigosPage() {
+    const { isFree } = useAuth();
     const [activeTab, setActiveTab] = useState<Tab>("amigos");
     const [friends, setFriends] = useState<any[]>([]);
     const [pending, setPending] = useState<any[]>([]);
@@ -79,6 +82,17 @@ export default function AmigosPage() {
         const res = await apiFetch(`/friends/reject/${id}`, { method: 'DELETE' });
         if (res.ok) fetchPending();
     };
+
+    if (isFree) {
+        return (
+            <div className="p-6 lg:p-12 w-full max-w-4xl mx-auto flex items-center justify-center min-h-[60vh]">
+                <PremiumFeatureCard
+                    title="Rede de Amigos Premium"
+                    description="A rede social de amigos é exclusiva para assinantes. Conecte-se com outros concurseiros e estudem juntos!"
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 lg:p-8 w-full max-w-[1000px] mx-auto">

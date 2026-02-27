@@ -2,7 +2,7 @@
 
 import QuestionViewer from "@/components/questions/QuestionViewer";
 import PageHeader from "@/components/PageHeader";
-import { Timer, LayoutGrid, ChevronLeft, Sparkles, SlidersHorizontal, ChevronDown, Settings, Maximize, Minimize } from "lucide-react";
+import { Timer, LayoutGrid, ChevronLeft, Sparkles, SlidersHorizontal, ChevronDown, Settings, Maximize, Minimize, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -56,12 +56,12 @@ function TreinoContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const simuladoId = searchParams.get("simulado");
-    const { selectedCourseId } = useAuth();
+    const { selectedCourseId, isFree } = useAuth();
 
     const [simulado, setSimulado] = useState<SimuladoData | null>(null);
     const [courses, setCourses] = useState<Course[]>([]);
     const [selectedModuleIds, setSelectedModuleIds] = useState<string[]>([]);
-    const [questionCount, setQuestionCount] = useState(10);
+    const [questionCount, setQuestionCount] = useState(isFree ? 10 : 10);
     const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [isApplyingConfig, setIsApplyingConfig] = useState(false);
@@ -214,9 +214,11 @@ function TreinoContent() {
                 <div className="bg-card border rounded-3xl p-8 text-center">
                     <h2 className="text-xl font-bold mb-2">Sem questões para este módulo</h2>
                     <p className="text-muted-foreground mb-6">Tente escolher outro módulo ou aplique uma nova configuração.</p>
-                    <Button onClick={() => setShowConfig(true)} variant="outline" className="mb-4">
-                        Abrir Configurações
-                    </Button>
+                    {!isFree && (
+                        <Button onClick={() => setShowConfig(true)} variant="outline" className="mb-4">
+                            Abrir Configurações
+                        </Button>
+                    )}
                     <br />
                     <Button onClick={handleApplyConfig} disabled={isApplyingConfig || !!simuladoId}>
                         {isApplyingConfig ? "Atualizando..." : "Atualizar questões"}
@@ -287,15 +289,27 @@ function TreinoContent() {
                         </Link>
 
                         <div className="flex items-center gap-2 sm:gap-4">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setShowConfig(!showConfig)}
-                                className={`rounded-2xl h-10 sm:h-12 px-4 sm:px-5 flex items-center gap-2 font-black transition-all shadow-sm ${showConfig ? 'bg-primary text-primary-foreground border-primary shadow-primary/20' : 'bg-card/50 backdrop-blur-sm border-border/50 hover:bg-primary/5'}`}
-                            >
-                                <Settings className="w-4 h-4" />
-                                <span className="hidden xs:inline">Configurações</span>
-                            </Button>
+                            {!isFree ? (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setShowConfig(!showConfig)}
+                                    className={`rounded-2xl h-10 sm:h-12 px-4 sm:px-5 flex items-center gap-2 font-black transition-all shadow-sm ${showConfig ? 'bg-primary text-primary-foreground border-primary shadow-primary/20' : 'bg-card/50 backdrop-blur-sm border-border/50 hover:bg-primary/5'}`}
+                                >
+                                    <Settings className="w-4 h-4" />
+                                    <span className="hidden xs:inline">Configurações</span>
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => alert("As configurações de treino são exclusivas para assinantes Premium.")}
+                                    className="rounded-2xl h-10 sm:h-12 px-4 sm:px-5 flex items-center gap-2 font-black transition-all shadow-sm bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                                >
+                                    <Lock className="w-4 h-4" />
+                                    <span className="hidden xs:inline">Config Fechada</span>
+                                </Button>
+                            )}
 
                             <div className="flex items-center gap-2 text-xs font-black text-primary bg-primary/5 border border-primary/20 px-4 py-2 sm:py-3 rounded-2xl shadow-sm">
                                 <LayoutGrid className="w-4 h-4" />

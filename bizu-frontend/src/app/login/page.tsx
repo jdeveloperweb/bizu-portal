@@ -40,6 +40,16 @@ export default function LoginPage() {
     }, []);
 
     useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get("error") === "device_mismatch") {
+                notify("Sessão Expirada", "Sua conta foi logada em outro dispositivo. Apenas um aparelho por conta pode estar conectado ao mesmo tempo.", "error");
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+    }, [notify]);
+
+    useEffect(() => {
         if (authenticated && user) {
             const roles = getRealmRoles(user);
             const isAdmin = roles.some((role: string) => role.toUpperCase() === "ADMIN");

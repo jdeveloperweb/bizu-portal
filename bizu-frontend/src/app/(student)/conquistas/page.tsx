@@ -9,6 +9,8 @@ import {
     Layers, Brain, Award, Loader2,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
+import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 
 type BadgeCategory = "todas" | "consistencia" | "performance" | "social" | "especial";
 
@@ -55,6 +57,7 @@ const categoryConfig: Record<BadgeCategory, { label: string; icon: typeof Trophy
 };
 
 export default function ConquistasPage() {
+    const { isFree } = useAuth();
     const [activeCategory, setActiveCategory] = useState<BadgeCategory>("todas");
     const [badges, setBadges] = useState<Badge[]>([]);
     const [stats, setStats] = useState<any>(null);
@@ -116,6 +119,17 @@ export default function ConquistasPage() {
         return (
             <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto flex items-center justify-center min-h-[400px]">
                 <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+            </div>
+        );
+    }
+
+    if (isFree) {
+        return (
+            <div className="p-6 lg:p-12 w-full max-w-4xl mx-auto flex items-center justify-center min-h-[60vh]">
+                <PremiumFeatureCard
+                    title="Conquistas Premium"
+                    description="O sistema de conquistas e gamificação é exclusivo para assinantes. Desbloqueie selos especiais durante sua jornada!"
+                />
             </div>
         );
     }

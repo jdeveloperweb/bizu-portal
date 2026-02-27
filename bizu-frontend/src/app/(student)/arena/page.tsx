@@ -17,6 +17,7 @@ import ActiveDuelBanner from "@/components/arena/ActiveDuelBanner";
 import Cookies from "js-cookie";
 import { useChallengeNotifications } from "@/hooks/useChallengeNotifications";
 import { useAuth } from "@/components/AuthProvider";
+import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
@@ -49,7 +50,7 @@ export default function ArenaPage() {
 }
 
 function ArenaPageContent() {
-    const { user } = useAuth();
+    const { user, isFree } = useAuth();
     const [activeTab, setActiveTab] = useState<ArenaTab>("online");
     const [selectedSubject, setSelectedSubject] = useState("Aleatorio");
     const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
@@ -231,6 +232,17 @@ function ArenaPageContent() {
             alert("Erro ao semear questões.");
         }
     };
+
+    if (isFree) {
+        return (
+            <div className="p-6 lg:p-12 w-full max-w-4xl mx-auto flex items-center justify-center min-h-[60vh]">
+                <PremiumFeatureCard
+                    title="Arena PVP Premium"
+                    description="As batalhas na Arena são exclusivas para assinantes. Desbloqueie o modo competitivo e mostre seu conhecimento!"
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">

@@ -9,6 +9,8 @@ import {
     Lock, Star, BookOpen, Sparkles
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
+import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 
 type SimuladoTab = "disponiveis" | "concluidos" | "meus";
 
@@ -24,6 +26,7 @@ import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 
 export default function SimuladosPage() {
+    const { isFree } = useAuth();
     const [activeTab, setActiveTab] = useState<SimuladoTab>("disponiveis");
     const [realSimulados, setRealSimulados] = useState<any[]>([]);
     const [performance, setPerformance] = useState<any>(null);
@@ -78,6 +81,17 @@ export default function SimuladosPage() {
         : activeTab === "disponiveis"
             ? mappedSimulados.filter(s => s.status !== "concluido")
             : mappedSimulados;
+
+    if (isFree) {
+        return (
+            <div className="p-6 lg:p-12 w-full max-w-4xl mx-auto flex items-center justify-center min-h-[60vh]">
+                <PremiumFeatureCard
+                    title="Simulados Premium"
+                    description="O acesso aos simulados de concurso é exclusivo para assinantes. Aperfeiçoe seus estudos e ganhe vantagem na aprovação!"
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-background relative overflow-hidden pb-12">
