@@ -82,11 +82,11 @@ public class UserService {
                         .nickname(generatedNickname)
                         .name(name != null ? name : email)
                         .status("ACTIVE")
-                        .version(0L)
+                        .isNew(false) // Força o uso de merge() no save()
                         .build();
                 
                 try {
-                    return userRepository.saveAndFlush(newUser);
+                    return userRepository.save(newUser);
                 } catch (Exception ex) {
                     return userRepository.findByEmail(email)
                             .orElseThrow(() -> new RuntimeException("Erro ao criar usuário localmente: " + email, ex));

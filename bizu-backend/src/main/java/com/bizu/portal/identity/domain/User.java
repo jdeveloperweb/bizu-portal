@@ -60,8 +60,7 @@ public class User implements Persistable<UUID> {
     private OffsetDateTime lastSeenAt;
 
     @Version
-    @Builder.Default
-    private Long version = 0L;
+    private Long version;
 
     @Column(name = "deleted_at")
     private OffsetDateTime deletedAt;
