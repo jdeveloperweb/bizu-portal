@@ -1,6 +1,7 @@
 "use client";
 
 import { useCourse } from "@/contexts/CourseContext";
+import { useAuth } from "@/components/AuthProvider";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
@@ -11,6 +12,7 @@ import Link from "next/link";
  */
 export default function PaywallGate({ children }: { children: React.ReactNode }) {
     const { entitlementExpired, activeCourseId, loading } = useCourse();
+    const { isFree } = useAuth();
     const pathname = usePathname();
 
     // Don't block public pages, admin pages, or settings
@@ -26,7 +28,7 @@ export default function PaywallGate({ children }: { children: React.ReactNode })
         pathname.startsWith("/configuracoes") ||
         pathname.startsWith("/perfil");
 
-    if (isExempt || loading || !entitlementExpired) {
+    if (isExempt || loading || !entitlementExpired || isFree) {
         return <>{children}</>;
     }
 
