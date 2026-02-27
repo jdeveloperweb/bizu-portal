@@ -11,6 +11,7 @@ import {
     ChevronRight, Search, Timer, CheckSquare,
     StickyNote, Settings, BarChart3, Menu, X, FileText, PlayCircle, CreditCard, Users
 } from "lucide-react";
+import { getAvatarUrl } from "@/lib/imageUtils";
 import { usePomodoro } from "@/contexts/PomodoroContext";
 
 const studyNav = [
@@ -104,7 +105,7 @@ export default function StudentSidebar() {
                         <div className="w-10 h-10 rounded-xl overflow-hidden bg-indigo-100 border border-indigo-200 shadow-sm shrink-0">
                             {user?.avatarUrl ? (
                                 <img
-                                    src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `${process.env.NEXT_PUBLIC_API_URL}${user.avatarUrl}`}
+                                    src={getAvatarUrl(user.avatarUrl)}
                                     className="w-full h-full object-cover"
                                     alt="Profile"
                                 />

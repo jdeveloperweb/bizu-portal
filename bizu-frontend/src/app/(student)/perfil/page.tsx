@@ -279,7 +279,7 @@ export default function ProfilePage() {
                                 <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[32px] overflow-hidden bg-slate-100 border-4 border-white shadow-xl flex items-center justify-center ring-1 ring-slate-100 transition-transform group-hover:scale-[1.02]">
                                     {user?.avatarUrl ? (
                                         <img
-                                            src={(user.avatarUrl as string).startsWith('http') ? (user.avatarUrl as string) : `${process.env.NEXT_PUBLIC_API_URL}${user.avatarUrl}`}
+                                            src={getAvatarUrl(user.avatarUrl as string)}
                                             alt={user.name as string}
                                             className="w-full h-full object-cover"
                                             onError={(e) => {

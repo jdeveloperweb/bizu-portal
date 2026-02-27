@@ -6,6 +6,8 @@ import { Swords, Trophy, Timer, CheckCircle2, XCircle, Zap, Shield, Crown } from
 import { Duel, DuelQuestion, DuelService } from "@/lib/duelService";
 import { useDuelWebSocket } from "@/hooks/useDuelWebSocket";
 import { useGamification } from "@/components/gamification/GamificationProvider";
+import { apiFetch } from "@/lib/api";
+import { getAvatarUrl } from "@/lib/imageUtils";
 import confetti from "canvas-confetti";
 
 interface ArenaDuelScreenProps {
@@ -160,7 +162,7 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                             <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center overflow-hidden shadow-lg ${isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
                                 {duel.challenger?.avatarUrl ? (
                                     <img
-                                        src={duel.challenger.avatarUrl.startsWith('http') ? duel.challenger.avatarUrl : `${process.env.NEXT_PUBLIC_API_URL}${duel.challenger.avatarUrl}`}
+                                        src={getAvatarUrl(duel.challenger.avatarUrl)}
                                         className="w-full h-full object-cover"
                                         alt={duel.challenger.name}
                                     />
@@ -207,7 +209,7 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                             <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center overflow-hidden shadow-lg ${!isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
                                 {duel.opponent?.avatarUrl ? (
                                     <img
-                                        src={duel.opponent.avatarUrl.startsWith('http') ? duel.opponent.avatarUrl : `${process.env.NEXT_PUBLIC_API_URL}${duel.opponent.avatarUrl}`}
+                                        src={getAvatarUrl(duel.opponent.avatarUrl)}
                                         className="w-full h-full object-cover"
                                         alt={duel.opponent.name}
                                     />
