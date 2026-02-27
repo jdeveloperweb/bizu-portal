@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     Timer, Play, Pause, RotateCcw, SkipForward,
     Brain, Coffee, Target, Plus, X, StickyNote, CheckSquare,
-    ChevronRight, ChevronLeft, GripVertical
+    ChevronRight, ChevronLeft, GripVertical, Pin, PinOff
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { usePomodoro, SessionType } from "@/contexts/PomodoroContext";
@@ -23,6 +23,8 @@ export default function FloatingPomodoro() {
         skipSession,
         isOpen,
         setIsOpen,
+        isFloating,
+        setIsFloating
     } = usePomodoro();
 
     const pathname = usePathname();
@@ -33,7 +35,8 @@ export default function FloatingPomodoro() {
     const [quickValue, setQuickValue] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
-    if (!isOpen || isDashboard) return null;
+    if (!isOpen) return null;
+    if (isDashboard && !isFloating) return null;
 
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
@@ -182,6 +185,15 @@ export default function FloatingPomodoro() {
                             <button onClick={() => setIsExpanded(false)} className="w-6 h-8 flex items-center justify-center text-slate-300 hover:text-slate-500">
                                 <ChevronRight size={14} />
                             </button>
+                            {isDashboard && isFloating && (
+                                <button
+                                    onClick={() => setIsFloating(false)}
+                                    className="w-8 h-8 rounded-xl hover:bg-slate-50 flex items-center justify-center text-indigo-500 transition-all"
+                                    title="Fixar no Cabeçalho"
+                                >
+                                    <Pin size={14} />
+                                </button>
+                            )}
                         </>
                     ) : (
                         <button onClick={() => setIsExpanded(true)} className="w-6 h-8 flex items-center justify-center text-slate-300 hover:text-slate-500">
