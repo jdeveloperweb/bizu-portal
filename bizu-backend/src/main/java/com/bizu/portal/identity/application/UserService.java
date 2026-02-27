@@ -74,48 +74,54 @@ public class UserService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public User syncUser(java.util.UUID userId, String email, String name) {
         User user = userRepository.findById(userId).orElseGet(() -> {
-            return userRepository.findByEmail(email).map(existingUser -> {
-                return existingUser;
-            }).orElseGet(() -> {
+            return userRepository.findByEmail(email).orElseGet(() -> {
                 String generatedNickname = generateNickname(email);
-
                 User newUser = User.builder()
                         .id(userId)
                         .email(email)
                         .nickname(generatedNickname)
                         .name(name != null ? name : email)
                         .status("ACTIVE")
+                        .version(0L)
                         .build();
                 
                 try {
                     return userRepository.saveAndFlush(newUser);
                 } catch (Exception ex) {
                     return userRepository.findByEmail(email)
-                            .orElseThrow(() -> new RuntimeException("Erro ao sincronizar usuário", ex));
+                            .orElseThrow(() -> new RuntimeException("Erro ao criar usuário localmente: " + email, ex));
                 }
             });
         });
 
-        // Atualiza a presença de forma eficiente via query nativa para evitar OptimisticLock
-        userRepository.updateLastSeen(user.getId());
+        // Atualiza a presença sem incrementar o version
+        try {
+            userRepository.updateLastSeen(user.getId());
+        } catch (Exception e) {
+            // Se falhar o update de presença, não derruba o request principal
+        }
+        
         return user;
     }
 
     @Transactional
     public java.util.UUID resolveUserId(org.springframework.security.oauth2.jwt.Jwt jwt) {
         String email = jwt.getClaimAsString("email");
+        if (email == null) email = jwt.getClaimAsString("preferred_username");
+        if (email == null) email = jwt.getSubject(); // Fallback final
+
         String name = jwt.getClaimAsString("name");
+        if (name == null) name = jwt.getClaimAsString("preferred_username");
+        if (name == null) name = email;
         
         String sub = jwt.getSubject();
         java.util.UUID subjectId;
         try {
             subjectId = java.util.UUID.fromString(sub);
         } catch (Exception e) {
-            // Se o subject não for um UUID válido, tentamos usar o email como semente para um UUID determinístico
             subjectId = java.util.UUID.nameUUIDFromBytes(email.getBytes());
         }
         
-        // Ensure user exists locally and return its ID
         return syncUser(subjectId, email, name).getId();
     }
 

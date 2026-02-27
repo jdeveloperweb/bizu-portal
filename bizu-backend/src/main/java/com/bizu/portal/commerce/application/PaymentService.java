@@ -163,9 +163,17 @@ public class PaymentService {
 
     @Transactional
     public void processInfinitePayEvent(String orderNsu) {
+        if (orderNsu == null || orderNsu.isEmpty()) {
+            log.error("Recebido evento InfinitePay sem NSU!");
+            return;
+        }
+
         log.info("Processando aprovação InfinitePay para NSU: {}", orderNsu);
         com.bizu.portal.commerce.domain.Payment payment = paymentRepository.findByStripeIntentId(orderNsu)
-                .orElseThrow(() -> new RuntimeException("Pagamento não encontrado para o NSU: " + orderNsu));
+                .orElseThrow(() -> {
+                    log.error("Pagamento não encontrado no banco de dados para o NSU: {}", orderNsu);
+                    return new RuntimeException("Pagamento não encontrado: " + orderNsu);
+                });
 
         if ("SUCCEEDED".equalsIgnoreCase(payment.getStatus())) {
             log.info("Pagamento {} já estava aprovado.", orderNsu);

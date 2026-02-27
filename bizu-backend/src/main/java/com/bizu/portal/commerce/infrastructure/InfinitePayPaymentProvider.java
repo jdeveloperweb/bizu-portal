@@ -40,7 +40,8 @@ public class InfinitePayPaymentProvider implements PaymentProvider {
             // Objeto de payload sem chaves extras, conforme print da documentação
             Map<String, Object> payload = new LinkedHashMap<>();
             payload.put("handle", handle);
-            payload.put("order_nsu", UUID.randomUUID().toString().substring(0, 8)); // NSU mais curto por segurança
+            String orderNsu = "BZ-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            payload.put("order_nsu", orderNsu); 
             payload.put("items", List.of(item));
             payload.put("redirect_url", "https://bizu.mjolnix.com.br/dashboard?status=success");
             payload.put("webhook_url", "https://bizu.mjolnix.com.br/api/v1/public/webhooks/infinitepay");

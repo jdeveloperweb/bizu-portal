@@ -55,14 +55,23 @@ public class WebhookController {
     public ResponseEntity<String> handleInfinitePayWebhook(@RequestBody java.util.Map<String, Object> payload) {
         log.info("Recebido webhook da InfinitePay: {}", payload);
         
-        // A InfinitePay envia os dados da venda quando aprovada
-        // Precisamos identificar o usuário e plano do nosso lado, geralmente via order_nsu
-        if (payload != null && "APPROVED".equalsIgnoreCase((String) payload.get("status"))) {
-            String orderNsu = (String) payload.get("order_nsu");
-            paymentService.processInfinitePayEvent(orderNsu);
+        try {
+            if (payload != null && payload.get("status") != null) {
+                String status = String.valueOf(payload.get("status"));
+                if ("APPROVED".equalsIgnoreCase(status) || "PAID".equalsIgnoreCase(status)) {
+                    Object nsuObj = payload.get("order_nsu");
+                    if (nsuObj != null) {
+                        String orderNsu = String.valueOf(nsuObj);
+                        paymentService.processInfinitePayEvent(orderNsu);
+                        return ResponseEntity.ok("Processado");
+                    }
+                }
+            }
+            return ResponseEntity.ok("Recebido, mas sem ação (status não aprovado ou sem NSU)");
+        } catch (Exception e) {
+            log.error("Erro crítico ao processar webhook InfinitePay: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body("Erro interno");
         }
-        
-        return ResponseEntity.ok("Recebido");
     }
 
     @PostMapping("/pagarme")
