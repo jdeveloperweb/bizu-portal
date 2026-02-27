@@ -7,9 +7,10 @@ import {
     BarChart3, Zap, ChevronRight, Bell, Rocket,
     PlayCircle, CheckCircle2, Timer, CheckSquare,
     StickyNote, Brain, Star, Crown, MoreHorizontal,
-    Search, FileText, PartyPopper
+    Search, FileText, PartyPopper, Coffee, SkipForward, Play, Pause
 } from "lucide-react";
 import confetti from "canvas-confetti";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useCourse } from "@/contexts/CourseContext";
@@ -32,7 +33,10 @@ export default function DashboardPage() {
     const { user } = useAuth();
     const router = useRouter();
     const { isGracePeriod } = useCourse();
-    const { isOpen, setIsOpen } = usePomodoro();
+    const {
+        isOpen, setIsOpen, timeLeft, isRunning,
+        toggleTimer, skipSession, sessionType, completedCycles
+    } = usePomodoro();
     const [stats, setStats] = useState<any>(null);
     const [gamification, setGamification] = useState<any>(null);
     const [ranking, setRanking] = useState<any>(null);
@@ -170,7 +174,55 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="flex items-center gap-3 bg-white/80 p-2 md:p-2.5 rounded-[24px] shadow-sm border border-slate-100 flex-wrap md:flex-nowrap">
-                    {/* Toggle Pomodoro */}
+                    {/* Inline Pomodoro Timer */}
+                    <AnimatePresence>
+                        {isOpen && (
+                            <motion.div
+                                initial={{ width: 0, opacity: 0, x: -20 }}
+                                animate={{ width: "auto", opacity: 1, x: 0 }}
+                                exit={{ width: 0, opacity: 0, x: -20 }}
+                                className="overflow-hidden flex items-center"
+                            >
+                                <div className="flex items-center gap-3 pr-4 pl-2 border-r border-slate-100 mr-1">
+                                    <div className={cn(
+                                        "w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-sm transition-colors duration-500",
+                                        sessionType === 'focus' ? "bg-indigo-600" :
+                                            sessionType === 'shortBreak' ? "bg-emerald-500" : "bg-orange-500"
+                                    )}>
+                                        {sessionType === 'focus' ? <Brain size={18} /> : <Coffee size={18} />}
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-15px font-black text-slate-900 tabular-nums leading-none">
+                                            {(() => {
+                                                const minutes = Math.floor(timeLeft / 60);
+                                                const seconds = timeLeft % 60;
+                                                return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+                                            })()}
+                                        </span>
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">
+                                            Ciclo {completedCycles % 4 + 1}/4
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-1 ml-1">
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); toggleTimer(); }}
+                                            className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-600 transition-colors"
+                                        >
+                                            {isRunning ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}
+                                        </button>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); skipSession(); }}
+                                            className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors"
+                                        >
+                                            <SkipForward size={14} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Toggle Pomodoro Button */}
                     <button
                         onClick={() => setIsOpen(!isOpen)}
                         className={cn(
@@ -189,12 +241,12 @@ export default function DashboardPage() {
 
                     <div className="flex items-center gap-2.5 text-sm font-bold text-orange-600 bg-orange-50/50 border border-orange-100 px-4 py-2.5 rounded-2xl">
                         <Flame size={16} />
-                        {isLoading ? <Skeleton className="h-4 w-4" /> : <span>{streak} <span className="text-[10px] uppercase tracking-wider opacity-70">dias</span></span>}
+                        {isLoading ? <Skeleton className="h-4 w-4" /> : <span>{streak} <span className="text-[10px] uppercase tracking-wider opacity-70 border-l border-orange-200 ml-1 pl-1">DIAS</span></span>}
                     </div>
 
                     <div className="flex items-center gap-2.5 text-sm font-bold text-indigo-600 bg-indigo-50/50 border border-indigo-100 px-4 py-2.5 rounded-2xl">
                         <Trophy size={16} />
-                        {isLoading ? <Skeleton className="h-4 w-12" /> : <span>{totalXp} <span className="text-[10px] uppercase tracking-wider opacity-70">XP</span></span>}
+                        {isLoading ? <Skeleton className="h-4 w-12" /> : <span>{totalXp} <span className="text-[10px] uppercase tracking-wider opacity-70 border-l border-indigo-200 ml-1 pl-1">XP</span></span>}
                     </div>
 
                     <div className="hidden md:block h-8 w-[1px] bg-slate-100 mx-1" />

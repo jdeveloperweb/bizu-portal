@@ -7,6 +7,7 @@ import {
     Brain, Coffee, Target, Plus, X, StickyNote, CheckSquare,
     ChevronRight, ChevronLeft, GripVertical
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { usePomodoro, SessionType } from "@/contexts/PomodoroContext";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
@@ -24,12 +25,15 @@ export default function FloatingPomodoro() {
         setIsOpen,
     } = usePomodoro();
 
+    const pathname = usePathname();
+    const isDashboard = pathname === "/dashboard" || pathname === "/(student)/dashboard";
+
     const [isExpanded, setIsExpanded] = useState(false);
     const [showQuickAction, setShowQuickAction] = useState<"none" | "task" | "note">("none");
     const [quickValue, setQuickValue] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
-    if (!isOpen) return null;
+    if (!isOpen || isDashboard) return null;
 
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
