@@ -49,17 +49,26 @@ export const metadata: Metadata = {
     "A plataforma definitiva para concurseiros de elite. Simulados com IA, banco de 50k+ questoes e trilhas personalizadas.",
   manifest: "/manifest.json",
   icons: {
-    icon: "/icons/icon-192x192.png",
-    apple: "/icons/icon-192x192.png",
+    icon: "/icons/icon-512x512.png",
+    shortcut: "/icons/icon-192x192.png",
+    apple: "/icons/icon-512x512.png",
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
-    title: "Bizu! Portal",
+    statusBarStyle: "black-translucent",
+    title: "Bizu! Academy",
     startupImage: [
       {
         url: "/icons/icon-512x512.png",
-        media: "(device-width: 768px) and (device-height: 1024px)",
+        media: "(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)",
+      },
+      {
+        url: "/icons/icon-512x512.png",
+        media: "(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)",
+      },
+      {
+        url: "/icons/icon-512x512.png",
+        media: "(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)",
       },
     ],
   },
