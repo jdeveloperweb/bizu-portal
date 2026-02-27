@@ -96,16 +96,35 @@ public class UserService {
             });
         });
 
-        // Atualiza o lastSeenAt a cada sincronização (chamado em cada request do /duelos)
-        user.setLastSeenAt(java.time.OffsetDateTime.now());
-        return userRepository.save(user);
+        // Atualiza o lastSeenAt apenas se passou mais de 1 minuto desde a última atualização
+        // ou se for nulo, para evitar erros de concorrência (Optimistic Lock) em requests paralelos
+        java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
+        if (user.getLastSeenAt() == null || user.getLastSeenAt().isBefore(now.minusSeconds(30))) {
+            try {
+                user.setLastSeenAt(now);
+                return userRepository.save(user);
+            } catch (Exception ex) {
+                // Se der erro de concorrência ao atualizar lastSeenAt, ignoramos para não derrubar a requisição principal
+                return user;
+            }
+        }
+        
+        return user;
     }
 
     @Transactional
     public java.util.UUID resolveUserId(org.springframework.security.oauth2.jwt.Jwt jwt) {
         String email = jwt.getClaimAsString("email");
         String name = jwt.getClaimAsString("name");
-        java.util.UUID subjectId = java.util.UUID.fromString(jwt.getSubject());
+        
+        String sub = jwt.getSubject();
+        java.util.UUID subjectId;
+        try {
+            subjectId = java.util.UUID.fromString(sub);
+        } catch (Exception e) {
+            // Se o subject não for um UUID válido, tentamos usar o email como semente para um UUID determinístico
+            subjectId = java.util.UUID.nameUUIDFromBytes(email.getBytes());
+        }
         
         // Ensure user exists locally and return its ID
         return syncUser(subjectId, email, name).getId();
