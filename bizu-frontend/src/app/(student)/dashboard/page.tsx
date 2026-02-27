@@ -85,7 +85,7 @@ export default function DashboardPage() {
         }
     }, [courses]);
 
-    const subjects = stats?.subjectsProgress || [];
+    const subjects = stats?.bySubject || [];
     const recentActivity: any[] = [];
     const pendingTasks: any[] = [];
 
@@ -178,7 +178,7 @@ export default function DashboardPage() {
             {/* Top Stats Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
                 {[
-                    { label: "Questões Resolvidas", val: totalResolved.toString(), icon: BarChart3, color: "indigo" },
+                    { label: "Questões Resolvidas", val: (stats?.totalUniqueAttempted || 0).toString(), icon: BarChart3, color: "indigo" },
                     { label: "Taxa de Acerto", val: accuracy, icon: Target, color: "rose" },
                     { label: "Nível Atual", val: (gamification?.level || 1).toString(), icon: Zap, color: "amber" },
                     { label: "Posição Ranking", val: ranking?.position ? `#${ranking.position}` : "-", icon: Trophy, color: "emerald" },
@@ -350,10 +350,10 @@ export default function DashboardPage() {
                             <div className="space-y-4 mb-8">
                                 <div className="flex justify-between items-center text-xs font-black tracking-widest uppercase text-slate-400">
                                     <span>Progresso</span>
-                                    <span className="text-indigo-600">{totalResolved % 10}/10</span>
+                                    <span className="text-indigo-600">{stats?.dailyAttempted || 0}/10</span>
                                 </div>
                                 <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                                    <div className="h-full bg-indigo-600 rounded-full transition-all duration-1000" style={{ width: `${(totalResolved % 10) * 10}%` }} />
+                                    <div className="h-full bg-indigo-600 rounded-full transition-all duration-1000" style={{ width: `${Math.min((stats?.dailyAttempted || 0) * 10, 100)}%` }} />
                                 </div>
                             </div>
 

@@ -10,6 +10,7 @@ import { AlertTriangle, Clock, Target, Maximize, CheckCircle2 } from "lucide-rea
 export default function SimuladoProvaPage() {
     const params = useParams();
     const router = useRouter();
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://bizu.mjoinix.com.br/api/v1";
     const simuladoId = params.id as string;
 
     const [simulado, setSimulado] = useState<any>(null);
@@ -135,16 +136,18 @@ export default function SimuladoProvaPage() {
         text: value as string,
     })) : [];
 
-    const mappedQuestion = {
+    const mappedQuestion = currentQuestion ? {
         id: currentQuestion.id,
-        statement: currentQuestion.statement,
+        statement: currentQuestion.statement || "Questão sem enunciado",
         options: formattedOptions,
         correctOptionId: currentQuestion.correctOption,
         resolution: currentQuestion.resolution || "Resolução não disponível.",
         banca: currentQuestion.banca,
         year: currentQuestion.year,
-        subject: currentQuestion.module?.title || currentQuestion.subject,
-    };
+        subject: currentQuestion.module?.title || currentQuestion.subject || "Geral",
+    } : null;
+
+    if (!mappedQuestion) return null;
 
     return (
         <div ref={containerRef} className="bg-slate-50 min-h-screen w-full relative font-sans text-slate-800">

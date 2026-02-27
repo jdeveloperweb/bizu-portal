@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react"; import Link from "next/link";
+import { useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import BrandLogo from "@/components/BrandLogo";
@@ -8,8 +9,9 @@ import {
     LayoutDashboard, BookOpen, ClipboardList, Layers,
     Swords, TrendingUp, User, Trophy, LogOut,
     ChevronRight, Search, Timer, CheckSquare,
-    StickyNote, Settings, BarChart3, Menu, X, FileText, PlayCircle, CreditCard
+    StickyNote, Settings, BarChart3, Menu, X, FileText, PlayCircle, CreditCard, Users
 } from "lucide-react";
+import { usePomodoro } from "@/contexts/PomodoroContext";
 
 const studyNav = [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -31,6 +33,7 @@ const trackNav = [
     { href: "/desempenho", icon: TrendingUp, label: "Desempenho" },
     { href: "/ranking", icon: BarChart3, label: "Ranking" },
     { href: "/conquistas", icon: Trophy, label: "Conquistas" },
+    { href: "/amigos", icon: Users, label: "Amigos" },
 ];
 
 const bottomNav = [
@@ -42,12 +45,21 @@ const bottomNav = [
 export default function StudentSidebar() {
     const pathname = usePathname();
     const { logout, subscription, entitlements, selectedCourseId } = useAuth();
-    const [isOpen, setIsOpen] = useState(false);
+    const { setIsOpen: setPomodoroOpen } = usePomodoro();
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
     const Item = ({ href, icon: Icon, label }: { href: string; icon: typeof LayoutDashboard; label: string }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
+        const handleClick = () => {
+            setIsMobileMenuOpen(false);
+            if (label === "Pomodoro") {
+                setPomodoroOpen(true);
+            }
+        };
+
         return (
             <Link href={href}
-                onClick={() => setIsOpen(false)}
+                onClick={handleClick}
                 className={`group flex items-center gap-2.5 px-3 py-[7px] rounded-lg text-[13px] font-medium transition-all ${active
                     ? "bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-500/10 dark:to-violet-500/10 text-indigo-700 dark:text-indigo-400 font-semibold"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -64,23 +76,23 @@ export default function StudentSidebar() {
             {/* Menu Mobile Topo */}
             <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-background border-b border-border flex items-center justify-between px-4 z-40">
                 <BrandLogo size="md" variant="dark" />
-                <button onClick={() => setIsOpen(!isOpen)} className="p-2 -mr-2 text-muted-foreground hover:text-indigo-600 transition-colors">
-                    {isOpen ? <X size={20} /> : <Menu size={20} />}
+                <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 -mr-2 text-muted-foreground hover:text-indigo-600 transition-colors">
+                    {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
                 </button>
             </div>
 
             {/* Overlay Mobile */}
-            {isOpen && (
+            {isMobileMenuOpen && (
                 <div
                     className="md:hidden fixed inset-0 bg-slate-900/20 z-40 backdrop-blur-sm"
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => setIsMobileMenuOpen(false)}
                 />
             )}
 
             <aside className={`
                 w-[230px] shrink-0 h-[100dvh] bg-card border-r border-border flex flex-col
                 fixed md:sticky top-0 z-50 transition-transform duration-300 ease-in-out
-                ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+                ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             `}>
                 <div className="h-16 flex items-center px-4 border-b border-border shrink-0">
                     <BrandLogo size="md" variant="dark" />

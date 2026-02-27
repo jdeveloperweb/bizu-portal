@@ -28,9 +28,12 @@ public class UserService {
         // Primeiro cria no Keycloak
         keycloakService.createKeycloakUser(name, email, password);
         
+        String nickname = generateNickname(email);
+
         User user = User.builder()
                 .name(name)
                 .email(email)
+                .nickname(nickname)
                 .status("ACTIVE")
                 .build();
         
@@ -78,10 +81,13 @@ public class UserService {
                 // but for now returning the existing user is safer.
                 return existingUser;
             }).orElseGet(() -> {
+                String generatedNickname = generateNickname(email);
+
                 // Create new user with Keycloak subject ID
                 User newUser = User.builder()
                         .id(userId)
                         .email(email)
+                        .nickname(generatedNickname)
                         .name(name != null ? name : email)
                         .status("ACTIVE")
                         .build();
@@ -105,5 +111,17 @@ public class UserService {
         
         // Ensure user exists locally and return its ID
         return syncUser(subjectId, email, name).getId();
+    }
+
+    private String generateNickname(String email) {
+        if (email == null || !email.contains("@")) {
+            return "user_" + java.util.UUID.randomUUID().toString().substring(0, 8);
+        }
+        String base = email.split("@")[0].replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
+        if (base.isEmpty()) {
+            base = "user";
+        }
+        String randomSuffix = java.util.UUID.randomUUID().toString().substring(0, 4);
+        return base + "_" + randomSuffix;
     }
 }

@@ -39,12 +39,14 @@ export default function PomodoroPage() {
         longBreakDuration,
         selectedSubject,
         availableModules,
+        isOpen,
         toggleTimer,
         resetTimer,
         skipSession,
         setSessionType,
         setSelectedSubject,
-        setDurations
+        setDurations,
+        setIsOpen
     } = usePomodoro();
 
     const [showSubjectPicker, setShowSubjectPicker] = useState(false);
@@ -98,13 +100,28 @@ export default function PomodoroPage() {
                 <div>
                     <div className="flex items-center gap-2 mb-1">
                         <span className="pill pill-primary text-[10px] font-bold uppercase tracking-[0.15em]">Pomodoro</span>
+                        <button
+                            onClick={() => setIsOpen(!isOpen)}
+                            className={`pill text-[10px] font-bold uppercase tracking-[0.15em] transition-all ${isOpen ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}
+                        >
+                            Widget {isOpen ? 'Ativo' : 'Oculto'}
+                        </button>
                     </div>
                     <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-0.5">
                         Foco Total
                     </h1>
                     <p className="text-sm text-slate-500">Controle seus ciclos de estudo e descanso para maxima produtividade.</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setIsOpen(!isOpen)}
+                        className={`hidden md:flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-bold transition-all border ${isOpen
+                            ? "bg-indigo-50 text-indigo-600 border-indigo-100"
+                            : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
+                            }`}
+                    >
+                        <Timer size={14} /> {isOpen ? "Ocultar Widget" : "Mostrar Widget"}
+                    </button>
                     <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
                         <Flame size={13} /> {totalFocusToday}min hoje
                     </div>

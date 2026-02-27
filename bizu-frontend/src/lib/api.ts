@@ -1,7 +1,7 @@
 import Cookies from "js-cookie";
 import { getStoredSelectedCourseId } from "@/lib/course-selection";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://bizu.mjolnix.com.br/api/v1";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://bizu.mjoinix.com.br/api/v1";
 
 export interface ApiErrorBody {
     status: number;

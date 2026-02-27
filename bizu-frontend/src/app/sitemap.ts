@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = 'https://bizu.mjolnix.com.br';
+    const baseUrl = 'https://bizu.mjoinix.com.br';
 
     // Em produção, aqui buscaríamos os slugs de todos os cursos do banco
     const courses = [

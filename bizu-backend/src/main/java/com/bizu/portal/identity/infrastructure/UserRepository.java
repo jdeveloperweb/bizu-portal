@@ -10,6 +10,8 @@ import java.util.UUID;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
+    Optional<User> findByNickname(String nickname);
+    java.util.List<User> findByNicknameContainingIgnoreCase(String nickname);
     long countByCreatedAtAfter(java.time.OffsetDateTime date);
     java.util.List<User> findTop10ByOrderByUpdatedAtDesc();
 }

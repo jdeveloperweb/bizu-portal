@@ -38,10 +38,16 @@ public class MeController {
     }
 
     @PutMapping("/me")
-    public ResponseEntity<User> updateMe(@AuthenticationPrincipal Jwt jwt, @RequestBody UpdateMeRequest request) {
+    public ResponseEntity<?> updateMe(@AuthenticationPrincipal Jwt jwt, @RequestBody UpdateMeRequest request) {
         String email = jwt.getClaim("email");
         return userRepository.findByEmail(email)
             .map(user -> {
+                if (request.nickname() != null && !request.nickname().isBlank() && !request.nickname().equals(user.getNickname())) {
+                    if (userRepository.findByNickname(request.nickname()).isPresent()) {
+                        return ResponseEntity.badRequest().body("Nickname already exists");
+                    }
+                    user.setNickname(request.nickname());
+                }
                 if (request.name() != null) user.setName(request.name());
                 if (request.phone() != null) user.setPhone(request.phone());
                 return ResponseEntity.ok(userRepository.save(user));
@@ -49,7 +55,7 @@ public class MeController {
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    public record UpdateMeRequest(String name, String phone) {}
+    public record UpdateMeRequest(String name, String phone, String nickname) {}
 
     @PutMapping("/me/settings")
     public ResponseEntity<User> updateSettings(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, Object> settingsRequest) {

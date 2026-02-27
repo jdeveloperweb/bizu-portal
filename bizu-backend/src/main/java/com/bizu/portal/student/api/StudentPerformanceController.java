@@ -29,6 +29,8 @@ public class StudentPerformanceController {
     @Builder
     public static class PerformanceSummaryResponse {
         private long totalAttempted;
+        private long totalUniqueAttempted;
+        private long dailyAttempted;
         private double overallAccuracy;
         private long totalTimeSpentSeconds;
         private long weeklyTimeSpentSeconds;
@@ -46,7 +48,7 @@ public class StudentPerformanceController {
         String unifiedQuery = """
             WITH all_attempts AS (
                 -- Single attempts (training/pomodoro)
-                SELECT a.id, a.created_at, a.is_correct, COALESCE(a.time_spent_seconds, 0) as time_spent, q.subject, q.difficulty
+                SELECT a.id, q.id as question_id, a.created_at, a.is_correct, COALESCE(a.time_spent_seconds, 0) as time_spent, q.subject, q.difficulty
                 FROM student.attempts a
                 JOIN content.questions q ON a.question_id = q.id
                 WHERE a.user_id = ?
@@ -54,7 +56,7 @@ public class StudentPerformanceController {
                 UNION ALL
                 
                 -- Activity snapshots (quizzes/simulados)
-                SELECT s.id, COALESCE(s.answered_at, aa.created_at) as created_at, s.student_correct as is_correct, COALESCE(s.time_spent_seconds, 0) as time_spent, s.snapshot_subject as subject, s.snapshot_difficulty as difficulty
+                SELECT s.id, s.original_question_id as question_id, COALESCE(s.answered_at, aa.created_at) as created_at, s.student_correct as is_correct, COALESCE(s.time_spent_seconds, 0) as time_spent, s.snapshot_subject as subject, s.snapshot_difficulty as difficulty
                 FROM student.activity_attempt_item_snapshots s
                 JOIN student.activity_attempts aa ON s.attempt_id = aa.id
                 WHERE aa.user_id = ? AND s.student_selected_option IS NOT NULL
@@ -62,7 +64,7 @@ public class StudentPerformanceController {
                 UNION ALL
                 
                 -- Duels (Arena) - Challenger
-                SELECT dq.id, dq.created_at, dq.challenger_correct as is_correct, 30 as time_spent, q.subject, dq.difficulty
+                SELECT dq.id, dq.question_id, dq.created_at, dq.challenger_correct as is_correct, 30 as time_spent, q.subject, dq.difficulty
                 FROM student.duel_questions dq
                 JOIN student.duels d ON dq.duel_id = d.id
                 JOIN content.questions q ON dq.question_id = q.id
@@ -71,7 +73,7 @@ public class StudentPerformanceController {
                 UNION ALL
                 
                 -- Duels (Arena) - Opponent
-                SELECT dq.id, dq.created_at, dq.opponent_correct as is_correct, 30 as time_spent, q.subject, dq.difficulty
+                SELECT dq.id, dq.question_id, dq.created_at, dq.opponent_correct as is_correct, 30 as time_spent, q.subject, dq.difficulty
                 FROM student.duel_questions dq
                 JOIN student.duels d ON dq.duel_id = d.id
                 JOIN content.questions q ON dq.question_id = q.id
@@ -83,6 +85,16 @@ public class StudentPerformanceController {
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(unifiedQuery, userId, userId, userId, userId);
 
         long totalAttempted = rows.size();
+        long totalUniqueAttempted = rows.stream().map(r -> r.get("question_id")).distinct().count();
+        
+        java.time.LocalDate today = java.time.LocalDate.now();
+        long dailyAttempted = rows.stream().filter(r -> {
+            Object createdAt = r.get("created_at");
+            if (createdAt instanceof OffsetDateTime odt) return odt.toLocalDate().equals(today);
+            if (createdAt instanceof java.sql.Timestamp ts) return ts.toLocalDateTime().toLocalDate().equals(today);
+            return false;
+        }).count();
+
         long correctCount = rows.stream().filter(r -> Boolean.TRUE.equals(r.get("is_correct"))).count();
         double overallAccuracy = totalAttempted > 0 ? (double) correctCount / totalAttempted * 100 : 0;
         long totalTimeSeconds = rows.stream().mapToLong(r -> ((Number) r.get("time_spent")).longValue()).sum();
@@ -161,6 +173,8 @@ public class StudentPerformanceController {
 
         return ResponseEntity.ok(PerformanceSummaryResponse.builder()
             .totalAttempted(totalAttempted)
+            .totalUniqueAttempted(totalUniqueAttempted)
+            .dailyAttempted(dailyAttempted)
             .overallAccuracy(overallAccuracy)
             .totalTimeSpentSeconds(totalTimeSeconds)
             .weeklyTimeSpentSeconds(weeklyTimeSeconds)

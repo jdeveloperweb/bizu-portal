@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "bizu.mjolnix.com.br",
+        hostname: "bizu.mjoinix.com.br",
       },
       {
         protocol: "http",

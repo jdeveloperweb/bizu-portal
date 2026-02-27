@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         params.append("grant_type", "refresh_token");
         params.append("refresh_token", rToken);
 
-        const authServerUrl = process.env.NEXT_PUBLIC_KEYCLOAK_URL || "https://bizu.mjolnix.com.br/auth";
+        const authServerUrl = process.env.NEXT_PUBLIC_KEYCLOAK_URL || "https://bizu.mjoinix.com.br/auth";
         const realm = process.env.NEXT_PUBLIC_KEYCLOAK_REALM || "bizu-portal";
 
         try {

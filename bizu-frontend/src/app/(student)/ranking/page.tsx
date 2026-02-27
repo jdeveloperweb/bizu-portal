@@ -16,6 +16,7 @@ type RankingTab = "geral" | "semanal" | "materia";
 interface RankedUser {
     rank: number;
     name: string;
+    nickname?: string;
     avatar: string;
     xp: number;
     streak: number;
@@ -54,6 +55,7 @@ export default function RankingStudentPage() {
                     setTopUsers(data.map((u: any) => ({
                         rank: parseInt(u.rank),
                         name: u.name,
+                        nickname: u.nickname,
                         avatar: u.avatar || u.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase(),
                         xp: u.xp,
                         streak: u.streak,
@@ -68,6 +70,7 @@ export default function RankingStudentPage() {
                     setMyRank({
                         rank: parseInt(u.rank),
                         name: "Você",
+                        nickname: u.nickname,
                         avatar: u.avatar || "EU",
                         xp: u.xp,
                         streak: u.streak,
@@ -237,7 +240,7 @@ export default function RankingStudentPage() {
                         </div>
                         <div className="divide-y divide-slate-50">
                             {displayUsers.length > 0 && displayUsers.map(user => (
-                                <div key={user.rank} className={`flex items-center gap-3 px-5 py-3 hover:bg-slate-50/50 transition-colors ${user.rank <= 3 ? "bg-indigo-50/10" : ""}`}>
+                                <Link key={user.rank} href={user.nickname ? `/perfil/${user.nickname}` : '#'} className={`flex items-center gap-3 px-5 py-3 hover:bg-slate-50/50 transition-colors ${user.rank <= 3 ? "bg-indigo-50/10" : ""}`}>
                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-extrabold text-[12px] ${user.rank === 1 ? "bg-amber-100 text-amber-700" :
                                         user.rank === 2 ? "bg-slate-200 text-slate-600" :
                                             user.rank === 3 ? "bg-orange-100 text-orange-700" :
@@ -250,7 +253,8 @@ export default function RankingStudentPage() {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="text-[13px] font-bold text-slate-800">{user.name}</div>
-                                        <div className="text-[10px] text-slate-400 flex items-center gap-2">
+                                        {user.nickname && <div className="text-[10px] text-slate-400">@{user.nickname}</div>}
+                                        <div className="text-[10px] text-slate-400 flex items-center gap-2 mt-0.5">
                                             <span className="flex items-center gap-0.5"><Flame size={9} className="text-amber-500" /> {user.streak}d</span>
                                             {user.accuracy !== undefined && user.accuracy > 0 ? <span className="flex items-center gap-0.5"><Target size={9} /> {user.accuracy}%</span> : null}
                                         </div>
@@ -259,7 +263,7 @@ export default function RankingStudentPage() {
                                         <div className="text-[12px] font-extrabold text-slate-800">{user.xp.toLocaleString()} XP</div>
                                         <DeltaIndicator delta={user.delta} />
                                     </div>
-                                </div>
+                                </Link>
                             ))}
 
                             {/* My position */}

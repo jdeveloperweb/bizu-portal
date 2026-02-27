@@ -39,14 +39,24 @@ public class GamificationService {
                 .collect(Collectors.toMap(ub -> ub.getBadge().getId(), ub -> ub));
 
         // Get stats for progress estimation
-        int totalQuestions = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM student.attempts WHERE user_id = ?", Integer.class, userId);
+        int totalQuestions = jdbcTemplate.queryForObject("""
+            SELECT 
+                (SELECT COUNT(*) FROM student.attempts WHERE user_id = ?) +
+                (SELECT COUNT(*) FROM student.activity_attempt_item_snapshots s JOIN student.activity_attempts a ON s.attempt_id = a.id WHERE a.user_id = ? AND s.student_selected_option IS NOT NULL) +
+                (SELECT COUNT(*) FROM student.duel_questions dq JOIN student.duels d ON dq.duel_id = d.id WHERE d.challenger_id = ? AND dq.challenger_answer_index IS NOT NULL) +
+                (SELECT COUNT(*) FROM student.duel_questions dq JOIN student.duels d ON dq.duel_id = d.id WHERE d.opponent_id = ? AND dq.opponent_answer_index IS NOT NULL)
+            """, Integer.class, userId, userId, userId, userId);
         int totalWins = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM student.duels WHERE winner_id = ? AND status = 'COMPLETED'", Integer.class, userId);
         int totalFlashcards = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM student.flashcard_progress WHERE user_id = ?", Integer.class, userId);
         
-        // Time spent today (Maratonista)
-        int timeTodayMinutes = jdbcTemplate.queryForObject(
-            "SELECT COALESCE(SUM(time_spent_seconds), 0) / 60 FROM student.attempts WHERE user_id = ? AND created_at >= CURRENT_DATE", 
-            Integer.class, userId);
+        // Time spent today (Maratonista) - Unified calculation
+        int timeTodayMinutes = jdbcTemplate.queryForObject("""
+            SELECT (
+                (SELECT COALESCE(SUM(time_spent_seconds), 0) FROM student.attempts WHERE user_id = ? AND created_at >= CURRENT_DATE) +
+                (SELECT COALESCE(SUM(s.time_spent_seconds), 0) FROM student.activity_attempt_item_snapshots s JOIN student.activity_attempts a ON s.attempt_id = a.id WHERE a.user_id = ? AND s.student_selected_option IS NOT NULL AND (COALESCE(s.answered_at, a.created_at) >= CURRENT_DATE)) +
+                (SELECT COUNT(*) * 30 FROM student.duel_questions dq JOIN student.duels d ON dq.duel_id = d.id WHERE (d.challenger_id = ? OR d.opponent_id = ?) AND (d.challenger_id = ? AND dq.challenger_answer_index IS NOT NULL OR d.opponent_id = ? AND dq.opponent_answer_index IS NOT NULL) AND dq.created_at >= CURRENT_DATE)
+            ) / 60
+            """, Integer.class, userId, userId, userId, userId, userId, userId);
 
         // Sniper progress (last 10 hard questions)
         int correctHardStreak = jdbcTemplate.queryForObject(

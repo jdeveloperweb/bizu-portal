@@ -12,7 +12,7 @@ export default function BrandingLoader() {
         const fetchAndApplyBranding = async () => {
             try {
                 // 1. Fetch Global Branding - Uso de fetch direto para evitar envio de tokens expirados que causam 401
-                const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://bizu.mjolnix.com.br/api/v1";
+                const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://bizu.mjoinix.com.br/api/v1";
                 const res = await fetch(`${apiBase}/admin/branding/active`);
                 if (res.ok) {
                     const branding = await res.json();

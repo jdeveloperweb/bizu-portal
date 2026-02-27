@@ -27,6 +27,9 @@ public class User implements Persistable<UUID> {
     private UUID id;
 
     @Column(nullable = false, unique = true)
+    private String nickname;
+
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)

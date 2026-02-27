@@ -24,6 +24,7 @@ public class RankingService {
                 SELECT 
                     u.id as id,
                     u.name as name,
+                    u.nickname as nickname,
                     u.avatar_url as avatar,
                     COALESCE(g.total_xp, 0) as xp,
                     FLOOR(POWER(COALESCE(g.total_xp, 0) / 1000.0, 2.0/3.0)) + 1 as level,
@@ -50,6 +51,7 @@ public class RankingService {
             WITH RankedUsers AS (
                 SELECT 
                     u.id as user_id,
+                    u.nickname as nickname,
                     u.name,
                     u.avatar_url,
                     COALESCE(g.total_xp, 0) as total_xp,
@@ -60,6 +62,7 @@ public class RankingService {
             )
             SELECT 
                 r.rank as "rank",
+                r.nickname as "nickname",
                 r.name as "name",
                 r.avatar_url as "avatar",
                 r.total_xp as "xp",
