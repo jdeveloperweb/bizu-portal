@@ -29,8 +29,14 @@ public class DuelController {
     private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @GetMapping("/online")
-    public ResponseEntity<List<Map<String, Object>>> getOnlineUsers(@RequestParam(required = false) UUID courseId) {
-        String condition = courseId != null ? "JOIN commerce.course_entitlements ce ON u.id = ce.user_id WHERE ce.course_id = ? AND ce.active = true " : "";
+    public ResponseEntity<List<Map<String, Object>>> getOnlineUsers(@AuthenticationPrincipal Jwt jwt, @RequestParam(required = false) UUID courseId) {
+        if (jwt != null) {
+            resolveUserId(jwt);
+        }
+        String baseCondition = "WHERE u.last_seen_at > (NOW() - INTERVAL '15 seconds') ";
+        String condition = courseId != null ? 
+            "JOIN commerce.course_entitlements ce ON u.id = ce.user_id " + baseCondition + "AND ce.course_id = ? AND ce.active = true " : 
+            baseCondition;
         Object[] args = courseId != null ? new Object[]{courseId} : new Object[]{};
         
         String sql = """
@@ -44,11 +50,16 @@ public class DuelController {
                     (SELECT ROUND(COUNT(*) FILTER (WHERE winner_id = u.id AND status = 'COMPLETED') * 100.0 / NULLIF(COUNT(*) FILTER (WHERE status = 'COMPLETED'), 0)) 
                      FROM student.duels 
                      WHERE (challenger_id = u.id OR opponent_id = u.id)), 0
-                ) as "winRate"
+                ) as "winRate",
+                COALESCE(
+                    (SELECT 'em_duelo' FROM student.duels d 
+                     WHERE (d.challenger_id = u.id OR d.opponent_id = u.id) 
+                     AND d.status = 'IN_PROGRESS' LIMIT 1), 'online'
+                ) as "status"
             FROM identity.users u
             LEFT JOIN student.gamification_stats g ON u.id = g.user_id
             """ + condition + """
-            ORDER BY u.updated_at DESC
+            ORDER BY u.last_seen_at DESC
             LIMIT 10
             """;
         
@@ -138,5 +149,13 @@ public class DuelController {
     public ResponseEntity<List<Duel>> getDuelHistory(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = resolveUserId(jwt);
         return ResponseEntity.ok(duelRepository.findHistoryByUserId(userId));
+    }
+
+    @PostMapping("/heartbeat")
+    public ResponseEntity<Void> heartbeat(@AuthenticationPrincipal Jwt jwt) {
+        if (jwt != null) {
+            resolveUserId(jwt);
+        }
+        return ResponseEntity.ok().build();
     }
 }

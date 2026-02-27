@@ -267,14 +267,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, [refreshUserProfile]);
 
     // Intervalo para verificar e renovar token a cada 1 minuto se autenticado
+    // E heartbeat de presença a cada 10 segundos
     useEffect(() => {
         if (!authenticated) return;
 
-        const interval = setInterval(() => {
+        const tokenInterval = setInterval(() => {
             refreshToken();
         }, 60000);
 
-        return () => clearInterval(interval);
+        const presenceInterval = setInterval(async () => {
+            try {
+                const { apiFetch } = await import("@/lib/api");
+                await apiFetch("/duelos/heartbeat", { method: "POST" });
+            } catch (err) {
+                // Silently ignore heartbeat errors
+            }
+        }, 10000);
+
+        return () => {
+            clearInterval(tokenInterval);
+            clearInterval(presenceInterval);
+        };
     }, [authenticated, refreshToken]);
 
     const login = () => keycloak?.login();

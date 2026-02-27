@@ -73,17 +73,12 @@ public class UserService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public User syncUser(java.util.UUID userId, String email, String name) {
-        // Try to find by ID first
-        return userRepository.findById(userId).orElseGet(() -> {
-            // If not found by ID, try to find by email
+        User user = userRepository.findById(userId).orElseGet(() -> {
             return userRepository.findByEmail(email).map(existingUser -> {
-                // If found by email, we should ideally link the IDs, 
-                // but for now returning the existing user is safer.
                 return existingUser;
             }).orElseGet(() -> {
                 String generatedNickname = generateNickname(email);
 
-                // Create new user with Keycloak subject ID
                 User newUser = User.builder()
                         .id(userId)
                         .email(email)
@@ -95,12 +90,15 @@ public class UserService {
                 try {
                     return userRepository.saveAndFlush(newUser);
                 } catch (Exception ex) {
-                    // Fallback to finding by email if a race condition occurred
                     return userRepository.findByEmail(email)
                             .orElseThrow(() -> new RuntimeException("Erro ao sincronizar usuário", ex));
                 }
             });
         });
+
+        // Atualiza o lastSeenAt a cada sincronização (chamado em cada request do /duelos)
+        user.setLastSeenAt(java.time.OffsetDateTime.now());
+        return userRepository.save(user);
     }
 
     @Transactional

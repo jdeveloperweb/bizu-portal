@@ -96,7 +96,7 @@ function ArenaPageContent() {
                         level: parseInt(Math.floor(Number(u.level) || 1).toString()),
                         xp: Number(u.xp) || 0,
                         winRate: Number(u.winRate) || 0,
-                        status: "online"
+                        status: u.status || "online"
                     })));
                 }
 
@@ -160,7 +160,7 @@ function ArenaPageContent() {
 
 
         loadData();
-        const interval = setInterval(loadData, 15000);
+        const interval = setInterval(loadData, 5000);
         return () => clearInterval(interval);
     }, []);
 
