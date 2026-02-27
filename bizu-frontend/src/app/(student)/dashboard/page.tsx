@@ -7,7 +7,7 @@ import {
     BarChart3, Zap, ChevronRight, Bell, Rocket,
     PlayCircle, CheckCircle2, Timer, CheckSquare,
     StickyNote, Brain, Star, Crown, MoreHorizontal,
-    Search, FileText, PartyPopper, Coffee, SkipForward, Play, Pause
+    Search, FileText, PartyPopper, Coffee, SkipForward, Play, Pause, Maximize2, Pin, PinOff
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,7 +35,8 @@ export default function DashboardPage() {
     const { isGracePeriod } = useCourse();
     const {
         isOpen, setIsOpen, timeLeft, isRunning,
-        toggleTimer, skipSession, sessionType, completedCycles
+        toggleTimer, skipSession, sessionType, completedCycles,
+        isFloating, setIsFloating
     } = usePomodoro();
     const [stats, setStats] = useState<any>(null);
     const [gamification, setGamification] = useState<any>(null);
@@ -176,7 +177,7 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-3 bg-white/80 p-2 md:p-2.5 rounded-[24px] shadow-sm border border-slate-100 flex-wrap md:flex-nowrap">
                     {/* Inline Pomodoro Timer */}
                     <AnimatePresence>
-                        {isOpen && (
+                        {isOpen && !isFloating && (
                             <motion.div
                                 initial={{ width: 0, opacity: 0, x: -20 }}
                                 animate={{ width: "auto", opacity: 1, x: 0 }}
@@ -215,6 +216,14 @@ export default function DashboardPage() {
                                             className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors"
                                         >
                                             <SkipForward size={14} />
+                                        </button>
+                                        {/* Detach toggle */}
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setIsFloating(true); }}
+                                            className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors"
+                                            title="Tornar Flutuante"
+                                        >
+                                            <Maximize2 size={14} />
                                         </button>
                                     </div>
                                 </div>

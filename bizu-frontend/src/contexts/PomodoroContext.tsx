@@ -20,6 +20,8 @@ interface PomodoroContextType {
 
     isOpen: boolean;
     setIsOpen: (open: boolean) => void;
+    isFloating: boolean;
+    setIsFloating: (floating: boolean) => void;
     toggleTimer: () => void;
     resetTimer: () => void;
     skipSession: () => void;
@@ -38,6 +40,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
     const [timeLeft, setTimeLeft] = useState(25 * 60);
     const [isRunning, setIsRunning] = useState(false);
     const [isOpen, setIsOpen] = useState(true);
+    const [isFloating, setIsFloating] = useState(false);
     const [sessionType, setSessionType] = useState<SessionType>("focus");
     const [completedCycles, setCompletedCycles] = useState(0);
     const [selectedSubject, setSelectedSubject] = useState("Selecione um módulo");
@@ -166,10 +169,11 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         const saved = localStorage.getItem("bizu-pomodoro-state");
         if (saved) {
             try {
-                const { timeLeft: sTime, sessionType: sType, isRunning: sRunning, isOpen: sOpen, lastUpdate } = JSON.parse(saved);
+                const { timeLeft: sTime, sessionType: sType, isRunning: sRunning, isOpen: sOpen, isFloating: sFloating, lastUpdate } = JSON.parse(saved);
                 const elapsedSinceLastUpdate = Math.floor((Date.now() - lastUpdate) / 1000);
 
                 if (sOpen !== undefined) setIsOpen(sOpen);
+                if (sFloating !== undefined) setIsFloating(sFloating);
 
                 if (sRunning) {
                     const newTime = Math.max(0, sTime - elapsedSinceLastUpdate);
@@ -193,6 +197,7 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
             sessionType,
             isRunning,
             isOpen,
+            isFloating,
             lastUpdate: Date.now()
         };
         localStorage.setItem("bizu-pomodoro-state", JSON.stringify(state));
@@ -250,10 +255,12 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         resetTimer,
         skipSession,
         setIsOpen,
+        setIsFloating,
         setSessionType: changeSessionType,
         setSelectedSubject,
         setDurations,
-        saveSession
+        saveSession,
+        isFloating
     };
 
     return (
