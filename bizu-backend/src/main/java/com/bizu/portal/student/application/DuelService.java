@@ -90,7 +90,6 @@ public class DuelService {
         }
         if (medium.isEmpty()) medium = easy;
         if (hard.isEmpty()) hard = medium;
-        
         java.util.List<DuelQuestion> duelQuestions = new java.util.ArrayList<>();
         Random rand = new Random();
         for (int i = 1; i <= 10; i++) {
@@ -122,6 +121,7 @@ public class DuelService {
         }
         duel.getQuestions().addAll(duelQuestions);
         
+        initializeDuel(duel);
         return duelRepository.save(duel);
     }
 
@@ -153,6 +153,7 @@ public class DuelService {
             checkRoundResult(duel, currentRoundQuestion);
         }
 
+        initializeDuel(duel);
         return duelRepository.save(duel);
     }
 
@@ -213,6 +214,17 @@ public class DuelService {
             // Empate
             gamificationService.addXp(duel.getChallenger().getId(), 50);
             gamificationService.addXp(duel.getOpponent().getId(), 50);
+        }
+    }
+
+    private void initializeDuel(Duel duel) {
+        if (duel.getChallenger() != null) duel.getChallenger().getName();
+        if (duel.getOpponent() != null) duel.getOpponent().getName();
+        if (duel.getWinner() != null) duel.getWinner().getName();
+        if (duel.getQuestions() != null) {
+            duel.getQuestions().forEach(dq -> {
+                if (dq.getQuestion() != null) dq.getQuestion().getStatement();
+            });
         }
     }
 }

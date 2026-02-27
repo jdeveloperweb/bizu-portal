@@ -22,6 +22,7 @@ export function useDuelWebSocket(duelId: string | null, onMessage: (msg: any) =>
             connectHeaders: {
                 Authorization: `Bearer ${Cookies.get("token")}`
             },
+            reconnectDelay: 5000,
             onConnect: () => {
                 client.subscribe(`/topic/duelos/${duelId}`, (message) => {
                     try {

@@ -22,13 +22,15 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
     const [showCorrection, setShowCorrection] = useState(false);
 
     useDuelWebSocket(duelId, (updatedDuel) => {
-        setDuel(updatedDuel);
-        // If round changed, reset state
-        if (duel && updatedDuel.currentRound !== duel.currentRound) {
-            setSelectedAnswer(null);
-            setShowCorrection(false);
-            setTimeLeft(30);
-        }
+        setDuel(prev => {
+            // If round changed, reset state
+            if (prev && updatedDuel.currentRound !== prev.currentRound) {
+                setSelectedAnswer(null);
+                setShowCorrection(false);
+                setTimeLeft(30);
+            }
+            return updatedDuel;
+        });
     });
 
     useEffect(() => {
@@ -42,12 +44,12 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
         };
         fetchDuel();
 
-        // Fallback polling if status is PENDING or duel is not loaded yet
+        // Fallback polling as redundancy for WebSockets
         const interval = setInterval(() => {
-            if (!duel || duel.status === "PENDING") {
+            if (!duel || duel.status === "PENDING" || duel.status === "IN_PROGRESS") {
                 fetchDuel();
             }
-        }, 3000);
+        }, 8000); // 8 seconds is enough for fallback
 
         return () => clearInterval(interval);
     }, [duelId, duel?.status]);
@@ -101,14 +103,28 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
 
     const handleAnswer = async (index: number) => {
         if (selectedAnswer !== null || (myAnswer !== undefined && myAnswer !== null)) return;
+
+        // Optimistic update
         setSelectedAnswer(index);
-        await DuelService.submitAnswer(duelId, index);
+
+        try {
+            const updated = await DuelService.submitAnswer(duelId, index);
+            setDuel(updated);
+        } catch (err) {
+            console.error("Failed to submit answer", err);
+            setSelectedAnswer(null); // Rollback on error
+        }
     };
 
     const handleCancel = async () => {
         if (confirm("Tem certeza que deseja abandonar e cancelar este duelo?")) {
-            await DuelService.declineDuel(duelId);
-            onClose();
+            try {
+                await DuelService.declineDuel(duelId);
+                onClose();
+            } catch (err) {
+                console.error("Failed to cancel duel", err);
+                onClose();
+            }
         }
     };
 
