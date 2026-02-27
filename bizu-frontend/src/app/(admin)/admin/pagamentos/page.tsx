@@ -32,6 +32,9 @@ interface Payment {
         name: string;
         email: string;
     };
+    plan?: {
+        name: string;
+    };
 }
 
 export default function AdminPaymentsPage() {
@@ -137,7 +140,8 @@ export default function AdminPaymentsPage() {
                                 <tr key={p.id} className="hover:bg-slate-50/30 transition-colors">
                                     <td className="px-8 py-5">
                                         <div className="text-sm font-black text-slate-900">{p.user.name}</div>
-                                        <div className="text-[11px] font-bold text-slate-400">{format(new Date(p.createdAt), "dd/MM/yyyy HH:mm")}</div>
+                                        <div className="text-[11px] font-bold text-indigo-600 uppercase tracking-tight mb-0.5">{p.plan?.name || 'Plano não identificado'}</div>
+                                        <div className="text-[10px] font-bold text-slate-400">{format(new Date(p.createdAt), "dd/MM/yyyy HH:mm")}</div>
                                     </td>
                                     <td className="px-8 py-5 font-black text-slate-700">R$ {p.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                                     <td className="px-8 py-5">

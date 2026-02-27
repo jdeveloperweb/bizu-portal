@@ -49,6 +49,9 @@ public class SystemSettingsService {
         settings.setSessionTimeout(updatedSettings.getSessionTimeout());
         settings.setMaintenanceMode(updatedSettings.getMaintenanceMode());
         
+        settings.setInfinitePayHandle(updatedSettings.getInfinitePayHandle());
+        settings.setPreferredPaymentGateway(updatedSettings.getPreferredPaymentGateway());
+        
         settings.setUpdatedAt(OffsetDateTime.now());
         settings.setUpdatedBy(username);
         

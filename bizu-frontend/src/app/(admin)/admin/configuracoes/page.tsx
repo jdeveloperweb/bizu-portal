@@ -36,7 +36,9 @@ export default function AdminConfiguracoesPage() {
         vimeoToken: "",
         timezone: "America/Sao_Paulo",
         sessionTimeout: 120,
-        maintenanceMode: false
+        maintenanceMode: false,
+        infinitePayHandle: "",
+        preferredPaymentGateway: "MERCADO_PAGO"
     });
 
     const tabs = [
@@ -151,6 +153,28 @@ export default function AdminConfiguracoesPage() {
                                     <p className="text-muted-foreground text-sm">Configure as chaves e tokens para processamento de pagamentos.</p>
                                 </div>
 
+                                {/* Seleção de Gateway Ativo */}
+                                <div className="p-6 rounded-2xl bg-primary/5 border border-primary/20 space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                            <Server className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-[15px] font-bold text-foreground">Gateway Ativo</h4>
+                                            <p className="text-xs text-muted-foreground">Escolha o processador de pagamento padrão para o checkout.</p>
+                                        </div>
+                                    </div>
+                                    <select
+                                        value={settings.preferredPaymentGateway}
+                                        onChange={e => updateSetting("preferredPaymentGateway", e.target.value)}
+                                        className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-bold text-sm"
+                                    >
+                                        <option value="MERCADO_PAGO">Mercado Pago</option>
+                                        <option value="STRIPE">Stripe</option>
+                                        <option value="INFINITEPAY">InfinitePay</option>
+                                    </select>
+                                </div>
+
                                 {/* Stripe */}
                                 <div className="space-y-5 p-6 rounded-2xl bg-muted/30 border border-border">
                                     <div className="flex items-center gap-3 mb-4">
@@ -218,6 +242,27 @@ export default function AdminConfiguracoesPage() {
                                             value={settings.mpPublicKey}
                                             onChange={e => updateSetting("mpPublicKey", e.target.value)}
                                             placeholder="APP_USR-..."
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-[13px]"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* InfinitePay */}
+                                <div className="space-y-5 p-6 rounded-2xl bg-muted/30 border border-border">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                            <CreditCard className="w-5 h-5" />
+                                        </div>
+                                        <h4 className="text-[15px] font-bold text-foreground">InfinitePay</h4>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">InfiniteTag (Handle)</label>
+                                        <input
+                                            type="text"
+                                            value={settings.infinitePayHandle}
+                                            onChange={e => updateSetting("infinitePayHandle", e.target.value)}
+                                            placeholder="mjolnix-tech"
                                             className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-[13px]"
                                         />
                                     </div>

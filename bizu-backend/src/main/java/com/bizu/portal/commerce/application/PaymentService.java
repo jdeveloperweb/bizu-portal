@@ -29,40 +29,84 @@ public class PaymentService {
     private final com.bizu.portal.admin.application.SystemSettingsService settingsService;
     private final com.bizu.portal.commerce.infrastructure.SubscriptionRepository subscriptionRepository;
     private final EntitlementService entitlementService;
+    private final com.bizu.portal.commerce.infrastructure.PaymentRepository paymentRepository;
+    private final java.util.List<PaymentProvider> providers;
 
-    public String initiatePayment(User user, BigDecimal amount, String provider) {
+    @Transactional
+    public java.util.Map<String, Object> initiatePayment(User user, BigDecimal amount, String providerName, String method, UUID planId) {
         com.bizu.portal.admin.domain.SystemSettings settings = settingsService.getSettings();
-        
-        log.info("Iniciando pagamento via {} para usuário {} — valor: R$ {}", provider, user.getEmail(), amount);
-
-        if ("STRIPE".equals(provider) && settings.getStripeSecretKey() != null && !settings.getStripeSecretKey().isEmpty()) {
-            // Aqui entraria a integração real com Stripe SDK
-            // Por enquanto, simulamos o retorno de uma URL ou ID
-            log.info("Chave Stripe detectada. Preparando checkout real...");
-            return "stripe_session_" + UUID.randomUUID().toString();
-        } else if ("MERCADO_PAGO".equals(provider) && settings.getMpAccessToken() != null && !settings.getMpAccessToken().isEmpty()) {
-            log.info("Chave Mercado Pago detectada. Preparando checkout real...");
-            return "mp_init_point_" + UUID.randomUUID().toString();
+        Plan plan = planRepository.findById(planId).orElseThrow();
+        String finalProvider = providerName;
+        if (finalProvider == null || finalProvider.isEmpty() || "AUTO".equalsIgnoreCase(finalProvider)) {
+            finalProvider = settings.getPreferredPaymentGateway();
         }
+        
+        if (finalProvider == null) finalProvider = "MERCADO_PAGO"; // Default fallback
 
-        // Simulação se não houver chaves
-        log.warn("Nenhuma chave configurada para {}. Seguindo fluxo SIMULADO.", provider);
-        return "simulated_" + UUID.randomUUID().toString();
+        log.info("Iniciando pagamento via {} ({}) para usuário {} — valor: R$ {}", finalProvider, method, user.getEmail(), amount);
+
+        String providerSearch = finalProvider;
+        PaymentProvider provider = providers.stream()
+                .filter(p -> p.getProviderName().equalsIgnoreCase(providerSearch))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Provedor não suportado: " + providerSearch));
+
+        java.util.Map<String, Object> result = provider.createPayment(user, amount, method, plan, settings);
+        
+        final String usedProvider = finalProvider;
+
+        // Salvar registro de pagamento pendente
+        com.bizu.portal.commerce.domain.Payment payment = com.bizu.portal.commerce.domain.Payment.builder()
+                .user(user)
+                .amount(amount)
+                .status("PENDING")
+                .paymentMethod(method + " (" + usedProvider + ")")
+                .plan(plan)
+                .stripeIntentId(result.get("id") != null ? result.get("id").toString() : null)
+                .build();
+        paymentRepository.save(payment);
+
+        return result;
     }
 
     @Transactional
     public void processStripeEvent(String payload, String sigHeader) {
-        // Em um sistema real, usaríamos o Stripe Java SDK:
-        // Event event = Webhook.constructEvent(payload, sigHeader, endpointSecret);
-        
-        // Simulação de processamento de checkout.session.completed
-        log.info("Simulando ativação de plano via Webhook Stripe");
-        
-        // Supondo que pegamos o userId e planId dos metadados do Stripe
-        // UUID userId = ...;
-        // UUID planId = ...;
-        
-        // setPlanToUser(userId, planId);
+        com.bizu.portal.admin.domain.SystemSettings settings = settingsService.getSettings();
+        try {
+            com.stripe.model.Event event = com.stripe.net.Webhook.constructEvent(
+                    payload, sigHeader, settings.getStripeWebhookSecret());
+
+            if ("checkout.session.completed".equals(event.getType())) {
+                com.stripe.model.checkout.Session session = (com.stripe.model.checkout.Session) event.getDataObjectDeserializer().getObject().orElseThrow();
+                
+                UUID userId = UUID.fromString(session.getMetadata().get("user_id"));
+                UUID planId = UUID.fromString(session.getMetadata().get("plan_id"));
+                
+                activateSubscription(userId, planId);
+            }
+        } catch (Exception e) {
+            log.error("Erro ao processar evento Stripe", e);
+            throw new RuntimeException("Erro no Webhook Stripe");
+        }
+    }
+
+    @Transactional
+    public void processMercadoPagoEvent(String paymentId) {
+        com.bizu.portal.admin.domain.SystemSettings settings = settingsService.getSettings();
+        try {
+            com.mercadopago.MercadoPagoConfig.setAccessToken(settings.getMpAccessToken());
+            com.mercadopago.client.payment.PaymentClient client = new com.mercadopago.client.payment.PaymentClient();
+            com.mercadopago.resources.payment.Payment payment = client.get(Long.parseLong(paymentId));
+
+            if ("approved".equalsIgnoreCase(payment.getStatus())) {
+                UUID userId = UUID.fromString(payment.getMetadata().get("user_id").toString());
+                UUID planId = UUID.fromString(payment.getMetadata().get("plan_id").toString());
+                
+                activateSubscription(userId, planId);
+            }
+        } catch (Exception e) {
+            log.error("Erro ao processar evento Mercado Pago", e);
+        }
     }
 
     @Transactional
@@ -115,6 +159,27 @@ public class PaymentService {
 
         notificationService.send(userId, "🚀 Assinatura Ativada!", 
             "Seja bem-vindo ao Bizu! Seu plano " + plan.getName() + " já está ativo e pronto para uso.");
+    }
+
+    @Transactional
+    public void processInfinitePayEvent(String orderNsu) {
+        log.info("Processando aprovação InfinitePay para NSU: {}", orderNsu);
+        com.bizu.portal.commerce.domain.Payment payment = paymentRepository.findByStripeIntentId(orderNsu)
+                .orElseThrow(() -> new RuntimeException("Pagamento não encontrado para o NSU: " + orderNsu));
+
+        if ("SUCCEEDED".equalsIgnoreCase(payment.getStatus())) {
+            log.info("Pagamento {} já estava aprovado.", orderNsu);
+            return;
+        }
+
+        payment.setStatus("SUCCEEDED");
+        paymentRepository.save(payment);
+
+        if (payment.getPlanId() != null) {
+            activateSubscription(payment.getUser().getId(), payment.getPlanId());
+        } else {
+            log.error("Pagamento {} sem ID de plano vinculado!", orderNsu);
+        }
     }
 
     public java.math.BigDecimal calculateFinalPrice(java.math.BigDecimal originalPrice, String couponCode) {

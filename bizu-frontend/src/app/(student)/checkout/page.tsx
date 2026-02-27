@@ -154,10 +154,12 @@ function CheckoutContent() {
     const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
     const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("PIX");
+    const [paymentProvider, setPaymentProvider] = useState<"STRIPE" | "MERCADO_PAGO" | "INFINITEPAY">("MERCADO_PAGO");
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
     const [coupon, setCoupon] = useState("");
     const [isPixPaid, setIsPixPaid] = useState(false);
+    const [pixData, setPixData] = useState<{ qrCode: string; qrCodeBase64: string } | null>(null);
     const [isCardFocused, setIsCardFocused] = useState(false);
     const [cardNumber, setCardNumber] = useState("");
     const [cardName, setCardName] = useState("");
@@ -208,6 +210,15 @@ function CheckoutContent() {
                         setSelectedCourseId(coursesData[0].id);
                     }
                 }
+
+                // Fetch preferred gateway
+                const settingsRes = await apiFetch("/public/settings");
+                if (settingsRes.ok) {
+                    const settingsData = await settingsRes.json();
+                    if (settingsData.preferredPaymentGateway) {
+                        setPaymentProvider(settingsData.preferredPaymentGateway);
+                    }
+                }
             } catch (error) {
                 console.error("Erro ao carregar planos", error);
             } finally {
@@ -240,24 +251,36 @@ function CheckoutContent() {
                 body: JSON.stringify({
                     planId: selectedPlan?.id,
                     amount: selectedPlan?.price,
-                    provider: paymentMethod === "CARD" ? "STRIPE" : "MERCADO_PAGO",
+                    provider: paymentProvider,
+                    method: paymentMethod
                 }),
             });
 
             if (res.ok) {
-                setStep("PAYING");
-                if (paymentMethod === "PIX") {
-                    setTimeout(() => {
-                        setIsPixPaid(true);
-                        setTimeout(() => handleFinish(), 2000);
-                    }, 5000);
+                const data = await res.json();
+
+                if (data.type === "PIX") {
+                    setPixData({
+                        qrCode: data.qrCode,
+                        qrCodeBase64: data.qrCodeBase64
+                    });
+                    setStep("PAYING");
+                    // Polling or waiting for websocket notification here
+                } else if (data.url) {
+                    window.location.href = data.url;
+                } else if (data.sessionId && paymentProvider === "STRIPE") {
+                    // Se for Stripe Session ID (caso o redirect não venha pronto)
+                    notify("Redirecionando", "Você será enviado para o checkout seguro.", "info");
                 } else {
-                    setTimeout(() => {
-                        handleFinish();
-                    }, 3000);
+                    notify("Sucesso", "Pagamento iniciado", "success");
+                    setStep("PAYING");
                 }
+            } else {
+                const err = await res.json();
+                notify("Erro", err.message || "Falha ao iniciar pagamento", "error");
             }
-        } catch {
+        } catch (error) {
+            console.error(error);
             notify("Erro", "Falha ao processar pagamento", "error");
         } finally {
             setProcessing(false);
@@ -485,10 +508,38 @@ function CheckoutContent() {
                                     </div>
                                     <div>
                                         <div className="text-sm font-black text-slate-900 uppercase tracking-tight">Cartão de Crédito</div>
-                                        <p className="text-[11px] text-slate-500 font-medium">Pague em até 12x no cartão.</p>
+                                        <p className="text-[11px] text-slate-500 font-medium">Pague online com segurança.</p>
                                     </div>
                                     {paymentMethod === "CARD" && <CheckCircle2 size={24} className="absolute top-4 right-4 text-indigo-600" />}
                                 </button>
+                            </div>
+
+                            {/* Provider Selection */}
+                            <div className="space-y-4">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Processador de Pagamento</label>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    <button
+                                        onClick={() => setPaymentProvider("MERCADO_PAGO")}
+                                        className={`h-12 rounded-xl border flex items-center justify-center gap-2 transition-all font-bold text-xs ${paymentProvider === "MERCADO_PAGO" ? "border-sky-500 bg-sky-50 text-sky-700 ring-2 ring-sky-100" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+                                    >
+                                        <div className="w-5 h-5 rounded-full bg-sky-500 text-white flex items-center justify-center text-[10px]">MP</div>
+                                        Mercado Pago
+                                    </button>
+                                    <button
+                                        onClick={() => setPaymentProvider("STRIPE")}
+                                        className={`h-12 rounded-xl border flex items-center justify-center gap-2 transition-all font-bold text-xs ${paymentProvider === "STRIPE" ? "border-indigo-500 bg-indigo-50 text-indigo-700 ring-2 ring-indigo-100" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+                                    >
+                                        <div className="w-5 h-5 rounded-full bg-indigo-500 text-white flex items-center justify-center text-[10px]">S</div>
+                                        Stripe
+                                    </button>
+                                    <button
+                                        onClick={() => setPaymentProvider("INFINITEPAY")}
+                                        className={`h-12 rounded-xl border flex items-center justify-center gap-2 transition-all font-bold text-xs ${paymentProvider === "INFINITEPAY" ? "border-emerald-500 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-100" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+                                    >
+                                        <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">I</div>
+                                        InfinitePay
+                                    </button>
+                                </div>
                             </div>
 
                             {paymentMethod === "CARD" && (
@@ -599,14 +650,32 @@ function CheckoutContent() {
                                         <p className="text-slate-500 font-medium">Abra o app do seu banco e escaneie o código abaixo.</p>
                                     </div>
                                     <div className={`p-6 bg-white rounded-[2.5rem] border-4 transition-all duration-700 ${isPixPaid ? "border-emerald-500" : "border-indigo-100"}`}>
-                                        <div className="w-64 h-64 rounded-2xl bg-slate-100 flex items-center justify-center">QR PIX</div>
+                                        {pixData?.qrCodeBase64 ? (
+                                            <img
+                                                src={`data:image/png;base64,${pixData.qrCodeBase64}`}
+                                                alt="QR Code Pix"
+                                                className="w-64 h-64 rounded-2xl"
+                                            />
+                                        ) : (
+                                            <div className="w-64 h-64 rounded-2xl bg-slate-100 flex items-center justify-center">
+                                                <Loader2 className="w-8 h-8 animate-spin text-slate-300" />
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-2 border border-slate-200">
-                                        <span className="font-mono text-xs">00020126...PIX</span>
-                                        <button onClick={() => notify("Sucesso", "Código copiado!", "success")} className="w-8 h-8 rounded-md bg-slate-50 grid place-items-center">
-                                            <Copy size={16} />
-                                        </button>
-                                    </div>
+                                    {pixData?.qrCode && (
+                                        <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-2 border border-slate-200 max-w-full overflow-hidden">
+                                            <span className="font-mono text-[10px] truncate flex-1">{pixData.qrCode}</span>
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(pixData.qrCode);
+                                                    notify("Sucesso", "Código copiado!", "success");
+                                                }}
+                                                className="w-8 h-8 rounded-md bg-slate-50 grid place-items-center shrink-0 hover:bg-slate-100 transition-colors"
+                                            >
+                                                <Copy size={16} />
+                                            </button>
+                                        </div>
+                                    )}
                                 </>
                             ) : (
                                 <div className="py-20 flex flex-col items-center gap-6">

@@ -26,13 +26,15 @@ public class CheckoutController {
         UUID userId = userService.resolveUserId(jwt);
         User user = userService.syncUser(userId, jwt.getClaimAsString("email"), jwt.getClaimAsString("name"));
         
-        // Simulação de criação de sessão
-        String sessionId = paymentService.initiatePayment(user, request.getAmount(), request.getProvider());
+        java.util.Map<String, Object> result = paymentService.initiatePayment(
+            user, 
+            request.getAmount(), 
+            request.getProvider(), 
+            request.getMethod(),
+            request.getPlanId()
+        );
         
-        return ResponseEntity.ok(Map.of(
-            "sessionId", sessionId,
-            "url", "/confirmacao-pagamento?status=success&planId=" + request.getPlanId()
-        ));
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/confirm")
@@ -47,6 +49,7 @@ public class CheckoutController {
     public static class CheckoutRequest {
         private UUID planId;
         private java.math.BigDecimal amount;
-        private String provider; // STRIPE, MERCADO_PAGO, SIMULATED
+        private String provider; // STRIPE, MERCADO_PAGO
+        private String method; // PIX, CARD
     }
 }

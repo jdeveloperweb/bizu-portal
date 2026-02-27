@@ -65,6 +65,12 @@ public class SystemSettings {
     @Column(name = "maintenance_mode")
     private Boolean maintenanceMode;
 
+    @Column(name = "infinitepay_handle")
+    private String infinitePayHandle;
+
+    @Column(name = "preferred_payment_gateway")
+    private String preferredPaymentGateway;
+
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 

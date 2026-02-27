@@ -30,10 +30,44 @@ public class WebhookController {
         }
     }
 
+    @PostMapping("/mercadopago")
+    public ResponseEntity<String> handleMercadoPagoWebhook(
+            @RequestParam(value = "id", required = false) String id,
+            @RequestParam(value = "topic", required = false) String topic,
+            @RequestBody(required = false) java.util.Map<String, Object> payload) {
+        
+        log.info("Recebido webhook do Mercado Pago. Topic: {}, ID: {}", topic, id);
+        
+        if ("payment".equals(topic) && id != null) {
+            paymentService.processMercadoPagoEvent(id);
+        } else if (payload != null && "payment".equals(payload.get("type"))) {
+            // Alguns webhooks do MP vem no body como "data.id"
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) payload.get("data");
+            if (data != null && data.get("id") != null) {
+                paymentService.processMercadoPagoEvent(data.get("id").toString());
+            }
+        }
+        
+        return ResponseEntity.ok("Recebido");
+    }
+
+    @PostMapping("/infinitepay")
+    public ResponseEntity<String> handleInfinitePayWebhook(@RequestBody java.util.Map<String, Object> payload) {
+        log.info("Recebido webhook da InfinitePay: {}", payload);
+        
+        // A InfinitePay envia os dados da venda quando aprovada
+        // Precisamos identificar o usuário e plano do nosso lado, geralmente via order_nsu
+        if (payload != null && "APPROVED".equalsIgnoreCase((String) payload.get("status"))) {
+            String orderNsu = (String) payload.get("order_nsu");
+            paymentService.processInfinitePayEvent(orderNsu);
+        }
+        
+        return ResponseEntity.ok("Recebido");
+    }
+
     @PostMapping("/pagarme")
     public ResponseEntity<String> handlePagarmeWebhook(@RequestBody String payload) {
         log.info("Recebido webhook do Pagar.me");
-        // Implementação similar para Pagar.me
         return ResponseEntity.ok("Recebido");
     }
 }
