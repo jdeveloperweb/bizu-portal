@@ -39,11 +39,11 @@ public class InfinitePayPaymentProvider implements PaymentProvider {
         Map<String, Object> item = new HashMap<>();
         item.put("quantity", 1);
         item.put("price", amount.multiply(new BigDecimal(100)).intValue()); // Em centavos
-        item.put("description", "Plano " + plan.getName() + " - Bizu! Academy");
+        item.put("name", "Plano " + plan.getName());
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("handle", handle);
-        payload.put("itens", List.of(item));
+        payload.put("items", List.of(item));
         payload.put("order_nsu", UUID.randomUUID().toString()); // ID único para controle
         payload.put("redirect_url", "https://bizu.mjolnix.com.br/dashboard?status=success");
         payload.put("webhook_url", "https://bizu.mjolnix.com.br/api/v1/public/webhooks/infinitepay");

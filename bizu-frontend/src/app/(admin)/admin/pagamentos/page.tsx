@@ -14,7 +14,8 @@ import {
     ChevronUp,
     ChevronDown,
     DollarSign,
-    Users
+    Users,
+    Play
 } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
 import { useState, useEffect } from "react";
@@ -27,6 +28,7 @@ interface Payment {
     amount: number;
     status: string;
     paymentMethod: string;
+    stripeIntentId?: string;
     createdAt: string;
     user: {
         name: string;
@@ -64,6 +66,25 @@ export default function AdminPaymentsPage() {
         p.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.user.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const simulateApproval = async (orderNsu: string) => {
+        try {
+            const res = await apiFetch("/admin/payments/test-simulate", {
+                method: "POST",
+                body: JSON.stringify({ orderNsu })
+            });
+            if (res.ok) {
+                toast.success("Simulação enviada! Verifique a assinatura do aluno.");
+                // Refresh list
+                const freshRes = await apiFetch("/admin/payments");
+                if (freshRes.ok) setPayments(await freshRes.json());
+            } else {
+                toast.error("Erro ao simular aprovação");
+            }
+        } catch (error) {
+            toast.error("Erro de conexão");
+        }
+    };
 
     return (
         <div className="w-full px-8 py-8 h-full bg-slate-50/30 font-sans">
@@ -150,10 +171,22 @@ export default function AdminPaymentsPage() {
                                         </div>
                                     </td>
                                     <td className="px-8 py-5 text-right">
-                                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${p.status === 'SUCCEEDED' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
-                                            }`}>
-                                            {p.status === 'SUCCEEDED' ? 'SUCESSO' : 'FALHA'}
-                                        </span>
+                                        <div className="flex items-center justify-end gap-3">
+                                            {p.status === 'PENDING' && p.stripeIntentId && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={() => simulateApproval(p.stripeIntentId!)}
+                                                    className="h-8 border-indigo-100 text-indigo-600 hover:bg-indigo-50 font-bold text-[9px] gap-1.5"
+                                                >
+                                                    <Play size={10} fill="currentColor" /> SIMULAR APROVAÇÃO
+                                                </Button>
+                                            )}
+                                            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${p.status === 'SUCCEEDED' ? 'bg-emerald-50 text-emerald-600' : p.status === 'PENDING' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'
+                                                }`}>
+                                                {p.status === 'SUCCEEDED' ? 'SUCESSO' : p.status === 'PENDING' ? 'PENDENTE' : 'FALHA'}
+                                            </span>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

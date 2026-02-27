@@ -24,4 +24,17 @@ public class AdminPaymentController {
         // Em um sistema real, aqui teria paginação
         return ResponseEntity.ok(paymentRepository.findAll());
     }
+
+    @PostMapping("/test-simulate")
+    public ResponseEntity<String> simulateApproval(@RequestBody java.util.Map<String, String> body) {
+        String orderNsu = body.get("orderNsu");
+        if (orderNsu == null) return ResponseEntity.badRequest().body("orderNsu é obrigatório");
+        
+        try {
+            paymentService.processInfinitePayEvent(orderNsu);
+            return ResponseEntity.ok("Simulação enviada com sucesso! Verifique se a assinatura foi ativada.");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Erro na simulação: " + e.getMessage());
+        }
+    }
 }
