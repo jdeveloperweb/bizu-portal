@@ -62,10 +62,9 @@ function ArenaPageContent() {
     }, [searchParams]);
 
     useEffect(() => {
-        if (user && user.sub) {
-            setCurrentUserId(user.sub as string);
-        } else if (user && user.id) {
-            setCurrentUserId(user.id as string);
+        if (user) {
+            const userId = (user.id || user.sub) as string;
+            setCurrentUserId(userId);
         }
     }, [user]);
 
@@ -126,6 +125,13 @@ function ArenaPageContent() {
     }, []);
 
 
+
+    useChallengeNotifications(currentUserId, (newDuel: Duel) => {
+        setPendingDuels(prev => {
+            if (prev.find(d => d.id === newDuel.id)) return prev;
+            return [newDuel, ...prev];
+        });
+    });
 
     const handleChallenge = async (opponentId: string) => {
         try {
@@ -195,6 +201,44 @@ function ArenaPageContent() {
                     </div>
                 </div>
             </div>
+
+            {/* Pending Challenges List */}
+            {pendingDuels.length > 0 && (
+                <div className="mb-8 space-y-3">
+                    <h3 className="text-sm font-black text-slate-900 flex items-center gap-2 uppercase tracking-wider">
+                        <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" /> Desafios Pendentes ({pendingDuels.length})
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {pendingDuels.map(duel => (
+                            <div key={duel.id} className="card-elevated !rounded-2xl p-4 bg-white border-2 border-indigo-100 flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                                        <Swords size={20} />
+                                    </div>
+                                    <div>
+                                        <div className="text-sm font-bold text-slate-800">{duel.challenger.name}</div>
+                                        <div className="text-[10px] text-slate-500">Matéria: {duel.subject}</div>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleAccept(duel.id)}
+                                        className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-[11px] font-bold hover:bg-indigo-700 transition-all shadow-sm"
+                                    >
+                                        Aceitar
+                                    </button>
+                                    <button
+                                        onClick={() => handleDecline(duel.id)}
+                                        className="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 text-[11px] font-bold hover:bg-slate-200 transition-all"
+                                    >
+                                        Recusar
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
 
 

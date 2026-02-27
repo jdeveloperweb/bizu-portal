@@ -15,10 +15,27 @@ export default function ChallengeOverlay() {
     const [currentUserId, setCurrentUserId] = useState<string>("");
 
     useEffect(() => {
-        if (user && (user.sub || user.id)) {
-            setCurrentUserId((user.sub || user.id) as string);
+        if (user) {
+            // Prioritize database 'id' over keycloak 'sub'
+            const userId = (user.id || user.sub) as string;
+            setCurrentUserId(userId);
         }
     }, [user]);
+
+    useEffect(() => {
+        const fetchInitialPending = async () => {
+            if (!currentUserId) return;
+            try {
+                const pending = await DuelService.getPendingDuels();
+                if (pending && pending.length > 0) {
+                    setPendingDuels(pending);
+                }
+            } catch (err) {
+                console.error("Erro ao buscar duelos pendentes:", err);
+            }
+        };
+        fetchInitialPending();
+    }, [currentUserId]);
 
     useChallengeNotifications(currentUserId, (newDuel: Duel) => {
         setPendingDuels(prev => {
