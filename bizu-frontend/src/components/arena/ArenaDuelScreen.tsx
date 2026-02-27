@@ -22,16 +22,17 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
     const [showCorrection, setShowCorrection] = useState(false);
 
     useDuelWebSocket(duelId, (updatedDuel) => {
-        setDuel(prev => {
-            // If round changed, reset state
-            if (prev && updatedDuel.currentRound !== prev.currentRound) {
-                setSelectedAnswer(null);
-                setShowCorrection(false);
-                setTimeLeft(30);
-            }
-            return updatedDuel;
-        });
+        setDuel(updatedDuel);
     });
+
+    // Reset local state when round changes (works for both WebSocket and Polling)
+    useEffect(() => {
+        if (duel?.currentRound) {
+            setSelectedAnswer(null);
+            setShowCorrection(false);
+            setTimeLeft(30);
+        }
+    }, [duel?.currentRound]);
 
     useEffect(() => {
         const fetchDuel = async () => {
