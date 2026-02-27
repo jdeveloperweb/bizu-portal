@@ -35,7 +35,10 @@ public class InfinitePayPaymentProvider implements PaymentProvider {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("quantity", 1);
             item.put("price", amount.multiply(new BigDecimal(100)).longValue()); // Em centavos (Long)
-            item.put("description", "Plano " + plan.getName());
+            String description = plan.getCourse() != null 
+                    ? plan.getCourse().getTitle() + " - " + plan.getName() 
+                    : plan.getName();
+            item.put("description", description);
 
             // Objeto de payload sem chaves extras, conforme print da documentação
             Map<String, Object> payload = new LinkedHashMap<>();
