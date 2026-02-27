@@ -2,7 +2,7 @@
 
 import QuestionViewer from "@/components/questions/QuestionViewer";
 import PageHeader from "@/components/PageHeader";
-import { Timer, LayoutGrid, ChevronLeft, Sparkles, SlidersHorizontal, ChevronDown, Settings } from "lucide-react";
+import { Timer, LayoutGrid, ChevronLeft, Sparkles, SlidersHorizontal, ChevronDown, Settings, Maximize, Minimize } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, Suspense, useMemo } from "react";
+import { useState, useEffect, Suspense, useMemo, useRef } from "react";
 import { apiFetch } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/AuthProvider";
@@ -65,6 +65,27 @@ function TreinoContent() {
     const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [isApplyingConfig, setIsApplyingConfig] = useState(false);
+    const [isFocusMode, setIsFocusMode] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
+        return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    }, []);
+
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            containerRef.current?.requestFullscreen().catch(err => {
+                console.error(`Error: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    };
 
     const modules = useMemo(
         () => {
@@ -224,42 +245,68 @@ function TreinoContent() {
     };
 
     return (
-        <div className="min-h-screen bg-background relative overflow-hidden pb-12">
+        <div ref={containerRef} className="min-h-screen bg-background relative overflow-hidden pb-12">
             {/* Design Background elements */}
-            <div className="pointer-events-none absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px]" />
-            <div className="pointer-events-none absolute top-1/2 -left-40 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px]" />
+            <div className={`pointer-events-none absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px] ${isFocusMode ? "opacity-30" : ""}`} />
+            <div className={`pointer-events-none absolute top-1/2 -left-40 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px] ${isFocusMode ? "opacity-30" : ""}`} />
 
-            <div className="container mx-auto max-w-5xl px-4 sm:px-6 py-4 sm:py-8 relative z-10">
+            {/* Floating Focus Controls */}
+            <div className="fixed top-4 right-4 z-[100] flex items-center gap-2">
+                <Button
+                    variant="secondary"
+                    size="icon"
+                    className="rounded-full shadow-lg bg-white/80 backdrop-blur hover:bg-white text-slate-600"
+                    onClick={() => setIsFocusMode(!isFocusMode)}
+                    title={isFocusMode ? "Sair do Modo Foco" : "Entrar no Modo Foco"}
+                >
+                    {isFocusMode ? <LayoutGrid size={20} /> : <Maximize size={20} />}
+                </Button>
+                {isFocusMode && (
+                    <Button
+                        variant="secondary"
+                        size="icon"
+                        className="rounded-full shadow-lg bg-white/80 backdrop-blur hover:bg-white text-slate-600"
+                        onClick={toggleFullscreen}
+                        title={isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
+                    >
+                        {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+                    </Button>
+                )}
+            </div>
+
+            <div className={`container mx-auto max-w-5xl px-4 sm:px-6 relative z-10 transition-all ${isFocusMode ? "py-4 md:py-12" : "py-4 sm:py-8"}`}>
                 {/* Header Navigation */}
-                <div className="flex flex-wrap items-center justify-between mb-8 sm:mb-12 gap-3">
-                    <Link href="/dashboard">
-                        <Button variant="ghost" className="rounded-2xl flex items-center gap-2 px-4 hover:bg-primary/10 hover:text-primary group transition-all">
-                            <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                            <span className="font-bold">Voltar ao Início</span>
-                        </Button>
-                    </Link>
+                {!isFocusMode && (
+                    <div className="flex flex-wrap items-center justify-between mb-8 sm:mb-12 gap-3">
+                        <Link href="/dashboard">
+                            <Button variant="ghost" className="rounded-2xl flex items-center gap-2 px-4 hover:bg-primary/10 hover:text-primary group transition-all">
+                                <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                                <span className="font-bold">Voltar ao Início</span>
+                            </Button>
+                        </Link>
 
-                    <div className="flex items-center gap-2 sm:gap-4">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setShowConfig(!showConfig)}
-                            className={`rounded-2xl h-10 sm:h-12 px-4 sm:px-5 flex items-center gap-2 font-black transition-all shadow-sm ${showConfig ? 'bg-primary text-primary-foreground border-primary shadow-primary/20' : 'bg-card/50 backdrop-blur-sm border-border/50 hover:bg-primary/5'}`}
-                        >
-                            <Settings className="w-4 h-4" />
-                            <span className="hidden xs:inline">Configurações</span>
-                        </Button>
+                        <div className="flex items-center gap-2 sm:gap-4">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowConfig(!showConfig)}
+                                className={`rounded-2xl h-10 sm:h-12 px-4 sm:px-5 flex items-center gap-2 font-black transition-all shadow-sm ${showConfig ? 'bg-primary text-primary-foreground border-primary shadow-primary/20' : 'bg-card/50 backdrop-blur-sm border-border/50 hover:bg-primary/5'}`}
+                            >
+                                <Settings className="w-4 h-4" />
+                                <span className="hidden xs:inline">Configurações</span>
+                            </Button>
 
-                        <div className="flex items-center gap-2 text-xs font-black text-primary bg-primary/5 border border-primary/20 px-4 py-2 sm:py-3 rounded-2xl shadow-sm">
-                            <LayoutGrid className="w-4 h-4" />
-                            {currentQuestionIdx + 1}<span className="text-primary/40 font-bold mx-0.5">/</span>{filteredQuestions.length}
+                            <div className="flex items-center gap-2 text-xs font-black text-primary bg-primary/5 border border-primary/20 px-4 py-2 sm:py-3 rounded-2xl shadow-sm">
+                                <LayoutGrid className="w-4 h-4" />
+                                {currentQuestionIdx + 1}<span className="text-primary/40 font-bold mx-0.5">/</span>{filteredQuestions.length}
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* Main Content Area */}
                 <div className="max-w-4xl mx-auto space-y-8">
-                    {!showConfig && (
+                    {!showConfig && !isFocusMode && (
                         <div className="mb-2">
                             <PageHeader
                                 title={simulado.title}
@@ -380,7 +427,11 @@ function TreinoContent() {
                     </AnimatePresence>
 
                     <div key={mappedQuestion.id} className="pb-10">
-                        <QuestionViewer {...mappedQuestion} onNext={handleNext} />
+                        <QuestionViewer
+                            {...mappedQuestion}
+                            onNext={handleNext}
+                            hideTopBar={isFocusMode}
+                        />
                     </div>
                 </div>
             </div>
