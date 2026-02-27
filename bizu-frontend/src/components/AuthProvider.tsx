@@ -372,7 +372,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const isPremium = !!subscription && subscription.status === "ACTIVE";
+    const isPremium = !!subscription &&
+        (subscription.status === "ACTIVE" || subscription.status === "PAST_DUE") &&
+        !subscription.plan?.free;
     const isFree = authenticated && !isPremium;
 
     return (

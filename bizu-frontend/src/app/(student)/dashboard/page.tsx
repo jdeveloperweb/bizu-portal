@@ -332,6 +332,33 @@ export default function DashboardPage() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Achievements */}
+                    <div className="bg-card border border-border rounded-[40px] p-8 shadow-sm">
+                        <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-base font-bold text-slate-800">Conquistas</h3>
+                            <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full">{earnedBadgesCount} / {achivementsData.length}</span>
+                        </div>
+                        <div className="grid grid-cols-4 sm:grid-cols-8 gap-4">
+                            {achivementsData.map((c, i) => (
+                                <div key={i} className="relative group cursor-pointer aspect-square">
+                                    <div
+                                        className={`w-full h-full rounded-2xl flex items-center justify-center transition-all duration-300 ${c.unlocked
+                                            ? `bg-gradient-to-br ${c.color} shadow-lg group-hover:scale-110`
+                                            : "bg-slate-50 border border-slate-100"
+                                            }`}>
+                                        <c.icon
+                                            size={c.unlocked ? 20 : 16}
+                                            className={`${c.unlocked ? "text-white" : "text-slate-300"}`}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <Link href="/conquistas" className="mt-8 flex items-center justify-center gap-2 text-xs font-bold text-slate-500 hover:text-indigo-600 transition-colors">
+                            Ver galeria completa <ArrowUpRight size={14} />
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Right Column (Narrower) */}
@@ -372,32 +399,6 @@ export default function DashboardPage() {
                         />
                     </div>
 
-                    {/* Achievements */}
-                    <div className="bg-card border border-border rounded-[40px] p-8 shadow-sm">
-                        <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-base font-bold text-slate-800">Conquistas</h3>
-                            <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full">{earnedBadgesCount} / {achivementsData.length}</span>
-                        </div>
-                        <div className="grid grid-cols-4 gap-4">
-                            {achivementsData.map((c, i) => (
-                                <div key={i} className="relative group cursor-pointer aspect-square">
-                                    <div
-                                        className={`w-full h-full rounded-2xl flex items-center justify-center transition-all duration-300 ${c.unlocked
-                                            ? `bg-gradient-to-br ${c.color} shadow-lg group-hover:scale-110`
-                                            : "bg-slate-50 border border-slate-100"
-                                            }`}>
-                                        <c.icon
-                                            size={c.unlocked ? 20 : 16}
-                                            className={`${c.unlocked ? "text-white" : "text-slate-300"}`}
-                                        />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <Link href="/conquistas" className="mt-8 flex items-center justify-center gap-2 text-xs font-bold text-slate-500 hover:text-indigo-600 transition-colors">
-                            Ver galeria completa <ArrowUpRight size={14} />
-                        </Link>
-                    </div>
                 </div>
             </div>
         </div>
