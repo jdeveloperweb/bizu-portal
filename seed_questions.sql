@@ -1,6 +1,3 @@
--- Script SQL para inserir questões de teste diretamente no banco
--- Isso resolve o problema de não haver questões para o duelo
-
 DO $$
 DECLARE
     v_course_id UUID;
@@ -24,19 +21,19 @@ BEGIN
         RETURNING id INTO v_module_id;
     END IF;
 
-    -- 3. Insere 150 questões de teste variadas
+    -- 3. Insere 150 questões de teste variadas na categoria QUIZ
     FOR i IN 1..150 LOOP
         INSERT INTO content.questions (
             id, statement, options, correct_option, difficulty, subject, 
             category, question_type, module_id, created_at, updated_at
         ) VALUES (
             gen_random_uuid(),
-            '<p>Questão de Teste Arena #' || i || '. (SQL SEED) Selecione a resposta correta para validar o fluxo do duelo.</p>',
+            '<p>Questão de Treino Quick Quiz #' || i || '. (SQL SEED) Verifique se esta questão aparece na aba de Treino.</p>',
             '{"0": "Resposta Correta A", "1": "Resposta B", "2": "Resposta C", "3": "Resposta D"}'::jsonb,
             'A',
             (ARRAY['EASY', 'MEDIUM', 'HARD'])[floor(random() * 3 + 1)], -- Dificuldade aleatória
             (ARRAY['Direito Constitucional', 'Direito Administrativo', 'Português', 'Matemática', 'Informática'])[floor(random() * 5 + 1)], -- Matérias aleatórias
-            'SIMULADO', -- Categoria obrigatória para Arena
+            'QUIZ', -- CATEGORIA CORRIGIDA PARA QUIZ
             'MULTIPLE_CHOICE',
             v_module_id,
             now(),
@@ -44,5 +41,5 @@ BEGIN
         );
     END LOOP;
     
-    RAISE NOTICE 'Sucesso! 150 questões inseridas no curso %', v_course_id;
+    RAISE NOTICE 'Sucesso! 150 questões de QUIZ inseridas.';
 END $$;
