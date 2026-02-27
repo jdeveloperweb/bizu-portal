@@ -250,7 +250,7 @@ function ArenaPageContent() {
     }
 
     return (
-        <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
+        <div className="p-4 md:p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
             {!activeDuelId && <ActiveDuelBanner onReturn={(id) => setActiveDuelId(id)} />}
 
             {activeDuelId && (
@@ -262,21 +262,21 @@ function ArenaPageContent() {
             )}
 
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
-                        <span className="pill pill-primary text-[10px] font-bold uppercase tracking-[0.15em]">Competitivo</span>
+                        <span className="pill pill-primary text-[9px] md:text-[10px] font-bold uppercase tracking-[0.15em]">Competitivo</span>
                     </div>
-                    <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-0.5">
+                    <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight mb-0.5">
                         Arena PVP
                     </h1>
-                    <p className="text-sm text-slate-500">Desafie outros concurseiros em duelos de conhecimento.</p>
+                    <p className="text-[12px] md:text-sm text-slate-500">Duelos de conhecimento em tempo real.</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <div className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-[10px] md:text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
                         <Trophy size={13} /> {myStats.wins}V / {myStats.losses}D
                     </div>
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-full">
+                    <div className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-[10px] md:text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-full">
                         <Flame size={13} /> {myStats.streak} seguidas
                     </div>
                 </div>
@@ -284,8 +284,8 @@ function ArenaPageContent() {
 
             {/* Pending Challenges List */}
             {pendingDuels.length > 0 && (
-                <div className="mb-8 space-y-3">
-                    <h3 className="text-sm font-black text-slate-900 flex items-center gap-2 uppercase tracking-wider">
+                <div className="mb-6 md:mb-8 space-y-3">
+                    <h3 className="text-[11px] md:text-sm font-black text-slate-900 flex items-center gap-2 uppercase tracking-wider">
                         <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" /> Desafios Pendentes ({pendingDuels.length})
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -311,13 +311,13 @@ function ArenaPageContent() {
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => handleAccept(duel.id)}
-                                        className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-[11px] font-bold hover:bg-indigo-700 transition-all shadow-sm"
+                                        className="px-3 md:px-4 py-2 rounded-xl bg-indigo-600 text-white text-[10px] md:text-[11px] font-bold hover:bg-indigo-700 transition-all shadow-sm"
                                     >
                                         Aceitar
                                     </button>
                                     <button
                                         onClick={() => handleDecline(duel.id)}
-                                        className="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 text-[11px] font-bold hover:bg-slate-200 transition-all"
+                                        className="px-3 md:px-4 py-2 rounded-xl bg-slate-100 text-slate-600 text-[10px] md:text-[11px] font-bold hover:bg-slate-200 transition-all"
                                     >
                                         Recusar
                                     </button>
@@ -331,7 +331,7 @@ function ArenaPageContent() {
 
 
             {/* Stats */}
-            <div className="grid grid-cols-4 gap-3 mb-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
                 {[
                     { label: "Vitorias", val: String(myStats.wins), icon: CheckCircle2, bg: "bg-emerald-50", text: "text-emerald-600" },
                     { label: "Derrotas", val: String(myStats.losses), icon: XCircle, bg: "bg-red-50", text: "text-red-500" },
@@ -340,35 +340,35 @@ function ArenaPageContent() {
                 ].map(s => {
                     const Icon = s.icon;
                     return (
-                        <div key={s.label} className="card-elevated p-4 hover:!transform-none">
+                        <div key={s.label} className="card-elevated p-3 md:p-4 hover:!transform-none">
                             <div className="flex items-center gap-2 mb-2">
                                 <div className={`w-7 h-7 rounded-lg ${s.bg} flex items-center justify-center`}>
                                     <Icon size={13} className={s.text} />
                                 </div>
+                                <div className="text-[10px] md:text-[11px] text-slate-400 font-medium uppercase tracking-tight">{s.label}</div>
                             </div>
                             {isLoading ? (
                                 <Skeleton className="h-7 w-12 mb-1" />
                             ) : (
-                                <div className="text-xl font-extrabold text-slate-900">{s.val}</div>
+                                <div className="text-lg md:text-xl font-extrabold text-slate-900">{s.val}</div>
                             )}
-                            <div className="text-[11px] text-slate-400">{s.label}</div>
                         </div>
                     );
                 })}
             </div>
 
             {/* Tabs */}
-            <div className="card-elevated !rounded-2xl p-1.5 flex gap-1 mb-6">
+            <div className="card-elevated !rounded-2xl p-1 flex gap-1 mb-6 overflow-x-auto no-scrollbar">
                 {([
-                    { key: "online" as ArenaTab, label: "Jogadores Online", icon: Users },
-                    { key: "ranking" as ArenaTab, label: "Ranking de Duelos", icon: Trophy },
-                    { key: "historico" as ArenaTab, label: "Historico", icon: Clock },
+                    { key: "online" as ArenaTab, label: "Online", icon: Users },
+                    { key: "ranking" as ArenaTab, label: "Ranking", icon: Trophy },
+                    { key: "historico" as ArenaTab, label: "Histórico", icon: Clock },
                 ]).map(tab => {
                     const Icon = tab.icon;
                     const active = activeTab === tab.key;
                     return (
                         <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[12px] font-bold transition-all ${active ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"
+                            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-[11px] md:text-[12px] font-bold transition-all whitespace-nowrap ${active ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm" : "text-slate-500 hover:bg-slate-50"
                                 }`}>
                             <Icon size={14} /> {tab.label}
                         </button>
@@ -386,18 +386,23 @@ function ArenaPageContent() {
                                     <Skeleton key={i} className="h-20 w-full rounded-2xl" />
                                 ))}
                             </div>
+                        ) : onlineUsers.length === 0 ? (
+                            <div className="p-12 text-center card-elevated !rounded-2xl border-dashed border-2 border-slate-100 bg-slate-50/50">
+                                <Users size={32} className="mx-auto text-slate-300 mb-3" />
+                                <p className="text-slate-500 text-sm font-medium">Nenhum jogador online no momento.</p>
+                                <p className="text-slate-400 text-[11px]">Tente novamente em alguns minutos.</p>
+                            </div>
                         ) : onlineUsers.map(user => (
-                            <div key={user.id} className="card-elevated !rounded-2xl p-4 hover:!transform-none">
-                                <div className="flex items-center gap-3">
-                                    <div className="relative">
-                                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center overflow-hidden text-[12px] font-bold text-indigo-700 border border-indigo-200/50 shadow-sm">
+                            <div key={user.id} className="card-elevated !rounded-2xl p-3 md:p-4 hover:!transform-none">
+                                <div className="flex items-center gap-2.5 md:gap-3">
+                                    <div className="relative flex-shrink-0">
+                                        <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center overflow-hidden text-[12px] font-bold text-indigo-700 border border-indigo-200/50 shadow-sm">
                                             {user.avatar && (user.avatar.includes('/') || user.avatar.startsWith('http')) ? (
                                                 <img
                                                     src={getAvatarUrl(user.avatar)}
                                                     className="w-full h-full object-cover"
                                                     alt={user.name}
                                                     onError={(e) => {
-                                                        // Fallback to initials on image error
                                                         (e.target as HTMLImageElement).style.display = 'none';
                                                         const parent = (e.target as HTMLImageElement).parentElement;
                                                         if (parent) {
@@ -414,31 +419,33 @@ function ArenaPageContent() {
                                             }`} />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[13px] font-bold text-slate-800">{user.name}</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-[13px] font-bold text-slate-800 truncate">{user.name}</span>
                                             {user.status === "em_duelo" && (
-                                                <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">Em duelo</span>
+                                                <span className="text-[8px] md:text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">Em duelo</span>
                                             )}
                                         </div>
-                                        <div className="text-[10px] text-slate-400 flex items-center gap-2">
-                                            <span className="flex items-center gap-0.5"><Zap size={9} className="text-amber-500" /> Lv.{user.level}</span>
-                                            <span>{user.xp.toLocaleString()} XP</span>
-                                            <span className="flex items-center gap-0.5"><Target size={9} /> {user.winRate}%</span>
+                                        <div className="text-[9px] md:text-[10px] text-slate-400 flex items-center gap-1.5 md:gap-2">
+                                            <span className="flex items-center gap-0.5 whitespace-nowrap"><Zap size={9} className="text-amber-500" /> Lv.{user.level}</span>
+                                            <span className="hidden xs:inline-block">•</span>
+                                            <span className="hidden xs:inline-block">{user.xp.toLocaleString()} XP</span>
+                                            <span className="flex items-center gap-0.5 whitespace-nowrap"><Target size={9} /> {user.winRate}%</span>
                                         </div>
                                     </div>
                                     <button
                                         disabled={user.status === "em_duelo" || user.id === currentUserId}
                                         onClick={() => handleChallenge(user.id)}
-                                        className={`px-4 py-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-all ${user.status === "em_duelo" || user.id === currentUserId
+                                        className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[10px] md:text-[11px] font-bold flex items-center justify-center gap-1 transition-all flex-shrink-0 ${user.status === "em_duelo" || user.id === currentUserId
                                             ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                            : "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm hover:shadow-md"
+                                            : "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm hover:shadow-md active:scale-95"
                                             }`}>
-                                        <Swords size={13} /> Desafiar
+                                        <Swords size={12} /> <span className="hidden sm:inline">Desafiar</span>
                                     </button>
                                 </div>
                             </div>
                         ))
                     )}
+
 
                     {/* Ranking & History placeholders simplified for real data soon */}
                     {activeTab === "ranking" && (
@@ -449,26 +456,26 @@ function ArenaPageContent() {
                                 <div className="p-8 text-center text-slate-400 italic">Nenhum dado de ranking disponível.</div>
                             ) : (
                                 ranking.map((r, i) => (
-                                    <div key={r.id} className="card-elevated !rounded-2xl p-4 flex items-center gap-4">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${i === 0 ? "bg-amber-100 text-amber-600" :
+                                    <div key={r.id} className="card-elevated !rounded-2xl p-3 md:p-4 flex items-center gap-3 md:gap-4">
+                                        <div className={`w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center font-bold text-sm ${i === 0 ? "bg-amber-100 text-amber-600" :
                                             i === 1 ? "bg-slate-100 text-slate-500" :
                                                 i === 2 ? "bg-orange-100 text-orange-600" : "bg-slate-50 text-slate-400"
                                             }`}>
                                             {i + 1}º
                                         </div>
-                                        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center overflow-hidden">
+                                        <div className="w-10 h-10 flex-shrink-0 rounded-xl bg-indigo-50 flex items-center justify-center overflow-hidden">
                                             {r.avatar ? (
                                                 <img src={getAvatarUrl(r.avatar)} className="w-full h-full object-cover" alt={r.name} />
                                             ) : (
                                                 <span className="text-indigo-600 font-bold">{r.name.substring(0, 2).toUpperCase()}</span>
                                             )}
                                         </div>
-                                        <div className="flex-1">
-                                            <div className="text-sm font-bold text-slate-800">{r.name}</div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-sm font-bold text-slate-800 truncate">{r.name}</div>
                                             <div className="text-[10px] text-slate-500">Ganhador de {r.wins} duelos na semana</div>
                                         </div>
                                         {i < 3 && (
-                                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-bold">
+                                            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-bold">
                                                 <Crown size={12} /> XP Bônus: {i === 0 ? "500" : i === 1 ? "300" : "200"}
                                             </div>
                                         )}
@@ -492,25 +499,28 @@ function ArenaPageContent() {
                                     const result = duel.winner?.id === currentUserId ? "Vitoria" : duel.winner ? "Derrota" : "Empate";
 
                                     return (
-                                        <div key={duel.id} className="card-elevated !rounded-2xl p-4 flex items-center gap-4">
-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${result === "Vitoria" ? "bg-emerald-50 text-emerald-600" :
+                                        <div key={duel.id} className="card-elevated !rounded-2xl p-3 md:p-4 flex items-center gap-3 md:gap-4">
+                                            <div className={`w-10 h-10 flex-shrink-0 rounded-xl flex items-center justify-center ${result === "Vitoria" ? "bg-emerald-50 text-emerald-600" :
                                                 result === "Derrota" ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-600"
                                                 }`}>
-                                                {result === "Vitoria" ? <Trophy size={20} /> : <Swords size={20} />}
+                                                {result === "Vitoria" ? <Trophy size={18} /> : <Swords size={18} />}
                                             </div>
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-bold text-slate-800">Duelo contra {opponent.name}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                    <span className="text-[13px] font-bold text-slate-800 truncate">vs {opponent.name}</span>
                                                     <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${result === "Vitoria" ? "bg-emerald-50 text-emerald-600" :
                                                         result === "Derrota" ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-600"
                                                         }`}>{result}</span>
                                                 </div>
-                                                <div className="text-[10px] text-slate-500">
-                                                    Placar: {myScore} - {opScore} • {duel.subject} • {new Date(duel.completedAt!).toLocaleDateString()}
+                                                <div className="text-[10px] text-slate-500 truncate">
+                                                    Placar: {myScore} - {opScore} • {duel.subject}
+                                                </div>
+                                                <div className="text-[9px] text-slate-400">
+                                                    {new Date(duel.completedAt!).toLocaleDateString()}
                                                 </div>
                                             </div>
-                                            <div className="text-right">
-                                                <div className="text-[12px] font-bold text-slate-800">+{result === "Vitoria" ? 100 : 25} XP</div>
+                                            <div className="text-right flex-shrink-0">
+                                                <div className="text-[11px] md:text-[12px] font-bold text-slate-800">+{result === "Vitoria" ? 100 : 25} XP</div>
                                             </div>
                                         </div>
                                     );
@@ -521,21 +531,21 @@ function ArenaPageContent() {
                 </div>
 
                 {/* Sidebar */}
-                <div className="space-y-5">
+                <div className="space-y-4 md:space-y-5">
                     {/* Duel Config */}
-                    <div className="card-elevated !rounded-2xl p-5 hover:!transform-none">
+                    <div className="card-elevated !rounded-2xl p-4 md:p-5 hover:!transform-none">
                         <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                             <Shield size={14} className="text-indigo-500" /> Configurar Duelo
                         </h3>
-                        <div className="space-y-3">
+                        <div className="space-y-4 md:space-y-5">
                             <div>
-                                <label className="text-[10px] font-bold text-slate-500 mb-1.5 block uppercase tracking-wider">Materia</label>
+                                <label className="text-[10px] font-bold text-slate-500 mb-1.5 block uppercase tracking-wider">Escolha a Matéria</label>
                                 <div className="flex flex-wrap gap-1.5">
                                     {["Aleatorio", ...availableModules].map(s => (
                                         <button key={s} onClick={() => setSelectedSubject(s)}
-                                            className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all ${selectedSubject === s
-                                                ? "bg-indigo-50 text-indigo-700 border border-indigo-100"
-                                                : "text-slate-400 hover:text-slate-600 bg-slate-50 border border-slate-100"
+                                            className={`px-2.5 py-2 rounded-lg text-[10px] font-bold transition-all border ${selectedSubject === s
+                                                ? "bg-indigo-50 text-indigo-700 border-indigo-200 shadow-sm"
+                                                : "text-slate-400 hover:text-slate-600 bg-slate-50 border-slate-100"
                                                 }`}>
                                             {s === "Aleatorio" ? s : s
                                                 .replace("Direito ", "D. ")
@@ -547,26 +557,28 @@ function ArenaPageContent() {
 
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between py-2 px-3 rounded-xl bg-slate-50 border border-slate-100">
-                                <span className="text-[11px] text-slate-500">Rodadas iniciais</span>
-                                <span className="text-[12px] font-bold text-slate-800">10 questões</span>
-                            </div>
-                            <div className="flex items-center justify-between py-2 px-3 rounded-xl bg-slate-50 border border-slate-100">
-                                <span className="text-[11px] text-slate-500">Sistema</span>
-                                <span className="text-[12px] font-bold text-slate-800">Morte Súbita</span>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="flex flex-col gap-0.5 py-2 px-3 rounded-xl bg-slate-50 border border-slate-100">
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase">Rodadas</span>
+                                    <span className="text-[11px] font-bold text-slate-800">10 Questões</span>
+                                </div>
+                                <div className="flex flex-col gap-0.5 py-2 px-3 rounded-xl bg-slate-50 border border-slate-100">
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase">Sistema</span>
+                                    <span className="text-[11px] font-bold text-slate-800">Morte Súbita</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Weekly Prize */}
-                    <div className="rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 p-5">
+                    <div className="rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 p-4 md:p-5">
                         <div className="flex items-center gap-2 mb-3">
                             <Crown size={14} className="text-indigo-600" />
-                            <span className="text-[12px] font-bold text-indigo-800">Premios da Semana</span>
+                            <span className="text-[12px] font-bold text-indigo-800">Prêmios da Semana</span>
                         </div>
-                        <p className="text-[11px] text-indigo-500 mb-3">O topo do ranking de Arena ganha prêmios exclusivos!</p>
+                        <p className="text-[11px] text-indigo-500 mb-3">O topo do ranking da Arena ganha prêmios exclusivos!</p>
                         <div className="space-y-1.5">
-                            {["1o: 500 XP + 50% off", "2o: 300 XP + 30% off", "3o: 200 XP + 20% off"].map((p, i) => (
+                            {["1o: 500 XP + 50% Cupom", "2o: 300 XP + 30% Cupom", "3o: 200 XP + 20% Cupom"].map((p, i) => (
                                 <div key={i} className="flex items-center gap-2 text-[11px]">
                                     <Trophy size={10} className={i === 0 ? "text-amber-500" : i === 1 ? "text-slate-400" : "text-orange-400"} />
                                     <span className="text-indigo-700 font-semibold">{p}</span>
@@ -576,22 +588,22 @@ function ArenaPageContent() {
                     </div>
 
                     {/* Quick Actions */}
-                    <div className="card-elevated !rounded-2xl p-5 hover:!transform-none">
+                    <div className="card-elevated !rounded-2xl p-4 md:p-5 hover:!transform-none">
                         <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
-                            <Zap size={14} className="text-amber-500" /> Acoes Rapidas
+                            <Zap size={14} className="text-amber-500" /> Ações Rápidas
                         </h3>
-                        <div className="space-y-2">
-                            <Link href="/questoes/treino" className="flex items-center gap-2.5 py-2 px-3 rounded-xl text-[12px] font-medium text-slate-600 hover:bg-slate-50 transition-all">
+                        <div className="space-y-1.5">
+                            <Link href="/questoes/treino" className="flex items-center gap-2.5 py-2 px-3 rounded-xl text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition-all">
                                 <Target size={14} className="text-slate-400" /> Treinar antes do duelo
                             </Link>
-                            <Link href="/ranking" className="flex items-center gap-2.5 py-2 px-3 rounded-xl text-[12px] font-medium text-slate-600 hover:bg-slate-50 transition-all">
+                            <Link href="/ranking" className="flex items-center gap-2.5 py-2 px-3 rounded-xl text-[11px] font-medium text-slate-600 hover:bg-slate-50 transition-all">
                                 <BarChart3 size={14} className="text-slate-400" /> Ver ranking geral
                             </Link>
                             <button
                                 onClick={handleSeed}
-                                className="w-full flex items-center gap-2.5 py-2 px-3 rounded-xl text-[12px] font-medium text-amber-600 hover:bg-amber-50 transition-all border border-dashed border-amber-200 mt-2"
+                                className="w-full flex items-center gap-2.5 py-2 px-3 rounded-xl text-[11px] font-medium text-amber-600 hover:bg-amber-50 transition-all border border-dashed border-amber-200 mt-2"
                             >
-                                <Zap size={14} /> [DEV] Gerar Questões Simuladas
+                                <Zap size={14} /> [DEV] Gerar Questões
                             </button>
                         </div>
                     </div>
@@ -600,3 +612,4 @@ function ArenaPageContent() {
         </div>
     );
 }
+

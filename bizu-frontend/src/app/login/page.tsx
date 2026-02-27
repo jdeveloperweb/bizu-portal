@@ -73,7 +73,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex font-sans selection:bg-indigo-100 selection:text-indigo-900 bg-white overflow-hidden">
+        <div className="h-[100dvh] flex font-sans selection:bg-indigo-100 selection:text-indigo-900 bg-white overflow-hidden relative">
 
             {/* ── Left: Premium Hero Section ── */}
             <div className="hidden lg:flex w-[42%] xl:w-[48%] relative overflow-hidden bg-[#0a0c10] items-center justify-center p-8">
@@ -148,7 +148,7 @@ export default function LoginPage() {
             </div>
 
             {/* ── Right: Sophisticated Login Form ── */}
-            <div className={`flex-1 flex flex-col relative transition-all duration-500 ${isPWA ? 'bg-slate-50/50' : 'bg-white'}`}>
+            <div className={`flex-1 flex flex-col relative transition-all duration-500 overflow-y-auto ${isPWA ? 'bg-slate-50/50' : 'bg-white'}`}>
 
                 {/* Background Decorativo exclusivo para PWA/Mobile */}
                 {isPWA && (

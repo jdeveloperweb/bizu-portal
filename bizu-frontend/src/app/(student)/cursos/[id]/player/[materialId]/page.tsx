@@ -89,19 +89,28 @@ export default function CoursePlayerPage() {
     }, [courseId, materialId]);
 
     const handleTextSelection = () => {
-        const sel = window.getSelection();
-        if (sel && sel.toString().trim().length > 3) {
-            const range = sel.getRangeAt(0);
-            const rect = range.getBoundingClientRect();
-            setSelection({
-                text: sel.toString().trim(),
-                x: rect.left + rect.width / 2 + window.scrollX,
-                y: rect.top + window.scrollY
-            });
-        } else {
-            setSelection(null);
-            setIsAddingNote(false);
-        }
+        // Pequeno atraso para garantir que a seleção foi processada pelo sistema/navegador (especialmente no mobile)
+        setTimeout(() => {
+            const sel = window.getSelection();
+            if (sel && !sel.isCollapsed && sel.toString().trim().length > 3) {
+                try {
+                    const range = sel.getRangeAt(0);
+                    const rect = range.getBoundingClientRect();
+                    setSelection({
+                        text: sel.toString().trim(),
+                        x: rect.left + rect.width / 2 + window.scrollX,
+                        y: rect.top + window.scrollY
+                    });
+                } catch (e) {
+                    console.warn("Erro ao processar seleção", e);
+                }
+            } else {
+                if (!isAddingNote) {
+                    setSelection(null);
+                    setIsAddingNote(false);
+                }
+            }
+        }, 100);
     };
 
     const saveHighlight = async (withNote = false) => {
@@ -260,7 +269,7 @@ export default function CoursePlayerPage() {
                                             {currentMaterial.title}
                                         </h1>
                                     </div>
-                                    <div className="text-slate-600 leading-[1.8]" onMouseUp={handleTextSelection}>
+                                    <div className="text-slate-600 leading-[1.8]" onMouseUp={handleTextSelection} onTouchEnd={handleTextSelection}>
                                         <MarkdownViewer
                                             content={currentMaterial.content || currentMaterial.description || "Sem conteúdo para este artigo."}
                                             highlights={highlights}
