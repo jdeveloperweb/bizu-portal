@@ -32,7 +32,7 @@ export default function CourseSelectionGate({ children }: { children: React.Reac
 
     const isPublicPath = !pathname || pathname === "/" || pathname === "/login" || pathname === "/register" ||
         pathname.startsWith("/pricing") || pathname.startsWith("/termos") || pathname.startsWith("/privacidade") ||
-        pathname.startsWith("/forgot-password");
+        pathname.startsWith("/forgot-password") || pathname.startsWith("/checkout");
 
     const shouldBlock = authenticated && !loading && !selectedCourseId && !isPublicPath && !pathname?.startsWith("/admin");
 

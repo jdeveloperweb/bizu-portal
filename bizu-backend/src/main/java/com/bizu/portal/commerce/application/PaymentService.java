@@ -116,6 +116,18 @@ public class PaymentService {
 
         log.info("Ativando plano {} para usuário {}", plan.getName(), user.getEmail());
 
+        java.util.List<Subscription> existingSubs = subscriptionRepository.findAllByUserId(userId);
+        boolean alreadyActive = existingSubs.stream().anyMatch(sub -> 
+            sub.getPlan() != null && 
+            sub.getPlan().getId().equals(planId) && 
+            "ACTIVE".equalsIgnoreCase(sub.getStatus())
+        );
+
+        if (alreadyActive) {
+            log.info("Assinatura do plano {} já está ativa para o usuário {}", plan.getName(), user.getEmail());
+            return;
+        }
+
         // Calcular data de expiração
         int monthsCount = 1;
         String interval = plan.getBillingInterval() != null ? plan.getBillingInterval().toUpperCase() : "MONTHLY";

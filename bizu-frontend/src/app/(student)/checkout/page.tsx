@@ -142,11 +142,13 @@ const getPaymentModeLabel = (billingInterval?: string) => {
 
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { useAuth } from "@/components/AuthProvider";
 
 function CheckoutContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { notify } = useNotification();
+    const { refreshUserProfile } = useAuth();
 
     const [step, setStep] = useState<CheckoutStep>("PLANS");
     const [plans, setPlans] = useState<Plan[]>([]);
@@ -185,8 +187,19 @@ function CheckoutContent() {
 
     useEffect(() => {
         const status = searchParams.get("status");
+        const planParam = searchParams.get("plan");
+
         if (status === "success") {
             setStep("SUCCESS");
+
+            if (planParam) {
+                // Ao retornar do redirecionamento do Pix/InfinitePay com sucesso,
+                // já tentamos criar/ativar caso ela não exista, e dar um refresh para liberar a UI
+                apiFetch("/checkout/confirm", {
+                    method: "POST",
+                    body: JSON.stringify({ planId: planParam }),
+                }).then(() => refreshUserProfile()).catch(console.error);
+            }
         }
 
         const fetchPlans = async () => {
