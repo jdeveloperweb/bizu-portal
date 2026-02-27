@@ -9,9 +9,16 @@ const WS_URL = (process.env.NEXT_PUBLIC_API_URL || "https://bizu.mjolnix.com.br/
 
 export function useChallengeNotifications(userId: string | null, onChallengeReceived: (duel: any) => void) {
     const stompClientRef = useRef<Client | null>(null);
+    const onChallengeReceivedRef = useRef(onChallengeReceived);
 
     useEffect(() => {
-        if (!userId) return;
+        onChallengeReceivedRef.current = onChallengeReceived;
+    }, [onChallengeReceived]);
+
+    useEffect(() => {
+        if (!userId || userId === "") return;
+
+        console.log("Subscribing to challenges for user:", userId);
 
         const socket = new SockJS(WS_URL);
         const client = new Client({
@@ -19,14 +26,27 @@ export function useChallengeNotifications(userId: string | null, onChallengeRece
             connectHeaders: {
                 Authorization: `Bearer ${Cookies.get("token")}`
             },
+            reconnectDelay: 5000,
+            heartbeatIncoming: 4000,
+            heartbeatOutgoing: 4000,
             onConnect: () => {
+                console.log("Connected to challenges WebSocket");
                 client.subscribe(`/topic/desafios/${userId}`, (message) => {
-                    onChallengeReceived(JSON.parse(message.body));
+                    try {
+                        const duel = JSON.parse(message.body);
+                        console.log("Received challenge notification:", duel);
+                        onChallengeReceivedRef.current(duel);
+                    } catch (err) {
+                        console.error("Error parsing challenge message", err);
+                    }
                 });
             },
             onStompError: (frame) => {
-                console.error('WebSocket Error:', frame);
+                console.error('STOMP Error:', frame);
             },
+            onWebSocketError: (event) => {
+                console.error('WebSocket Error:', event);
+            }
         });
 
         client.activate();
@@ -34,6 +54,7 @@ export function useChallengeNotifications(userId: string | null, onChallengeRece
 
         return () => {
             if (stompClientRef.current) {
+                console.log("Deactivating challenges WebSocket");
                 stompClientRef.current.deactivate();
             }
         };

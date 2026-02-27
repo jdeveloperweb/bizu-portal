@@ -33,14 +33,18 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
 
     useEffect(() => {
         const fetchDuel = async () => {
-            const data = await DuelService.getDuel(duelId);
-            setDuel(data);
+            try {
+                const data = await DuelService.getDuel(duelId);
+                setDuel(data);
+            } catch (err) {
+                console.error("Failed to fetch duel", err);
+            }
         };
         fetchDuel();
 
-        // Fallback polling if status is PENDING
+        // Fallback polling if status is PENDING or duel is not loaded yet
         const interval = setInterval(() => {
-            if (duel?.status === "PENDING") {
+            if (!duel || duel.status === "PENDING") {
                 fetchDuel();
             }
         }, 3000);
@@ -70,19 +74,19 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                 // Show reward animation
                 showReward({
                     xpGained: 100,
-                    totalXp: 0, // Not strictly necessary for animation
+                    totalXp: 0,
                     currentLevel: 0,
-                    previousLevel: 0,
+                    previousLevel: 1,
                     leveledUp: false,
                     nextLevelProgress: 0
                 });
-            } else if (duel.status === "COMPLETED") {
+            } else {
                 // Participou mas perdeu
                 showReward({
                     xpGained: 25,
                     totalXp: 0,
                     currentLevel: 0,
-                    previousLevel: 0,
+                    previousLevel: 1,
                     leveledUp: false,
                     nextLevelProgress: 0
                 });
@@ -90,10 +94,8 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
         }
     }, [duel?.status]);
 
-    if (!duel) return null;
-
-    const currentRoundQuestion = duel.questions.find(q => q.roundNumber === duel.currentRound);
-    const isChallenger = duel.challenger.id === currentUserId;
+    const currentRoundQuestion = duel?.questions?.find(q => q.roundNumber === duel.currentRound);
+    const isChallenger = duel?.challenger?.id === currentUserId;
     const myAnswer = isChallenger ? currentRoundQuestion?.challengerAnswerIndex : currentRoundQuestion?.opponentAnswerIndex;
     const opponentAnswer = isChallenger ? currentRoundQuestion?.opponentAnswerIndex : currentRoundQuestion?.challengerAnswerIndex;
 
@@ -110,12 +112,32 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
         }
     };
 
+    if (!duel) {
+        return (
+            <div className="fixed inset-0 z-[10000] bg-slate-900 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4 text-white">
+                    <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="font-bold text-lg text-slate-300">Carregando duelo...</p>
+                    <button onClick={onClose} className="mt-4 text-sm text-slate-500 hover:text-white transition-colors">Cancelar</button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="fixed inset-0 z-[10000] bg-slate-900 flex items-center justify-center sm:p-4">
             <div className="w-full max-w-4xl bg-white sm:rounded-3xl overflow-hidden shadow-2xl relative flex flex-col h-full sm:h-[90vh]">
                 {/* Header / Scoreboard */}
                 <div className="bg-slate-50 p-4 md:p-6 border-b border-slate-100 relative">
-                    <div className="flex items-center justify-between gap-8">
+                    <button
+                        onClick={onClose}
+                        className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 z-50 rounded-full hover:bg-slate-100 transition-colors"
+                        title="Fechar e voltar"
+                    >
+                        <XCircle size={24} />
+                    </button>
+
+                    <div className="flex items-center justify-between gap-8 md:px-6">
                         {/* Challenger */}
                         <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
                             <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-lg md:text-xl font-bold shadow-lg ${isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
@@ -152,14 +174,6 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                                 </motion.div>
                             )}
                         </div>
-
-                        {/* Botão para fechar em caso de erro */}
-                        <button
-                            onClick={onClose}
-                            className="absolute top-2 right-2 p-2 text-slate-400 hover:text-slate-600 sm:hidden"
-                        >
-                            <XCircle size={18} />
-                        </button>
 
                         {/* Opponent */}
                         <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
@@ -253,37 +267,37 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                                     }`}>
                                     <Trophy size={48} />
                                 </div>
-                                <div>
+                                <div className="text-center">
                                     <h2 className="text-3xl font-black text-slate-900 mb-2">
                                         {duel.winner?.id === currentUserId ? "VOCÊ VENCEU!" : "DERROTA"}
                                     </h2>
                                     <p className="text-slate-500">{duel.winner?.name || "O adversário"} é o campeão da Arena.</p>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className="px-6 py-3 rounded-2xl bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-200 cursor-pointer" onClick={onClose}>
+                                    <button className="px-8 py-4 rounded-2xl bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-95" onClick={onClose}>
                                         Voltar para Arena
-                                    </div>
+                                    </button>
                                 </div>
                             </motion.div>
                         ) : duel.status === "CANCELLED" ? (
                             <motion.div
                                 initial={{ scale: 0.9, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
-                                className="flex flex-col items-center gap-6"
+                                className="flex flex-col items-center gap-6 text-center"
                             >
                                 <div className="w-24 h-24 rounded-full flex items-center justify-center shadow-xl bg-red-100 text-red-500">
                                     <XCircle size={48} />
                                 </div>
-                                <div className="text-center">
+                                <div>
                                     <h2 className="text-3xl font-black text-slate-900 mb-2">
                                         DUELO CANCELADO
                                     </h2>
                                     <p className="text-slate-500">O duelo foi abandonado por um dos jogadores.</p>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className="px-6 py-3 rounded-2xl bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-200 cursor-pointer" onClick={onClose}>
+                                    <button className="px-8 py-4 rounded-2xl bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-95" onClick={onClose}>
                                         Voltar para Arena
-                                    </div>
+                                    </button>
                                 </div>
                             </motion.div>
                         ) : (

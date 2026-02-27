@@ -126,19 +126,19 @@ function ArenaPageContent() {
     }, []);
 
 
-    useChallengeNotifications(currentUserId, (newDuel: Duel) => {
-        setPendingDuels(prev => {
-            if (prev.find(d => d.id === newDuel.id)) return prev;
-            return [newDuel, ...prev];
-        });
-    });
 
     const handleChallenge = async (opponentId: string) => {
         try {
+            console.log("Creating duel with:", opponentId);
             const duel = await DuelService.createDuel(opponentId, selectedSubject);
-            setActiveDuelId(duel.id);
+            if (duel && duel.id) {
+                console.log("Duel created, entering screen:", duel.id);
+                setActiveDuelId(duel.id);
+            } else {
+                throw new Error("Invalid duel object received");
+            }
         } catch (error) {
-            console.error(error);
+            console.error("Failed to challenge:", error);
             alert("Erro ao enviar desafio. Tente novamente.");
         }
     };
