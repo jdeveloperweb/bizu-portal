@@ -472,8 +472,17 @@ function CheckoutContent() {
                                 </div>
                             </div>
 
-                            <Button onClick={() => selectedPlan?.free ? handleProcessPayment() : setStep("PAYMENT_METHOD")} className="w-full h-16 rounded-[1.5rem] bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg gap-3">
-                                {selectedPlan?.free ? "Confirmar Inscrição" : "Continuar para Pagamento"}
+                            <Button
+                                onClick={() => {
+                                    if (selectedPlan?.free || paymentProvider === "INFINITEPAY") {
+                                        handleProcessPayment();
+                                    } else {
+                                        setStep("PAYMENT_METHOD");
+                                    }
+                                }}
+                                className="w-full h-16 rounded-[1.5rem] bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg gap-3"
+                            >
+                                {selectedPlan?.free ? "Confirmar Inscrição" : "Ir para o Pagamento"}
                                 <ChevronRight className="group-hover:translate-x-1 transition-transform" />
                             </Button>
                         </div>
@@ -484,63 +493,43 @@ function CheckoutContent() {
                             <h2 className="text-3xl font-black text-slate-900 tracking-tight">Forma de pagamento</h2>
                             <p className="text-slate-500 font-medium">Escolha como deseja finalizar seu investimento.</p>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <button
-                                    onClick={() => setPaymentMethod("PIX")}
-                                    className={`relative p-6 rounded-3xl border-2 transition-all flex flex-col gap-4 text-left ${paymentMethod === "PIX" ? "border-indigo-600 bg-indigo-50/50" : "border-slate-100 bg-white hover:border-slate-200"}`}
-                                >
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentMethod === "PIX" ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-400"}`}>
-                                        <QrCode size={20} />
-                                    </div>
-                                    <div>
-                                        <div className="text-sm font-black text-slate-900 uppercase tracking-tight">PIX Imediato</div>
-                                        <p className="text-[11px] text-slate-500 font-medium">Liberação automática em segundos.</p>
-                                    </div>
-                                    {paymentMethod === "PIX" && <CheckCircle2 size={24} className="absolute top-4 right-4 text-indigo-600" />}
-                                </button>
-
-                                <button
-                                    onClick={() => setPaymentMethod("CARD")}
-                                    className={`relative p-6 rounded-3xl border-2 transition-all flex flex-col gap-4 text-left ${paymentMethod === "CARD" ? "border-indigo-600 bg-indigo-50/50" : "border-slate-100 bg-white hover:border-slate-200"}`}
-                                >
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentMethod === "CARD" ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-400"}`}>
-                                        <CardIcon size={20} />
-                                    </div>
-                                    <div>
-                                        <div className="text-sm font-black text-slate-900 uppercase tracking-tight">Cartão de Crédito</div>
-                                        <p className="text-[11px] text-slate-500 font-medium">Pague online com segurança.</p>
-                                    </div>
-                                    {paymentMethod === "CARD" && <CheckCircle2 size={24} className="absolute top-4 right-4 text-indigo-600" />}
-                                </button>
-                            </div>
-
-                            {/* Provider Selection */}
-                            <div className="space-y-4">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Processador de Pagamento</label>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {paymentProvider !== "INFINITEPAY" ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <button
-                                        onClick={() => setPaymentProvider("MERCADO_PAGO")}
-                                        className={`h-12 rounded-xl border flex items-center justify-center gap-2 transition-all font-bold text-xs ${paymentProvider === "MERCADO_PAGO" ? "border-sky-500 bg-sky-50 text-sky-700 ring-2 ring-sky-100" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+                                        onClick={() => setPaymentMethod("PIX")}
+                                        className={`relative p-6 rounded-3xl border-2 transition-all flex flex-col gap-4 text-left ${paymentMethod === "PIX" ? "border-indigo-600 bg-indigo-50/50" : "border-slate-100 bg-white hover:border-slate-200"}`}
                                     >
-                                        <div className="w-5 h-5 rounded-full bg-sky-500 text-white flex items-center justify-center text-[10px]">MP</div>
-                                        Mercado Pago
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentMethod === "PIX" ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-400"}`}>
+                                            <QrCode size={20} />
+                                        </div>
+                                        <div>
+                                            <div className="text-sm font-black text-slate-900 uppercase tracking-tight">PIX Imediato</div>
+                                            <p className="text-[11px] text-slate-500 font-medium">Liberação automática em segundos.</p>
+                                        </div>
+                                        {paymentMethod === "PIX" && <CheckCircle2 size={24} className="absolute top-4 right-4 text-indigo-600" />}
                                     </button>
+
                                     <button
-                                        onClick={() => setPaymentProvider("STRIPE")}
-                                        className={`h-12 rounded-xl border flex items-center justify-center gap-2 transition-all font-bold text-xs ${paymentProvider === "STRIPE" ? "border-indigo-500 bg-indigo-50 text-indigo-700 ring-2 ring-indigo-100" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+                                        onClick={() => setPaymentMethod("CARD")}
+                                        className={`relative p-6 rounded-3xl border-2 transition-all flex flex-col gap-4 text-left ${paymentMethod === "CARD" ? "border-indigo-600 bg-indigo-50/50" : "border-slate-100 bg-white hover:border-slate-200"}`}
                                     >
-                                        <div className="w-5 h-5 rounded-full bg-indigo-500 text-white flex items-center justify-center text-[10px]">S</div>
-                                        Stripe
-                                    </button>
-                                    <button
-                                        onClick={() => setPaymentProvider("INFINITEPAY")}
-                                        className={`h-12 rounded-xl border flex items-center justify-center gap-2 transition-all font-bold text-xs ${paymentProvider === "INFINITEPAY" ? "border-emerald-500 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-100" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
-                                    >
-                                        <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">I</div>
-                                        InfinitePay
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${paymentMethod === "CARD" ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-400"}`}>
+                                            <CardIcon size={20} />
+                                        </div>
+                                        <div>
+                                            <div className="text-sm font-black text-slate-900 uppercase tracking-tight">Cartão de Crédito</div>
+                                            <p className="text-[11px] text-slate-500 font-medium">Pague online com segurança.</p>
+                                        </div>
+                                        {paymentMethod === "CARD" && <CheckCircle2 size={24} className="absolute top-4 right-4 text-indigo-600" />}
                                     </button>
                                 </div>
-                            </div>
+                            ) : (
+                                <div className="p-8 bg-indigo-50 rounded-3xl border border-indigo-100 text-center">
+                                    <p className="text-indigo-900 font-bold">Você será redirecionado para o ambiente seguro da InfinitePay para escolher sua forma de pagamento (PIX ou Cartão).</p>
+                                </div>
+                            )}
+
+                            {/* Removido a seleção de processador conforme solicitado */}
 
                             {paymentMethod === "CARD" && (
                                 <div className="p-6 bg-white rounded-3xl border border-slate-200 space-y-5 animate-in fade-in duration-300">
