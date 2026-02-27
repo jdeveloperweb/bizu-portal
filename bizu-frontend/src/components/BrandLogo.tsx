@@ -29,7 +29,9 @@ export default function BrandLogo({ size = "md", variant = "dark", link = true }
             <span
                 className={`${s.py} pr-[0.15em] -mr-[0.15em] overflow-visible ${s.bizu} ${variant === "gradient" ? "" : v.bizu}`}
                 style={{
-                    fontFamily: "Bobaland, sans-serif",
+                    fontFamily: "var(--font-orbitron), sans-serif",
+                    fontWeight: 800,
+                    letterSpacing: "-0.05em",
                     lineHeight: 1.1,
                     ...(variant === "gradient"
                         ? {
@@ -41,7 +43,7 @@ export default function BrandLogo({ size = "md", variant = "dark", link = true }
                         : {}),
                 }}
             >
-                Bizu!
+                Axon
             </span>
             <span
                 className={`${s.tag} font-extrabold tracking-[0.3em] uppercase ${s.border} ${s.pl} ${v.tag} ${v.tagBorder}`}

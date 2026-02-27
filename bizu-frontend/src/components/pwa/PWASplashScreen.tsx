@@ -68,14 +68,14 @@ export default function PWASplashScreen() {
     return (
         <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white dark:bg-slate-900 transition-opacity duration-500 overflow-hidden">
             <div className="flex flex-col items-center max-w-xs w-full px-6 text-center">
-                {/* Marca Oficial: Bizu! Academy */}
+                {/* Marca Oficial: Axon Academy */}
                 <div className="mb-12 animate-pulse-slow">
                     <span className="inline-flex items-center gap-4 select-none">
                         <span
                             className="text-6xl text-slate-800 dark:text-slate-100"
-                            style={{ fontFamily: "Bobaland, sans-serif", lineHeight: 1 }}
+                            style={{ fontFamily: "var(--font-orbitron), sans-serif", fontWeight: 800, letterSpacing: "-0.05em", lineHeight: 1 }}
                         >
-                            Bizu!
+                            Axon
                         </span>
                         <div className="h-10 w-[2px] bg-slate-200 dark:bg-slate-700" />
                         <span

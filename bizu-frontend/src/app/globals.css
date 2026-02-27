@@ -5,15 +5,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ─── Bobaland: apenas logo ─── */
-@font-face {
-  font-family: "Bobaland";
-  src: url("/fonts/bobaland.otf") format("opentype"),
-    url("/fonts/bobaland.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+/* ─── Removed Bobaland ─── */
 
 @theme {
   --font-sans: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
@@ -200,7 +192,9 @@
 
 /* ─── Utilitarios ─── */
 .font-brand {
-  font-family: "Bobaland", sans-serif;
+  font-family: var(--font-orbitron), sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.05em;
 }
 
 .card-elevated {

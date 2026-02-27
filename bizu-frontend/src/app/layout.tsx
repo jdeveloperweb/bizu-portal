@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, JetBrains_Mono, Kalam, Caveat, Indie_Flower } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono, Kalam, Caveat, Indie_Flower, Orbitron } from "next/font/google";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -13,6 +13,13 @@ const jetbrains = JetBrains_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
   display: "swap",
+});
+
+const orbitron = Orbitron({
+  variable: "--font-orbitron",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 const kalam = Kalam({
@@ -44,7 +51,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Bizu! Portal — Plataforma #1 para Concursos",
+  title: "Axon Portal — Plataforma #1 para Concursos",
   description:
     "A plataforma definitiva para concurseiros de elite. Simulados com IA, banco de 50k+ questoes e trilhas personalizadas.",
   manifest: "/manifest.json",
@@ -56,7 +63,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Bizu! Academy",
+    title: "Axon Academy",
     startupImage: [
       {
         url: "/icons/icon-512x512.png",
@@ -91,7 +98,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${jakarta.variable} ${jetbrains.variable} ${kalam.variable} ${caveat.variable} ${indieFlower.variable} antialiased font-sans`}
+      <body className={`${jakarta.variable} ${jetbrains.variable} ${kalam.variable} ${caveat.variable} ${indieFlower.variable} ${orbitron.variable} antialiased font-sans`}
         style={{ fontFamily: "var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif" }}
       >
         <AuthProvider>
