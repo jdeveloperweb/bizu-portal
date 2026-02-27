@@ -87,7 +87,7 @@ export default function LoginPage() {
                 {/* Grid Pattern Overlay */}
                 <div className="absolute inset-0 z-10 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px]"></div>
 
-                <div className="relative z-20 w-full max-w-2xl px-12 animate-in fade-in slide-in-from-left-8 duration-700">
+                <div className="relative z-20 w-full max-w-2xl px-12 animate-in fade-in slide-in-from-left-8 duration-700 lg:-translate-y-20 xl:-translate-y-28">
                     <div className="mb-14 drop-shadow-2xl">
                         <BrandLogo size="xl" variant="light" link={false} />
                     </div>
