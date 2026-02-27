@@ -57,8 +57,9 @@ const itemVariants = {
 
 type Device = {
     id: string;
-    userAgent?: string;
-    ipAddress?: string;
+    osInfo?: string;
+    browserInfo?: string;
+    lastIp?: string;
     lastSeenAt: string;
 };
 
@@ -472,15 +473,15 @@ export default function ProfilePage() {
                                     <div key={device.id} className="flex items-center justify-between p-6 rounded-[28px] border border-slate-100 hover:border-emerald-100 hover:bg-emerald-50/30 transition-all group">
                                         <div className="flex items-center gap-5">
                                             <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center border border-slate-100 group-hover:border-emerald-100 transition-all shadow-sm">
-                                                {device.userAgent && device.userAgent.toLowerCase().includes("mobile") ? <Smartphone className="w-6 h-6 text-slate-600" /> : <Monitor className="w-6 h-6 text-slate-600" />}
+                                                {device.osInfo && device.osInfo.toLowerCase().includes("mobile") ? <Smartphone className="w-6 h-6 text-slate-600" /> : <Monitor className="w-6 h-6 text-slate-600" />}
                                             </div>
                                             <div>
                                                 <div className="font-bold text-slate-900 text-lg flex items-center gap-2">
-                                                    {device.ipAddress || "Desconhecido"}
+                                                    {device.lastIp || "Desconhecido"}
                                                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                                 </div>
                                                 <div className="text-xs font-medium text-slate-500 flex flex-col gap-0.5">
-                                                    <span className="truncate max-w-[240px] sm:max-w-md">{device.userAgent || "Navegador desconhecido"}</span>
+                                                    <span className="truncate max-w-[240px] sm:max-w-md">{device.browserInfo || "Navegador desconhecido"} {device.osInfo ? `(${device.osInfo})` : ""}</span>
                                                     <span>Visto por último em {new Date(device.lastSeenAt).toLocaleString('pt-BR')}</span>
                                                 </div>
                                             </div>
