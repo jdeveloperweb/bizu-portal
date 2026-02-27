@@ -13,6 +13,9 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
     java.util.List<Subscription> findAllByUserId(UUID userId);
     java.util.List<Subscription> findAllByStatusIn(java.util.List<String> statuses);
 
+    @EntityGraph(attributePaths = {"user", "plan"})
+    java.util.List<Subscription> findAll();
+
     @EntityGraph(attributePaths = {"plan", "plan.course"})
     java.util.Optional<Subscription> findFirstByUserIdAndStatusInOrderByCreatedAtDesc(UUID userId, java.util.List<String> statuses);
 }

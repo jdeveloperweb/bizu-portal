@@ -201,7 +201,9 @@ function CheckoutContent() {
                         const plan = plansData.find(p => p.id === initialPlanId);
                         if (plan) {
                             setSelectedPlan(plan);
-                            setStep("DETAILS");
+                            if (status !== "success") {
+                                setStep("DETAILS");
+                            }
                         }
                     }
                 }
@@ -688,7 +690,7 @@ function CheckoutContent() {
                             <div className="space-y-4">
                                 <h1 className="text-4xl font-black text-slate-900 tracking-tighter">SUA JORNADA COMEÇOU!</h1>
                                 <p className="text-slate-500 font-medium max-w-sm mx-auto">
-                                    Seu pagamento no plano <span className="font-bold text-slate-900">{selectedPlan?.name}</span> foi processado com sucesso.
+                                    Seu pagamento {selectedPlan ? <>no plano <span className="font-bold text-slate-900">{selectedPlan.name}</span></> : "do seu plano"} foi processado com sucesso.
                                 </p>
                             </div>
 
@@ -725,7 +727,7 @@ function CheckoutContent() {
                             <div className="flex justify-between text-sm font-bold text-slate-500">
                                 <span>Subtotal</span>
                                 <span className="whitespace-nowrap">
-                                    {selectedPlan?.free ? "R$ 0,00" : `R$ ${selectedPlan?.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                                    {!selectedPlan ? "—" : selectedPlan.free ? "R$ 0,00" : `R$ ${selectedPlan.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
                                 </span>
                             </div>
                             <div className="flex justify-between text-sm font-bold text-emerald-500">
@@ -735,7 +737,7 @@ function CheckoutContent() {
                             <div className="pt-4 flex items-center justify-between">
                                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total a pagar</div>
                                 <div className="text-xl font-black text-indigo-600 tracking-tighter whitespace-nowrap">
-                                    {selectedPlan?.free ? "Grátis" : `R$ ${selectedPlan?.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                                    {!selectedPlan ? "—" : selectedPlan.free ? "Grátis" : `R$ ${selectedPlan.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
                                 </div>
                             </div>
                         </div>

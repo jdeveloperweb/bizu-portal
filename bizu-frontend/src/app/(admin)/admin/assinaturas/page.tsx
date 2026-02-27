@@ -50,6 +50,8 @@ export default function AdminSubscriptionsPage() {
             if (res.ok) {
                 const data = await res.json();
                 setSubscriptions(data);
+            } else {
+                toast.error("Erro ao carregar assinaturas: " + res.status);
             }
         } catch (error) {
             toast.error("Erro ao carregar assinaturas");
@@ -147,7 +149,7 @@ export default function AdminSubscriptionsPage() {
                                     </td>
                                     <td className="px-8 py-5">
                                         <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${s.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600' :
-                                                s.status === 'PAST_DUE' ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-500'
+                                            s.status === 'PAST_DUE' ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-500'
                                             }`}>
                                             {s.status}
                                         </span>
@@ -178,6 +180,16 @@ export default function AdminSubscriptionsPage() {
                                     </td>
                                 </tr>
                             ))}
+                            {!loading && filtered.length === 0 && (
+                                <tr>
+                                    <td colSpan={4} className="px-8 py-20 text-center">
+                                        <div className="flex flex-col items-center justify-center text-slate-400">
+                                            <AlertTriangle className="w-8 h-8 mb-2 opacity-20" />
+                                            <p className="text-sm font-medium">Nenhuma assinatura encontrada</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
