@@ -1,13 +1,13 @@
 {
     "id": "/",
-    "name": "Bizu! Portal",
-    "short_name": "Bizu!",
-    "description": "Premium Portal for Students and Public Exams",
+    "name": "AXON Academy",
+    "short_name": "AXON",
+    "description": "Plataforma de Excelência para Concursos",
     "start_url": "/",
     "display": "standalone",
     "orientation": "portrait",
-    "background_color": "#ffffff",
-    "theme_color": "#4F46E5",
+    "background_color": "#0f172a",
+    "theme_color": "#6366f1",
     "categories": [
         "education",
         "productivity"

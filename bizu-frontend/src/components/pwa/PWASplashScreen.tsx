@@ -66,20 +66,25 @@ export default function PWASplashScreen() {
     if (!isVisible) return null;
 
     return (
-        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white dark:bg-slate-900 transition-opacity duration-500 overflow-hidden">
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-950 transition-opacity duration-500 overflow-hidden">
             <div className="flex flex-col items-center max-w-xs w-full px-6 text-center">
                 {/* Marca Oficial: Axon Academy */}
                 <div className="mb-12 animate-pulse-slow">
-                    <span className="inline-flex items-center gap-4 select-none">
+                    <span className="inline-flex items-center gap-3 sm:gap-4 select-none">
                         <span
-                            className="text-6xl text-slate-800 dark:text-slate-100 uppercase"
-                            style={{ fontFamily: "var(--font-orbitron), sans-serif", fontWeight: 800, lineHeight: 1 }}
+                            className="text-5xl sm:text-6xl uppercase text-white"
+                            style={{
+                                fontFamily: "var(--font-orbitron), sans-serif",
+                                fontWeight: 900,
+                                lineHeight: 1,
+                                filter: "drop-shadow(0 0 15px rgba(255, 255, 255, 0.2))"
+                            }}
                         >
                             Axon
                         </span>
-                        <div className="h-10 w-[2px] bg-slate-200 dark:bg-slate-700" />
+                        <div className="h-8 sm:h-10 w-[2px] bg-gradient-to-b from-transparent via-slate-200 dark:via-slate-700 to-transparent" />
                         <span
-                            className="text-[1.4rem] font-bold tracking-[0.3em] uppercase text-slate-400 dark:text-slate-500 py-0.5"
+                            className="text-[1.1rem] sm:text-[1.4rem] font-bold tracking-[0.3em] uppercase text-slate-400 dark:text-slate-500 py-0.5"
                         >
                             Academy
                         </span>
@@ -92,10 +97,10 @@ export default function PWASplashScreen() {
                         <div className="h-full bg-indigo-600 rounded-full animate-loading-slide shadow-[0_0_12px_rgba(79,70,229,0.5)]" />
                     </div>
                     <div className="flex flex-col gap-1">
-                        <p className="text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-[0.2em]">
+                        <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em]">
                             Carregando recursos
                         </p>
-                        <p className="text-slate-300 dark:text-slate-600 font-medium text-[9px] uppercase tracking-[0.1em]">
+                        <p className="text-slate-500 font-medium text-[9px] uppercase tracking-[0.1em]">
                             Aguardando fontes e autenticação...
                         </p>
                     </div>
