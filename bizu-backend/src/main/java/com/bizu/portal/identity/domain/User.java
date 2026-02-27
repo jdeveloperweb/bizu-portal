@@ -23,7 +23,6 @@ import java.util.UUID;
 public class User implements Persistable<UUID> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false, unique = true)
@@ -60,7 +59,8 @@ public class User implements Persistable<UUID> {
     private OffsetDateTime lastSeenAt;
 
     @Version
-    private Long version;
+    @Builder.Default
+    private Long version = 0L;
 
     @Column(name = "deleted_at")
     private OffsetDateTime deletedAt;

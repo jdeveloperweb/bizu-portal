@@ -31,6 +31,7 @@ public class UserService {
         String nickname = generateNickname(email);
 
         User user = User.builder()
+                .id(java.util.UUID.randomUUID())
                 .name(name)
                 .email(email)
                 .nickname(nickname)
@@ -82,7 +83,6 @@ public class UserService {
                         .nickname(generatedNickname)
                         .name(name != null ? name : email)
                         .status("ACTIVE")
-                        .isNew(false) // Força o uso de merge() no save()
                         .build();
                 
                 try {
