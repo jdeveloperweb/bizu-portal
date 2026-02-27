@@ -114,13 +114,18 @@ public class StudentPerformanceController {
         long totalTimeSeconds = rows.stream().mapToLong(r -> ((Number) r.get("time_spent")).longValue()).sum();
 
         // Weekly Activity (Last 7 days)
-        OffsetDateTime sevenDaysAgo = OffsetDateTime.now().minusDays(7);
+        OffsetDateTime sevenDaysAgo = OffsetDateTime.now(zoneId).minusDays(7).toLocalDate().atStartOfDay().atZone(zoneId).toOffsetDateTime();
         List<Map<String, Object>> weeklyRows = rows.stream()
             .filter(r -> {
                 Object createdAt = r.get("created_at");
-                if (createdAt instanceof OffsetDateTime odt) return odt.isAfter(sevenDaysAgo);
-                if (createdAt instanceof java.sql.Timestamp ts) return ts.toInstant().isAfter(sevenDaysAgo.toInstant());
-                return false;
+                if (createdAt == null) return false;
+                
+                java.time.Instant itemInstant = null;
+                if (createdAt instanceof OffsetDateTime odt) itemInstant = odt.toInstant();
+                else if (createdAt instanceof java.sql.Timestamp ts) itemInstant = ts.toInstant();
+                else if (createdAt instanceof java.time.LocalDateTime ldt) itemInstant = ldt.atZone(java.time.ZoneOffset.UTC).toInstant();
+                
+                return itemInstant != null && itemInstant.isAfter(sevenDaysAgo.toInstant());
             })
             .toList();
 
@@ -150,8 +155,9 @@ public class StudentPerformanceController {
         Map<String, List<Map<String, Object>>> byDay = weeklyRows.stream()
             .collect(Collectors.groupingBy(r -> {
                 Object createdAt = r.get("created_at");
-                if (createdAt instanceof OffsetDateTime odt) return odt.getDayOfWeek().toString();
-                if (createdAt instanceof java.sql.Timestamp ts) return ts.toLocalDateTime().getDayOfWeek().toString();
+                if (createdAt instanceof OffsetDateTime odt) return odt.atZoneSameInstant(zoneId).getDayOfWeek().toString();
+                if (createdAt instanceof java.sql.Timestamp ts) return ts.toInstant().atZone(zoneId).getDayOfWeek().toString();
+                if (createdAt instanceof java.time.LocalDateTime ldt) return ldt.getDayOfWeek().toString();
                 return "UNKNOWN";
             }));
 
