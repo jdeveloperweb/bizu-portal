@@ -72,14 +72,14 @@ export default function PWASplashScreen() {
                 <div className="mb-12 animate-pulse-slow">
                     <span className="inline-flex items-center gap-4 select-none">
                         <span
-                            className="text-6xl text-slate-800 dark:text-slate-100"
-                            style={{ fontFamily: "var(--font-orbitron), sans-serif", fontWeight: 800, letterSpacing: "-0.05em", lineHeight: 1 }}
+                            className="text-6xl text-slate-800 dark:text-slate-100 uppercase"
+                            style={{ fontFamily: "var(--font-orbitron), sans-serif", fontWeight: 800, lineHeight: 1 }}
                         >
                             Axon
                         </span>
                         <div className="h-10 w-[2px] bg-slate-200 dark:bg-slate-700" />
                         <span
-                            className="text-[1.4rem] font-bold tracking-[0.3em] uppercase text-slate-400 dark:text-slate-500"
+                            className="text-[1.4rem] font-bold tracking-[0.3em] uppercase text-slate-400 dark:text-slate-500 py-0.5"
                         >
                             Academy
                         </span>

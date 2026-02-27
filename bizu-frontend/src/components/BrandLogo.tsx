@@ -25,14 +25,15 @@ export default function BrandLogo({ size = "md", variant = "dark", link = true }
     const v = variants[variant];
 
     const content = (
-        <span className={`inline-flex items-center ${s.gap} select-none overflow-visible`}>
+        <span className={`inline-flex items-center ${s.gap} select-none`}>
             <span
-                className={`${s.py} pr-[0.15em] -mr-[0.15em] overflow-visible ${s.bizu} ${variant === "gradient" ? "" : v.bizu}`}
+                className={`${s.bizu} ${variant === "gradient" ? "" : v.bizu}`}
                 style={{
                     fontFamily: "var(--font-orbitron), sans-serif",
                     fontWeight: 800,
-                    letterSpacing: "-0.05em",
-                    lineHeight: 1.1,
+                    letterSpacing: "0",
+                    lineHeight: 1,
+                    textTransform: "uppercase", /* Fica mais moderno tudo maiúsculo na Orbitron */
                     ...(variant === "gradient"
                         ? {
                             background: "linear-gradient(135deg, #6366F1, #8B5CF6, #A855F7)",
@@ -46,7 +47,7 @@ export default function BrandLogo({ size = "md", variant = "dark", link = true }
                 Axon
             </span>
             <span
-                className={`${s.tag} font-extrabold tracking-[0.3em] uppercase ${s.border} ${s.pl} ${v.tag} ${v.tagBorder}`}
+                className={`${s.tag} font-extrabold tracking-[0.3em] uppercase ${s.border} ${s.pl} ${v.tag} ${v.tagBorder} py-0.5`}
                 style={{ lineHeight: 1 }}
             >
                 Academy
