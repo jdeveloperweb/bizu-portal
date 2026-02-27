@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { getStoredSelectedCourseId } from "@/lib/course-selection";
+import { getAvatarUrl } from "@/lib/imageUtils";
 
 type RankingTab = "geral" | "semanal" | "materia";
 
@@ -215,7 +216,7 @@ export default function RankingStudentPage() {
                                             <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${colors.bg} flex items-center justify-center overflow-hidden shadow-lg border-2 border-white/20`}>
                                                 {user.avatar && user.avatar.length > 2 ? (
                                                     <img
-                                                        src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL}${user.avatar}`}
+                                                        src={getAvatarUrl(user.avatar)}
                                                         className="w-full h-full object-cover"
                                                         alt={user.name}
                                                     />
@@ -259,7 +260,7 @@ export default function RankingStudentPage() {
                                     <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center overflow-hidden text-[11px] font-bold text-indigo-700">
                                         {user.avatar && user.avatar.length > 2 ? (
                                             <img
-                                                src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL}${user.avatar}`}
+                                                src={getAvatarUrl(user.avatar)}
                                                 className="w-full h-full object-cover"
                                                 alt={user.name}
                                             />
@@ -291,7 +292,7 @@ export default function RankingStudentPage() {
                                     <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center overflow-hidden text-[11px] font-bold text-white">
                                         {myRank.avatar && myRank.avatar.length > 2 ? (
                                             <img
-                                                src={myRank.avatar.startsWith('http') ? myRank.avatar : `${process.env.NEXT_PUBLIC_API_URL}${myRank.avatar}`}
+                                                src={getAvatarUrl(myRank.avatar)}
                                                 className="w-full h-full object-cover"
                                                 alt={myRank.name}
                                             />
