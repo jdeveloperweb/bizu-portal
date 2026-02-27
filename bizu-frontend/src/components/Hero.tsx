@@ -178,7 +178,7 @@ export default function Hero() {
                                 {/* Sidebar */}
                                 <div className="w-60 bg-white/40 border-r border-slate-100 p-6 hidden md:flex flex-col">
                                     <div className="flex items-center gap-3 mb-10">
-                                        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-indigo-600/20">B!</div>
+                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-indigo-500/20" style={{ fontFamily: "Bobaland, sans-serif" }}>B!</div>
                                         <span className="text-[16px] font-bold text-slate-800 tracking-tight">Academy.</span>
                                     </div>
                                     <div className="space-y-1.5 flex-1">

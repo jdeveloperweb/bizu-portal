@@ -68,33 +68,37 @@ export default function PWASplashScreen() {
     return (
         <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white dark:bg-slate-900 transition-opacity duration-500 overflow-hidden">
             <div className="flex flex-col items-center max-w-xs w-full px-6 text-center">
-                {/* Logo com animação suave */}
-                <div className="relative w-32 h-32 mb-10 animate-pulse-slow">
-                    <Image
-                        src="/icons/icon-512x512.png"
-                        alt="Bizu! Logo"
-                        fill
-                        className="object-contain"
-                        priority
-                    />
+                {/* Marca Oficial: Bizu! Academy */}
+                <div className="mb-12 animate-pulse-slow">
+                    <span className="inline-flex items-center gap-4 select-none">
+                        <span
+                            className="text-6xl text-slate-800 dark:text-slate-100"
+                            style={{ fontFamily: "Bobaland, sans-serif", lineHeight: 1 }}
+                        >
+                            Bizu!
+                        </span>
+                        <div className="h-10 w-[2px] bg-slate-200 dark:bg-slate-700" />
+                        <span
+                            className="text-[1.4rem] font-bold tracking-[0.3em] uppercase text-slate-400 dark:text-slate-500"
+                        >
+                            Academy
+                        </span>
+                    </span>
                 </div>
 
-                {/* Nome do App */}
-                <h1 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">
-                    Bizu! Portal
-                </h1>
-                <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mb-10">
-                    Sua aprovação começa aqui
-                </p>
-
                 {/* Barra de Progresso customizada */}
-                <div className="w-full space-y-4">
-                    <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className="w-full space-y-5 px-4">
+                    <div className="w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                         <div className="h-full bg-indigo-600 rounded-full animate-loading-slide shadow-[0_0_12px_rgba(79,70,229,0.5)]" />
                     </div>
-                    <p className="text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-[0.2em] animate-pulse">
-                        Carregando recursos e fontes
-                    </p>
+                    <div className="flex flex-col gap-1">
+                        <p className="text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-[0.2em]">
+                            Carregando recursos
+                        </p>
+                        <p className="text-slate-300 dark:text-slate-600 font-medium text-[9px] uppercase tracking-[0.1em]">
+                            Aguardando fontes e autenticação...
+                        </p>
+                    </div>
                 </div>
             </div>
 

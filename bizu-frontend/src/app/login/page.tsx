@@ -28,6 +28,17 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [form, setForm] = useState({ email: "", password: "" });
 
+    const [isPWA, setIsPWA] = useState(false);
+
+    useEffect(() => {
+        const checkPWA = () => {
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                || (window.navigator as any).standalone;
+            setIsPWA(isStandalone);
+        };
+        checkPWA();
+    }, []);
+
     useEffect(() => {
         if (authenticated && user) {
             const roles = getRealmRoles(user);
@@ -131,15 +142,17 @@ export default function LoginPage() {
                 <main className="flex-1 flex flex-col justify-center px-8 sm:px-16 lg:px-24 xl:px-32 py-20 relative z-10">
                     <div className="w-full max-w-[440px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-1000">
 
-                        <div className="mb-12 flex items-center justify-between">
-                            <Link href="/" className="inline-flex items-center gap-2.5 text-[14px] font-bold text-slate-400 hover:text-indigo-600 transition-all group">
-                                <div className="p-2 rounded-lg bg-slate-50 group-hover:bg-indigo-50 transition-colors">
-                                    <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-                                </div>
-                                Voltar
-                            </Link>
+                        <div className={`mb-12 flex items-center ${isPWA ? 'justify-center' : 'justify-between'}`}>
+                            {!isPWA && (
+                                <Link href="/" className="inline-flex items-center gap-2.5 text-[14px] font-bold text-slate-400 hover:text-indigo-600 transition-all group">
+                                    <div className="p-2 rounded-lg bg-slate-50 group-hover:bg-indigo-50 transition-colors">
+                                        <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                                    </div>
+                                    Voltar
+                                </Link>
+                            )}
 
-                            <div className="lg:hidden scale-75 origin-right">
+                            <div className={`${isPWA ? '' : 'lg:hidden'} scale-75 origin-right`}>
                                 <BrandLogo size="lg" variant="dark" />
                             </div>
                         </div>

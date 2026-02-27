@@ -15,7 +15,7 @@ const sizes = {
 };
 
 const variants = {
-    dark: { bizu: "text-slate-900", tag: "text-slate-400", tagBorder: "border-slate-300" },
+    dark: { bizu: "text-slate-800", tag: "text-slate-400", tagBorder: "border-slate-300" },
     light: { bizu: "text-white", tag: "text-white/70", tagBorder: "border-white/30" },
     gradient: { bizu: "", tag: "text-indigo-400", tagBorder: "border-indigo-300" },
 };
