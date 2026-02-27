@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono, Kalam, Caveat, Indie_Flower, Orbitron } from "next/font/google";
+import { Jura, JetBrains_Mono, Kalam, Caveat, Indie_Flower, Orbitron } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const jura = Jura({
+  variable: "--font-jura",
   subsets: ["latin"],
   display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 const jetbrains = JetBrains_Mono({
@@ -97,8 +98,8 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${inter.variable} ${jetbrains.variable} ${kalam.variable} ${caveat.variable} ${indieFlower.variable} ${orbitron.variable} antialiased font-sans`}
-        style={{ fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif" }}
+      <body className={`${jura.variable} ${jetbrains.variable} ${kalam.variable} ${caveat.variable} ${indieFlower.variable} ${orbitron.variable} antialiased font-sans`}
+        style={{ fontFamily: "var(--font-jura), 'Jura', system-ui, sans-serif" }}
       >
         <AuthProvider>
           <CourseProvider>
