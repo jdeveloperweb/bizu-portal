@@ -18,6 +18,7 @@ public class BrandingService {
                 .orElse(Branding.builder()
                         .siteName("Bizu! Portal")
                         .primaryColor("#3b82f6") // Default blue
+                        .fontFamily("Plus Jakarta Sans")
                         .active(true)
                         .build());
     }

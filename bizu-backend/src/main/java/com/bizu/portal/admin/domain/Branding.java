@@ -33,6 +33,9 @@ public class Branding {
     @Column(name = "favicon_url")
     private String faviconUrl;
 
+    @Column(name = "font_family")
+    private String fontFamily;
+
     @Builder.Default
     @Column(name = "active", nullable = false)
     private boolean active = true;

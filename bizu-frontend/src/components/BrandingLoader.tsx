@@ -29,6 +29,25 @@ export default function BrandingLoader() {
                         // Opcional: Atualizar título da página se necessário
                         // document.title = `${branding.siteName} — Portal`;
                     }
+
+                    if (branding.fontFamily && branding.fontFamily !== "Plus Jakarta Sans") {
+                        const font = branding.fontFamily;
+                        document.documentElement.style.setProperty('--font-sans', `"${font}", "Plus Jakarta Sans", system-ui, sans-serif`);
+
+                        const linkId = "global-font";
+                        let link = document.getElementById(linkId) as HTMLLinkElement;
+                        if (!link) {
+                            link = document.createElement("link");
+                            link.id = linkId;
+                            link.rel = "stylesheet";
+                            document.head.appendChild(link);
+                        }
+                        link.href = `https://fonts.googleapis.com/css2?family=${font.replace(/ /g, '+')}:wght@400;500;600;700;800&display=swap`;
+                    } else if (branding.fontFamily === "Plus Jakarta Sans") {
+                        document.documentElement.style.setProperty('--font-sans', `"Plus Jakarta Sans", system-ui, sans-serif`);
+                        const link = document.getElementById("global-font");
+                        if (link) link.remove();
+                    }
                 }
 
                 // 2. Lógica Dinâmica para Curso (Sobrescreve se necessário)

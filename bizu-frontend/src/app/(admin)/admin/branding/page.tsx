@@ -24,6 +24,20 @@ export default function AdminBrandingPage() {
     const [secondaryColor, setSecondaryColor] = useState("#1e40af");
     const [logoUrl, setLogoUrl] = useState("");
     const [faviconUrl, setFaviconUrl] = useState("");
+    const [fontFamily, setFontFamily] = useState("Plus Jakarta Sans");
+
+    const fonts = [
+        "Plus Jakarta Sans",
+        "Inter",
+        "Roboto",
+        "Open Sans",
+        "Lato",
+        "Montserrat",
+        "Poppins",
+        "Jura",
+        "Orbitron",
+        "Nunito"
+    ];
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -40,6 +54,7 @@ export default function AdminBrandingPage() {
                     setSecondaryColor(data.secondaryColor || "#1e40af");
                     setLogoUrl(data.logoUrl || "");
                     setFaviconUrl(data.faviconUrl || "");
+                    setFontFamily(data.fontFamily || "Plus Jakarta Sans");
                 }
             } catch (error) {
                 console.error("Erro ao carregar branding", error);
@@ -56,8 +71,24 @@ export default function AdminBrandingPage() {
         if (typeof document !== 'undefined') {
             document.documentElement.style.setProperty('--primary', hexToHsl(primaryColor));
             document.documentElement.style.setProperty('--secondary', hexToHsl(secondaryColor));
+
+            // Preview da fonte
+            document.documentElement.style.setProperty('--font-sans', `"${fontFamily}", "Plus Jakarta Sans", system-ui, sans-serif`);
+
+            // Adicionar script do google fonts dinâmico para preview na página 
+            if (fontFamily !== "Plus Jakarta Sans") {
+                const linkId = "preview-font";
+                let link = document.getElementById(linkId) as HTMLLinkElement;
+                if (!link) {
+                    link = document.createElement("link");
+                    link.id = linkId;
+                    link.rel = "stylesheet";
+                    document.head.appendChild(link);
+                }
+                link.href = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/ /g, '+')}:wght@400;500;600;700;800&display=swap`;
+            }
         }
-    }, [primaryColor, secondaryColor]);
+    }, [primaryColor, secondaryColor, fontFamily]);
 
     const handleSave = async () => {
         setSaving(true);
@@ -70,6 +101,7 @@ export default function AdminBrandingPage() {
                     secondaryColor,
                     logoUrl,
                     faviconUrl,
+                    fontFamily,
                     active: true
                 })
             });
@@ -92,7 +124,8 @@ export default function AdminBrandingPage() {
         setPrimaryColor("#3b82f6");
         setSecondaryColor("#1e40af");
         setSiteName("Bizu! Portal");
-        toast.info("Cores restauradas para o padrão (não salvo ainda).", { icon: <RefreshCcw className="w-4 h-4" /> });
+        setFontFamily("Plus Jakarta Sans");
+        toast.info("Cores e fontes restauradas para o padrão (não salvo ainda).", { icon: <RefreshCcw className="w-4 h-4" /> });
     };
 
     if (loading) {
@@ -139,6 +172,19 @@ export default function AdminBrandingPage() {
                                     placeholder="Ex: Bizu! Concursos"
                                     className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-semibold"
                                 />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">Fonte do Sistema</label>
+                                <select
+                                    value={fontFamily}
+                                    onChange={(e) => setFontFamily(e.target.value)}
+                                    className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-semibold appearance-none"
+                                >
+                                    {fonts.map(font => (
+                                        <option key={font} value={font}>{font}</option>
+                                    ))}
+                                </select>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
