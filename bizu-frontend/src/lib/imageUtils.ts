@@ -64,3 +64,25 @@ export async function compressImage(
         reader.onerror = (err) => reject(err);
     });
 }
+
+/**
+ * Get the full URL for an avatar, handling potential duplication of /api/v1
+ * @param url The avatar URL from the database
+ * @returns The final full URL
+ */
+export function getAvatarUrl(url?: string): string {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
+
+    // Robust check for duplicated /api/v1
+    const prefix = '/api/v1';
+    if (url.startsWith(prefix) && apiBase.endsWith(prefix)) {
+        // Remove prefix from url or apiBase to avoid duplication
+        const cleanBase = apiBase.substring(0, apiBase.length - prefix.length);
+        return `${cleanBase}${url}`;
+    }
+
+    return `${apiBase}${url}`;
+}

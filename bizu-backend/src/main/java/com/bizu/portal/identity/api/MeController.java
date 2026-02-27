@@ -60,7 +60,7 @@ public class MeController {
         return userRepository.findByEmail(email)
             .map(user -> {
                 String filename = storageService.store(file);
-                String url = "/api/v1/public/files/" + filename;
+                String url = "/public/files/" + filename;
                 user.setAvatarUrl(url);
                 return ResponseEntity.ok(userRepository.save(user));
             })

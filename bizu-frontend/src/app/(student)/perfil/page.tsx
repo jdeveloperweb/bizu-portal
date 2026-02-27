@@ -10,7 +10,7 @@ import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { compressImage } from "@/lib/imageUtils";
+import { compressImage, getAvatarUrl } from "@/lib/imageUtils";
 
 const formatPrice = (price?: number | string, currency = "BRL") => {
     if (price === undefined || price === null || price === "") return null;
