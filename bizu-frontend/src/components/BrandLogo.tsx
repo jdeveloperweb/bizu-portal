@@ -8,11 +8,11 @@ interface BrandLogoProps {
 }
 
 const sizes = {
-    sm: { bizu: "text-[32px]", tag: "text-[12px]", gap: "gap-2", pl: "pl-2.5", border: "border-l-2", py: "py-1" },
-    md: { bizu: "text-[42px]", tag: "text-[14px]", gap: "gap-2.5", pl: "pl-3", border: "border-l-2", py: "py-1.5" },
-    lg: { bizu: "text-[56px]", tag: "text-[16px]", gap: "gap-3", pl: "pl-3.5", border: "border-l-[3px]", py: "py-2" },
-    xl: { bizu: "text-[76px]", tag: "text-[18px]", gap: "gap-3.5", pl: "pl-4", border: "border-l-[3px]", py: "py-2" },
-    hero: { bizu: "text-[90px] sm:text-[110px] md:text-[130px]", tag: "text-[18px] sm:text-[22px] md:text-[26px]", gap: "gap-4", pl: "pl-5", border: "border-l-[4px]", py: "py-3" },
+    sm: { bizu: "text-[24px]", tag: "text-[10px]", gap: "gap-1.5", pl: "pl-2", border: "border-l-2", py: "py-0.5" },
+    md: { bizu: "text-[28px]", tag: "text-[11px]", gap: "gap-2", pl: "pl-2.5", border: "border-l-2", py: "py-1" },
+    lg: { bizu: "text-[42px]", tag: "text-[14px]", gap: "gap-3", pl: "pl-3.5", border: "border-l-[3px]", py: "py-1.5" },
+    xl: { bizu: "text-[60px]", tag: "text-[16px]", gap: "gap-3.5", pl: "pl-4", border: "border-l-[3px]", py: "py-2" },
+    hero: { bizu: "text-[72px] sm:text-[90px] md:text-[110px]", tag: "text-[16px] sm:text-[20px] md:text-[24px]", gap: "gap-4", pl: "pl-5", border: "border-l-[4px]", py: "py-3" },
 };
 
 const variants = {

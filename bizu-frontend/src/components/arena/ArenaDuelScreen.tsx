@@ -167,39 +167,16 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
     return (
         <div className={`fixed inset-0 z-[10000] bg-slate-900 flex items-center justify-center ${isMaximized ? "p-0" : "sm:p-4"}`}>
             <div className={`w-full bg-white overflow-hidden shadow-2xl relative flex flex-col h-full ${isMaximized ? "sm:h-screen sm:rounded-none" : "max-w-4xl sm:rounded-3xl sm:h-[90vh]"}`}>
-                {/* Header Toggle / Controls - Moved slightly higher and more consistent */}
-                <div className="absolute -top-1 right-0 sm:-right-2 z-[100] flex items-center gap-2 p-1.5 rounded-2xl bg-white/60 backdrop-blur-xl border border-white/40 shadow-2xl transform translate-y-[-100%] sm:translate-y-0">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className={`rounded-xl px-3 py-5 flex flex-col items-center gap-1 transition-all ${isFullscreen ? "bg-slate-900 text-white shadow-lg h-auto" : "text-slate-600 hover:bg-white/80 h-auto"}`}
-                        onClick={toggleFullscreen}
-                        title={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
-                    >
-                        {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-                        <span className="text-[9px] font-black uppercase tracking-widest">{isFullscreen ? "Sair" : "Cheia"}</span>
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className={`rounded-xl px-3 py-5 flex flex-col items-center gap-1 transition-all ${isMaximized ? "bg-indigo-600 text-white shadow-lg h-auto" : "text-slate-600 hover:bg-white/80 h-auto"}`}
-                        onClick={() => setIsMaximized(!isMaximized)}
-                        title={isMaximized ? "Sair do modo foco" : "Modo foco (mais espaço)"}
-                    >
-                        {isMaximized ? <Shield size={18} /> : <Zap size={18} />}
-                        <span className="text-[9px] font-black uppercase tracking-widest">
-                            {isMaximized ? "Normal" : "Foco"}
-                        </span>
-                    </Button>
-                    <div className="w-px h-8 bg-slate-200/50 mx-1" />
+                {/* Close Button */}
+                <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-[100]">
                     <Button
                         variant="ghost"
                         size="icon"
                         onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                        className="bg-white/80 backdrop-blur-sm border border-white/40 shadow-sm text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all h-8 w-8 sm:h-10 sm:w-10"
                         title="Fechar e voltar"
                     >
-                        <XCircle size={20} />
+                        <XCircle size={20} className="w-4 h-4 sm:w-5 sm:h-5" />
                     </Button>
                 </div>
 
@@ -410,18 +387,46 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                 </div>
 
                 {/* Status Bar */}
-                <div className="px-8 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                <div className="px-4 py-3 md:px-8 md:py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-3 md:gap-6 flex-wrap">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
                             <Shield size={14} className="text-slate-400" /> Matéria: {duel.subject}
+                        </div>
+
+                        <div className="w-px h-6 bg-slate-200 hidden md:block" />
+
+                        {/* Controls move to footer */}
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant={isMaximized ? "default" : "outline"}
+                                size="sm"
+                                className={`h-8 rounded-lg px-3 flex items-center gap-1.5 text-xs font-bold transition-all ${isMaximized ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm border-transparent" : "text-slate-600 border-slate-200 hover:bg-slate-100"}`}
+                                onClick={() => setIsMaximized(!isMaximized)}
+                                title={isMaximized ? "Sair do modo foco" : "Modo foco (mais espaço)"}
+                            >
+                                {isMaximized ? <Shield size={14} /> : <Zap size={14} />}
+                                <span>{isMaximized ? "Foco Ativo" : "Modo Foco"}</span>
+                            </Button>
+
+                            <Button
+                                variant={isFullscreen ? "default" : "outline"}
+                                size="sm"
+                                className={`h-8 rounded-lg px-3 flex items-center gap-1.5 text-xs font-bold transition-all ${isFullscreen ? "bg-slate-900 hover:bg-slate-800 text-white shadow-sm border-transparent" : "text-slate-600 border-slate-200 hover:bg-slate-100"}`}
+                                onClick={toggleFullscreen}
+                                title={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
+                            >
+                                {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                                <span className="hidden sm:inline">{isFullscreen ? "Sair" : "Tela Cheia"}</span>
+                            </Button>
                         </div>
                     </div>
                     {duel.status === "IN_PROGRESS" && (
                         <button
                             onClick={handleCancel}
-                            className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1 transition-colors"
+                            className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1 transition-colors ml-auto md:ml-0"
                         >
-                            <XCircle size={14} /> Abandonar Duelo
+                            <XCircle size={14} /> <span className="hidden sm:inline">Abandonar Duelo</span>
+                            <span className="sm:hidden">Sair</span>
                         </button>
                     )}
                 </div>
