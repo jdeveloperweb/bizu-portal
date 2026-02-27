@@ -70,19 +70,12 @@ public class DuelService {
         log.info("Duel subject: {}", subject);
         
         // Select initial 10 questions: 3 Easy, 4 Medium, 3 Hard
-        List<Question> easy = questionRepository.findByFilters(null, null, subject, null, "EASY", "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
-        List<Question> medium = questionRepository.findByFilters(null, null, subject, null, "MEDIUM", "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
-        List<Question> hard = questionRepository.findByFilters(null, null, subject, null, "HARD", "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
+        // Try SIMULADO first, fallback to QUIZ
+        List<Question> easy = getPool(subject, "EASY");
+        List<Question> medium = getPool(subject, "MEDIUM");
+        List<Question> hard = getPool(subject, "HARD");
         
         log.info("Initial questions pools sizes: easy={}, medium={}, hard={}", easy.size(), medium.size(), hard.size());
-
-        // Fallback to any difficulty if specific ones are empty
-        if (easy.isEmpty()) {
-            easy = questionRepository.findByFilters(null, null, subject, null, null, "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
-            log.info("Fallback SIMULADO pool size: {}", easy.size());
-        }
-        if (medium.isEmpty()) medium = easy;
-        if (hard.isEmpty()) hard = medium;
 
         // Ultimate fallback — Any question if everything above failed
         if (easy.isEmpty()) {
@@ -238,6 +231,28 @@ public class DuelService {
             gamificationService.addXp(duel.getChallenger().getId(), 50);
             gamificationService.addXp(duel.getOpponent().getId(), 50);
         }
+    }
+
+    private List<Question> getPool(String subject, String difficulty) {
+        // Try SIMULADO first
+        List<Question> pool = questionRepository.findByFilters(null, null, subject, null, difficulty, "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
+        
+        // Fallback to QUIZ if empty
+        if (pool.isEmpty()) {
+            pool = questionRepository.findByFilters(null, null, subject, null, difficulty, "QUIZ", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
+        }
+        
+        // Fallback to any difficulty in SIMULADO
+        if (pool.isEmpty()) {
+            pool = questionRepository.findByFilters(null, null, subject, null, null, "SIMULADO", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
+        }
+        
+        // Fallback to any difficulty in QUIZ
+        if (pool.isEmpty()) {
+            pool = questionRepository.findByFilters(null, null, subject, null, null, "QUIZ", org.springframework.data.domain.PageRequest.of(0, 100)).getContent();
+        }
+        
+        return pool;
     }
 
     private void initializeDuel(Duel duel) {

@@ -35,8 +35,8 @@ public class DevController {
         if (courseId == null) {
             course = courseRepository.findAll().stream().findFirst().orElseGet(() -> {
                 Course c = Course.builder()
-                        .title("Curso de Testes Arena")
-                        .description("Criado automaticamente")
+                        .title("Auto Generated Course")
+                        .description("Curso criado para testes")
                         .status("PUBLISHED")
                         .build();
                 return courseRepository.save(c);
@@ -49,7 +49,7 @@ public class DevController {
         Module module;
         if (course.getModules() == null || course.getModules().isEmpty()) {
             module = Module.builder()
-                    .title("Módulo Geral")
+                    .title("Modulo Geral")
                     .course(course)
                     .orderIndex(1)
                     .build();
@@ -60,34 +60,32 @@ public class DevController {
 
         Random rand = new Random();
         String[] difficulties = {"EASY", "MEDIUM", "HARD"};
-        String[] subjects = {"Direito Constitucional", "Português", "Matemática", "Informática", "Direito Penal", "Aleatorio"};
+        String[] subjects = {"Direito Constitucional", "Português", "Matemática", "Informática", "Direito Penal"};
 
         for (int i = 0; i < count; i++) {
             Map<String, Object> options = new HashMap<>();
-            options.put("0", "Opção A (Correta) - Questão " + i);
-            options.put("1", "Opção B - Questão " + i);
-            options.put("2", "Opção C - Questão " + i);
-            options.put("3", "Opção D - Questão " + i);
+            options.put("0", "Opção A Correta - Q" + i);
+            options.put("1", "Opção B - Q" + i);
+            options.put("2", "Opção C - Q" + i);
+            options.put("3", "Opção D - Q" + i);
 
             Question q = Question.builder()
-                    .statement("<p>Questão simulada " + (i + 1) + ". Esta é uma questão gerada automaticamente para testes da Arena PVP.</p>")
+                    .statement("<p>Questão de TESTE (QUIZ) #" + (i + 1) + "</p>")
                     .options(options)
                     .correctOption("A")
                     .difficulty(difficulties[rand.nextInt(3)])
                     .subject(subjects[rand.nextInt(subjects.length)])
-                    .category("SIMULADO")
+                    .category("QUIZ") // ALTERADO PARA QUIZ
                     .questionType("MULTIPLE_CHOICE")
                     .module(module)
                     .build();
             
             questionRepository.save(q);
         }
-
-        Map<String, Object> res = new HashMap<>();
-        res.put("message", "Seed completed successfully");
-        res.put("created", count);
-        res.put("target_course", course.getTitle());
         
+        Map<String, Object> res = new HashMap<>();
+        res.put("status", "success");
+        res.put("created", count);
         return ResponseEntity.ok(res);
     }
 }
