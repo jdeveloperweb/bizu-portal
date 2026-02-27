@@ -4,6 +4,7 @@ import com.bizu.portal.commerce.application.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import java.math.BigDecimal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -56,15 +57,33 @@ public class WebhookController {
         log.info("Recebido webhook da InfinitePay: {}", payload);
         
         try {
-            if (payload != null && payload.get("status") != null) {
-                String status = String.valueOf(payload.get("status"));
-                if ("APPROVED".equalsIgnoreCase(status) || "PAID".equalsIgnoreCase(status)) {
-                    Object nsuObj = payload.get("order_nsu");
-                    if (nsuObj != null) {
-                        String orderNsu = String.valueOf(nsuObj);
-                        paymentService.processInfinitePayEvent(orderNsu);
-                        return ResponseEntity.ok("Processado");
+            if (payload != null) {
+                Object nsuObj = payload.get("order_nsu");
+                Object paidAmountObj = payload.get("paid_amount");
+                Object statusObj = payload.get("status");
+                
+                boolean isPaid = false;
+                
+                // Primeiro tenta pelo campo status
+                if (statusObj != null) {
+                    String status = String.valueOf(statusObj);
+                    isPaid = "APPROVED".equalsIgnoreCase(status) || "PAID".equalsIgnoreCase(status) || "SUCCESS".equalsIgnoreCase(status);
+                } 
+                
+                // Se não resolveu pelo status, tenta pelo paid_amount
+                if (!isPaid && paidAmountObj != null) {
+                    try {
+                        BigDecimal paidAmount = new BigDecimal(String.valueOf(paidAmountObj));
+                        isPaid = paidAmount.compareTo(BigDecimal.ZERO) > 0;
+                    } catch (Exception e) {
+                        log.warn("Erro ao converter paid_amount: {}", paidAmountObj);
                     }
+                }
+
+                if (isPaid && nsuObj != null) {
+                    String orderNsu = String.valueOf(nsuObj);
+                    paymentService.processInfinitePayEvent(orderNsu);
+                    return ResponseEntity.ok("Processado");
                 }
             }
             return ResponseEntity.ok("Recebido, mas sem ação (status não aprovado ou sem NSU)");

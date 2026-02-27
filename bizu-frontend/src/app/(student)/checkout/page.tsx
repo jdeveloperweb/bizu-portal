@@ -184,6 +184,11 @@ function CheckoutContent() {
         digitsOnly(cardCvc).length >= 3;
 
     useEffect(() => {
+        const status = searchParams.get("status");
+        if (status === "success") {
+            setStep("SUCCESS");
+        }
+
         const fetchPlans = async () => {
             try {
                 const [coursesRes, plansRes] = await Promise.all([apiFetch("/public/courses"), apiFetch("/public/plans")]);
