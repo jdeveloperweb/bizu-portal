@@ -1,12 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, JetBrains_Mono, Kalam, Caveat, Indie_Flower, Orbitron } from "next/font/google";
+import { Inter, JetBrains_Mono, Kalam, Caveat, Indie_Flower, Orbitron } from "next/font/google";
 import "./globals.css";
 
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600", "700", "800"],
 });
 
 const jetbrains = JetBrains_Mono({
@@ -98,8 +97,8 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${jakarta.variable} ${jetbrains.variable} ${kalam.variable} ${caveat.variable} ${indieFlower.variable} ${orbitron.variable} antialiased font-sans`}
-        style={{ fontFamily: "var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif" }}
+      <body className={`${inter.variable} ${jetbrains.variable} ${kalam.variable} ${caveat.variable} ${indieFlower.variable} ${orbitron.variable} antialiased font-sans`}
+        style={{ fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif" }}
       >
         <AuthProvider>
           <CourseProvider>

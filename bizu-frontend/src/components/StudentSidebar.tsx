@@ -8,7 +8,7 @@ import BrandLogo from "@/components/BrandLogo";
 import {
     LayoutDashboard, BookOpen, ClipboardList, Layers,
     Swords, TrendingUp, User, Trophy, LogOut,
-    ChevronRight, Search, Timer, CheckSquare,
+    ChevronRight, ChevronLeft, Search, Timer, CheckSquare,
     StickyNote, Settings, BarChart3, Menu, X, FileText, PlayCircle, CreditCard, Users
 } from "lucide-react";
 import { getAvatarUrl } from "@/lib/imageUtils";
@@ -48,6 +48,7 @@ export default function StudentSidebar() {
     const { logout, user, subscription, entitlements, selectedCourseId } = useAuth();
     const { setIsOpen: setPomodoroOpen } = usePomodoro();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     const Item = ({ href, icon: Icon, label }: { href: string; icon: typeof LayoutDashboard; label: string }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
@@ -61,13 +62,14 @@ export default function StudentSidebar() {
         return (
             <Link href={href}
                 onClick={handleClick}
-                className={`group flex items-center gap-2.5 px-3 py-[7px] rounded-lg text-[13px] font-medium transition-all ${active
+                title={isCollapsed ? label : undefined}
+                className={`group flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-2.5 px-3'} py-[7px] rounded-lg text-[13px] font-medium transition-all ${active
                     ? "bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-500/10 dark:to-violet-500/10 text-indigo-700 dark:text-indigo-400 font-semibold"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}>
                 <Icon size={16} className={active ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground opacity-70 group-hover:opacity-100"} />
-                <span className="flex-1">{label}</span>
-                {active && <ChevronRight size={12} className="text-indigo-400" />}
+                {!isCollapsed && <span className="flex-1">{label}</span>}
+                {active && !isCollapsed && <ChevronRight size={12} className="text-indigo-400" />}
             </Link>
         );
     };
@@ -91,18 +93,27 @@ export default function StudentSidebar() {
             )}
 
             <aside className={`
-                w-[230px] shrink-0 h-[100dvh] bg-card border-r border-border flex flex-col
-                fixed md:sticky top-0 z-50 transition-transform duration-300 ease-in-out
+                ${isCollapsed ? 'w-[72px]' : 'w-[230px]'} shrink-0 h-[100dvh] bg-card border-r border-border flex flex-col
+                fixed md:sticky top-0 z-50 transition-[width,transform] duration-300 ease-in-out
                 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             `}>
-                <div className="h-16 flex items-center px-4 border-b border-border shrink-0">
-                    <BrandLogo size="md" variant="dark" />
+                <div
+                    className={`h-16 flex items-center ${isCollapsed ? 'justify-center cursor-pointer hover:bg-muted/50 transition-colors' : 'justify-between px-4'} border-b border-border shrink-0`}
+                    onClick={() => isCollapsed && setIsCollapsed(false)}
+                    title={isCollapsed ? "Expandir menu" : undefined}
+                >
+                    <BrandLogo size="md" variant="dark" collapsed={isCollapsed} link={!isCollapsed} />
+                    {!isCollapsed && (
+                        <button onClick={(e) => { e.stopPropagation(); setIsCollapsed(true); }} className="p-1.5 text-muted-foreground hover:bg-muted rounded-md transition-colors flex-shrink-0">
+                            <ChevronLeft size={18} />
+                        </button>
+                    )}
                 </div>
 
                 {/* User Profile Summary */}
-                <div className="px-3 py-4 border-b border-border bg-slate-50/50">
-                    <div className="flex items-center gap-3 px-2">
-                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-indigo-100 border border-indigo-200 shadow-sm shrink-0">
+                <div className={`px-3 py-4 border-b border-border bg-slate-50/50 ${isCollapsed ? 'flex justify-center' : ''}`}>
+                    <div className={`flex items-center gap-3 ${!isCollapsed ? 'px-2' : ''}`}>
+                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-indigo-100 border border-indigo-200 shadow-sm shrink-0" title={user?.name || 'Usuário'}>
                             {user?.avatarUrl ? (
                                 <img
                                     src={getAvatarUrl(user.avatarUrl)}
@@ -115,71 +126,90 @@ export default function StudentSidebar() {
                                 </div>
                             )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-bold text-slate-900 truncate leading-none mb-1">
-                                {user?.name || 'Usuário'}
-                            </p>
-                            <p className="text-[10px] font-medium text-indigo-500 truncate leading-none">
-                                @{user?.nickname || 'nickname'}
-                            </p>
-                        </div>
+                        {!isCollapsed && (
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[13px] font-bold text-slate-900 truncate leading-none mb-1">
+                                    {user?.name || 'Usuário'}
+                                </p>
+                                <p className="text-[10px] font-medium text-indigo-500 truncate leading-none">
+                                    @{user?.nickname || 'nickname'}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 <div className="px-3 py-2.5">
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted border border-border text-muted-foreground text-[11px] cursor-pointer hover:border-border transition-colors">
+                    <div className={`flex items-center ${isCollapsed ? 'justify-center px-0 py-2' : 'gap-2 px-3 py-1.5'} rounded-lg bg-muted border border-border text-muted-foreground text-[11px] cursor-pointer hover:border-border transition-colors`} title={isCollapsed ? "Buscar..." : undefined}>
                         <Search size={13} />
-                        <span>Buscar...</span>
-                        <span className="ml-auto bg-card border border-border px-1.5 py-0.5 rounded text-[9px] font-mono">&#8984;K</span>
+                        {!isCollapsed && <span>Buscar...</span>}
+                        {!isCollapsed && <span className="ml-auto bg-card border border-border px-1.5 py-0.5 rounded text-[9px] font-mono">&#8984;K</span>}
                     </div>
                 </div>
 
-                <nav className="flex-1 px-2.5 overflow-y-auto">
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] px-3 mb-1.5 mt-1">Estudar</p>
+                <nav className="flex-1 px-2.5 overflow-y-auto overflow-x-hidden">
+                    {!isCollapsed ? (
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] px-3 mb-1.5 mt-1">Estudar</p>
+                    ) : (
+                        <div className="h-4" />
+                    )}
                     <div className="space-y-px mb-3">
                         {studyNav.map((i) => <Item key={i.href} {...i} />)}
                         {entitlements?.find(e => e.course?.id === selectedCourseId)?.course?.hasEssay && (
                             <Item href="/redacao" icon={FileText} label="Redação" />
                         )}
                     </div>
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] px-3 mb-1.5">Planejar</p>
+
+                    {!isCollapsed ? (
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] px-3 mb-1.5 mt-3">Planejar</p>
+                    ) : (
+                        <div className="w-4 h-px bg-border mx-auto my-3" />
+                    )}
                     <div className="space-y-px mb-3">
                         {planNav.map((i) => <Item key={i.href} {...i} />)}
                     </div>
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] px-3 mb-1.5">Acompanhar</p>
+
+                    {!isCollapsed ? (
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] px-3 mb-1.5 mt-3">Acompanhar</p>
+                    ) : (
+                        <div className="w-4 h-px bg-border mx-auto my-3" />
+                    )}
                     <div className="space-y-px mb-3">
                         {trackNav.map((i) => <Item key={i.href} {...i} />)}
                     </div>
-                    <div className="border-t border-border pt-2 space-y-px">
+                    <div className="border-t border-border pt-2 space-y-px mt-2">
                         {bottomNav.map((i) => <Item key={i.href} {...i} />)}
                     </div>
                 </nav>
 
-                <div className="px-2.5 py-3 border-t border-border space-y-2">
-                    <div className="rounded-lg bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-100 px-3.5 py-3">
-                        {subscription || entitlements?.some(e => e.course?.id === selectedCourseId && e.active) ? (
-                            <>
-                                <p className="text-[11px] font-bold text-indigo-700 mb-0.5">
-                                    {subscription?.plan?.name || (entitlements?.find(e => e.course?.id === selectedCourseId)?.source === 'MANUAL' ? 'Plano Vitalício' : 'Plano Ativo')}
-                                </p>
-                                <p className="text-[10px] text-indigo-500/70 mb-2">
-                                    {entitlements?.find(e => e.course?.id === selectedCourseId)?.course?.title || "Curso Ativo"}
-                                </p>
-                            </>
-                        ) : (
-                            <>
-                                <p className="text-[11px] font-bold text-indigo-700 mb-0.5">Plano Free</p>
-                                <p className="text-[10px] text-indigo-500/70 mb-2">Faca upgrade para desbloquear tudo</p>
-                            </>
-                        )}
-                        <Link href="/ranking" className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5">
-                            Ver metas <ChevronRight size={11} />
-                        </Link>
-                    </div>
+                <div className={`px-2.5 py-3 border-t border-border space-y-2`}>
+                    {!isCollapsed && (
+                        <div className="rounded-lg bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-100 px-3.5 py-3">
+                            {subscription || entitlements?.some(e => e.course?.id === selectedCourseId && e.active) ? (
+                                <>
+                                    <p className="text-[11px] font-bold text-indigo-700 mb-0.5">
+                                        {subscription?.plan?.name || (entitlements?.find(e => e.course?.id === selectedCourseId)?.source === 'MANUAL' ? 'Plano Vitalício' : 'Plano Ativo')}
+                                    </p>
+                                    <p className="text-[10px] text-indigo-500/70 mb-2 truncate">
+                                        {entitlements?.find(e => e.course?.id === selectedCourseId)?.course?.title || "Curso Ativo"}
+                                    </p>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-[11px] font-bold text-indigo-700 mb-0.5">Plano Free</p>
+                                    <p className="text-[10px] text-indigo-500/70 mb-2">Faca upgrade para desbloquear tudo</p>
+                                </>
+                            )}
+                            <Link href="/ranking" className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-0.5">
+                                Ver metas <ChevronRight size={11} />
+                            </Link>
+                        </div>
+                    )}
                     <button
                         onClick={logout}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] font-medium text-muted-foreground hover:bg-red-50 hover:text-red-500 transition-all">
-                        <LogOut size={15} /> Sair
+                        title={isCollapsed ? "Sair" : undefined}
+                        className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-2.5 px-3'} py-2 rounded-lg text-[12px] font-medium text-muted-foreground hover:bg-red-50 hover:text-red-500 transition-all`}>
+                        <LogOut size={15} /> {!isCollapsed && "Sair"}
                     </button>
                 </div>
             </aside>

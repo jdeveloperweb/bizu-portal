@@ -4,6 +4,7 @@ interface BrandLogoProps {
     size?: "sm" | "md" | "lg" | "xl" | "hero";
     variant?: "dark" | "light" | "gradient";
     link?: boolean;
+    collapsed?: boolean;
 }
 
 const sizes = {
@@ -20,12 +21,12 @@ const variants = {
     gradient: { bizu: "", tag: "text-indigo-400", tagBorder: "border-indigo-300" },
 };
 
-export default function BrandLogo({ size = "md", variant = "dark", link = true }: BrandLogoProps) {
+export default function BrandLogo({ size = "md", variant = "dark", link = true, collapsed = false }: BrandLogoProps) {
     const s = sizes[size];
     const v = variants[variant];
 
     const content = (
-        <span className={`inline-flex items-center ${s.gap} select-none`}>
+        <span className={`inline-flex items-center ${collapsed ? "" : s.gap} select-none`}>
             <span
                 className={`${s.bizu} ${variant === "gradient" ? "" : v.bizu}`}
                 style={{
@@ -33,7 +34,7 @@ export default function BrandLogo({ size = "md", variant = "dark", link = true }
                     fontWeight: 800,
                     letterSpacing: "0",
                     lineHeight: 1,
-                    textTransform: "uppercase", /* Fica mais moderno tudo maiúsculo na Orbitron */
+                    textTransform: "uppercase",
                     ...(variant === "gradient"
                         ? {
                             background: "linear-gradient(135deg, #6366F1, #8B5CF6, #A855F7)",
@@ -44,14 +45,16 @@ export default function BrandLogo({ size = "md", variant = "dark", link = true }
                         : {}),
                 }}
             >
-                Axon
+                {collapsed ? "AX" : "Axon"}
             </span>
-            <span
-                className={`${s.tag} font-extrabold tracking-[0.3em] uppercase ${s.border} ${s.pl} ${v.tag} ${v.tagBorder} py-0.5`}
-                style={{ lineHeight: 1 }}
-            >
-                Academy
-            </span>
+            {!collapsed && (
+                <span
+                    className={`${s.tag} font-extrabold tracking-[0.3em] uppercase ${s.border} ${s.pl} ${v.tag} ${v.tagBorder} py-0.5`}
+                    style={{ lineHeight: 1 }}
+                >
+                    Academy
+                </span>
+            )}
         </span>
     );
 
