@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import QuestionViewer from "@/components/questions/QuestionViewer";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Clock, Target, Maximize, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, Clock, Target, Maximize, CheckCircle2, Minimize } from "lucide-react";
 
 export default function SimuladoProvaPage() {
     const params = useParams();
@@ -176,28 +176,29 @@ export default function SimuladoProvaPage() {
                 </div>
             )}
 
-            {/* Focus Mode Toggle (Floating when header is hidden) */}
-            <div className="fixed top-4 right-4 z-[100] flex items-center gap-2">
+            {/* Floating Focus Controls - Unified style with labels */}
+            <div className="fixed top-4 right-4 z-[100] flex items-center gap-2 p-1.5 rounded-2xl bg-white/60 backdrop-blur-xl border border-white/40 shadow-2xl">
                 <Button
-                    variant="secondary"
-                    size="icon"
-                    className="rounded-full shadow-lg bg-white/80 backdrop-blur hover:bg-white text-slate-600"
+                    variant="ghost"
+                    size="sm"
+                    className={`rounded-xl px-4 py-6 flex flex-col items-center gap-1 transition-all ${isFocusMode ? "bg-primary text-primary-foreground shadow-lg h-auto" : "text-slate-600 hover:bg-white/80 h-auto"}`}
                     onClick={() => setIsFocusMode(!isFocusMode)}
-                    title={isFocusMode ? "Mostrar cabeçalho" : "Ocultar cabeçalho (Foco Total)"}
+                    title={isFocusMode ? "Sair do Modo Foco" : "Entrar no Modo Foco"}
                 >
-                    {isFocusMode ? <Target size={20} /> : <Maximize size={20} />}
+                    {isFocusMode ? <Target size={18} /> : <Maximize size={18} />}
+                    <span className="text-[9px] font-black uppercase tracking-widest">{isFocusMode ? "Normal" : "Foco"}</span>
                 </Button>
-                {isFocusMode && !isFullscreen && (
-                    <Button
-                        variant="secondary"
-                        size="icon"
-                        className="rounded-full shadow-lg bg-white/80 backdrop-blur hover:bg-white text-slate-600"
-                        onClick={requestFullscreen}
-                        title="Tela Cheia"
-                    >
-                        <Maximize size={20} />
-                    </Button>
-                )}
+
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`rounded-xl px-4 py-6 flex flex-col items-center gap-1 transition-all ${isFullscreen ? "bg-slate-900 text-white shadow-lg h-auto" : "text-slate-600 hover:bg-white/80 h-auto"}`}
+                    onClick={requestFullscreen}
+                    title={isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
+                >
+                    {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+                    <span className="text-[9px] font-black uppercase tracking-widest">{isFullscreen ? "Sair" : "Cheia"}</span>
+                </Button>
             </div>
 
             {/* Strict Exam Top Bar */}
