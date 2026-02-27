@@ -129,7 +129,7 @@ function ArenaPageContent() {
                 }
 
                 // Initial fetch for ranking and history if needed
-                fetchRanking();
+                fetchRanking(currentCourseId || undefined);
                 fetchHistory();
 
             } catch (error) {
@@ -139,10 +139,10 @@ function ArenaPageContent() {
             }
         };
 
-        const fetchRanking = async () => {
+        const fetchRanking = async (courseId?: string) => {
             setIsLoadingRanking(true);
             try {
-                const data = await DuelService.getRanking();
+                const data = await DuelService.getRanking(courseId);
                 setRanking(data);
             } catch (err) {
                 console.error(err);

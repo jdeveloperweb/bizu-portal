@@ -132,8 +132,11 @@ public class DuelController {
     }
 
     @GetMapping("/ranking")
-    public ResponseEntity<List<Map<String, Object>>> getDuelRanking() {
-        List<Object[]> ranking = duelRepository.getWeeklyRanking();
+    public ResponseEntity<List<Map<String, Object>>> getDuelRanking(@RequestParam(required = false) UUID courseId) {
+        if (courseId == null) {
+            return ResponseEntity.ok(List.of()); // Or handle as you wish, but user wants course ranking
+        }
+        List<Object[]> ranking = duelRepository.getWeeklyRanking(courseId);
         return ResponseEntity.ok(ranking.stream().map(r -> Map.of(
             "id", r[0],
             "name", r[1],

@@ -86,8 +86,9 @@ export const DuelService = {
         return res.json();
     },
 
-    getRanking: async () => {
-        const res = await apiFetch("/duelos/ranking");
+    getRanking: async (courseId?: string) => {
+        const query = courseId ? `?courseId=${courseId}` : "";
+        const res = await apiFetch(`/duelos/ranking${query}`);
         if (!res.ok) return [];
         return res.json();
     },
