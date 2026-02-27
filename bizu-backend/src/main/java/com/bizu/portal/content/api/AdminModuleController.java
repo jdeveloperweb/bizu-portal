@@ -31,6 +31,7 @@ public class AdminModuleController {
         if (module.getOrderIndex() != null) {
             existing.setOrderIndex(module.getOrderIndex());
         }
+        existing.setObjectives(module.getObjectives());
         existing.setFree(module.isFree());
         return ResponseEntity.ok(moduleService.save(existing));
     }

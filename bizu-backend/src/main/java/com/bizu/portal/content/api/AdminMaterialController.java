@@ -32,6 +32,7 @@ public class AdminMaterialController {
         existing.setFileType(material.getFileType());
         existing.setFree(material.isFree());
         existing.setContent(material.getContent());
+        existing.setDurationMinutes(material.getDurationMinutes());
         return ResponseEntity.ok(materialService.save(existing));
     }
 

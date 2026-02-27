@@ -36,6 +36,7 @@ public class Material {
 
     @Builder.Default
     @Column(name = "is_free")
+    @com.fasterxml.jackson.annotation.JsonProperty("isFree")
     private boolean isFree = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
