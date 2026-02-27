@@ -169,6 +169,30 @@ function ArenaPageContent() {
         }
     };
 
+    const handleSeed = async () => {
+        const currentCourseId = getStoredSelectedCourseId();
+        if (!currentCourseId) {
+            alert("Selecione um curso primeiro.");
+            return;
+        }
+
+        if (!confirm("Isso vai cadastrar 50 questões de teste para este curso. Continuar?")) return;
+
+        try {
+            const res = await apiFetch(`/public/dev/seed-questions?courseId=${currentCourseId}&count=50`, {
+                method: "POST"
+            });
+            if (res.ok) {
+                const data = await res.json();
+                alert(`Sucesso! ${data.created} questões criadas.`);
+                window.location.reload();
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Erro ao semear questões.");
+        }
+    };
+
     return (
         <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
             {!activeDuelId && <ActiveDuelBanner onReturn={(id) => setActiveDuelId(id)} />}
@@ -399,6 +423,12 @@ function ArenaPageContent() {
                             <Link href="/ranking" className="flex items-center gap-2.5 py-2 px-3 rounded-xl text-[12px] font-medium text-slate-600 hover:bg-slate-50 transition-all">
                                 <BarChart3 size={14} className="text-slate-400" /> Ver ranking geral
                             </Link>
+                            <button
+                                onClick={handleSeed}
+                                className="w-full flex items-center gap-2.5 py-2 px-3 rounded-xl text-[12px] font-medium text-amber-600 hover:bg-amber-50 transition-all border border-dashed border-amber-200 mt-2"
+                            >
+                                <Zap size={14} /> [DEV] Gerar Questões Simuladas
+                            </button>
                         </div>
                     </div>
                 </div>
