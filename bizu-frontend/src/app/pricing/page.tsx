@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Check, ChevronDown, Zap, Shield, Crown, Star, BookOpen, Anchor, Users } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 
-export default function PricingPage() {
+function PricingContent() {
     const searchParams = useSearchParams();
     const [courses, setCourses] = useState<any[]>([]);
     const [plans, setPlans] = useState<any[]>([]);
@@ -271,3 +271,20 @@ export default function PricingPage() {
         </div>
     );
 }
+
+export default function PricingPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-white">
+                <Navbar />
+                <div className="container mx-auto px-6 py-16 text-center">
+                    <div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <p className="text-slate-500 font-medium tracking-widest text-xs uppercase">Carregando...</p>
+                </div>
+            </div>
+        }>
+            <PricingContent />
+        </Suspense>
+    );
+}
+
