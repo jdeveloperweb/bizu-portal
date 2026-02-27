@@ -10,6 +10,7 @@ import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { compressImage } from "@/lib/imageUtils";
 
 const formatPrice = (price?: number | string, currency = "BRL") => {
     if (price === undefined || price === null || price === "") return null;
@@ -91,9 +92,9 @@ export default function ProfilePage() {
 
     useEffect(() => {
         if (user) {
-            setName(user.name || "");
-            setNickname(user.nickname || "");
-            setPhone(user.phone || "");
+            setName((user.name as string) || "");
+            setNickname((user.nickname as string) || "");
+            setPhone((user.phone as string) || "");
         }
     }, [user]);
 
@@ -172,11 +173,15 @@ export default function ProfilePage() {
         if (!e.target.files?.[0]) return;
 
         setIsUploading(true);
-        const file = e.target.files[0];
-        const formData = new FormData();
-        formData.append("file", file);
+        const originalFile = e.target.files[0];
 
         try {
+            // Compress image to max 400x400 for avatars, 80% quality
+            const compressedBlob = await compressImage(originalFile, 400, 400, 0.8);
+
+            const formData = new FormData();
+            formData.append("file", compressedBlob, originalFile.name.replace(/\.[^/.]+$/, "") + ".jpg");
+
             // No need to set Content-Type, browser will do it with boundary
             const res = await apiFetch("/users/me/avatar", {
                 method: "POST",
@@ -274,11 +279,11 @@ export default function ProfilePage() {
                                 <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[32px] overflow-hidden bg-slate-100 border-4 border-white shadow-xl flex items-center justify-center ring-1 ring-slate-100 transition-transform group-hover:scale-[1.02]">
                                     {user?.avatarUrl ? (
                                         <img
-                                            src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `${process.env.NEXT_PUBLIC_API_URL}${user.avatarUrl}`}
-                                            alt={user.name}
+                                            src={(user.avatarUrl as string).startsWith('http') ? (user.avatarUrl as string) : `${process.env.NEXT_PUBLIC_API_URL}${user.avatarUrl}`}
+                                            alt={user.name as string}
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
-                                                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || '')}&background=6366f1&color=fff`;
+                                                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent((user?.name as string) || '')}&background=6366f1&color=fff`;
                                             }}
                                         />
                                     ) : (
