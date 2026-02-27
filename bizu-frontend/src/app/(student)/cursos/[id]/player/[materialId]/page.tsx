@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Download, Share2, FileText, ChevronLeft, Play, Info, CheckCircle2, ExternalLink } from "lucide-react";
+import { Download, Share2, FileText, ChevronLeft, Play, Info, CheckCircle2, ExternalLink, Highlighter, StickyNote, X as CloseIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,10 @@ export default function CoursePlayerPage() {
     const [currentMaterial, setCurrentMaterial] = useState<any>(null);
     const [isCompleted, setIsCompleted] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [highlights, setHighlights] = useState<any[]>([]);
+    const [selection, setSelection] = useState<{ text: string, x: number, y: number } | null>(null);
+    const [isAddingNote, setIsAddingNote] = useState(false);
+    const [noteContent, setNoteContent] = useState("");
 
     useEffect(() => {
         if (!courseId || !materialId) {
@@ -61,6 +65,18 @@ export default function CoursePlayerPage() {
                             const completedIds = await compRes.json();
                             setIsCompleted(completedIds.includes(materialId));
                         }
+
+                        // Fetch notes/highlights for this material
+                        const notesRes = await apiFetch(`/student/notes`);
+                        if (notesRes.ok) {
+                            const allNotes = await notesRes.json();
+                            const materialHighlights = allNotes.filter((n: any) => n.materialId === materialId);
+                            setHighlights(materialHighlights.map((n: any) => ({
+                                id: n.id,
+                                text: n.highlightedText || "",
+                                color: n.highlightColor
+                            })));
+                        }
                     }
                 }
             } catch (error) {
@@ -71,6 +87,59 @@ export default function CoursePlayerPage() {
         };
         fetchContent();
     }, [courseId, materialId]);
+
+    const handleTextSelection = () => {
+        const sel = window.getSelection();
+        if (sel && sel.toString().trim().length > 3) {
+            const range = sel.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            setSelection({
+                text: sel.toString().trim(),
+                x: rect.left + rect.width / 2 + window.scrollX,
+                y: rect.top + window.scrollY
+            });
+        } else {
+            setSelection(null);
+            setIsAddingNote(false);
+        }
+    };
+
+    const saveHighlight = async (withNote = false) => {
+        if (!selection) return;
+
+        const payload = {
+            title: `Destaque em: ${currentMaterial.title}`,
+            content: withNote ? noteContent : "Texto destacado no artigo.",
+            materialId: materialId,
+            moduleId: module?.id,
+            highlightedText: selection.text,
+            highlightColor: "yellow",
+            tags: ["highlight"],
+            pinned: false,
+            starred: false
+        };
+
+        try {
+            const res = await apiFetch(`/student/notes`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                const newNote = await res.json();
+                setHighlights(prev => [...prev, {
+                    id: newNote.id,
+                    text: selection.text,
+                    color: "yellow"
+                }]);
+                setSelection(null);
+                setIsAddingNote(false);
+                setNoteContent("");
+            }
+        } catch (error) {
+            console.error("Erro ao salvar destaque", error);
+        }
+    };
 
     const toggleCompletion = async () => {
         try {
@@ -191,11 +260,66 @@ export default function CoursePlayerPage() {
                                             {currentMaterial.title}
                                         </h1>
                                     </div>
-                                    <div className="text-slate-600 leading-[1.8]">
+                                    <div className="text-slate-600 leading-[1.8]" onMouseUp={handleTextSelection}>
                                         <MarkdownViewer
                                             content={currentMaterial.content || currentMaterial.description || "Sem conteúdo para este artigo."}
+                                            highlights={highlights}
                                         />
                                     </div>
+
+                                    {/* Selection Tooltip */}
+                                    {selection && (
+                                        <div
+                                            className="absolute z-50 bg-white dark:bg-slate-800 shadow-2xl border border-slate-200 dark:border-slate-700 rounded-xl p-2 flex flex-col gap-2 animate-in fade-in zoom-in duration-200"
+                                            style={{
+                                                top: selection.y - 120, // Adjusted to be above
+                                                left: `calc(${selection.x}px - 100px)`,
+                                                width: isAddingNote ? '280px' : 'auto'
+                                            }}
+                                        >
+                                            {!isAddingNote ? (
+                                                <div className="flex items-center gap-1">
+                                                    <button
+                                                        onClick={() => saveHighlight(false)}
+                                                        className="flex items-center gap-2 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-xs font-bold text-amber-600 transition-colors"
+                                                    >
+                                                        <Highlighter size={14} /> Marcar
+                                                    </button>
+                                                    <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
+                                                    <button
+                                                        onClick={() => setIsAddingNote(true)}
+                                                        className="flex items-center gap-2 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-xs font-bold text-indigo-600 transition-colors"
+                                                    >
+                                                        <StickyNote size={14} /> Anotar
+                                                    </button>
+                                                    <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
+                                                    <button
+                                                        onClick={() => setSelection(null)}
+                                                        className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
+                                                    >
+                                                        <CloseIcon size={14} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="p-1 space-y-2">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <span className="text-[10px] font-bold uppercase text-slate-400">Nova Anotação</span>
+                                                        <button onClick={() => setIsAddingNote(false)}><CloseIcon size={12} /></button>
+                                                    </div>
+                                                    <textarea
+                                                        autoFocus
+                                                        value={noteContent}
+                                                        onChange={(e) => setNoteContent(e.target.value)}
+                                                        className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-primary h-20 resize-none"
+                                                        placeholder="Digite sua anotação..."
+                                                    />
+                                                    <Button size="sm" className="w-full text-[11px] h-8" onClick={() => saveHighlight(true)}>
+                                                        Salvar Destaque e Nota
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </article>
                             </div>
                         ) : (

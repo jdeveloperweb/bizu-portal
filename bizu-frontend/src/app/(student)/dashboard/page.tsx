@@ -13,6 +13,7 @@ import confetti from "canvas-confetti";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useCourse } from "@/contexts/CourseContext";
+import { usePomodoro } from "@/contexts/PomodoroContext";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ export default function DashboardPage() {
     const { user } = useAuth();
     const router = useRouter();
     const { isGracePeriod } = useCourse();
+    const { isOpen, setIsOpen } = usePomodoro();
     const [stats, setStats] = useState<any>(null);
     const [gamification, setGamification] = useState<any>(null);
     const [ranking, setRanking] = useState<any>(null);
@@ -128,59 +130,78 @@ export default function DashboardPage() {
     return (
         <div className="p-6 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto min-h-screen font-sans bg-slate-50/30">
             {/* Header Area */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
-                {isLoading ? (
-                    <div className="space-y-2 mt-2">
-                        <Skeleton className="h-8 w-48" />
-                        <Skeleton className="h-4 w-64" />
-                    </div>
-                ) : (
-                    <>
-                        <h1 className="text-3xl font-light text-foreground tracking-tight mb-1.5">
-                            Bom dia, <span className="font-semibold text-indigo-600">{userName}</span>
-                        </h1>
-                        <p className="text-sm text-muted-foreground font-medium tracking-wide">
-                            Sua jornada para a aprovação continua hoje.
-                        </p>
-                        {subscription && subscription.currentPeriodEnd && !isGracePeriod && (
-                            <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-indigo-50 border border-indigo-100/50 text-[11px] font-bold text-indigo-600 animate-in fade-in slide-in-from-left-4 duration-700">
-                                <Clock size={12} />
-                                Seu plano expira em {(() => {
-                                    const d = new Date(subscription.currentPeriodEnd);
-                                    d.setDate(d.getDate() - 1);
-                                    return d.toLocaleDateString('pt-BR');
-                                })()} e será renovado em {new Date(subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10 bg-white/40 p-6 md:p-8 rounded-[40px] border border-slate-200/50 shadow-sm backdrop-blur-sm">
+                <div className="flex-1">
+                    {isLoading ? (
+                        <div className="space-y-3">
+                            <Skeleton className="h-10 w-64 rounded-xl" />
+                            <Skeleton className="h-4 w-80 rounded-lg" />
+                        </div>
+                    ) : (
+                        <div className="space-y-1">
+                            <h1 className="text-3xl font-light text-foreground tracking-tight">
+                                Bom dia, <span className="font-semibold text-indigo-600">{userName}</span>
+                            </h1>
+                            <p className="text-sm text-muted-foreground font-medium tracking-wide">
+                                Sua jornada para a aprovação continua hoje.
+                            </p>
+
+                            <div className="flex flex-wrap gap-2 mt-4">
+                                {subscription && subscription.currentPeriodEnd && !isGracePeriod && (
+                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-100/50 text-[11px] font-bold text-indigo-600 animate-in fade-in slide-in-from-left-4 duration-700">
+                                        <Clock size={12} />
+                                        Seu plano expira em {(() => {
+                                            const d = new Date(subscription.currentPeriodEnd);
+                                            d.setDate(d.getDate() - 1);
+                                            return d.toLocaleDateString('pt-BR');
+                                        })()} e será renovado em {new Date(subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}
+                                    </div>
+                                )}
+
+                                {isGracePeriod && (
+                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-red-50 border border-red-100/50 text-[11px] font-bold text-red-600 animate-pulse">
+                                        <Clock size={12} className="text-red-500" />
+                                        Pagamento em atraso. Seu acesso será bloqueado em 5 dias se não regularizado.
+                                    </div>
+                                )}
                             </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-3 bg-white/80 p-2 md:p-2.5 rounded-[24px] shadow-sm border border-slate-100 flex-wrap md:flex-nowrap">
+                    {/* Toggle Pomodoro */}
+                    <button
+                        onClick={() => setIsOpen(!isOpen)}
+                        className={cn(
+                            "w-11 h-11 rounded-2xl flex items-center justify-center transition-all relative border group",
+                            isOpen
+                                ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100 hover:bg-indigo-700"
+                                : "bg-white border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/50"
                         )}
+                        title={isOpen ? "Desativar Pomodoro" : "Ativar Pomodoro"}
+                    >
+                        <Timer size={20} className={cn("transition-transform", isOpen && "animate-pulse")} />
+                        {isOpen && <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white animate-bounce" />}
+                    </button>
 
-                        {isGracePeriod && (
-                            <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-red-50 border border-red-100/50 text-[11px] font-bold text-red-600 animate-pulse">
-                                <Clock size={12} className="text-red-500" />
-                                Pagamento em atraso. Seu acesso será bloqueado em 5 dias se não regularizado.
-                            </div>
-                        )}
-                    </>
-                )}
+                    <div className="hidden md:block h-8 w-[1px] bg-slate-100 mx-1" />
 
-                <div className="flex items-center gap-3">
-                    <div className="relative hidden md:block group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4 group-focus-within:text-indigo-500 transition-colors" />
-                        <input
-                            type="text"
-                            placeholder="Buscar materiais, questões..."
-                            className="bg-card border border-border text-sm rounded-full pl-9 pr-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm"
-                        />
-                    </div>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-orange-600 bg-orange-50 border border-orange-100 px-3.5 py-2 rounded-full shadow-sm">
-                        <Flame size={15} /> {isLoading ? <Skeleton className="h-4 w-4" /> : streak} dias
-                    </div>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3.5 py-2 rounded-full shadow-sm">
-                        <Trophy size={15} /> {isLoading ? <Skeleton className="h-4 w-12" /> : `${totalXp} XP`}
+                    <div className="flex items-center gap-2.5 text-sm font-bold text-orange-600 bg-orange-50/50 border border-orange-100 px-4 py-2.5 rounded-2xl">
+                        <Flame size={16} />
+                        {isLoading ? <Skeleton className="h-4 w-4" /> : <span>{streak} <span className="text-[10px] uppercase tracking-wider opacity-70">dias</span></span>}
                     </div>
 
-                    <button className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all relative shadow-sm">
-                        <Bell size={17} />
-                        <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border border-white" />
+                    <div className="flex items-center gap-2.5 text-sm font-bold text-indigo-600 bg-indigo-50/50 border border-indigo-100 px-4 py-2.5 rounded-2xl">
+                        <Trophy size={16} />
+                        {isLoading ? <Skeleton className="h-4 w-12" /> : <span>{totalXp} <span className="text-[10px] uppercase tracking-wider opacity-70">XP</span></span>}
+                    </div>
+
+                    <div className="hidden md:block h-8 w-[1px] bg-slate-100 mx-1" />
+
+                    <button className="w-11 h-11 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all relative shadow-sm group">
+                        <Bell size={20} className="group-hover:rotate-12 transition-transform" />
+                        <span className="absolute top-3.5 right-3.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white shadow-sm" />
                     </button>
                 </div>
             </div>

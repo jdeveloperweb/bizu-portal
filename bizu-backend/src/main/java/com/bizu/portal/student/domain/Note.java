@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import com.bizu.portal.content.domain.Material;
 
 @Entity
 @Table(name = "notes", schema = "student")
@@ -37,6 +38,16 @@ public class Note {
 
     @Column(name = "tags")
     private String tags;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "material_id")
+    private Material material;
+
+    @Column(name = "highlighted_text", columnDefinition = "TEXT")
+    private String highlightedText;
+
+    @Column(name = "highlight_color", length = 50)
+    private String highlightColor;
 
     @Column(nullable = false)
     private boolean pinned;

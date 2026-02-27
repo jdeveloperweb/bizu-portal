@@ -9,6 +9,9 @@ public class UpdateNoteRequest {
     private String title;
     private String content;
     private UUID moduleId;
+    private UUID materialId;
+    private String highlightedText;
+    private String highlightColor;
     private List<String> tags;
     private LinkedToDTO linkedTo;
     private boolean pinned;

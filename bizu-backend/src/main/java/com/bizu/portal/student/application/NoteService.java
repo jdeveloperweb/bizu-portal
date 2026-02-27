@@ -1,5 +1,6 @@
 package com.bizu.portal.student.application;
 
+import com.bizu.portal.content.infrastructure.MaterialRepository;
 import com.bizu.portal.content.infrastructure.ModuleRepository;
 import com.bizu.portal.identity.domain.User;
 import com.bizu.portal.identity.infrastructure.UserRepository;
@@ -20,6 +21,7 @@ public class NoteService {
 
     private final NoteRepository noteRepository;
     private final ModuleRepository moduleRepository;
+    private final MaterialRepository materialRepository;
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
@@ -49,6 +51,13 @@ public class NoteService {
             note.setLinkedType(request.getLinkedTo().getType());
             note.setLinkedLabel(request.getLinkedTo().getLabel());
         }
+
+        if (request.getMaterialId() != null) {
+            note.setMaterial(materialRepository.findById(request.getMaterialId())
+                    .orElseThrow(() -> new RuntimeException("Material not found")));
+        }
+        note.setHighlightedText(request.getHighlightedText());
+        note.setHighlightColor(request.getHighlightColor() != null ? request.getHighlightColor() : "yellow");
 
         note = noteRepository.save(note);
         return toDTO(note);
@@ -83,6 +92,15 @@ public class NoteService {
             note.setLinkedType(null);
             note.setLinkedLabel(null);
         }
+
+        if (request.getMaterialId() != null) {
+            note.setMaterial(materialRepository.findById(request.getMaterialId())
+                    .orElseThrow(() -> new RuntimeException("Material not found")));
+        } else {
+            note.setMaterial(null);
+        }
+        note.setHighlightedText(request.getHighlightedText());
+        note.setHighlightColor(request.getHighlightColor());
 
         note = noteRepository.save(note);
         return toDTO(note);
@@ -150,6 +168,9 @@ public class NoteService {
                 .content(note.getContent())
                 .subject(subjectName)
                 .moduleId(note.getModule() != null ? note.getModule().getId() : null)
+                .materialId(note.getMaterial() != null ? note.getMaterial().getId() : null)
+                .highlightedText(note.getHighlightedText())
+                .highlightColor(note.getHighlightColor())
                 .tags(tagsList)
                 .linkedTo(linkedTo)
                 .pinned(note.isPinned())

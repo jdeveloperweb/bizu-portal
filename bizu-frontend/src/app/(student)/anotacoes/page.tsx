@@ -5,7 +5,7 @@ import {
     StickyNote, Plus, Search, Filter, BookOpen,
     Tag, Clock, Trash2, Edit3, ChevronRight,
     Star, Pin, Target, CheckSquare, FileText,
-    X,
+    X, Highlighter
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
@@ -20,6 +20,9 @@ interface Note {
     linkedTo?: { type: "questao" | "tarefa" | "assunto"; label: string };
     pinned: boolean;
     starred: boolean;
+    materialId?: string;
+    highlightedText?: string;
+    highlightColor?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -265,6 +268,11 @@ export default function AnotacoesPage() {
                                             {note.starred && <Star size={10} className="text-amber-500 fill-amber-500" />}
                                             <span className="text-[12px] font-bold text-slate-800 truncate">{note.title}</span>
                                         </div>
+                                        {note.highlightedText && (
+                                            <div className="bg-amber-50 border-l-2 border-amber-300 px-2 py-1 mb-2">
+                                                <p className="text-[10px] italic text-amber-800 line-clamp-1">"{note.highlightedText}"</p>
+                                            </div>
+                                        )}
                                         <p className="text-[11px] text-slate-400 line-clamp-2 mb-2">{note.content}</p>
                                         <div className="flex items-center gap-2">
                                             <span className="text-[9px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
@@ -307,7 +315,7 @@ export default function AnotacoesPage() {
                                             </span>
                                             {selectedNote.linkedTo && (
                                                 <span className="text-[10px] font-semibold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                                    {(() => { const Icon = linkedTypeIcon[selectedNote.linkedTo.type]; return Icon ? <Icon size={9} /> : null; })()}
+                                                    {(() => { const Icon = linkedTypeIcon[selectedNote.linkedTo.type as keyof typeof linkedTypeIcon]; return Icon ? <Icon size={9} /> : null; })()}
                                                     {selectedNote.linkedTo.label}
                                                 </span>
                                             )}
@@ -408,6 +416,15 @@ export default function AnotacoesPage() {
                                                     #{tag}
                                                 </span>
                                             ))}
+                                        </div>
+                                    )}
+
+                                    {selectedNote.highlightedText && (
+                                        <div className="bg-amber-50 dark:bg-amber-900/10 border-l-4 border-amber-400 p-4 mb-6 rounded-r-lg">
+                                            <p className="text-[10px] font-bold text-amber-600 uppercase mb-1 flex items-center gap-2">
+                                                <Highlighter size={12} /> Trecho marcado no artigo
+                                            </p>
+                                            <p className="text-[13px] italic text-slate-700 dark:text-slate-300">"{selectedNote.highlightedText}"</p>
                                         </div>
                                     )}
 

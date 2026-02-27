@@ -18,6 +18,9 @@ public class NoteDTO {
     private String content;
     private String subject;
     private UUID moduleId;
+    private UUID materialId;
+    private String highlightedText;
+    private String highlightColor;
     private List<String> tags;
     private LinkedToDTO linkedTo;
     private boolean pinned;
