@@ -48,6 +48,7 @@ interface Module {
     description: string;
     objectives: string;
     orderIndex: number;
+    isFree: boolean;
     materials: Material[];
     durationMinutes: number;
 }
@@ -80,7 +81,7 @@ export default function CourseEditorPage() {
 
     // Forms
     const [editingModule, setEditingModule] = useState<Module | null>(null);
-    const [moduleForm, setModuleForm] = useState({ title: "", description: "", objectives: "", orderIndex: 1 });
+    const [moduleForm, setModuleForm] = useState({ title: "", description: "", objectives: "", orderIndex: 1, isFree: false });
 
     const [studioTab, setStudioTab] = useState<"editor" | "preview">("editor");
     const [isUploading, setIsUploading] = useState(false);
@@ -151,7 +152,7 @@ export default function CourseEditorPage() {
                 fetchCourse();
                 setIsModuleModalOpen(false);
                 setEditingModule(null);
-                setModuleForm({ title: "", description: "", objectives: "", orderIndex: 1 });
+                setModuleForm({ title: "", description: "", objectives: "", orderIndex: 1, isFree: false });
             }
         } catch (error) {
             toast.error("Erro ao salvar módulo");
@@ -380,7 +381,8 @@ export default function CourseEditorPage() {
                                             title: "",
                                             description: "",
                                             objectives: "",
-                                            orderIndex: (course.modules?.length || 0) + 1
+                                            orderIndex: (course.modules?.length || 0) + 1,
+                                            isFree: false
                                         });
                                         setIsModuleModalOpen(true);
                                     }}
@@ -399,7 +401,12 @@ export default function CourseEditorPage() {
                                                     {mIdx + 1}
                                                 </div>
                                                 <div>
-                                                    <h3 className="text-xl font-black text-slate-800">{mod.title}</h3>
+                                                    <div className="flex items-center gap-3">
+                                                        <h3 className="text-xl font-black text-slate-800">{mod.title}</h3>
+                                                        {mod.isFree && (
+                                                            <span className="bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border border-emerald-200">Gratuito</span>
+                                                        )}
+                                                    </div>
                                                     {mod.description && <p className="text-sm text-slate-400 font-medium">{mod.description}</p>}
                                                 </div>
                                             </div>
@@ -411,7 +418,8 @@ export default function CourseEditorPage() {
                                                             title: mod.title,
                                                             description: mod.description || "",
                                                             objectives: mod.objectives || "",
-                                                            orderIndex: mod.orderIndex
+                                                            orderIndex: mod.orderIndex,
+                                                            isFree: mod.isFree || false
                                                         });
                                                         setIsModuleModalOpen(true);
                                                     }}
@@ -670,6 +678,31 @@ export default function CourseEditorPage() {
                                         })}
                                         className="h-16 rounded-[24px] text-xl font-bold border-2 focus:ring-blue-500 bg-slate-50/50 w-32"
                                     />
+                                </div>
+
+                                <div className="flex items-center justify-between p-8 bg-blue-50/50 rounded-[32px] border-2 border-blue-100 shadow-sm-blue">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-blue-600 shadow-sm">
+                                            <HelpCircle className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <p className="font-black text-slate-800 text-lg">Acesso Gratuito?</p>
+                                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Liberado para alunos sem premium</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setModuleForm({ ...moduleForm, isFree: !moduleForm.isFree })}
+                                        className={cn(
+                                            "w-16 h-9 rounded-full transition-all relative p-1",
+                                            moduleForm.isFree ? "bg-blue-600" : "bg-slate-300"
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "w-7 h-7 bg-white rounded-full shadow-md transition-all",
+                                            moduleForm.isFree ? "translate-x-7" : "translate-x-0"
+                                        )} />
+                                    </button>
                                 </div>
 
                                 <div className="flex gap-4 pt-6">
