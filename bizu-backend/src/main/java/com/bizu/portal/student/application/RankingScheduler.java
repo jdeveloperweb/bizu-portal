@@ -23,6 +23,7 @@ public class RankingScheduler {
 
     private final SimuladoResultRepository resultRepository;
     private final DuelRepository duelRepository;
+    private final com.bizu.portal.content.infrastructure.CourseRepository courseRepository;
     private final GamificationService gamificationService;
     private final NotificationService notificationService;
 
@@ -71,27 +72,32 @@ public class RankingScheduler {
     @Scheduled(cron = "0 55 23 * * SAT")
     @Transactional
     public void processWeeklyDuelRanking() {
-        log.info("Iniciando processamento do ranking semanal de duelos...");
+        log.info("Iniciando processamento do ranking semanal de duelos por curso...");
         
-        List<Object[]> ranking = duelRepository.getWeeklyRanking();
+        List<com.bizu.portal.content.domain.Course> courses = courseRepository.findAll();
         
-        for (int i = 0; i < ranking.size(); i++) {
-            Object[] r = ranking.get(i);
-            UUID userId = (UUID) r[0];
-            int position = i + 1;
+        for (com.bizu.portal.content.domain.Course course : courses) {
+            log.info("Processando ranking para o curso: {}", course.getTitle());
+            List<Object[]> ranking = duelRepository.getWeeklyRanking(course.getId());
             
-            int xpReward = switch (position) {
-                case 1 -> 500;
-                case 2 -> 300;
-                case 3 -> 200;
-                default -> 0;
-            };
+            for (int i = 0; i < ranking.size(); i++) {
+                Object[] r = ranking.get(i);
+                UUID userId = (UUID) r[0];
+                int position = i + 1;
+                
+                int xpReward = switch (position) {
+                    case 1 -> 500;
+                    case 2 -> 300;
+                    case 3 -> 200;
+                    default -> 0;
+                };
 
-            if (xpReward > 0) {
-                gamificationService.addXp(userId, xpReward);
-                notificationService.send(userId, "🏆 Ranking Arena", 
-                    "Parabéns! Você ficou em #" + position + " na Arena esta semana e ganhou " + xpReward + " XP!");
-                log.info("Usuário {} premiado na Arena na posição #{}", userId, position);
+                if (xpReward > 0) {
+                    gamificationService.addXp(userId, xpReward);
+                    notificationService.send(userId, "🏆 Ranking Arena - " + course.getTitle(), 
+                        "Parabéns! Você ficou em #" + position + " na Arena (" + course.getTitle() + ") esta semana e ganhou " + xpReward + " XP!");
+                    log.info("Usuário {} premiado na Arena do curso {} na posição #{}", userId, course.getTitle(), position);
+                }
             }
         }
     }
