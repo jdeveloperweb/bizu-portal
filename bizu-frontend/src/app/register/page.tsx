@@ -35,11 +35,20 @@ export default function RegisterPage() {
         if (mismatch) return;
         setLoading(true);
 
+        const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        const planId = searchParams?.get('plan');
+        const courseId = searchParams?.get('course');
+
         try {
             const success = await register(form.name, form.email, form.password);
             if (success) {
-                notify("Conta Criada! 🚀", "Agora escolha seu plano para começar os estudos.", "success");
-                router.push("/checkout");
+                notify("Conta Criada! 🚀", "Agora vamos configurar seu acesso.", "success");
+                let checkoutUrl = "/checkout";
+                if (planId) {
+                    checkoutUrl += `?plan=${planId}`;
+                    if (courseId) checkoutUrl += `&course=${courseId}`;
+                }
+                router.push(checkoutUrl);
             } else {
                 notify("Houve um problema", "Não conseguimos criar sua conta. Verifique se o e-mail já está em uso.", "error");
             }

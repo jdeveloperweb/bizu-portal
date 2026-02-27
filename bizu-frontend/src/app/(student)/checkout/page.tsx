@@ -35,6 +35,7 @@ interface Plan {
     features: string;
     highlight: boolean;
     badge: string;
+    free?: boolean;
     course?: {
         id: string;
         title: string;
@@ -139,7 +140,14 @@ const getPaymentModeLabel = (billingInterval?: string) => {
     }
 };
 
-export default function CheckoutPage() {
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+
+function CheckoutContent() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const { notify } = useNotification();
+
     const [step, setStep] = useState<CheckoutStep>("PLANS");
     const [plans, setPlans] = useState<Plan[]>([]);
     const [courses, setCourses] = useState<Course[]>([]);
@@ -157,8 +165,8 @@ export default function CheckoutPage() {
     const [cardExpiry, setCardExpiry] = useState("");
     const [cardCvc, setCardCvc] = useState("");
 
-    const { notify } = useNotification();
-    const router = useRouter();
+    const initialPlanId = searchParams.get("plan");
+    const initialCourseId = searchParams.get("course");
 
     const cardBrand = useMemo(() => detectCardBrand(cardNumber), [cardNumber]);
     const filteredPlans = useMemo(
@@ -178,17 +186,27 @@ export default function CheckoutPage() {
             try {
                 const [coursesRes, plansRes] = await Promise.all([apiFetch("/public/courses"), apiFetch("/public/plans")]);
 
-                if (coursesRes.ok) {
-                    const coursesData: Course[] = await coursesRes.json();
-                    setCourses(coursesData);
-                    if (coursesData.length > 0) {
-                        setSelectedCourseId(coursesData[0].id);
-                    }
-                }
-
                 if (plansRes.ok) {
                     const plansData: Plan[] = await plansRes.json();
                     setPlans(plansData);
+
+                    if (initialPlanId) {
+                        const plan = plansData.find(p => p.id === initialPlanId);
+                        if (plan) {
+                            setSelectedPlan(plan);
+                            setStep("DETAILS");
+                        }
+                    }
+                }
+
+                if (coursesRes.ok) {
+                    const coursesData: Course[] = await coursesRes.json();
+                    setCourses(coursesData);
+                    if (initialCourseId) {
+                        setSelectedCourseId(initialCourseId);
+                    } else if (coursesData.length > 0) {
+                        setSelectedCourseId(coursesData[0].id);
+                    }
                 }
             } catch (error) {
                 console.error("Erro ao carregar planos", error);
@@ -205,6 +223,11 @@ export default function CheckoutPage() {
     };
 
     const handleProcessPayment = async () => {
+        if (selectedPlan?.free) {
+            handleFinish();
+            return;
+        }
+
         if (paymentMethod === "CARD" && !isCardFormValid) {
             notify("Dados incompletos", "Preencha corretamente os dados do cartão para continuar.", "info");
             return;
@@ -319,9 +342,15 @@ export default function CheckoutPage() {
                                     )}
 
                                     <div className="mt-6 mb-8">
-                                        <span className="text-sm text-slate-400">R$</span>
-                                        <span className="text-5xl font-black text-slate-900 ml-1">{plan.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
-                                        <span className="text-slate-400 font-bold ml-1">{getBillingSuffix(plan.billingInterval)}</span>
+                                        {plan.free ? (
+                                            <span className="text-5xl font-black text-slate-900">Grátis</span>
+                                        ) : (
+                                            <>
+                                                <span className="text-sm text-slate-400">R$</span>
+                                                <span className="text-5xl font-black text-slate-900 ml-1">{plan.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                                                <span className="text-slate-400 font-bold ml-1">{getBillingSuffix(plan.billingInterval)}</span>
+                                            </>
+                                        )}
                                     </div>
 
                                     <div className="space-y-3 mb-8 flex-1">
@@ -334,7 +363,7 @@ export default function CheckoutPage() {
                                     </div>
 
                                     <Button onClick={() => handleSelectPlan(plan)} className="h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold">
-                                        Assinar Agora
+                                        {plan.free ? "Começar Agora" : "Assinar Agora"}
                                     </Button>
                                 </div>
                             );
@@ -390,8 +419,10 @@ export default function CheckoutPage() {
                                     </div>
                                     <div className="text-right">
                                         <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Valor</div>
-                                        <div className="text-xl font-black text-slate-900">R$ {selectedPlan?.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
-                                        <div className="text-[10px] font-bold text-slate-400">{getPaymentModeLabel(selectedPlan?.billingInterval)}</div>
+                                        <div className="text-xl font-black text-slate-900">
+                                            {selectedPlan?.free ? "Grátis" : `R$ ${selectedPlan?.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                                        </div>
+                                        {!selectedPlan?.free && <div className="text-[10px] font-bold text-slate-400">{getPaymentModeLabel(selectedPlan?.billingInterval)}</div>}
                                     </div>
                                 </div>
 
@@ -413,8 +444,8 @@ export default function CheckoutPage() {
                                 </div>
                             </div>
 
-                            <Button onClick={() => setStep("PAYMENT_METHOD")} className="w-full h-16 rounded-[1.5rem] bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg gap-3">
-                                Continuar para Pagamento
+                            <Button onClick={() => selectedPlan?.free ? handleProcessPayment() : setStep("PAYMENT_METHOD")} className="w-full h-16 rounded-[1.5rem] bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg gap-3">
+                                {selectedPlan?.free ? "Confirmar Inscrição" : "Continuar para Pagamento"}
                                 <ChevronRight className="group-hover:translate-x-1 transition-transform" />
                             </Button>
                         </div>
@@ -613,7 +644,9 @@ export default function CheckoutPage() {
                                             <div className="text-[11px] text-slate-400 font-bold uppercase tracking-tight">{getAccessLabel(selectedPlan.billingInterval)}</div>
                                         </div>
                                     </div>
-                                    <div className="text-sm font-black text-slate-900">R$ {selectedPlan.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+                                    <div className="text-sm font-black text-slate-900">
+                                        {selectedPlan.free ? "Grátis" : `R$ ${selectedPlan.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                                    </div>
                                 </div>
                             ) : (
                                 <p className="text-sm text-slate-400 italic">Nenhum plano selecionado</p>
@@ -623,7 +656,9 @@ export default function CheckoutPage() {
                         <div className="space-y-3 pt-6 border-t border-slate-50">
                             <div className="flex justify-between text-sm font-bold text-slate-500">
                                 <span>Subtotal</span>
-                                <span className="whitespace-nowrap">R$ {selectedPlan?.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                                <span className="whitespace-nowrap">
+                                    {selectedPlan?.free ? "R$ 0,00" : `R$ ${selectedPlan?.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                                </span>
                             </div>
                             <div className="flex justify-between text-sm font-bold text-emerald-500">
                                 <span>Descontos</span>
@@ -631,7 +666,9 @@ export default function CheckoutPage() {
                             </div>
                             <div className="pt-4 flex items-center justify-between">
                                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total a pagar</div>
-                                <div className="text-xl font-black text-indigo-600 tracking-tighter whitespace-nowrap">R$ {selectedPlan?.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+                                <div className="text-xl font-black text-indigo-600 tracking-tighter whitespace-nowrap">
+                                    {selectedPlan?.free ? "Grátis" : `R$ ${selectedPlan?.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                                </div>
                             </div>
                         </div>
 
@@ -653,5 +690,20 @@ export default function CheckoutPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function CheckoutPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-white font-sans">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="w-12 h-12 animate-spin text-indigo-600" />
+                    <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">Carregando...</p>
+                </div>
+            </div>
+        }>
+            <CheckoutContent />
+        </Suspense>
     );
 }

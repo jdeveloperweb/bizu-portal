@@ -170,15 +170,21 @@ function PricingContent() {
                                         </p>
 
                                         <div className="flex items-baseline gap-1 mb-2">
-                                            <span className="text-sm text-slate-400 font-bold">R$</span>
-                                            <span className="text-4xl font-black text-slate-900">
-                                                {plan.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                            </span>
-                                            <span className="text-sm text-slate-400 font-bold capitalize">
-                                                {plan.billingInterval === 'MONTHLY' ? '/mês' :
-                                                    plan.billingInterval === 'YEARLY' ? '/ano' :
-                                                        ' (único)'}
-                                            </span>
+                                            {plan.free ? (
+                                                <span className="text-4xl font-black text-slate-900">Grátis</span>
+                                            ) : (
+                                                <>
+                                                    <span className="text-sm text-slate-400 font-bold">R$</span>
+                                                    <span className="text-4xl font-black text-slate-900">
+                                                        {plan.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                    </span>
+                                                    <span className="text-sm text-slate-400 font-bold capitalize">
+                                                        {plan.billingInterval === 'MONTHLY' ? '/mês' :
+                                                            plan.billingInterval === 'YEARLY' ? '/ano' :
+                                                                ' (único)'}
+                                                    </span>
+                                                </>
+                                            )}
                                         </div>
 
                                         <div className="space-y-4 my-8 flex-1">
@@ -224,7 +230,7 @@ function PricingContent() {
                                                         }
                                                 }
                                             >
-                                                Assinar Agora
+                                                {plan.free ? "Começar Agora" : "Assinar Agora"}
                                             </button>
                                         </Link>
                                     </div>

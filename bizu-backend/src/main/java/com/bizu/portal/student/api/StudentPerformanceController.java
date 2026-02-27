@@ -87,12 +87,26 @@ public class StudentPerformanceController {
         long totalAttempted = rows.size();
         long totalUniqueAttempted = rows.stream().map(r -> r.get("question_id")).distinct().count();
         
-        java.time.LocalDate today = java.time.LocalDate.now();
+        // Use Brazil timezone for "Daily" metrics
+        java.time.ZoneId zoneId = java.time.ZoneId.of("America/Sao_Paulo");
+        java.time.LocalDate today = java.time.LocalDate.now(zoneId);
+        
         long dailyAttempted = rows.stream().filter(r -> {
             Object createdAt = r.get("created_at");
-            if (createdAt instanceof OffsetDateTime odt) return odt.toLocalDate().equals(today);
-            if (createdAt instanceof java.sql.Timestamp ts) return ts.toLocalDateTime().toLocalDate().equals(today);
-            return false;
+            if (createdAt == null) return false;
+            
+            java.time.LocalDate itemDate = null;
+            if (createdAt instanceof OffsetDateTime odt) {
+                itemDate = odt.atZoneSameInstant(zoneId).toLocalDate();
+            } else if (createdAt instanceof java.sql.Timestamp ts) {
+                itemDate = ts.toInstant().atZone(zoneId).toLocalDate();
+            } else if (createdAt instanceof java.time.LocalDateTime ldt) {
+                itemDate = ldt.toLocalDate(); // Falls back to system default/UTC if not specified
+            } else if (createdAt instanceof java.sql.Date d) {
+                itemDate = d.toLocalDate();
+            }
+            
+            return today.equals(itemDate);
         }).count();
 
         long correctCount = rows.stream().filter(r -> Boolean.TRUE.equals(r.get("is_correct"))).count();

@@ -32,10 +32,22 @@ interface Plan {
     highlight: boolean;
     badge: string;
     sortOrder: number;
+    free?: boolean;
+    course?: {
+        id: string;
+        title: string;
+    };
+    courseId?: string; // Para o formulário
+}
+
+interface Course {
+    id: string;
+    title: string;
 }
 
 export default function AdminPlanosPage() {
     const [plans, setPlans] = useState<Plan[]>([]);
+    const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
@@ -51,7 +63,9 @@ export default function AdminPlanosPage() {
         features: '[]',
         highlight: false,
         badge: "",
-        sortOrder: 0
+        sortOrder: 0,
+        free: false,
+        courseId: ""
     });
 
     const fetchPlans = async () => {
@@ -69,14 +83,30 @@ export default function AdminPlanosPage() {
         }
     };
 
+    const fetchCourses = async () => {
+        try {
+            const res = await apiFetch("/admin/courses");
+            if (res.ok) {
+                const data = await res.json();
+                setCourses(data);
+            }
+        } catch (error) {
+            console.error("Erro ao carregar cursos", error);
+        }
+    };
+
     useEffect(() => {
         fetchPlans();
+        fetchCourses();
     }, []);
 
     const handleOpenModal = (plan?: Plan) => {
         if (plan) {
             setEditingPlan(plan);
-            setForm(plan);
+            setForm({
+                ...plan,
+                courseId: plan.course?.id || ""
+            });
         } else {
             setEditingPlan(null);
             setForm({
@@ -89,7 +119,9 @@ export default function AdminPlanosPage() {
                 features: '[]',
                 highlight: false,
                 badge: "",
-                sortOrder: plans.length
+                sortOrder: plans.length,
+                free: false,
+                courseId: ""
             });
         }
         setIsModalOpen(true);
@@ -102,9 +134,14 @@ export default function AdminPlanosPage() {
             const url = editingPlan ? `/admin/plans/${editingPlan.id}` : "/admin/plans";
             const method = editingPlan ? "PUT" : "POST";
 
+            const payload = {
+                ...form,
+                course: form.courseId ? { id: form.courseId } : null
+            };
+
             const res = await apiFetch(url, {
                 method,
-                body: JSON.stringify(form)
+                body: JSON.stringify(payload)
             });
 
             if (res.ok) {
@@ -182,8 +219,17 @@ export default function AdminPlanosPage() {
                                     ) : (
                                         <XCircle size={14} className="text-slate-300" />
                                     )}
+                                    {plan.free && (
+                                        <span className="px-2 py-0.5 bg-emerald-100 text-[9px] font-black text-emerald-600 rounded-md uppercase">Grátis</span>
+                                    )}
                                 </div>
-                                <p className="text-sm text-slate-500 line-clamp-2">{plan.description}</p>
+                                <p className="text-sm text-slate-500 line-clamp-2 mb-2">{plan.description}</p>
+                                {plan.course && (
+                                    <div className="flex items-center gap-1.5 mt-2 p-2 bg-slate-50 rounded-xl border border-slate-100/50">
+                                        <Layout size={12} className="text-indigo-500" />
+                                        <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">{plan.course.title}</span>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
@@ -257,6 +303,20 @@ export default function AdminPlanosPage() {
                             </div>
 
                             <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Vincular a um Curso</label>
+                                <select
+                                    value={form.courseId}
+                                    onChange={e => setForm({ ...form, courseId: e.target.value })}
+                                    className="w-full h-12 px-4 rounded-2xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-indigo-600 transition-all text-sm font-semibold outline-none"
+                                >
+                                    <option value="">Nenhum curso específico (Plano Geral)</option>
+                                    {courses.map(course => (
+                                        <option key={course.id} value={course.id}>{course.title}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="space-y-1.5">
                                 <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Benefícios (JSON Array)</label>
                                 <textarea value={form.features} onChange={e => setForm({ ...form, features: e.target.value })} placeholder='["Acesso Total", "Simulados Semanais"]' className="w-full h-20 p-4 rounded-2xl bg-slate-50 border border-slate-100 focus:bg-white focus:border-indigo-600 transition-all text-[13px] font-mono outline-none resize-none" />
                             </div>
@@ -276,6 +336,14 @@ export default function AdminPlanosPage() {
                                         <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-indigo-600 transition-all after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
                                     </div>
                                     <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">Destaque</span>
+                                </label>
+
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <div className="relative flex items-center">
+                                        <input type="checkbox" checked={form.free} onChange={e => setForm({ ...form, free: e.target.checked })} className="sr-only peer" />
+                                        <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-emerald-500 transition-all after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
+                                    </div>
+                                    <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">Plano Gratuito</span>
                                 </label>
                             </div>
 

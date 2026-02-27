@@ -72,4 +72,8 @@ public class Plan {
     @Builder.Default
     @Column(name = "sort_order")
     private int sortOrder = 0;
+
+    @Builder.Default
+    @Column(name = "is_free")
+    private boolean free = false;
 }
