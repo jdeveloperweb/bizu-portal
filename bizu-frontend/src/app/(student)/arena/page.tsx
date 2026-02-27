@@ -12,6 +12,7 @@ import { apiFetch } from "@/lib/api";
 import { getStoredSelectedCourseId } from "@/lib/course-selection";
 import { DuelService, Duel } from "@/lib/duelService";
 import ArenaDuelScreen from "@/components/arena/ArenaDuelScreen";
+import { getAvatarUrl } from "@/lib/imageUtils";
 import ActiveDuelBanner from "@/components/arena/ActiveDuelBanner";
 import Cookies from "js-cookie";
 import { useChallengeNotifications } from "@/hooks/useChallengeNotifications";
@@ -81,7 +82,7 @@ function ArenaPageContent() {
                     setOnlineUsers(users.map((u: any) => ({
                         id: u.id,
                         name: u.name || "Usuário",
-                        avatar: u.avatar || u.name?.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || "US",
+                        avatar: u.avatar || "", // Keep empty if no URL
                         level: parseInt(Math.floor(Number(u.level) || 1).toString()),
                         xp: Number(u.xp) || 0,
                         winRate: Number(u.winRate) || 0,
@@ -236,8 +237,16 @@ function ArenaPageContent() {
                         {pendingDuels.map(duel => (
                             <div key={duel.id} className="card-elevated !rounded-2xl p-4 bg-white border-2 border-indigo-100 flex items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
-                                        <Swords size={20} />
+                                    <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center overflow-hidden text-indigo-600 font-bold text-xs ring-2 ring-white">
+                                        {duel.challenger.avatarUrl ? (
+                                            <img
+                                                src={getAvatarUrl(duel.challenger.avatarUrl)}
+                                                className="w-full h-full object-cover"
+                                                alt={duel.challenger.name}
+                                            />
+                                        ) : (
+                                            duel.challenger.name?.slice(0, 2).toUpperCase() || <Swords size={20} />
+                                        )}
                                     </div>
                                     <div>
                                         <div className="text-sm font-bold text-slate-800">{duel.challenger.name}</div>
@@ -315,8 +324,25 @@ function ArenaPageContent() {
                         <div key={user.id} className="card-elevated !rounded-2xl p-4 hover:!transform-none">
                             <div className="flex items-center gap-3">
                                 <div className="relative">
-                                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center text-[12px] font-bold text-indigo-700">
-                                        {user.avatar}
+                                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center overflow-hidden text-[12px] font-bold text-indigo-700 border border-indigo-200/50 shadow-sm">
+                                        {user.avatar && (user.avatar.includes('/') || user.avatar.startsWith('http')) ? (
+                                            <img
+                                                src={getAvatarUrl(user.avatar)}
+                                                className="w-full h-full object-cover"
+                                                alt={user.name}
+                                                onError={(e) => {
+                                                    // Fallback to initials on image error
+                                                    (e.target as HTMLImageElement).style.display = 'none';
+                                                    const parent = (e.target as HTMLImageElement).parentElement;
+                                                    if (parent) {
+                                                        const initials = user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
+                                                        parent.innerText = initials || 'US';
+                                                    }
+                                                }}
+                                            />
+                                        ) : (
+                                            <span>{user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || "US"}</span>
+                                        )}
                                     </div>
                                     <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${user.status === "online" ? "bg-emerald-400" : "bg-amber-400"
                                         }`} />

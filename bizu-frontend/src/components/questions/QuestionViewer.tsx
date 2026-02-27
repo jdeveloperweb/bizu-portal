@@ -22,6 +22,7 @@ interface QuestionProps {
     subject?: string;
     banca?: string;
     year?: number | string;
+    hideTopBar?: boolean;
 }
 
 export default function QuestionViewer({
@@ -34,6 +35,7 @@ export default function QuestionViewer({
     subject,
     banca,
     year,
+    hideTopBar = false,
 }: QuestionProps) {
     const AUTO_NEXT_DELAY_MS = 5000;
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -78,28 +80,30 @@ export default function QuestionViewer({
             <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-[80px] pointer-events-none" />
 
             {/* Top Bar with Tags and Actions */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 md:mb-8 gap-3 sm:gap-0 relative z-10">
-                <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 md:px-3 md:py-1.5 bg-primary/10 text-primary font-black text-[9px] md:text-[10px] uppercase tracking-wider rounded-full border border-primary/20">
-                        <Sparkles className="w-3 h-3" />
-                        {banca || "Bizu"}
+            {!hideTopBar && (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 md:mb-8 gap-3 sm:gap-0 relative z-10">
+                    <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 md:px-3 md:py-1.5 bg-primary/10 text-primary font-black text-[9px] md:text-[10px] uppercase tracking-wider rounded-full border border-primary/20">
+                            <Sparkles className="w-3 h-3" />
+                            {banca || "Bizu"}
+                        </div>
+                        <div className="px-2.5 py-1 md:px-3 md:py-1.5 bg-muted/50 text-muted-foreground font-bold text-[9px] md:text-[10px] uppercase tracking-wider rounded-full border border-border/50">
+                            {year || "2026"}
+                        </div>
+                        <div className="text-[9px] md:text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] pl-2.5 md:pl-3 border-l border-border/50">
+                            {subject || "Geral"}
+                        </div>
                     </div>
-                    <div className="px-2.5 py-1 md:px-3 md:py-1.5 bg-muted/50 text-muted-foreground font-bold text-[9px] md:text-[10px] uppercase tracking-wider rounded-full border border-border/50">
-                        {year || "2026"}
-                    </div>
-                    <div className="text-[9px] md:text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] pl-2.5 md:pl-3 border-l border-border/50">
-                        {subject || "Geral"}
+                    <div className="flex items-center gap-1 absolute sm:relative top-0 right-0">
+                        <Button variant="ghost" size="icon" className="rounded-full w-8 h-8 md:w-9 md:h-9 hover:bg-primary/10 hover:text-primary transition-all duration-300">
+                            <Bookmark className="w-3.5 h-3.5 md:w-4 md:h-4 shadow-sm" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="rounded-full w-8 h-8 md:w-9 md:h-9 hover:bg-primary/10 hover:text-primary transition-all duration-300">
+                            <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4 shadow-sm" />
+                        </Button>
                     </div>
                 </div>
-                <div className="flex items-center gap-1 absolute sm:relative top-0 right-0">
-                    <Button variant="ghost" size="icon" className="rounded-full w-8 h-8 md:w-9 md:h-9 hover:bg-primary/10 hover:text-primary transition-all duration-300">
-                        <Bookmark className="w-3.5 h-3.5 md:w-4 md:h-4 shadow-sm" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="rounded-full w-8 h-8 md:w-9 md:h-9 hover:bg-primary/10 hover:text-primary transition-all duration-300">
-                        <Share2 className="w-3.5 h-3.5 md:w-4 md:h-4 shadow-sm" />
-                    </Button>
-                </div>
-            </div>
+            )}
 
             {/* Question Statement */}
             <div

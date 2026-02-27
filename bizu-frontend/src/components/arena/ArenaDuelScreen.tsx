@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Swords, Trophy, Timer, CheckCircle2, XCircle, Zap, Shield, Crown } from "lucide-react";
+import { Swords, Trophy, Timer, CheckCircle2, XCircle, Zap, Shield, Crown, Maximize2, Minimize2 } from "lucide-react";
 import { Duel, DuelQuestion, DuelService } from "@/lib/duelService";
 import { useDuelWebSocket } from "@/hooks/useDuelWebSocket";
 import { useGamification } from "@/components/gamification/GamificationProvider";
@@ -22,6 +22,8 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
     const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
     const [timeLeft, setTimeLeft] = useState(30);
     const [showCorrection, setShowCorrection] = useState(false);
+    const [isMaximized, setIsMaximized] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
 
     useDuelWebSocket(duelId, (updatedDuel) => {
         setDuel(updatedDuel);
@@ -131,6 +133,24 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
         }
     };
 
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
+        return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    }, []);
+
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    };
+
     if (!duel) {
         return (
             <div className="fixed inset-0 z-[10000] bg-slate-900 flex items-center justify-center">
@@ -144,93 +164,112 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
     }
 
     return (
-        <div className="fixed inset-0 z-[10000] bg-slate-900 flex items-center justify-center sm:p-4">
-            <div className="w-full max-w-4xl bg-white sm:rounded-3xl overflow-hidden shadow-2xl relative flex flex-col h-full sm:h-[90vh]">
-                {/* Header / Scoreboard */}
-                <div className="bg-slate-50 p-4 md:p-6 border-b border-slate-100 relative">
+        <div className={`fixed inset-0 z-[10000] bg-slate-900 flex items-center justify-center ${isMaximized ? "p-0" : "sm:p-4"}`}>
+            <div className={`w-full bg-white overflow-hidden shadow-2xl relative flex flex-col h-full ${isMaximized ? "sm:h-screen sm:rounded-none" : "max-w-4xl sm:rounded-3xl sm:h-[90vh]"}`}>
+                {/* Header Toggle / Controls */}
+                <div className="absolute top-4 right-4 z-[100] flex items-center gap-2">
+                    <button
+                        onClick={toggleFullscreen}
+                        className="p-2 text-slate-400 hover:text-indigo-600 bg-white/80 backdrop-blur shadow-sm rounded-full transition-all"
+                        title={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
+                    >
+                        {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+                    </button>
+                    <button
+                        onClick={() => setIsMaximized(!isMaximized)}
+                        className="p-2 text-slate-400 hover:text-indigo-600 bg-white/80 backdrop-blur shadow-sm rounded-full transition-all"
+                        title={isMaximized ? "Sair do modo foco" : "Modo foco (mais espaço)"}
+                    >
+                        {isMaximized ? <Shield size={20} /> : <Zap size={20} />}
+                    </button>
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 z-50 rounded-full hover:bg-slate-100 transition-colors"
+                        className="p-2 text-slate-400 hover:text-red-600 bg-white/80 backdrop-blur shadow-sm rounded-full transition-all"
                         title="Fechar e voltar"
                     >
-                        <XCircle size={24} />
+                        <XCircle size={20} />
                     </button>
+                </div>
 
-                    <div className="flex items-center justify-between gap-8 md:px-6">
-                        {/* Challenger */}
-                        <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-                            <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center overflow-hidden shadow-lg ${isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
-                                {duel.challenger?.avatarUrl ? (
-                                    <img
-                                        src={getAvatarUrl(duel.challenger.avatarUrl)}
-                                        className="w-full h-full object-cover"
-                                        alt={duel.challenger.name}
-                                    />
-                                ) : (
-                                    <span className="text-white text-lg md:text-xl font-bold">
-                                        {duel.challenger?.name?.slice(0, 2).toUpperCase()}
-                                    </span>
-                                )}
-                            </div>
-                            <span className="text-[10px] md:text-sm font-bold text-slate-800 truncate w-full text-center">{duel.challenger?.name}</span>
-                            <div className="flex gap-0.5 md:gap-1 mt-0.5">
-                                {Array.from({ length: 10 }).map((_, i) => (
-                                    <div key={i} className={`w-1.5 h-1.5 md:w-2.5 md:h-2.5 rounded-full ${duel.questions[i]?.challengerCorrect === true ? "bg-emerald-500" :
-                                        duel.questions[i]?.challengerCorrect === false ? "bg-red-500" :
-                                            "bg-slate-200"
-                                        }`} />
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* VS / Round Info */}
-                        <div className="flex flex-col items-center gap-1 relative">
-                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rodada {duel.currentRound}</div>
-                            <div className="flex items-center gap-2 md:gap-4">
-                                <span className="text-2xl md:text-4xl font-black text-slate-900">{duel.challengerScore}</span>
-                                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-900 flex items-center justify-center text-white shadow-lg shrink-0">
-                                    <span className="text-[10px] md:text-xs font-bold leading-none">VS</span>
+                {/* Header / Scoreboard */}
+                {!isMaximized && (
+                    <div className="bg-slate-50 p-4 md:p-6 border-b border-slate-100 relative">
+                        <div className="flex items-center justify-between gap-8 md:px-6">
+                            {/* Challenger */}
+                            <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
+                                <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center overflow-hidden shadow-lg ${isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
+                                    {duel.challenger?.avatarUrl ? (
+                                        <img
+                                            src={getAvatarUrl(duel.challenger.avatarUrl)}
+                                            className="w-full h-full object-cover"
+                                            alt={duel.challenger.name}
+                                        />
+                                    ) : (
+                                        <span className="text-white text-lg md:text-xl font-bold">
+                                            {duel.challenger?.name?.slice(0, 2).toUpperCase()}
+                                        </span>
+                                    )}
                                 </div>
-                                <span className="text-2xl md:text-4xl font-black text-slate-900">{duel.opponentScore}</span>
+                                <span className="text-[10px] md:text-sm font-bold text-slate-800 truncate w-full text-center">{duel.challenger?.name}</span>
+                                <div className="flex gap-0.5 md:gap-1 mt-0.5">
+                                    {Array.from({ length: 10 }).map((_, i) => (
+                                        <div key={i} className={`w-1.5 h-1.5 md:w-2.5 md:h-2.5 rounded-full ${duel.questions[i]?.challengerCorrect === true ? "bg-emerald-500" :
+                                            duel.questions[i]?.challengerCorrect === false ? "bg-red-500" :
+                                                "bg-slate-200"
+                                            }`} />
+                                    ))}
+                                </div>
                             </div>
-                            {duel.suddenDeath && (
-                                <motion.div
-                                    initial={{ scale: 0.8, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    className="bg-red-500 text-white text-[9px] md:text-[10px] font-bold px-1.5 md:py-0.5 rounded-full mt-1 flex items-center gap-0.5 md:gap-1"
-                                >
-                                    <Zap size={8} /> MORTE SÚBITA
-                                </motion.div>
-                            )}
-                        </div>
 
-                        {/* Opponent */}
-                        <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-                            <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center overflow-hidden shadow-lg ${!isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
-                                {duel.opponent?.avatarUrl ? (
-                                    <img
-                                        src={getAvatarUrl(duel.opponent.avatarUrl)}
-                                        className="w-full h-full object-cover"
-                                        alt={duel.opponent.name}
-                                    />
-                                ) : (
-                                    <span className="text-slate-600 text-lg md:text-xl font-bold">
-                                        {duel.opponent?.name?.slice(0, 2).toUpperCase()}
-                                    </span>
+                            {/* VS / Round Info */}
+                            <div className="flex flex-col items-center gap-1 relative">
+                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rodada {duel.currentRound}</div>
+                                <div className="flex items-center gap-2 md:gap-4">
+                                    <span className="text-2xl md:text-4xl font-black text-slate-900">{duel.challengerScore}</span>
+                                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-900 flex items-center justify-center text-white shadow-lg shrink-0">
+                                        <span className="text-[10px] md:text-xs font-bold leading-none">VS</span>
+                                    </div>
+                                    <span className="text-2xl md:text-4xl font-black text-slate-900">{duel.opponentScore}</span>
+                                </div>
+                                {duel.suddenDeath && (
+                                    <motion.div
+                                        initial={{ scale: 0.8, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        className="bg-red-500 text-white text-[9px] md:text-[10px] font-bold px-1.5 md:py-0.5 rounded-full mt-1 flex items-center gap-0.5 md:gap-1"
+                                    >
+                                        <Zap size={8} /> MORTE SÚBITA
+                                    </motion.div>
                                 )}
                             </div>
-                            <span className="text-[10px] md:text-sm font-bold text-slate-800 truncate w-full text-center">{duel.opponent?.name}</span>
-                            <div className="flex gap-0.5 md:gap-1 mt-0.5">
-                                {Array.from({ length: 10 }).map((_, i) => (
-                                    <div key={i} className={`w-1.5 h-1.5 md:w-2.5 md:h-2.5 rounded-full ${duel.questions[i]?.opponentCorrect === true ? "bg-emerald-500" :
-                                        duel.questions[i]?.opponentCorrect === false ? "bg-red-500" :
-                                            "bg-slate-200"
-                                        }`} />
-                                ))}
+
+                            {/* Opponent */}
+                            <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
+                                <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center overflow-hidden shadow-lg ${!isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
+                                    {duel.opponent?.avatarUrl ? (
+                                        <img
+                                            src={getAvatarUrl(duel.opponent.avatarUrl)}
+                                            className="w-full h-full object-cover"
+                                            alt={duel.opponent.name}
+                                        />
+                                    ) : (
+                                        <span className="text-slate-600 text-lg md:text-xl font-bold">
+                                            {duel.opponent?.name?.slice(0, 2).toUpperCase()}
+                                        </span>
+                                    )}
+                                </div>
+                                <span className="text-[10px] md:text-sm font-bold text-slate-800 truncate w-full text-center">{duel.opponent?.name}</span>
+                                <div className="flex gap-0.5 md:gap-1 mt-0.5">
+                                    {Array.from({ length: 10 }).map((_, i) => (
+                                        <div key={i} className={`w-1.5 h-1.5 md:w-2.5 md:h-2.5 rounded-full ${duel.questions[i]?.opponentCorrect === true ? "bg-emerald-500" :
+                                            duel.questions[i]?.opponentCorrect === false ? "bg-red-500" :
+                                                "bg-slate-200"
+                                            }`} />
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* Question Area */}
                 <div className="flex-1 overflow-y-auto px-4 py-6 md:p-8 flex flex-col items-center justify-center min-h-0">

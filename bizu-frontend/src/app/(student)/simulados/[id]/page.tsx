@@ -19,6 +19,7 @@ export default function SimuladoProvaPage() {
     const [cheatWarning, setCheatWarning] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isFocusMode, setIsFocusMode] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Fetch Data
@@ -175,43 +176,74 @@ export default function SimuladoProvaPage() {
                 </div>
             )}
 
-            {/* Strict Exam Top Bar */}
-            <div className="bg-slate-900 text-slate-100 px-6 py-4 flex items-center justify-between sticky top-0 z-50 shadow-md">
-                <div className="flex items-center gap-3">
-                    <div className="bg-indigo-500/20 text-indigo-300 p-2 rounded-lg">
-                        <Target size={20} />
-                    </div>
-                    <div>
-                        <h1 className="text-sm font-bold uppercase tracking-widest text-indigo-400">Modo Prova</h1>
-                        <p className="text-xs text-slate-400 font-medium truncate max-w-[200px] md:max-w-md">{simulado.title}</p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    {!isFullscreen && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-xs border-slate-700 bg-slate-800 hover:bg-slate-700 hover:text-white"
-                            onClick={requestFullscreen}
-                        >
-                            <Maximize size={14} className="mr-2" />
-                            Tela Cheia
-                        </Button>
-                    )}
-                    <div className="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700">
-                        <span className="text-xs font-bold text-slate-400">Questão</span>
-                        <span className="text-sm font-black text-white">{currentQuestionIdx + 1} / {simulado.questions.length}</span>
-                    </div>
-                </div>
+            {/* Focus Mode Toggle (Floating when header is hidden) */}
+            <div className="fixed top-4 right-4 z-[100] flex items-center gap-2">
+                <Button
+                    variant="secondary"
+                    size="icon"
+                    className="rounded-full shadow-lg bg-white/80 backdrop-blur hover:bg-white text-slate-600"
+                    onClick={() => setIsFocusMode(!isFocusMode)}
+                    title={isFocusMode ? "Mostrar cabeçalho" : "Ocultar cabeçalho (Foco Total)"}
+                >
+                    {isFocusMode ? <Target size={20} /> : <Maximize size={20} />}
+                </Button>
+                {isFocusMode && !isFullscreen && (
+                    <Button
+                        variant="secondary"
+                        size="icon"
+                        className="rounded-full shadow-lg bg-white/80 backdrop-blur hover:bg-white text-slate-600"
+                        onClick={requestFullscreen}
+                        title="Tela Cheia"
+                    >
+                        <Maximize size={20} />
+                    </Button>
+                )}
             </div>
 
+            {/* Strict Exam Top Bar */}
+            {!isFocusMode && (
+                <div className="bg-slate-900 text-slate-100 px-6 py-4 flex items-center justify-between sticky top-0 z-50 shadow-md">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-indigo-500/20 text-indigo-300 p-2 rounded-lg">
+                            <Target size={20} />
+                        </div>
+                        <div>
+                            <h1 className="text-sm font-bold uppercase tracking-widest text-indigo-400">Modo Prova</h1>
+                            <p className="text-xs text-slate-400 font-medium truncate max-w-[200px] md:max-w-md">{simulado.title}</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        {!isFullscreen && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs border-slate-700 bg-slate-800 hover:bg-slate-700 hover:text-white"
+                                onClick={requestFullscreen}
+                            >
+                                <Maximize size={14} className="mr-2" />
+                                Tela Cheia
+                            </Button>
+                        )}
+                        <div className="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700">
+                            <span className="text-xs font-bold text-slate-400">Questão</span>
+                            <span className="text-sm font-black text-white">{currentQuestionIdx + 1} / {simulado.questions.length}</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Exam Content Area */}
-            <div className="max-w-4xl mx-auto py-8 px-4 h-[calc(100vh-80px)] overflow-y-auto custom-scrollbar pb-24">
+            <div className={`max-w-4xl mx-auto px-4 overflow-y-auto custom-scrollbar pb-24 ${isFocusMode ? "py-4 md:py-12 h-screen" : "py-8 h-[calc(100vh-80px)]"}`}>
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-10">
                     {/* Reusing QuestionViewer inside the sleek container */}
                     <div key={mappedQuestion.id}>
-                        <QuestionViewer {...mappedQuestion} onNext={handleNext} isSimuladoMode={true} />
+                        <QuestionViewer
+                            {...mappedQuestion}
+                            onNext={handleNext}
+                            isSimuladoMode={true}
+                            hideTopBar={isFocusMode}
+                        />
                     </div>
                 </div>
             </div>

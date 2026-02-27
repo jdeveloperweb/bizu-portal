@@ -74,15 +74,24 @@ export function getAvatarUrl(url?: string): string {
     if (!url) return '';
     if (url.startsWith('http')) return url;
 
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
-
-    // Robust check for duplicated /api/v1
-    const prefix = '/api/v1';
-    if (url.startsWith(prefix) && apiBase.endsWith(prefix)) {
-        // Remove prefix from url or apiBase to avoid duplication
-        const cleanBase = apiBase.substring(0, apiBase.length - prefix.length);
-        return `${cleanBase}${url}`;
+    let apiBase = process.env.NEXT_PUBLIC_API_URL || '';
+    // Ensure apiBase doesn't end with a slash for easier joining
+    if (apiBase.endsWith('/')) {
+        apiBase = apiBase.substring(0, apiBase.length - 1);
     }
 
-    return `${apiBase}${url}`;
+    // Ensure url starts with a slash
+    let cleanUrl = url;
+    if (!cleanUrl.startsWith('/')) {
+        cleanUrl = '/' + cleanUrl;
+    }
+
+    const prefix = '/api/v1';
+
+    // If apiBase ends with /api/v1 AND url also starts with /api/v1, remove one
+    if (apiBase.endsWith(prefix) && cleanUrl.startsWith(prefix)) {
+        return `${apiBase.substring(0, apiBase.length - prefix.length)}${cleanUrl}`;
+    }
+
+    return `${apiBase}${cleanUrl}`;
 }
