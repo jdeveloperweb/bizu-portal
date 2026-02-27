@@ -21,4 +21,6 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     List<Payment> findTop5ByOrderByCreatedAtDesc();
 
     List<Payment> findByUserIdOrderByCreatedAtDesc(UUID userId);
+
+    java.util.Optional<Payment> findByStripeIntentId(String stripeIntentId);
 }

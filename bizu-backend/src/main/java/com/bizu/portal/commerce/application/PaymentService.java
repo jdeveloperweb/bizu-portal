@@ -175,8 +175,8 @@ public class PaymentService {
         payment.setStatus("SUCCEEDED");
         paymentRepository.save(payment);
 
-        if (payment.getPlanId() != null) {
-            activateSubscription(payment.getUser().getId(), payment.getPlanId());
+        if (payment.getPlan() != null) {
+            activateSubscription(payment.getUser().getId(), payment.getPlan().getId());
         } else {
             log.error("Pagamento {} sem ID de plano vinculado!", orderNsu);
         }
