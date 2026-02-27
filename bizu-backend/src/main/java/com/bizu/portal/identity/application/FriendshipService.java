@@ -92,4 +92,12 @@ public class FriendshipService {
     public List<User> searchUsersByNickname(String nickname) {
         return userRepository.findByNicknameContainingIgnoreCase(nickname);
     }
+
+    @Transactional(readOnly = true)
+    public List<User> getSuggestedFriends(UUID courseId, UUID currentUserId) {
+        if (courseId == null) {
+            return List.of();
+        }
+        return userRepository.findSuggestedFriendsByCourseId(courseId, currentUserId, 10);
+    }
 }

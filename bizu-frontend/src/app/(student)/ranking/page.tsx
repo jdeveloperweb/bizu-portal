@@ -58,10 +58,10 @@ export default function RankingStudentPage() {
                         nickname: u.nickname,
                         avatar: u.avatar || u.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase(),
                         xp: u.xp,
-                        streak: u.streak,
-                        accuracy: 0,
-                        questionsThisWeek: 0,
-                        delta: 0
+                        streak: u.streak || 0,
+                        accuracy: u.accuracy ? Math.round(Number(u.accuracy)) : 0,
+                        questionsThisWeek: u.questionsThisWeek || 0,
+                        delta: u.delta || 0
                     })));
                 }
 
@@ -73,10 +73,10 @@ export default function RankingStudentPage() {
                         nickname: u.nickname,
                         avatar: u.avatar || "EU",
                         xp: u.xp,
-                        streak: u.streak,
-                        accuracy: 0,
-                        questionsThisWeek: 0,
-                        delta: 0
+                        streak: u.streak || 0,
+                        accuracy: u.accuracy ? Math.round(Number(u.accuracy)) : 0,
+                        questionsThisWeek: u.questionsThisWeek || 0,
+                        delta: u.delta || 0
                     });
                 }
 

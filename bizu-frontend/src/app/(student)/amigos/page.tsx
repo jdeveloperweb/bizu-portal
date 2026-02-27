@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Users, Search, UserPlus, ShieldAlert, Loader2, Check, X, ArrowRight } from "lucide-react";
+import { Users, Search, UserPlus, ShieldAlert, Loader2, Check, X, ArrowRight, Sparkles } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { getStoredSelectedCourseId } from "@/lib/course-selection";
 
 type Tab = "amigos" | "pedidos" | "buscar";
 
@@ -13,11 +14,13 @@ export default function AmigosPage() {
     const [pending, setPending] = useState<any[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [suggestions, setSuggestions] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (activeTab === "amigos") fetchFriends();
         if (activeTab === "pedidos") fetchPending();
+        if (activeTab === "buscar") fetchSuggestions();
     }, [activeTab]);
 
     const fetchFriends = async () => {
@@ -37,6 +40,19 @@ export default function AmigosPage() {
             const res = await apiFetch("/friends/pending");
             if (res.ok) setPending(await res.json());
             else setPending([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchSuggestions = async () => {
+        const courseId = getStoredSelectedCourseId();
+        if (!courseId) return;
+        setLoading(true);
+        try {
+            const res = await apiFetch(`/friends/suggestions?courseId=${courseId}`);
+            if (res.ok) setSuggestions(await res.json());
+            else setSuggestions([]);
         } finally {
             setLoading(false);
         }
@@ -190,6 +206,33 @@ export default function AmigosPage() {
 
                         {!loading && searchResults.length === 0 && searchQuery && (
                             <p className="text-center text-slate-500">Nenhum usuário encontrado com esse nickname.</p>
+                        )}
+
+                        {!loading && searchResults.length === 0 && !searchQuery && suggestions.length > 0 && (
+                            <div className="mt-8">
+                                <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                    <Sparkles size={16} className="text-indigo-500" />
+                                    Sugestões do seu curso
+                                </h3>
+                                <div className="space-y-4">
+                                    {suggestions.map(u => (
+                                        <div key={u.id} className="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700">
+                                                    {u.avatar || u.name.substring(0, 2).toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <div className="font-bold text-slate-800">{u.name}</div>
+                                                    <div className="text-xs text-slate-500">@{u.nickname}</div>
+                                                </div>
+                                            </div>
+                                            <Link href={`/perfil/${u.nickname}`} className="btn btn-secondary btn-sm gap-2">
+                                                <UserPlus size={14} /> Ver Perfil
+                                            </Link>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         )}
                     </div>
                 )}

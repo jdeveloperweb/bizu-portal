@@ -86,4 +86,13 @@ public class FriendshipController {
             .collect(Collectors.toList());
         return ResponseEntity.ok(users);
     }
+
+    @GetMapping("/suggestions")
+    public ResponseEntity<List<UserProfileDto>> getSuggestedFriends(@AuthenticationPrincipal Jwt jwt, @RequestParam UUID courseId) {
+        List<UserProfileDto> users = friendshipService.getSuggestedFriends(courseId, getCurrentUserId(jwt))
+            .stream()
+            .map(this::toUserProfileDto)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(users);
+    }
 }

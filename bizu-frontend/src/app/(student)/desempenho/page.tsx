@@ -88,9 +88,10 @@ export default function DesempenhoPage() {
 
     const subjectStats = data.bySubject.map((s, i) => ({
         ...s,
+        accuracy: Math.round(Number(s.accuracy || 0)),
         color: colors[i % colors.length],
         shortName: s.subject.length > 8 ? s.subject.substring(0, 8) + "." : s.subject,
-        weakTopics: [] as string[],
+        weakTopics: s.weakTopics || [],
         trend: 0
     }));
 
@@ -100,7 +101,7 @@ export default function DesempenhoPage() {
     }));
 
     const totalQuestions = data.totalAttempted;
-    const overallAccuracy = Math.round(data.overallAccuracy);
+    const overallAccuracy = Math.round(Number(data.overallAccuracy || 0));
     const weakSubjects = subjectStats.filter(s => s.accuracy < 75).sort((a, b) => a.accuracy - b.accuracy);
     const strongSubjects = subjectStats.filter(s => s.accuracy >= 85).sort((a, b) => b.accuracy - a.accuracy);
     const maxWeeklyQuestions = Math.max(...weeklyData.map(d => d.questions), 1);
