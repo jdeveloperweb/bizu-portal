@@ -9,6 +9,7 @@ import {
     Loader2
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getStoredSelectedCourseId } from "@/lib/course-selection";
 import { getAvatarUrl } from "@/lib/imageUtils";
 import { useAuth } from "@/components/AuthProvider";
@@ -108,8 +109,24 @@ export default function RankingStudentPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+            <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto space-y-8">
+                <div className="flex justify-between items-center mb-8">
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-48" />
+                        <Skeleton className="h-4 w-64" />
+                    </div>
+                </div>
+                <Skeleton className="h-14 w-full rounded-2xl" />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 space-y-6">
+                        <Skeleton className="h-64 w-full rounded-2xl" />
+                        <Skeleton className="h-[400px] w-full rounded-2xl" />
+                    </div>
+                    <div className="space-y-6">
+                        <Skeleton className="h-48 w-full rounded-2xl" />
+                        <Skeleton className="h-48 w-full rounded-2xl" />
+                    </div>
+                </div>
             </div>
         );
     }

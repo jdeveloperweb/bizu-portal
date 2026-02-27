@@ -38,8 +38,8 @@ public class DuelService {
         User opponent = userRepository.findById(opponentId)
                 .orElseThrow(() -> new RuntimeException("Opponent not found"));
 
-        // Validar se o oponente está online (última atividade em menos de 15 segundos)
-        if (opponent.getLastSeenAt() == null || opponent.getLastSeenAt().isBefore(OffsetDateTime.now().minusSeconds(15))) {
+        // Validar se o oponente está online (última atividade em menos de 60 segundos)
+        if (opponent.getLastSeenAt() == null || opponent.getLastSeenAt().isBefore(OffsetDateTime.now().minusSeconds(60))) {
             throw new RuntimeException("Este jogador está offline. O convite não pôde ser enviado.");
         }
 

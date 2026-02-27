@@ -96,19 +96,8 @@ public class UserService {
             });
         });
 
-        // Atualiza o lastSeenAt apenas se passou mais de 1 minuto desde a última atualização
-        // ou se for nulo, para evitar erros de concorrência (Optimistic Lock) em requests paralelos
-        java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
-        if (user.getLastSeenAt() == null || user.getLastSeenAt().isBefore(now.minusSeconds(30))) {
-            try {
-                user.setLastSeenAt(now);
-                return userRepository.save(user);
-            } catch (Exception ex) {
-                // Se der erro de concorrência ao atualizar lastSeenAt, ignoramos para não derrubar a requisição principal
-                return user;
-            }
-        }
-        
+        // Atualiza a presença de forma eficiente via query nativa para evitar OptimisticLock
+        userRepository.updateLastSeen(user.getId());
         return user;
     }
 

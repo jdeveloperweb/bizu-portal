@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { compressImage, getAvatarUrl } from "@/lib/imageUtils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const formatPrice = (price?: number | string, currency = "BRL") => {
     if (price === undefined || price === null || price === "") return null;
@@ -278,7 +279,9 @@ export default function ProfilePage() {
                         <div className="flex flex-col sm:flex-row items-center gap-8 mb-10 pb-10 border-b border-slate-50">
                             <div className="relative group">
                                 <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[32px] overflow-hidden bg-slate-100 border-4 border-white shadow-xl flex items-center justify-center ring-1 ring-slate-100 transition-transform group-hover:scale-[1.02]">
-                                    {user?.avatarUrl ? (
+                                    {isLoading ? (
+                                        <Skeleton className="w-full h-full" />
+                                    ) : user?.avatarUrl ? (
                                         <img
                                             src={getAvatarUrl(user.avatarUrl as string)}
                                             alt={user.name as string}
@@ -336,39 +339,47 @@ export default function ProfilePage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2.5">
                                 <label className="text-sm font-bold text-slate-500 ml-1">Nome Completo</label>
-                                <Input
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    placeholder="Seu nome"
-                                    className="h-14 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary/10 focus:border-primary/20 transition-all text-base font-medium shadow-none"
-                                />
+                                {isLoading ? <Skeleton className="h-14 w-full rounded-2xl" /> : (
+                                    <Input
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        placeholder="Seu nome"
+                                        className="h-14 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary/10 focus:border-primary/20 transition-all text-base font-medium shadow-none"
+                                    />
+                                )}
                             </div>
                             <div className="space-y-2.5">
                                 <label className="text-sm font-bold text-slate-500 ml-1">Nickname (Arena)</label>
-                                <Input
-                                    value={nickname}
-                                    onChange={(e) => setNickname(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                                    placeholder="seu_nickname"
-                                    className="h-14 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary/10 focus:border-primary/20 transition-all text-base font-medium shadow-none"
-                                />
+                                {isLoading ? <Skeleton className="h-14 w-full rounded-2xl" /> : (
+                                    <Input
+                                        value={nickname}
+                                        onChange={(e) => setNickname(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                                        placeholder="seu_nickname"
+                                        className="h-14 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary/10 focus:border-primary/20 transition-all text-base font-medium shadow-none"
+                                    />
+                                )}
                                 <p className="text-[10px] text-slate-400 ml-1">Apenas letras, números e underscore.</p>
                             </div>
                             <div className="space-y-2.5">
                                 <label className="text-sm font-bold text-slate-500 ml-1">E-mail</label>
-                                <Input
-                                    value={user?.email || ""}
-                                    disabled
-                                    className="h-14 rounded-2xl bg-slate-50/50 border-transparent cursor-not-allowed text-base font-medium opacity-60 shadow-none"
-                                />
+                                {isLoading ? <Skeleton className="h-14 w-full rounded-2xl" /> : (
+                                    <Input
+                                        value={user?.email || ""}
+                                        disabled
+                                        className="h-14 rounded-2xl bg-slate-50/50 border-transparent cursor-not-allowed text-base font-medium opacity-60 shadow-none"
+                                    />
+                                )}
                             </div>
                             <div className="space-y-2.5">
                                 <label className="text-sm font-bold text-slate-500 ml-1">Telefone</label>
-                                <Input
-                                    value={phone}
-                                    onChange={(e) => setPhone(e.target.value)}
-                                    placeholder="(00) 00000-0000"
-                                    className="h-14 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary/10 focus:border-primary/20 transition-all text-base font-medium shadow-none"
-                                />
+                                {isLoading ? <Skeleton className="h-14 w-full rounded-2xl" /> : (
+                                    <Input
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        placeholder="(00) 00000-0000"
+                                        className="h-14 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary/10 focus:border-primary/20 transition-all text-base font-medium shadow-none"
+                                    />
+                                )}
                             </div>
                         </div>
 
@@ -396,7 +407,9 @@ export default function ProfilePage() {
                             <h3 className="text-xl font-black">{subscription ? "Assinatura Ativa" : "Meu Plano"}</h3>
                         </div>
 
-                        {subscription || selectedEntitlement ? (
+                        {isLoading ? (
+                            <Skeleton className="h-32 w-full rounded-[32px] bg-muted/20" />
+                        ) : subscription || selectedEntitlement ? (
                             <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-8 rounded-[32px] bg-gradient-to-br from-indigo-50/50 to-indigo-100/30 border border-indigo-100/50 gap-6">
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
@@ -461,8 +474,9 @@ export default function ProfilePage() {
 
                         <div className="space-y-4">
                             {isLoading ? (
-                                <div className="flex items-center justify-center py-10">
-                                    <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                                <div className="space-y-4">
+                                    <Skeleton className="h-24 w-full rounded-[28px]" />
+                                    <Skeleton className="h-24 w-full rounded-[28px]" />
                                 </div>
                             ) : devices.length === 0 ? (
                                 <div className="text-center py-10 border-2 border-dashed border-slate-100 rounded-[32px]">

@@ -33,7 +33,7 @@ public class DuelController {
         if (jwt != null) {
             resolveUserId(jwt);
         }
-        String baseCondition = "WHERE u.last_seen_at > (NOW() - INTERVAL '15 seconds') ";
+        String baseCondition = "WHERE u.last_seen_at > (NOW() - INTERVAL '60 seconds') ";
         String condition = courseId != null ? 
             "JOIN commerce.course_entitlements ce ON u.id = ce.user_id " + baseCondition + "AND ce.course_id = ? AND ce.active = true " : 
             baseCondition;

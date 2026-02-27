@@ -20,6 +20,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type ArenaTab = "online" | "ranking" | "historico";
 
@@ -61,6 +62,7 @@ function ArenaPageContent() {
     const [availableModules, setAvailableModules] = useState<string[]>([]);
     const [ranking, setRanking] = useState<RankingUser[]>([]);
     const [history, setHistory] = useState<Duel[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [isLoadingRanking, setIsLoadingRanking] = useState(false);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const searchParams = useSearchParams();
@@ -81,7 +83,8 @@ function ArenaPageContent() {
 
     useEffect(() => {
 
-        const loadData = async () => {
+        const loadData = async (showLoading = true) => {
+            if (showLoading) setIsLoading(true);
             try {
                 const currentCourseId = getStoredSelectedCourseId();
                 const courseQuery = currentCourseId ? `?courseId=${currentCourseId}` : "";
@@ -131,6 +134,8 @@ function ArenaPageContent() {
 
             } catch (error) {
                 console.error("Failed to load arena data", error);
+            } finally {
+                if (showLoading) setIsLoading(false);
             }
         };
 
@@ -159,8 +164,8 @@ function ArenaPageContent() {
         };
 
 
-        loadData();
-        const interval = setInterval(loadData, 5000);
+        loadData(true);
+        const interval = setInterval(() => loadData(false), 10000);
         return () => clearInterval(interval);
     }, []);
 
@@ -341,7 +346,11 @@ function ArenaPageContent() {
                                     <Icon size={13} className={s.text} />
                                 </div>
                             </div>
-                            <div className="text-xl font-extrabold text-slate-900">{s.val}</div>
+                            {isLoading ? (
+                                <Skeleton className="h-7 w-12 mb-1" />
+                            ) : (
+                                <div className="text-xl font-extrabold text-slate-900">{s.val}</div>
+                            )}
                             <div className="text-[11px] text-slate-400">{s.label}</div>
                         </div>
                     );
@@ -370,58 +379,66 @@ function ArenaPageContent() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-3">
                     {/* Online Players */}
-                    {activeTab === "online" && onlineUsers.map(user => (
-                        <div key={user.id} className="card-elevated !rounded-2xl p-4 hover:!transform-none">
-                            <div className="flex items-center gap-3">
-                                <div className="relative">
-                                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center overflow-hidden text-[12px] font-bold text-indigo-700 border border-indigo-200/50 shadow-sm">
-                                        {user.avatar && (user.avatar.includes('/') || user.avatar.startsWith('http')) ? (
-                                            <img
-                                                src={getAvatarUrl(user.avatar)}
-                                                className="w-full h-full object-cover"
-                                                alt={user.name}
-                                                onError={(e) => {
-                                                    // Fallback to initials on image error
-                                                    (e.target as HTMLImageElement).style.display = 'none';
-                                                    const parent = (e.target as HTMLImageElement).parentElement;
-                                                    if (parent) {
-                                                        const initials = user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
-                                                        parent.innerText = initials || 'US';
-                                                    }
-                                                }}
-                                            />
-                                        ) : (
-                                            <span>{user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || "US"}</span>
-                                        )}
-                                    </div>
-                                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${user.status === "online" ? "bg-emerald-400" : "bg-amber-400"
-                                        }`} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[13px] font-bold text-slate-800">{user.name}</span>
-                                        {user.status === "em_duelo" && (
-                                            <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">Em duelo</span>
-                                        )}
-                                    </div>
-                                    <div className="text-[10px] text-slate-400 flex items-center gap-2">
-                                        <span className="flex items-center gap-0.5"><Zap size={9} className="text-amber-500" /> Lv.{user.level}</span>
-                                        <span>{user.xp.toLocaleString()} XP</span>
-                                        <span className="flex items-center gap-0.5"><Target size={9} /> {user.winRate}%</span>
-                                    </div>
-                                </div>
-                                <button
-                                    disabled={user.status === "em_duelo" || user.id === currentUserId}
-                                    onClick={() => handleChallenge(user.id)}
-                                    className={`px-4 py-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-all ${user.status === "em_duelo" || user.id === currentUserId
-                                        ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                        : "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm hover:shadow-md"
-                                        }`}>
-                                    <Swords size={13} /> Desafiar
-                                </button>
+                    {activeTab === "online" && (
+                        isLoading ? (
+                            <div className="space-y-3">
+                                {[1, 2, 3].map(i => (
+                                    <Skeleton key={i} className="h-20 w-full rounded-2xl" />
+                                ))}
                             </div>
-                        </div>
-                    ))}
+                        ) : onlineUsers.map(user => (
+                            <div key={user.id} className="card-elevated !rounded-2xl p-4 hover:!transform-none">
+                                <div className="flex items-center gap-3">
+                                    <div className="relative">
+                                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center overflow-hidden text-[12px] font-bold text-indigo-700 border border-indigo-200/50 shadow-sm">
+                                            {user.avatar && (user.avatar.includes('/') || user.avatar.startsWith('http')) ? (
+                                                <img
+                                                    src={getAvatarUrl(user.avatar)}
+                                                    className="w-full h-full object-cover"
+                                                    alt={user.name}
+                                                    onError={(e) => {
+                                                        // Fallback to initials on image error
+                                                        (e.target as HTMLImageElement).style.display = 'none';
+                                                        const parent = (e.target as HTMLImageElement).parentElement;
+                                                        if (parent) {
+                                                            const initials = user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
+                                                            parent.innerText = initials || 'US';
+                                                        }
+                                                    }}
+                                                />
+                                            ) : (
+                                                <span>{user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || "US"}</span>
+                                            )}
+                                        </div>
+                                        <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${user.status === "online" ? "bg-emerald-400" : "bg-amber-400"
+                                            }`} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[13px] font-bold text-slate-800">{user.name}</span>
+                                            {user.status === "em_duelo" && (
+                                                <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">Em duelo</span>
+                                            )}
+                                        </div>
+                                        <div className="text-[10px] text-slate-400 flex items-center gap-2">
+                                            <span className="flex items-center gap-0.5"><Zap size={9} className="text-amber-500" /> Lv.{user.level}</span>
+                                            <span>{user.xp.toLocaleString()} XP</span>
+                                            <span className="flex items-center gap-0.5"><Target size={9} /> {user.winRate}%</span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        disabled={user.status === "em_duelo" || user.id === currentUserId}
+                                        onClick={() => handleChallenge(user.id)}
+                                        className={`px-4 py-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-all ${user.status === "em_duelo" || user.id === currentUserId
+                                            ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                            : "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm hover:shadow-md"
+                                            }`}>
+                                        <Swords size={13} /> Desafiar
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    )}
 
                     {/* Ranking & History placeholders simplified for real data soon */}
                     {activeTab === "ranking" && (

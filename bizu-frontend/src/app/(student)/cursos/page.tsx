@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/api";
 import { getMediaSourceType, resolveMediaUrl } from "@/lib/media";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface StudentCourse {
     id: string;
@@ -77,7 +78,11 @@ export default function CoursesPage() {
             </div>
 
             {isLoading ? (
-                <div className="py-20 text-center">Carregando cursos...</div>
+                <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 2xl:grid-cols-3">
+                    {[1, 2, 3].map(i => (
+                        <Skeleton key={i} className="h-[400px] w-full rounded-[40px] bg-muted/20" />
+                    ))}
+                </div>
             ) : filteredCourses.length === 0 ? (
                 <div className="rounded-[40px] border border-dashed bg-muted/20 py-20 text-center">
                     Nenhum curso encontrado.

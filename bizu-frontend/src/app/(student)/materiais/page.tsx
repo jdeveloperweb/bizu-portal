@@ -9,6 +9,8 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
+import { Skeleton } from "@/components/ui/skeleton";
+
 function MaterialsContent() {
     const searchParams = useSearchParams();
     const moduleId = searchParams.get("moduleId");
@@ -70,7 +72,7 @@ function MaterialsContent() {
             {isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3, 4, 5, 6].map(i => (
-                        <div key={i} className="h-48 rounded-[32px] bg-muted/40 animate-pulse" />
+                        <Skeleton key={i} className="h-64 rounded-[32px] bg-muted/20" />
                     ))}
                 </div>
             ) : filteredMaterials.length === 0 ? (

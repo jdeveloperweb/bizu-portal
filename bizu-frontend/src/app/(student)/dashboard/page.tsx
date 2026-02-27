@@ -18,6 +18,7 @@ import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import LevelTable from "@/components/gamification/LevelTable";
 import ActiveDuelBanner from "@/components/arena/ActiveDuelBanner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const quickActions = [
     { icon: Target, label: "Quiz", desc: "Questões personalizadas", href: "/questoes/treino" },
@@ -37,9 +38,11 @@ export default function DashboardPage() {
     const [recentMaterials, setRecentMaterials] = useState<any[]>([]);
     const [courses, setCourses] = useState<any[]>([]);
     const [subscription, setSubscription] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
+            setIsLoading(true);
             try {
                 const [statsRes, gamificationRes, badgesRes, rankingRes, coursesRes, materialsRes, subscriptionRes] = await Promise.all([
                     apiFetch("/student/performance/summary"),
@@ -66,6 +69,8 @@ export default function DashboardPage() {
                 }
             } catch (error) {
                 console.error("Dashboard fetch error:", error);
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchDashboardData();
@@ -124,31 +129,38 @@ export default function DashboardPage() {
         <div className="p-6 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto min-h-screen font-sans bg-slate-50/30">
             {/* Header Area */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
-                <div>
-                    <h1 className="text-3xl font-light text-foreground tracking-tight mb-1.5">
-                        Bom dia, <span className="font-semibold text-indigo-600">{userName}</span>
-                    </h1>
-                    <p className="text-sm text-muted-foreground font-medium tracking-wide">
-                        Sua jornada para a aprovação continua hoje.
-                    </p>
-                    {subscription && subscription.currentPeriodEnd && !isGracePeriod && (
-                        <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-indigo-50 border border-indigo-100/50 text-[11px] font-bold text-indigo-600 animate-in fade-in slide-in-from-left-4 duration-700">
-                            <Clock size={12} />
-                            Seu plano expira em {(() => {
-                                const d = new Date(subscription.currentPeriodEnd);
-                                d.setDate(d.getDate() - 1);
-                                return d.toLocaleDateString('pt-BR');
-                            })()} e será renovado em {new Date(subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}
-                        </div>
-                    )}
+                {isLoading ? (
+                    <div className="space-y-2 mt-2">
+                        <Skeleton className="h-8 w-48" />
+                        <Skeleton className="h-4 w-64" />
+                    </div>
+                ) : (
+                    <>
+                        <h1 className="text-3xl font-light text-foreground tracking-tight mb-1.5">
+                            Bom dia, <span className="font-semibold text-indigo-600">{userName}</span>
+                        </h1>
+                        <p className="text-sm text-muted-foreground font-medium tracking-wide">
+                            Sua jornada para a aprovação continua hoje.
+                        </p>
+                        {subscription && subscription.currentPeriodEnd && !isGracePeriod && (
+                            <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-indigo-50 border border-indigo-100/50 text-[11px] font-bold text-indigo-600 animate-in fade-in slide-in-from-left-4 duration-700">
+                                <Clock size={12} />
+                                Seu plano expira em {(() => {
+                                    const d = new Date(subscription.currentPeriodEnd);
+                                    d.setDate(d.getDate() - 1);
+                                    return d.toLocaleDateString('pt-BR');
+                                })()} e será renovado em {new Date(subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}
+                            </div>
+                        )}
 
-                    {isGracePeriod && (
-                        <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-red-50 border border-red-100/50 text-[11px] font-bold text-red-600 animate-pulse">
-                            <Clock size={12} className="text-red-500" />
-                            Pagamento em atraso. Seu acesso será bloqueado em 5 dias se não regularizado.
-                        </div>
-                    )}
-                </div>
+                        {isGracePeriod && (
+                            <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-red-50 border border-red-100/50 text-[11px] font-bold text-red-600 animate-pulse">
+                                <Clock size={12} className="text-red-500" />
+                                Pagamento em atraso. Seu acesso será bloqueado em 5 dias se não regularizado.
+                            </div>
+                        )}
+                    </>
+                )}
 
                 <div className="flex items-center gap-3">
                     <div className="relative hidden md:block group">
@@ -160,10 +172,10 @@ export default function DashboardPage() {
                         />
                     </div>
                     <div className="flex items-center gap-2 text-sm font-semibold text-orange-600 bg-orange-50 border border-orange-100 px-3.5 py-2 rounded-full shadow-sm">
-                        <Flame size={15} /> {streak} dias
+                        <Flame size={15} /> {isLoading ? <Skeleton className="h-4 w-4" /> : streak} dias
                     </div>
                     <div className="flex items-center gap-2 text-sm font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3.5 py-2 rounded-full shadow-sm">
-                        <Trophy size={15} /> {totalXp} XP
+                        <Trophy size={15} /> {isLoading ? <Skeleton className="h-4 w-12" /> : `${totalXp} XP`}
                     </div>
 
                     <button className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all relative shadow-sm">
@@ -188,7 +200,11 @@ export default function DashboardPage() {
                             <s.icon size={22} className={`text-${s.color}-600`} />
                         </div>
                         <div>
-                            <div className="text-2xl font-bold text-foreground tracking-tight">{s.val}</div>
+                            {isLoading ? (
+                                <Skeleton className="h-8 w-20 mb-1" />
+                            ) : (
+                                <div className="text-2xl font-bold text-foreground tracking-tight">{s.val}</div>
+                            )}
                             <div className="text-[13px] font-medium text-muted-foreground mt-1">{s.label}</div>
                         </div>
                     </div>
@@ -210,13 +226,22 @@ export default function DashboardPage() {
                                 <div className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-indigo-400 mb-6 bg-indigo-500/10 px-4 py-1.5 rounded-full border border-indigo-500/20">
                                     <PlayCircle size={14} /> Continue de onde parou
                                 </div>
-                                <h2 className="text-3xl md:text-4xl font-black text-white mb-4 leading-tight">
-                                    {mainCourse ? mainCourse.title : "Inicie sua Jornada"}
-                                </h2>
-                                <p className="text-slate-400 text-base leading-relaxed mb-8">
-                                    Próximo Módulo: <span className="text-white font-semibold">{mainCourse?.nextModule || "Primeiros Passos"}</span>
-                                </p>
-                                <div className="flex flex-col sm:flex-row items-center gap-4">
+                                {isLoading ? (
+                                    <div className="space-y-4">
+                                        <Skeleton className="h-10 w-full bg-slate-800" />
+                                        <Skeleton className="h-6 w-48 bg-slate-800" />
+                                    </div>
+                                ) : (
+                                    <>
+                                        <h2 className="text-3xl md:text-4xl font-black text-white mb-4 leading-tight">
+                                            {mainCourse ? mainCourse.title : "Inicie sua Jornada"}
+                                        </h2>
+                                        <p className="text-slate-400 text-base leading-relaxed mb-8">
+                                            Próximo Módulo: <span className="text-white font-semibold">{mainCourse?.nextModule || "Primeiros Passos"}</span>
+                                        </p>
+                                    </>
+                                )}
+                                <div className="flex flex-col sm:flex-row items-center gap-4 mt-8">
                                     <Link
                                         href={mainCourse ? (mainCourse.nextMaterialId ? `/cursos/${mainCourse.id}/player/${mainCourse.nextMaterialId}` : `/cursos/${mainCourse.id}`) : "/cursos"}
                                         className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white text-slate-900 px-8 py-4 rounded-2xl text-base font-black hover:bg-indigo-50 transition-all hover:scale-105 shadow-xl"
@@ -233,7 +258,9 @@ export default function DashboardPage() {
                                         strokeDasharray={502.6} strokeDashoffset={502.6 * (1 - (mainCourse?.progress || 0) / 100)} strokeLinecap="round" />
                                 </svg>
                                 <div className="absolute inset-0 flex items-center justify-center flex-col">
-                                    {mainCourse?.progress === 100 ? (
+                                    {isLoading ? (
+                                        <Skeleton className="h-10 w-16 bg-slate-800 rounded-full" />
+                                    ) : mainCourse?.progress === 100 ? (
                                         <>
                                             <PartyPopper className="w-10 h-10 text-emerald-400 mb-1 animate-bounce" />
                                             <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Concluído!</span>
@@ -284,7 +311,17 @@ export default function DashboardPage() {
                                 <Link href="/materiais" className="text-xs font-bold text-indigo-600">Ver todos</Link>
                             </div>
                             <div className="space-y-3">
-                                {recentMaterials.length > 0 ? (
+                                {isLoading ? (
+                                    [1, 2, 3].map(i => (
+                                        <div key={i} className="flex items-center gap-4 p-4 rounded-2xl border border-transparent">
+                                            <Skeleton className="w-10 h-10 rounded-xl" />
+                                            <div className="flex-1 space-y-2">
+                                                <Skeleton className="h-4 w-3/4" />
+                                                <Skeleton className="h-3 w-1/2" />
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : recentMaterials.length > 0 ? (
                                     recentMaterials.slice(0, 3).map((m, i) => (
                                         <Link key={m.id} href={`/materiais/${m.id}`} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all cursor-pointer group">
                                             <div className={cn(
@@ -313,18 +350,29 @@ export default function DashboardPage() {
                                 </h3>
                             </div>
                             <div className="space-y-6">
-                                {subjects.slice(0, 3).map((s: any) => (
-                                    <div key={s.subject} className="space-y-2">
-                                        <div className="flex justify-between items-end">
-                                            <span className="text-xs font-bold text-slate-700">{s.subject}</span>
-                                            <span className="text-xs font-black text-indigo-600">{parseFloat(s.accuracy).toFixed(0)}%</span>
+                                {isLoading ? (
+                                    [1, 2, 3].map(i => (
+                                        <div key={i} className="space-y-2">
+                                            <div className="flex justify-between items-end">
+                                                <Skeleton className="h-3 w-24" />
+                                                <Skeleton className="h-3 w-8" />
+                                            </div>
+                                            <Skeleton className="h-2 w-full rounded-full" />
                                         </div>
-                                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                            <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${s.accuracy}%` }} />
+                                    ))
+                                ) : subjects.length > 0 ? (
+                                    subjects.slice(0, 3).map((s: any) => (
+                                        <div key={s.subject} className="space-y-2">
+                                            <div className="flex justify-between items-end">
+                                                <span className="text-xs font-bold text-slate-700">{s.subject}</span>
+                                                <span className="text-xs font-black text-indigo-600">{parseFloat(s.accuracy).toFixed(0)}%</span>
+                                            </div>
+                                            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${s.accuracy}%` }} />
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
-                                {subjects.length === 0 && (
+                                    ))
+                                ) : (
                                     <div className="text-center py-10 opacity-50">
                                         <p className="text-xs font-bold">Inicie sua jornada para ver os dados</p>
                                     </div>
@@ -340,7 +388,11 @@ export default function DashboardPage() {
                             <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full">{earnedBadgesCount} / {achivementsData.length}</span>
                         </div>
                         <div className="grid grid-cols-4 sm:grid-cols-8 gap-4">
-                            {achivementsData.map((c, i) => (
+                            {isLoading ? (
+                                Array.from({ length: 8 }).map((_, i) => (
+                                    <Skeleton key={i} className="aspect-square rounded-2xl" />
+                                ))
+                            ) : achivementsData.map((c, i) => (
                                 <div key={i} className="relative group cursor-pointer aspect-square">
                                     <div
                                         className={`w-full h-full rounded-2xl flex items-center justify-center transition-all duration-300 ${c.unlocked
@@ -377,10 +429,14 @@ export default function DashboardPage() {
                             <div className="space-y-4 mb-8">
                                 <div className="flex justify-between items-center text-xs font-black tracking-widest uppercase text-slate-400">
                                     <span>Progresso</span>
-                                    <span className="text-indigo-600">{stats?.dailyAttempted || 0}/10</span>
+                                    <span className="text-indigo-600">{isLoading ? <Skeleton className="h-3 w-8" /> : `${stats?.dailyAttempted || 0}/10`}</span>
                                 </div>
                                 <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                                    <div className="h-full bg-indigo-600 rounded-full transition-all duration-1000" style={{ width: `${Math.min((stats?.dailyAttempted || 0) * 10, 100)}%` }} />
+                                    {isLoading ? (
+                                        <Skeleton className="h-full w-full" />
+                                    ) : (
+                                        <div className="h-full bg-indigo-600 rounded-full transition-all duration-1000" style={{ width: `${Math.min((stats?.dailyAttempted || 0) * 10, 100)}%` }} />
+                                    )}
                                 </div>
                             </div>
 
@@ -392,11 +448,15 @@ export default function DashboardPage() {
 
                     {/* Level Progress Table */}
                     <div className="lg:col-span-1">
-                        <LevelTable
-                            levels={gamification?.levelTable || []}
-                            currentLevel={gamification?.level || 1}
-                            currentXp={totalXp}
-                        />
+                        {isLoading ? (
+                            <Skeleton className="h-[400px] w-full rounded-[40px]" />
+                        ) : (
+                            <LevelTable
+                                levels={gamification?.levelTable || []}
+                                currentLevel={gamification?.level || 1}
+                                currentXp={totalXp}
+                            />
+                        )}
                     </div>
 
                 </div>
