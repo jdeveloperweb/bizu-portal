@@ -157,6 +157,28 @@ public class DuelService {
         return duelRepository.save(duel);
     }
 
+    @Transactional
+    public Duel declineOrAbandonDuel(UUID duelId, UUID userId) {
+        Duel duel = duelRepository.findById(duelId).orElseThrow();
+        
+        if ("IN_PROGRESS".equals(duel.getStatus())) {
+            // Se estava em progresso e alguém saiu, o OUTRO vence
+            User winner = duel.getChallenger().getId().equals(userId) 
+                ? duel.getOpponent() 
+                : duel.getChallenger();
+            
+            finishDuel(duel, winner);
+            log.info("Duel {} abandoned by {}. Winner: {}", duelId, userId, winner.getId());
+        } else {
+            // Se ainda estava pendente (convite), apenas cancela
+            duel.setStatus("CANCELLED");
+            log.info("Duel {} declined by {}", duelId, userId);
+        }
+        
+        initializeDuel(duel);
+        return duelRepository.save(duel);
+    }
+
     private void checkRoundResult(Duel duel, DuelQuestion dq) {
         int round = duel.getCurrentRound();
         boolean cCorrect = dq.getChallengerCorrect();

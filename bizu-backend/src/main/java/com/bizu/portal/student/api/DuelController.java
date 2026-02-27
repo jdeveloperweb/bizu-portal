@@ -86,12 +86,11 @@ public class DuelController {
     }
 
     @PostMapping("/{duelId}/recusar")
-    public ResponseEntity<Void> declineDuel(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID duelId) {
-        Duel duel = duelRepository.findById(duelId).orElseThrow();
-        duel.setStatus("CANCELLED");
-        Duel savedDuel = duelRepository.save(duel);
-        messagingTemplate.convertAndSend("/topic/duelos/" + duelId, savedDuel);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Duel> declineDuel(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID duelId) {
+        UUID userId = resolveUserId(jwt);
+        Duel duel = duelService.declineOrAbandonDuel(duelId, userId);
+        messagingTemplate.convertAndSend("/topic/duelos/" + duelId, duel);
+        return ResponseEntity.ok(duel);
     }
 
     @PostMapping("/desafiar")
