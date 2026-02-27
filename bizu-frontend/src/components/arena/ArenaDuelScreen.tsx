@@ -203,10 +203,14 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                                             src={getAvatarUrl(duel.challenger.avatarUrl)}
                                             className="w-full h-full object-cover"
                                             alt={duel.challenger.name}
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).style.display = 'none';
+                                                (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-white text-lg md:text-xl font-bold">${(duel.challenger?.name || "U").slice(0, 2).toUpperCase()}</span>`;
+                                            }}
                                         />
                                     ) : (
                                         <span className="text-white text-lg md:text-xl font-bold">
-                                            {duel.challenger?.name?.slice(0, 2).toUpperCase()}
+                                            {(duel.challenger?.name || "U").slice(0, 2).toUpperCase()}
                                         </span>
                                     )}
                                 </div>
@@ -250,10 +254,14 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                                             src={getAvatarUrl(duel.opponent.avatarUrl)}
                                             className="w-full h-full object-cover"
                                             alt={duel.opponent.name}
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).style.display = 'none';
+                                                (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-slate-600 text-lg md:text-xl font-bold">${(duel.opponent?.name || "U").slice(0, 2).toUpperCase()}</span>`;
+                                            }}
                                         />
                                     ) : (
                                         <span className="text-slate-600 text-lg md:text-xl font-bold">
-                                            {duel.opponent?.name?.slice(0, 2).toUpperCase()}
+                                            {(duel.opponent?.name || "U").slice(0, 2).toUpperCase()}
                                         </span>
                                     )}
                                 </div>
