@@ -137,7 +137,12 @@ function PricingContent() {
                             const Icon = getPlanIcon(plan);
                             const colors = getPlanColors(plan);
                             const expanded = expandedPlanId === plan.id;
-                            const features = plan.features ? JSON.parse(plan.features) : [];
+                            let features = [];
+                            try {
+                                features = plan.features ? JSON.parse(plan.features) : [];
+                            } catch (e) {
+                                console.error("Error parsing features for plan:", plan.id, e);
+                            }
 
                             return (
                                 <div

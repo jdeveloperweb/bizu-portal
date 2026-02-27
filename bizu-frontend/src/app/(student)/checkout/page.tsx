@@ -326,7 +326,12 @@ function CheckoutContent() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {filteredPlans.map((plan) => {
-                            const features = plan.features ? JSON.parse(plan.features) : [];
+                            let features = [];
+                            try {
+                                features = plan.features ? JSON.parse(plan.features) : [];
+                            } catch (e) {
+                                console.error("Error parsing features for plan:", plan.id, e);
+                            }
                             return (
                                 <div
                                     key={plan.id}

@@ -123,7 +123,7 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
         if (!token) return;
 
         const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
-        const sseUrl = `${apiBase}/student/sse/progress`;
+        const sseUrl = `${apiBase}/student/sse/progress?access_token=${token}`;
 
         const es = new EventSource(sseUrl);
         eventSourceRef.current = es;
