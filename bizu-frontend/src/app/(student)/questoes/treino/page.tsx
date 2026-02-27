@@ -251,27 +251,28 @@ function TreinoContent() {
             <div className={`pointer-events-none absolute top-1/2 -left-40 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px] ${isFocusMode ? "opacity-30" : ""}`} />
 
             {/* Floating Focus Controls */}
-            <div className="fixed top-4 right-4 z-[100] flex items-center gap-2">
+            <div className="fixed top-4 right-4 z-[100] flex items-center gap-2 p-1.5 rounded-2xl bg-white/60 backdrop-blur-xl border border-white/40 shadow-2xl">
                 <Button
-                    variant="secondary"
-                    size="icon"
-                    className="rounded-full shadow-lg bg-white/80 backdrop-blur hover:bg-white text-slate-600"
+                    variant="ghost"
+                    size="sm"
+                    className={`rounded-xl px-4 py-6 flex flex-col items-center gap-1 transition-all ${isFocusMode ? "bg-primary text-primary-foreground shadow-lg h-auto" : "text-slate-600 hover:bg-white/80 h-auto"}`}
                     onClick={() => setIsFocusMode(!isFocusMode)}
                     title={isFocusMode ? "Sair do Modo Foco" : "Entrar no Modo Foco"}
                 >
-                    {isFocusMode ? <LayoutGrid size={20} /> : <Maximize size={20} />}
+                    {isFocusMode ? <LayoutGrid size={18} /> : <Maximize size={18} />}
+                    <span className="text-[9px] font-black uppercase tracking-widest">{isFocusMode ? "Normal" : "Foco"}</span>
                 </Button>
-                {isFocusMode && (
-                    <Button
-                        variant="secondary"
-                        size="icon"
-                        className="rounded-full shadow-lg bg-white/80 backdrop-blur hover:bg-white text-slate-600"
-                        onClick={toggleFullscreen}
-                        title={isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
-                    >
-                        {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
-                    </Button>
-                )}
+
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`rounded-xl px-4 py-6 flex flex-col items-center gap-1 transition-all ${isFullscreen ? "bg-slate-900 text-white shadow-lg h-auto" : "text-slate-600 hover:bg-white/80 h-auto"}`}
+                    onClick={toggleFullscreen}
+                    title={isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
+                >
+                    {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+                    <span className="text-[9px] font-black uppercase tracking-widest">{isFullscreen ? "Sair" : "Cheia"}</span>
+                </Button>
             </div>
 
             <div className={`container mx-auto max-w-5xl px-4 sm:px-6 relative z-10 transition-all ${isFocusMode ? "py-4 md:py-12" : "py-4 sm:py-8"}`}>

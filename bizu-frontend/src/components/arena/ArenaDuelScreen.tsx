@@ -167,24 +167,29 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
         <div className={`fixed inset-0 z-[10000] bg-slate-900 flex items-center justify-center ${isMaximized ? "p-0" : "sm:p-4"}`}>
             <div className={`w-full bg-white overflow-hidden shadow-2xl relative flex flex-col h-full ${isMaximized ? "sm:h-screen sm:rounded-none" : "max-w-4xl sm:rounded-3xl sm:h-[90vh]"}`}>
                 {/* Header Toggle / Controls */}
-                <div className="absolute top-4 right-4 z-[100] flex items-center gap-2">
+                <div className="absolute top-4 right-4 z-[100] flex items-center gap-2 p-1.5 rounded-2xl bg-white/40 backdrop-blur-md border border-white/40 shadow-xl">
                     <button
                         onClick={toggleFullscreen}
-                        className="p-2 text-slate-400 hover:text-indigo-600 bg-white/80 backdrop-blur shadow-sm rounded-full transition-all"
+                        className={`p-2.5 rounded-xl transition-all flex items-center gap-2 ${isFullscreen ? "bg-indigo-600 text-white shadow-lg" : "text-slate-600 hover:bg-white/80"}`}
                         title={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
                     >
                         {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+                        {isFullscreen && <span className="text-[10px] font-black uppercase tracking-wider pr-1">Sair</span>}
                     </button>
                     <button
                         onClick={() => setIsMaximized(!isMaximized)}
-                        className="p-2 text-slate-400 hover:text-indigo-600 bg-white/80 backdrop-blur shadow-sm rounded-full transition-all"
+                        className={`p-2.5 rounded-xl transition-all flex items-center gap-2 ${isMaximized ? "bg-indigo-600 text-white shadow-lg" : "text-slate-600 hover:bg-white/80"}`}
                         title={isMaximized ? "Sair do modo foco" : "Modo foco (mais espaço)"}
                     >
                         {isMaximized ? <Shield size={20} /> : <Zap size={20} />}
+                        <span className="text-[10px] font-black uppercase tracking-wider">
+                            {isMaximized ? "Normal" : "Foco"}
+                        </span>
                     </button>
+                    <div className="w-px h-6 bg-slate-200/50 mx-1" />
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-red-600 bg-white/80 backdrop-blur shadow-sm rounded-full transition-all"
+                        className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
                         title="Fechar e voltar"
                     >
                         <XCircle size={20} />
