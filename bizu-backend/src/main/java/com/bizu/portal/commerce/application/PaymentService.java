@@ -28,6 +28,7 @@ public class PaymentService {
     private final CouponService couponService;
     private final com.bizu.portal.admin.application.SystemSettingsService settingsService;
     private final com.bizu.portal.commerce.infrastructure.SubscriptionRepository subscriptionRepository;
+    private final EntitlementService entitlementService;
 
     public String initiatePayment(User user, BigDecimal amount, String provider) {
         com.bizu.portal.admin.domain.SystemSettings settings = settingsService.getSettings();
@@ -71,16 +72,38 @@ public class PaymentService {
 
         log.info("Ativando plano {} para usuário {}", plan.getName(), user.getEmail());
 
+        // Calcular data de expiração
+        int monthsCount = 1;
+        String interval = plan.getBillingInterval() != null ? plan.getBillingInterval().toUpperCase() : "MONTHLY";
+        
+        if ("YEARLY".equals(interval)) monthsCount = 12;
+        else if ("SEMESTRAL".equals(interval)) monthsCount = 6;
+        else if ("ONE_TIME".equals(interval) || plan.isFree()) monthsCount = 1200; // 100 anos (vitalício)
+        
+        OffsetDateTime expiresAt = OffsetDateTime.now().plusMonths(monthsCount);
+
         // Criar ou atualizar Assinatura
         Subscription subscription = Subscription.builder()
                 .user(user)
                 .plan(plan)
                 .status("ACTIVE")
                 .currentPeriodStart(OffsetDateTime.now())
-                .currentPeriodEnd(OffsetDateTime.now().plusMonths(plan.getBillingInterval().equals("YEARLY") ? 12 : 1))
+                .currentPeriodEnd(expiresAt)
                 .build();
         
-        subscriptionRepository.save(subscription);
+        subscription = subscriptionRepository.save(subscription);
+
+        // Garantir o entitlement (acesso) ao curso vinculado ao plano
+        if (plan.getCourse() != null) {
+            entitlementService.grantFromSubscription(user, plan.getCourse(), subscription);
+            
+            // Atualizar metadados do usuário para selecionar o curso automaticamente
+            java.util.Map<String, Object> metadata = user.getMetadata() != null 
+                ? new java.util.HashMap<>(user.getMetadata()) 
+                : new java.util.HashMap<>();
+            metadata.put("selectedCourseId", plan.getCourse().getId().toString());
+            user.setMetadata(metadata);
+        }
 
         if (plan.isGroup()) {
             subscriptionGroupService.createGroup(user, plan);

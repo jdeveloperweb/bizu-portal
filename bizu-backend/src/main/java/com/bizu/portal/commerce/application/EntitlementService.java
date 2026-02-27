@@ -23,6 +23,7 @@ import java.util.UUID;
 public class EntitlementService {
 
     private final CourseEntitlementRepository entitlementRepository;
+    private final com.bizu.portal.commerce.infrastructure.SubscriptionRepository subscriptionRepository;
 
     /**
      * Core check: does this user have active access to this course right now?
@@ -44,9 +45,35 @@ public class EntitlementService {
 
     /**
      * Returns all courses the user currently has access to.
+     * Also synchronizes entitlements with active subscriptions to prevent lock-outs.
      */
+    @Transactional
     public List<CourseEntitlement> getActiveEntitlements(UUID userId) {
+        syncEntitlementsWithSubscriptions(userId);
         return entitlementRepository.findActiveEntitlementsByUser(userId, OffsetDateTime.now());
+    }
+
+    /**
+     * Ensures any active subscription results in an active entitlement.
+     */
+    private void syncEntitlementsWithSubscriptions(UUID userId) {
+        try {
+            subscriptionRepository.findFirstByUserIdAndStatusInOrderByCreatedAtDesc(
+                userId, List.of("ACTIVE", "PAST_DUE", "TRIALING", "paid", "PAID")
+            ).ifPresent(sub -> {
+                if (sub.getPlan() != null && sub.getPlan().getCourse() != null) {
+                    // Check if they have an active entitlement already
+                    boolean hasAccess = hasAccess(userId, sub.getPlan().getCourse().getId());
+                    if (!hasAccess) {
+                        log.info("Self-healing: Granting missing entitlement for user {} from subscription {}", 
+                            userId, sub.getId());
+                        grantFromSubscription(sub.getUser(), sub.getPlan().getCourse(), sub);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            log.warn("Failed to sync entitlements for user {}: {}", userId, e.getMessage());
+        }
     }
 
     /**
