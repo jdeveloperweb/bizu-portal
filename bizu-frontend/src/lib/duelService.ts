@@ -22,7 +22,8 @@ export interface DuelQuestion {
 export interface User {
     id: string;
     name: string;
-    avatar?: string;
+    nickname?: string;
+    avatarUrl?: string;
 }
 
 export interface Duel {

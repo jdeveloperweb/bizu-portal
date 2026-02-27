@@ -22,15 +22,18 @@ interface AuthContextType {
 }
 
 interface AuthUser {
+    id?: string;
     name?: string;
     email?: string;
+    nickname?: string;
+    avatarUrl?: string;
     phone?: string;
     preferred_username?: string;
     realm_access?: {
         roles: string[];
     };
     metadata?: Record<string, unknown>;
-    [key: string]: unknown;
+    [key: string]: any;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

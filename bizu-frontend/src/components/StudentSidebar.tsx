@@ -44,7 +44,7 @@ const bottomNav = [
 
 export default function StudentSidebar() {
     const pathname = usePathname();
-    const { logout, subscription, entitlements, selectedCourseId } = useAuth();
+    const { logout, user, subscription, entitlements, selectedCourseId } = useAuth();
     const { setIsOpen: setPomodoroOpen } = usePomodoro();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -96,6 +96,33 @@ export default function StudentSidebar() {
             `}>
                 <div className="h-16 flex items-center px-4 border-b border-border shrink-0">
                     <BrandLogo size="md" variant="dark" />
+                </div>
+
+                {/* User Profile Summary */}
+                <div className="px-3 py-4 border-b border-border bg-slate-50/50">
+                    <div className="flex items-center gap-3 px-2">
+                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-indigo-100 border border-indigo-200 shadow-sm shrink-0">
+                            {user?.avatarUrl ? (
+                                <img
+                                    src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `${process.env.NEXT_PUBLIC_API_URL}${user.avatarUrl}`}
+                                    className="w-full h-full object-cover"
+                                    alt="Profile"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-indigo-600 font-bold text-sm">
+                                    {(user?.name || 'U').slice(0, 1).toUpperCase()}
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[13px] font-bold text-slate-900 truncate leading-none mb-1">
+                                {user?.name || 'Usuário'}
+                            </p>
+                            <p className="text-[10px] font-medium text-indigo-500 truncate leading-none">
+                                @{user?.nickname || 'nickname'}
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="px-3 py-2.5">

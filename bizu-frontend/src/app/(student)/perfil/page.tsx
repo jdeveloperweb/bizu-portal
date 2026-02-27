@@ -85,11 +85,14 @@ export default function ProfilePage() {
 
     // Form states
     const [name, setName] = useState("");
+    const [nickname, setNickname] = useState("");
     const [phone, setPhone] = useState("");
+    const [isUploading, setIsUploading] = useState(false);
 
     useEffect(() => {
         if (user) {
             setName(user.name || "");
+            setNickname(user.nickname || "");
             setPhone(user.phone || "");
         }
     }, [user]);
@@ -149,18 +152,48 @@ export default function ProfilePage() {
         try {
             const res = await apiFetch("/users/me", {
                 method: "PUT",
-                body: JSON.stringify({ name, phone })
+                body: JSON.stringify({ name, phone, nickname })
             });
             if (res.ok) {
                 await refreshUserProfile();
                 toast.success("Perfil atualizado com sucesso!");
             } else {
-                toast.error("Erro ao atualizar perfil");
+                const error = await res.text();
+                toast.error(error || "Erro ao atualizar perfil");
             }
         } catch {
             toast.error("Erro de conexão");
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files?.[0]) return;
+
+        setIsUploading(true);
+        const file = e.target.files[0];
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            // No need to set Content-Type, browser will do it with boundary
+            const res = await apiFetch("/users/me/avatar", {
+                method: "POST",
+                body: formData
+            });
+
+            if (res.ok) {
+                await refreshUserProfile();
+                toast.success("Foto de perfil atualizada!");
+            } else {
+                toast.error("Erro ao fazer upload da foto");
+            }
+        } catch (err) {
+            console.error("Profile photo upload error:", err);
+            toast.error("Erro ao enviar foto");
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -176,7 +209,7 @@ export default function ProfilePage() {
         }
     };
 
-    const isModified = name !== (user?.name || "") || phone !== (user?.phone || "");
+    const isModified = name !== (user?.name || "") || phone !== (user?.phone || "") || nickname !== (user?.nickname || "");
 
 
     return (
@@ -235,6 +268,65 @@ export default function ProfilePage() {
                             <h3 className="text-xl font-black">Dados Pessoais</h3>
                         </div>
 
+                        {/* Avatar Upload Section */}
+                        <div className="flex flex-col sm:flex-row items-center gap-8 mb-10 pb-10 border-b border-slate-50">
+                            <div className="relative group">
+                                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[32px] overflow-hidden bg-slate-100 border-4 border-white shadow-xl flex items-center justify-center ring-1 ring-slate-100 transition-transform group-hover:scale-[1.02]">
+                                    {user?.avatarUrl ? (
+                                        <img
+                                            src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `${process.env.NEXT_PUBLIC_API_URL}${user.avatarUrl}`}
+                                            alt={user.name}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || '')}&background=6366f1&color=fff`;
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="text-4xl font-black text-indigo-400">
+                                            {user?.name?.slice(0, 1).toUpperCase()}
+                                        </div>
+                                    )}
+                                    {isUploading && (
+                                        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center">
+                                            <Loader2 className="w-8 h-8 text-white animate-spin" />
+                                        </div>
+                                    )}
+                                </div>
+                                <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-white shadow-lg rounded-xl border border-slate-100 flex items-center justify-center cursor-pointer hover:bg-slate-50 transition-all active:scale-90 overflow-hidden">
+                                    <input
+                                        type="file"
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handleAvatarUpload}
+                                        disabled={isUploading}
+                                    />
+                                    <Smartphone className="w-5 h-5 text-slate-500" />
+                                </label>
+                            </div>
+
+                            <div className="flex-1 text-center sm:text-left">
+                                <h4 className="text-lg font-bold text-slate-900 mb-1">Sua Foto de Perfil</h4>
+                                <p className="text-sm text-slate-500 mb-4 max-w-sm">
+                                    Esta foto será visível para seus amigos e em rankings. Use uma imagem quadrada para melhor visualização.
+                                </p>
+                                <div className="flex flex-wrap justify-center sm:justify-start gap-3">
+                                    <Button
+                                        variant="outline"
+                                        className="h-9 px-4 rounded-xl text-xs font-bold border-slate-200"
+                                        onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement)?.click()}
+                                    >
+                                        Alterar Foto
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        className="h-9 px-4 rounded-xl text-xs font-bold text-slate-400 hover:text-danger hover:bg-danger/5"
+                                    >
+                                        Remover
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2.5">
                                 <label className="text-sm font-bold text-slate-500 ml-1">Nome Completo</label>
@@ -244,6 +336,16 @@ export default function ProfilePage() {
                                     placeholder="Seu nome"
                                     className="h-14 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary/10 focus:border-primary/20 transition-all text-base font-medium shadow-none"
                                 />
+                            </div>
+                            <div className="space-y-2.5">
+                                <label className="text-sm font-bold text-slate-500 ml-1">Nickname (Arena)</label>
+                                <Input
+                                    value={nickname}
+                                    onChange={(e) => setNickname(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                                    placeholder="seu_nickname"
+                                    className="h-14 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary/10 focus:border-primary/20 transition-all text-base font-medium shadow-none"
+                                />
+                                <p className="text-[10px] text-slate-400 ml-1">Apenas letras, números e underscore.</p>
                             </div>
                             <div className="space-y-2.5">
                                 <label className="text-sm font-bold text-slate-500 ml-1">E-mail</label>

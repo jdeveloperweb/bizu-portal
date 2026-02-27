@@ -4,6 +4,7 @@ import com.bizu.portal.analytics.application.AnalyticsService;
 import com.bizu.portal.content.infrastructure.CourseRepository;
 import com.bizu.portal.identity.domain.User;
 import com.bizu.portal.identity.infrastructure.UserRepository;
+import com.bizu.portal.shared.application.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,11 +12,8 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -25,6 +23,7 @@ public class MeController {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
     private final AnalyticsService analyticsService;
+    private final FileStorageService storageService;
 
     @GetMapping("/me")
     public ResponseEntity<User> getMe(@AuthenticationPrincipal Jwt jwt) {
@@ -50,6 +49,19 @@ public class MeController {
                 }
                 if (request.name() != null) user.setName(request.name());
                 if (request.phone() != null) user.setPhone(request.phone());
+                return ResponseEntity.ok(userRepository.save(user));
+            })
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/me/avatar")
+    public ResponseEntity<User> uploadAvatar(@AuthenticationPrincipal Jwt jwt, @RequestParam("file") MultipartFile file) {
+        String email = jwt.getClaim("email");
+        return userRepository.findByEmail(email)
+            .map(user -> {
+                String filename = storageService.store(file);
+                String url = "/api/v1/public/files/" + filename;
+                user.setAvatarUrl(url);
                 return ResponseEntity.ok(userRepository.save(user));
             })
             .orElseGet(() -> ResponseEntity.notFound().build());

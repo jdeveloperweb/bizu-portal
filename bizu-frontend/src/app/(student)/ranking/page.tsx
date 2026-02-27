@@ -212,8 +212,16 @@ export default function RankingStudentPage() {
                                 return (
                                     <div key={`${user.name}-${i}`} className="flex flex-col items-center">
                                         <div className="relative mb-3">
-                                            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${colors.bg} flex items-center justify-center text-white font-extrabold text-sm shadow-lg border-2 border-white/20`}>
-                                                {user.avatar}
+                                            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${colors.bg} flex items-center justify-center overflow-hidden shadow-lg border-2 border-white/20`}>
+                                                {user.avatar && user.avatar.length > 2 ? (
+                                                    <img
+                                                        src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL}${user.avatar}`}
+                                                        className="w-full h-full object-cover"
+                                                        alt={user.name}
+                                                    />
+                                                ) : (
+                                                    <span className="text-white font-extrabold text-sm">{user.avatar}</span>
+                                                )}
                                             </div>
                                             {rank === 1 && (
                                                 <Crown size={16} className="text-amber-500 absolute -top-3.5 left-1/2 -translate-x-1/2 drop-shadow-sm" />
@@ -248,8 +256,16 @@ export default function RankingStudentPage() {
                                         }`}>
                                         {user.rank}
                                     </div>
-                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center text-[11px] font-bold text-indigo-700">
-                                        {user.avatar}
+                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center overflow-hidden text-[11px] font-bold text-indigo-700">
+                                        {user.avatar && user.avatar.length > 2 ? (
+                                            <img
+                                                src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL}${user.avatar}`}
+                                                className="w-full h-full object-cover"
+                                                alt={user.name}
+                                            />
+                                        ) : (
+                                            user.avatar
+                                        )}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="text-[13px] font-bold text-slate-800">{user.name}</div>
@@ -272,8 +288,16 @@ export default function RankingStudentPage() {
                                     <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center font-extrabold text-[11px] text-white">
                                         {myRank.rank > 0 ? myRank.rank : "-"}
                                     </div>
-                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-[11px] font-bold text-white">
-                                        {myRank.avatar}
+                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center overflow-hidden text-[11px] font-bold text-white">
+                                        {myRank.avatar && myRank.avatar.length > 2 ? (
+                                            <img
+                                                src={myRank.avatar.startsWith('http') ? myRank.avatar : `${process.env.NEXT_PUBLIC_API_URL}${myRank.avatar}`}
+                                                className="w-full h-full object-cover"
+                                                alt={myRank.name}
+                                            />
+                                        ) : (
+                                            myRank.avatar
+                                        )}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="text-[13px] font-bold text-indigo-800">{myRank.name} (sua posicao)</div>

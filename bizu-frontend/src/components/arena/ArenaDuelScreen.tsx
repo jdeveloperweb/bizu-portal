@@ -157,8 +157,18 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                     <div className="flex items-center justify-between gap-8 md:px-6">
                         {/* Challenger */}
                         <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-                            <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-lg md:text-xl font-bold shadow-lg ${isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
-                                {duel.challenger?.name?.slice(0, 2).toUpperCase()}
+                            <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center overflow-hidden shadow-lg ${isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
+                                {duel.challenger?.avatarUrl ? (
+                                    <img
+                                        src={duel.challenger.avatarUrl.startsWith('http') ? duel.challenger.avatarUrl : `${process.env.NEXT_PUBLIC_API_URL}${duel.challenger.avatarUrl}`}
+                                        className="w-full h-full object-cover"
+                                        alt={duel.challenger.name}
+                                    />
+                                ) : (
+                                    <span className="text-white text-lg md:text-xl font-bold">
+                                        {duel.challenger?.name?.slice(0, 2).toUpperCase()}
+                                    </span>
+                                )}
                             </div>
                             <span className="text-[10px] md:text-sm font-bold text-slate-800 truncate w-full text-center">{duel.challenger?.name}</span>
                             <div className="flex gap-0.5 md:gap-1 mt-0.5">
@@ -194,8 +204,18 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
 
                         {/* Opponent */}
                         <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-                            <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-600 text-lg md:text-xl font-bold shadow-lg ${!isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
-                                {duel.opponent?.name?.slice(0, 2).toUpperCase()}
+                            <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center overflow-hidden shadow-lg ${!isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
+                                {duel.opponent?.avatarUrl ? (
+                                    <img
+                                        src={duel.opponent.avatarUrl.startsWith('http') ? duel.opponent.avatarUrl : `${process.env.NEXT_PUBLIC_API_URL}${duel.opponent.avatarUrl}`}
+                                        className="w-full h-full object-cover"
+                                        alt={duel.opponent.name}
+                                    />
+                                ) : (
+                                    <span className="text-slate-600 text-lg md:text-xl font-bold">
+                                        {duel.opponent?.name?.slice(0, 2).toUpperCase()}
+                                    </span>
+                                )}
                             </div>
                             <span className="text-[10px] md:text-sm font-bold text-slate-800 truncate w-full text-center">{duel.opponent?.name}</span>
                             <div className="flex gap-0.5 md:gap-1 mt-0.5">
