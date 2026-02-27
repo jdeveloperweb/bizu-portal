@@ -4,6 +4,7 @@ import com.bizu.portal.admin.domain.SystemSettings;
 import com.bizu.portal.commerce.application.PaymentProvider;
 import com.bizu.portal.commerce.domain.Plan;
 import com.bizu.portal.identity.domain.User;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -12,70 +13,77 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @Slf4j
 public class InfinitePayPaymentProvider implements PaymentProvider {
 
     private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private static final String BASE_URL = "https://api.infinitepay.io/invoices/public/checkout/links";
-    private static final String CHECK_URL = "https://api.infinitepay.io/invoices/public/checkout/payment_check";
 
     @Override
     public Map<String, Object> createPayment(User user, BigDecimal amount, String method, Plan plan, SystemSettings settings) {
         String handle = settings.getInfinitePayHandle();
         if (handle == null || handle.isEmpty()) {
-            // Fallback para o handle fixo se não estiver configurado
             handle = "mjolnix-tech";
         }
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        Map<String, Object> item = new HashMap<>();
-        item.put("quantity", 1);
-        item.put("price", amount.multiply(new BigDecimal(100)).intValue()); // Em centavos
-        item.put("name", "Plano " + plan.getName());
-
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("handle", handle);
-        payload.put("items", List.of(item));
-        payload.put("order_nsu", UUID.randomUUID().toString()); // ID único para controle
-        payload.put("redirect_url", "https://bizu.mjolnix.com.br/dashboard?status=success");
-        payload.put("webhook_url", "https://bizu.mjolnix.com.br/api/v1/public/webhooks/infinitepay");
-
-        // Metadados extras se a API aceitar ou para controle interno via link
-        // A InfinitePay parece ser bem simples nesse POST público, 
-        // mas o order_nsu será nosso link com o sistema.
-
         try {
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+            // Itens da compra conforme documentação oficial
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("quantity", 1);
+            item.put("price", amount.multiply(new BigDecimal(100)).longValue()); // Em centavos (Long)
+            item.put("description", "Plano " + plan.getName());
+
+            // Objeto de payload sem chaves extras, conforme print da documentação
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("handle", handle);
+            payload.put("order_nsu", UUID.randomUUID().toString().substring(0, 8)); // NSU mais curto por segurança
+            payload.put("items", List.of(item));
+            payload.put("redirect_url", "https://bizu.mjolnix.com.br/dashboard?status=success");
+            payload.put("webhook_url", "https://bizu.mjolnix.com.br/api/v1/public/webhooks/infinitepay");
+
+            // Opcional: Dados do cliente
+            Map<String, Object> customer = new LinkedHashMap<>();
+            customer.put("name", user.getName());
+            customer.put("email", user.getEmail());
+            payload.put("customer", customer);
+
+            String jsonPayload = objectMapper.writeValueAsString(payload);
+            log.info("Enviando Payload para InfinitePay: {}", jsonPayload);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+
+            HttpEntity<String> entity = new HttpEntity<>(jsonPayload, headers);
+            
+            // Usando Map.class para receber a resposta
             Map<String, Object> response = restTemplate.postForObject(BASE_URL, entity, Map.class);
 
             if (response != null && response.containsKey("url")) {
                 Map<String, Object> result = new HashMap<>();
-                result.put("id", payload.get("order_nsu")); // Usamos o NSU como referência
+                result.put("id", payload.get("order_nsu")); // Mantemos o nsu curto para o registro
                 result.put("url", response.get("url"));
                 result.put("type", "REDIRECT");
                 return result;
             } else {
-                throw new RuntimeException("Resposta inválida da InfinitePay");
+                log.error("Resposta da InfinitePay sem URL: {}", response);
+                throw new RuntimeException("Resposta inválida da InfinitePay (URL ausente)");
             }
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            log.error("Erro 400/404 na InfinitePay: {} - Body: {}", e.getMessage(), e.getResponseBodyAsString());
+            throw new RuntimeException("InfinitePay recusou a requisição: " + e.getResponseBodyAsString());
         } catch (Exception e) {
-            log.error("Erro ao criar link InfinitePay", e);
+            log.error("Erro interno ao processar InfinitePay", e);
             throw new RuntimeException("Erro ao processar InfinitePay: " + e.getMessage());
         }
     }
 
     @Override
     public boolean verifyPayment(String paymentId, SystemSettings settings) {
-        // A InfinitePay requer mais dados para o check manual (slug, transaction_nsu)
-        // Geralmente confiamos no Webhook por ser o fluxo recomendado.
-        // Implementamos um check básico se possível ou retornamos false para forçar webhook.
         return false;
     }
 
