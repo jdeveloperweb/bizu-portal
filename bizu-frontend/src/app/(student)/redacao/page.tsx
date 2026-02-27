@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MarkdownViewer from "@/components/MarkdownViewer";
+import { resolveMediaUrl } from "@/lib/media";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -535,7 +536,7 @@ export default function RedacaoPage() {
                                             <div className="space-y-3">
                                                 <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">Original Enviado</p>
                                                 <div className="rounded-3xl border border-border overflow-hidden bg-muted shadow-lg">
-                                                    <img src={selectedEssay.attachmentUrl} alt="Redação original" className="w-full h-auto" />
+                                                    <img src={resolveMediaUrl(selectedEssay.attachmentUrl)} alt="Redação original" className="w-full h-auto" />
                                                 </div>
                                             </div>
                                         )}

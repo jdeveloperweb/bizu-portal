@@ -30,6 +30,10 @@ public class Module {
     @Column(name = "order_index")
     private Integer orderIndex;
 
+    @Builder.Default
+    @Column(name = "is_free")
+    private boolean isFree = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
     @com.fasterxml.jackson.annotation.JsonBackReference

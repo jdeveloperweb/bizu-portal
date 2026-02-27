@@ -19,6 +19,8 @@ interface AuthContextType {
     refreshUserProfile: () => Promise<void>;
     subscription: any;
     entitlements: any[];
+    isPremium: boolean;
+    isFree: boolean;
 }
 
 interface AuthUser {
@@ -370,8 +372,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const isPremium = !!subscription && subscription.status === "ACTIVE";
+    const isFree = authenticated && !isPremium;
+
     return (
-        <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register, selectedCourseId, setSelectedCourseId, refreshUserProfile, subscription, entitlements }}>
+        <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register, selectedCourseId, setSelectedCourseId, refreshUserProfile, subscription, entitlements, isPremium, isFree }}>
             {children}
         </AuthContext.Provider>
     );

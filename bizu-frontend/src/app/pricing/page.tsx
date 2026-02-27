@@ -3,12 +3,14 @@
 import { useState, useEffect } from "react";
 import { Check, ChevronDown, Zap, Shield, Crown, Star, BookOpen, Anchor, Users } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 
 export default function PricingPage() {
+    const searchParams = useSearchParams();
     const [courses, setCourses] = useState<any[]>([]);
     const [plans, setPlans] = useState<any[]>([]);
-    const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+    const [selectedCourseId, setSelectedCourseId] = useState<string | null>(searchParams.get('courseId'));
     const [isLoading, setIsLoading] = useState(true);
     const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
     const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
@@ -24,7 +26,7 @@ export default function PricingPage() {
                 if (coursesRes.ok) {
                     const coursesData = await coursesRes.json();
                     setCourses(coursesData);
-                    if (coursesData.length > 0) {
+                    if (coursesData.length > 0 && !selectedCourseId) {
                         setSelectedCourseId(coursesData[0].id);
                     }
                 }

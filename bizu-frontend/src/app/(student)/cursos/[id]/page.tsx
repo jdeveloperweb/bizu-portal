@@ -11,6 +11,9 @@ import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useParams } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
+import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
+import { Lock } from "lucide-react";
 
 export default function CourseDetailsPage() {
     const params = useParams<{ id: string | string[] }>();
@@ -19,6 +22,7 @@ export default function CourseDetailsPage() {
     const [activeModule, setActiveModule] = useState(0);
     const [completedMaterials, setCompletedMaterials] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const { isFree, isPremium } = useAuth();
 
     useEffect(() => {
         if (!courseId) {
@@ -164,7 +168,12 @@ export default function CourseDetailsPage() {
                             </div>
 
                             <div className="flex-1">
-                                <div className="font-bold text-lg leading-tight mb-1">{mod.title}</div>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <div className="font-bold text-lg leading-tight truncate">{mod.title}</div>
+                                    {isFree && !mod.isFree && (
+                                        <Lock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                    )}
+                                </div>
                                 <div className="text-xs text-muted-foreground line-clamp-1">{mod.description || "Inicie o estudo deste módulo."}</div>
                                 <div className="mt-2 text-[11px] font-bold text-muted-foreground">{progressData.moduleProgressMap[mod.id] || 0}% concluído</div>
                             </div>
@@ -182,104 +191,115 @@ export default function CourseDetailsPage() {
                 {/* Selected Module Content */}
                 <div className="lg:col-span-8">
                     {currentModule ? (
-                        <div className="p-6 md:p-8 rounded-2xl bg-card border shadow-xl relative overflow-hidden min-h-[calc(100vh-220px)]">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] -mr-32 -mt-32" />
+                        isFree && !currentModule.isFree ? (
+                            <PremiumFeatureCard courseId={course.id} />
+                        ) : (
+                            <div className="p-6 md:p-8 rounded-2xl bg-card border shadow-xl relative overflow-hidden min-h-[calc(100vh-220px)]">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] -mr-32 -mt-32" />
 
-                            <div className="relative z-10">
-                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10 pb-8 border-b">
-                                    <div>
-                                        <h2 className="text-3xl font-black mb-2">{currentModule.title}</h2>
-                                        <p className="text-muted-foreground">{currentModule.description}</p>
-                                    </div>
-                                    <Link href={`/cursos/${course.id}/player/${currentModule.materials[0]?.id || ""}`}>
-                                        <Button className={cn(
-                                            "rounded-2xl h-14 px-8 font-black gap-2 text-lg shadow-xl transition-all hover:scale-105 shrink-0 border-none text-white",
-                                            moduleStatus?.color,
-                                            moduleStatus?.shadow
-                                        )}>
-                                            <Play className="w-5 h-5 fill-current" />
-                                            {moduleStatus?.label}
-                                        </Button>
-                                    </Link>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                                    <div className="space-y-6">
-                                        <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                                            <Star className="w-4 h-4 text-primary animate-pulse" />
-                                            Objetivos do Módulo
-                                        </h4>
-                                        <ul className="space-y-4">
-                                            {currentModule.objectives ? (
-                                                currentModule.objectives.split('\n').filter((line: string) => line.trim() !== "").map((objective: string, index: number) => (
-                                                    <li key={index} className="flex items-start gap-3 text-sm font-bold text-slate-600 group/item transition-all hover:translate-x-1">
-                                                        <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0 shadow-[0_0_8px_rgba(var(--primary),0.6)] group-hover/item:scale-125 transition-transform" />
-                                                        {objective}
-                                                    </li>
-                                                ))
-                                            ) : (
-                                                <>
-                                                    <li className="flex items-start gap-3 text-sm font-bold text-slate-500/70 italic">
-                                                        <div className="w-2 h-2 rounded-full bg-slate-300 mt-1.5 shrink-0" />
-                                                        Objetivos ainda não definidos para este módulo.
-                                                    </li>
-                                                </>
-                                            )}
-                                        </ul>
-                                    </div>
-
-                                    <div className="space-y-6">
-                                        <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                                            <Clock className="w-4 h-4 text-primary" />
-                                            Informações do Percurso
-                                        </h4>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="p-5 rounded-[2rem] bg-slate-50 border border-slate-100/50 flex flex-col items-center justify-center transition-all hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1">
-                                                <div className="text-3xl font-black text-slate-900">{currentModule.materials?.length || 0}</div>
-                                                <div className="text-[10px] uppercase font-bold text-primary tracking-tighter">Aulas</div>
+                                <div className="relative z-10">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10 pb-8 border-b">
+                                        <div>
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <h2 className="text-3xl font-black">{currentModule.title}</h2>
+                                                {currentModule.isFree && (
+                                                    <span className="bg-success/10 text-success text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-success/20">
+                                                        Gratuito
+                                                    </span>
+                                                )}
                                             </div>
-                                            <div className="p-5 rounded-[2rem] bg-slate-50 border border-slate-100/50 flex flex-col items-center justify-center transition-all hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1">
-                                                <div className="text-3xl font-black text-slate-900">{currentModule.durationMinutes || 0}</div>
-                                                <div className="text-[10px] uppercase font-bold text-primary tracking-tighter">Minutos</div>
+                                            <p className="text-muted-foreground">{currentModule.description}</p>
+                                        </div>
+                                        <Link href={`/cursos/${course.id}/player/${currentModule.materials[0]?.id || ""}`}>
+                                            <Button className={cn(
+                                                "rounded-2xl h-14 px-8 font-black gap-2 text-lg shadow-xl transition-all hover:scale-105 shrink-0 border-none text-white",
+                                                moduleStatus?.color,
+                                                moduleStatus?.shadow
+                                            )}>
+                                                <Play className="w-5 h-5 fill-current" />
+                                                {moduleStatus?.label}
+                                            </Button>
+                                        </Link>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                                        <div className="space-y-6">
+                                            <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                                                <Star className="w-4 h-4 text-primary animate-pulse" />
+                                                Objetivos do Módulo
+                                            </h4>
+                                            <ul className="space-y-4">
+                                                {currentModule.objectives ? (
+                                                    currentModule.objectives.split('\n').filter((line: string) => line.trim() !== "").map((objective: string, index: number) => (
+                                                        <li key={index} className="flex items-start gap-3 text-sm font-bold text-slate-600 group/item transition-all hover:translate-x-1">
+                                                            <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0 shadow-[0_0_8px_rgba(var(--primary),0.6)] group-hover/item:scale-125 transition-transform" />
+                                                            {objective}
+                                                        </li>
+                                                    ))
+                                                ) : (
+                                                    <>
+                                                        <li className="flex items-start gap-3 text-sm font-bold text-slate-500/70 italic">
+                                                            <div className="w-2 h-2 rounded-full bg-slate-300 mt-1.5 shrink-0" />
+                                                            Objetivos ainda não definidos para este módulo.
+                                                        </li>
+                                                    </>
+                                                )}
+                                            </ul>
+                                        </div>
+
+                                        <div className="space-y-6">
+                                            <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                                                <Clock className="w-4 h-4 text-primary" />
+                                                Informações do Percurso
+                                            </h4>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="p-5 rounded-[2rem] bg-slate-50 border border-slate-100/50 flex flex-col items-center justify-center transition-all hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1">
+                                                    <div className="text-3xl font-black text-slate-900">{currentModule.materials?.length || 0}</div>
+                                                    <div className="text-[10px] uppercase font-bold text-primary tracking-tighter">Aulas</div>
+                                                </div>
+                                                <div className="p-5 rounded-[2rem] bg-slate-50 border border-slate-100/50 flex flex-col items-center justify-center transition-all hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1">
+                                                    <div className="text-3xl font-black text-slate-900">{currentModule.durationMinutes || 0}</div>
+                                                    <div className="text-[10px] uppercase font-bold text-primary tracking-tighter">Minutos</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="pt-10 border-t">
-                                    <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-6">Aulas Disponíveis</h4>
-                                    {currentModule.materials && currentModule.materials.length > 0 ? (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {currentModule.materials.map((material: any) => (
-                                                <Link key={material.id} href={`/cursos/${course.id}/player/${material.id}`}>
-                                                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-lg transition-all group">
-                                                        <div className={cn(
-                                                            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                                                            completedMaterials.includes(material.id) ? "bg-success/10 text-success" : "bg-white text-slate-400 group-hover:text-primary transition-colors"
-                                                        )}>
-                                                            {completedMaterials.includes(material.id) ? (
-                                                                <CheckCircle2 className="w-5 h-5" />
-                                                            ) : (
-                                                                material.fileType === 'VIDEO' ? <Play className="w-5 h-5 fill-current" /> : <FileText className="w-5 h-5" />
-                                                            )}
+                                    <div className="pt-10 border-t">
+                                        <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-6">Aulas Disponíveis</h4>
+                                        {currentModule.materials && currentModule.materials.length > 0 ? (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {currentModule.materials.map((material: any) => (
+                                                    <Link key={material.id} href={`/cursos/${course.id}/player/${material.id}`}>
+                                                        <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-lg transition-all group">
+                                                            <div className={cn(
+                                                                "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                                                                completedMaterials.includes(material.id) ? "bg-success/10 text-success" : "bg-white text-slate-400 group-hover:text-primary transition-colors"
+                                                            )}>
+                                                                {completedMaterials.includes(material.id) ? (
+                                                                    <CheckCircle2 className="w-5 h-5" />
+                                                                ) : (
+                                                                    material.fileType === 'VIDEO' ? <Play className="w-5 h-5 fill-current" /> : <FileText className="w-5 h-5" />
+                                                                )}
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="font-bold text-sm truncate group-hover:text-primary transition-colors">{material.title}</div>
+                                                                <div className="text-[10px] text-slate-400 uppercase font-black tracking-widest">{material.fileType || 'AULA'}</div>
+                                                            </div>
+                                                            <ChevronRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-all" />
                                                         </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="font-bold text-sm truncate group-hover:text-primary transition-colors">{material.title}</div>
-                                                            <div className="text-[10px] text-slate-400 uppercase font-black tracking-widest">{material.fileType || 'AULA'}</div>
-                                                        </div>
-                                                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-all" />
-                                                    </div>
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-10 bg-slate-50 rounded-xl border border-dashed text-sm text-slate-400">
-                                            Nenhuma aula disponível para este módulo ainda.
-                                        </div>
-                                    )}
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-10 bg-slate-50 rounded-xl border border-dashed text-sm text-slate-400">
+                                                Nenhuma aula disponível para este módulo ainda.
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )
                     ) : (
                         <div className="p-10 text-center bg-card border rounded-2xl shadow-sm min-h-[420px] flex items-center justify-center">
                             Selecione um módulo para ver o conteúdo.
