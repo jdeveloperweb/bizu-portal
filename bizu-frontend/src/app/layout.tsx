@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Jura, JetBrains_Mono, Kalam, Caveat, Indie_Flower, Orbitron } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono, Kalam, Caveat, Indie_Flower, Orbitron } from "next/font/google";
 import "./globals.css";
 
-const jura = Jura({
-  variable: "--font-jura",
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const jetbrains = JetBrains_Mono({
@@ -98,8 +98,8 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${jura.variable} ${jetbrains.variable} ${kalam.variable} ${caveat.variable} ${indieFlower.variable} ${orbitron.variable} antialiased font-sans`}
-        style={{ fontFamily: "var(--font-jura), 'Jura', system-ui, sans-serif" }}
+      <body className={`${jakarta.variable} ${jetbrains.variable} ${kalam.variable} ${caveat.variable} ${indieFlower.variable} ${orbitron.variable} antialiased font-sans`}
+        style={{ fontFamily: "var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif" }}
       >
         <AuthProvider>
           <CourseProvider>
