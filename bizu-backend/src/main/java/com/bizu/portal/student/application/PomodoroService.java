@@ -22,6 +22,7 @@ public class PomodoroService {
 
     private final PomodoroSessionRepository pomodoroSessionRepository;
     private final CourseRepository courseRepository;
+    private final GamificationService gamificationService;
 
     @Transactional(readOnly = true)
     public PomodoroSummaryDTO getSummary(User user) {
@@ -67,6 +68,12 @@ public class PomodoroService {
                 .build();
 
         PomodoroSession savedSession = pomodoroSessionRepository.save(session);
+        
+        // Reward 1 XP per minute of focus
+        if (session.getFocusMinutes() > 0) {
+            gamificationService.addXp(user.getId(), session.getFocusMinutes());
+        }
+        
         return mapToDTO(savedSession);
     }
 

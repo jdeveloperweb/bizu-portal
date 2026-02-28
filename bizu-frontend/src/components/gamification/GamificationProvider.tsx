@@ -54,12 +54,18 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
                     <XPRewardAnimation
                         amount={reward.xpGained}
                         show={showXP}
-                        onComplete={() => setShowXP(false)}
+                        onComplete={() => {
+                            setShowXP(false);
+                            setGlobalOverlayShown(false);
+                        }}
                     />
                     <LevelUpOverlay
                         level={reward.currentLevel}
                         show={showLevelUp}
-                        onClose={() => setShowLevelUp(false)}
+                        onClose={() => {
+                            setShowLevelUp(false);
+                            setGlobalOverlayShown(false);
+                        }}
                     />
                 </>
             )}

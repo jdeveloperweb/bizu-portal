@@ -18,6 +18,7 @@ public class StudentTaskService {
 
     private final StudentTaskRepository studentTaskRepository;
     private final UserRepository userRepository;
+    private final GamificationService gamificationService;
 
     @Transactional(readOnly = true)
     public List<StudentTaskDTO> getUserTasks(UUID userId) {
@@ -108,8 +109,14 @@ public class StudentTaskService {
     @Transactional
     public void updateTaskStatus(UUID taskId, UUID userId, String newStatus) {
         StudentTask task = getTaskByIdAndUserId(taskId, userId);
+        String oldStatus = task.getStatus();
         task.setStatus(newStatus);
         studentTaskRepository.save(task);
+        
+        if ("concluida".equalsIgnoreCase(newStatus) && !"concluida".equalsIgnoreCase(oldStatus)) {
+            // Reward 25 XP for completing a manual task
+            gamificationService.addXp(userId, 25);
+        }
     }
 
     @Transactional

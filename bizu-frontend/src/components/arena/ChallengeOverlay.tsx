@@ -68,6 +68,7 @@ export default function ChallengeOverlay() {
         try {
             await DuelService.acceptDuel(duelId);
             setIsVisible(false);
+            setGlobalOverlayShown(false);
             router.push(`/arena?duelId=${duelId}`);
         } catch (error) {
             console.error("Erro ao aceitar desafio:", error);
@@ -78,6 +79,7 @@ export default function ChallengeOverlay() {
         try {
             await DuelService.declineDuel(duelId);
             setIsVisible(false);
+            setGlobalOverlayShown(false);
         } catch (error) {
             console.error("Erro ao recusar desafio:", error);
         }
@@ -170,7 +172,10 @@ export default function ChallengeOverlay() {
                     </div>
 
                     <button
-                        onClick={() => setIsVisible(false)}
+                        onClick={() => {
+                            setIsVisible(false);
+                            setGlobalOverlayShown(false);
+                        }}
                         className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
                     >
                         <X size={20} />

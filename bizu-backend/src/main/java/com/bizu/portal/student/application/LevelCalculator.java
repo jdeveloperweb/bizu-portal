@@ -32,14 +32,28 @@ public class LevelCalculator {
     public java.util.List<LevelInfo> getAllLevelRequirements(int maxLevel) {
         java.util.List<LevelInfo> levels = new java.util.ArrayList<>();
         for (int i = 1; i <= maxLevel; i++) {
-            levels.add(new LevelInfo(i, calculateXpForLevel(i)));
+            levels.add(new LevelInfo(i, calculateXpForLevel(i), calculateRank(i)));
         }
         return levels;
+    }
+
+    public String calculateRank(int level) {
+        if (level <= 5) return "Recruta";
+        if (level <= 10) return "Cabo";
+        if (level <= 15) return "Sargento";
+        if (level <= 20) return "Subtenente";
+        if (level <= 30) return "Tenente";
+        if (level <= 40) return "Capitão";
+        if (level <= 55) return "Major";
+        if (level <= 70) return "Tenente-Coronel";
+        if (level <= 85) return "Coronel";
+        return "General";
     }
 
     @lombok.Value
     public static class LevelInfo {
         int level;
         int requiredXp;
+        String rank;
     }
 }

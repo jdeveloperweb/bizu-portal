@@ -22,6 +22,8 @@ import LevelTable from "@/components/gamification/LevelTable";
 import ActiveDuelBanner from "@/components/arena/ActiveDuelBanner";
 import { Skeleton } from "@/components/ui/skeleton";
 import MaterialViewerModal from "@/components/MaterialViewerModal";
+import XPInfoModal from "@/components/gamification/XPInfoModal";
+import { HelpCircle, Info } from "lucide-react";
 
 const quickActions = [
     { icon: Target, label: "Quiz", desc: "Questões personalizadas", href: "/questoes/treino" },
@@ -51,6 +53,8 @@ export default function DashboardPage() {
     // Modal state
     const [selectedMaterial, setSelectedMaterial] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const [isXPModalOpen, setIsXPModalOpen] = useState(false);
 
     const handleViewMaterial = (material: any) => {
         setSelectedMaterial(material);
@@ -263,9 +267,15 @@ export default function DashboardPage() {
                         {isLoading ? <Skeleton className="h-4 w-4" /> : <span>{streak} <span className="text-[10px] uppercase tracking-wider opacity-70 border-l border-orange-200 ml-1 pl-1">DIAS</span></span>}
                     </div>
 
-                    <div className="flex items-center gap-2.5 text-sm font-bold text-indigo-600 bg-indigo-50/50 border border-indigo-100 px-4 py-2.5 rounded-2xl">
+                    <div
+                        onClick={() => setIsXPModalOpen(true)}
+                        className="flex items-center gap-2.5 text-sm font-bold text-indigo-600 bg-indigo-50/50 border border-indigo-100 px-4 py-2.5 rounded-2xl cursor-pointer hover:bg-indigo-100/70 transition-all hover:scale-105 group"
+                    >
                         <Trophy size={16} />
                         {isLoading ? <Skeleton className="h-4 w-12" /> : <span>{totalXp} <span className="text-[10px] uppercase tracking-wider opacity-70 border-l border-indigo-200 ml-1 pl-1">XP</span></span>}
+                        <div className="hidden group-hover:block ml-1">
+                            <Info size={14} className="text-indigo-400" />
+                        </div>
                     </div>
 
                     <div className="hidden md:block h-8 w-[1px] bg-slate-100 mx-1" />
@@ -284,7 +294,12 @@ export default function DashboardPage() {
                 {[
                     { label: "Questões Resolvidas", val: (stats?.totalUniqueAttempted || 0).toString(), icon: BarChart3, color: "indigo" },
                     { label: "Taxa de Acerto", val: accuracy, icon: Target, color: "rose" },
-                    { label: "Nível Atual", val: (gamification?.level || 1).toString(), icon: Zap, color: "amber" },
+                    {
+                        label: gamification?.rank ? `Nível (${gamification.rank})` : "Nível Atual",
+                        val: (gamification?.level || 1).toString(),
+                        icon: Zap,
+                        color: "amber"
+                    },
                     { label: "Posição Ranking", val: ranking?.position ? `#${ranking.position}` : "-", icon: Trophy, color: "emerald" },
                 ].map((s) => (
                     <div key={s.label} className="bg-card p-5 md:p-6 rounded-3xl border border-border shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 group">
@@ -561,6 +576,10 @@ export default function DashboardPage() {
                 material={selectedMaterial}
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
+            />
+            <XPInfoModal
+                isOpen={isXPModalOpen}
+                onClose={() => setIsXPModalOpen(false)}
             />
         </div>
     );
