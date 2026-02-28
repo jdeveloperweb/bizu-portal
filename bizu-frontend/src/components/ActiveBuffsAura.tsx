@@ -44,126 +44,85 @@ export default function ActiveBuffsAura() {
     return (
         <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden">
             <AnimatePresence>
-                {/* ELITE TITLE AURA - PURPLE RECOGNITION */}
+                {/* GLOBAL ENERGY FLOOR (AXON AURA) */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_110%,_rgba(99,102,241,0.05),_transparent_70%)]" />
+
+                {/* ELITE TITLE AURA - PURPLE MAJESTY */}
                 {buffs.eliteTitle && (
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,_rgba(168,85,247,0.05),_transparent_60%)]"
+                        className="absolute inset-x-0 bottom-0 h-[40vh] bg-[radial-gradient(circle_at_50%_100%,_rgba(168,85,247,0.2),_transparent_70%)]"
                     />
                 )}
 
-                {/* XP BOOST RPG EFFECT */}
+                {/* XP BOOST EFFECT - AMBER ENERGY */}
                 {buffs.xpBoost && (
                     <>
-                        {/* Initial Burst Flash */}
+                        {/* Intense Bottom Glow */}
                         <motion.div
-                            initial={{ scale: 0.5, opacity: 0 }}
-                            animate={{ scale: [0.5, 1.5, 1.2], opacity: [0, 0.5, 0] }}
-                            transition={{ duration: 1.5, times: [0, 0.4, 1] }}
-                            className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(245,158,11,0.3),_transparent_70%)]"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: [0.4, 0.7, 0.4] }}
+                            transition={{ duration: 3, repeat: Infinity }}
+                            className="absolute inset-x-0 bottom-0 h-[50vh] bg-[radial-gradient(circle_at_50%_100%,_rgba(245,158,11,0.25),_transparent_70%)]"
                         />
 
-                        {/* Mana Rising (Particles) */}
-                        {[...Array(6)].map((_, i) => (
+                        {/* Energy Waves */}
+                        {[...Array(3)].map((_, i) => (
                             <motion.div
-                                key={`xp-p-${i}`}
-                                initial={{ y: "100vh", x: `${20 + i * 15}%`, opacity: 0, scale: 0 }}
+                                key={`wave-${i}`}
+                                initial={{ scaleY: 0, opacity: 0 }}
                                 animate={{
-                                    y: "-10vh",
-                                    opacity: [0, 0.8, 0],
-                                    scale: [0.5, 1, 0.5],
-                                    rotate: 360
+                                    scaleY: [1, 1.2, 1],
+                                    opacity: [0.1, 0.3, 0.1],
+                                    y: [-20 * i, -40 * i, -20 * i]
                                 }}
                                 transition={{
-                                    duration: 3 + i,
+                                    duration: 4 + i,
                                     repeat: Infinity,
-                                    delay: i * 0.5,
                                     ease: "easeInOut"
+                                }}
+                                className="absolute inset-x-0 bottom-0 h-[20vh] bg-gradient-to-t from-amber-500/20 to-transparent blur-xl origin-bottom"
+                            />
+                        ))}
+
+                        {/* Rising Embers (Particles) */}
+                        {[...Array(12)].map((_, i) => (
+                            <motion.div
+                                key={`xp-p-${i}`}
+                                initial={{ y: "100vh", x: `${10 + (i * 8)}%`, opacity: 0, scale: 0 }}
+                                animate={{
+                                    y: ["100vh", "60vh", "40vh"],
+                                    opacity: [0, 0.6, 0],
+                                    scale: [0.5, 1.2, 0.2],
+                                    x: [`${10 + (i * 8)}%`, `${10 + (i * 8) + (Math.sin(i) * 10)}%`]
+                                }}
+                                transition={{
+                                    duration: 4 + (i % 3),
+                                    repeat: Infinity,
+                                    delay: i * 0.3,
+                                    ease: "easeOut"
                                 }}
                                 className="absolute"
                             >
-                                <Zap size={24 + i * 4} className="text-amber-400/30 blur-[2px] fill-current" />
+                                <div className="w-1.5 h-1.5 bg-amber-400 rounded-full blur-[1px] shadow-[0_0_10px_#f59e0b]" />
                             </motion.div>
                         ))}
-
-                        {/* Persistent Core Glow */}
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(245,158,11,0.12),_transparent_60%)] animate-pulse"
-                        />
                     </>
                 )}
 
-                {/* RADAR RPG EFFECT */}
+                {/* RADAR EFFECT - EMERALD PULSE */}
                 {buffs.radar && (
-                    <>
-                        <motion.div
-                            initial={{ scale: 2, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 border-[40px] border-emerald-500/10 rounded-full blur-3xl scale-150"
-                        />
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-[radial-gradient(circle_at_50%_100%,_rgba(16,185,129,0.15),_transparent_60%)]"
-                        />
-                    </>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: [0.3, 0.5, 0.3] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="absolute inset-x-0 bottom-0 h-[40vh] bg-[radial-gradient(circle_at_50%_100%,_rgba(16,185,129,0.2),_transparent_70%)]"
+                    />
                 )}
             </AnimatePresence>
 
-            {/* Corner Indicators with Flare */}
-            <div className="absolute top-4 right-4 flex flex-col gap-3 pointer-events-auto">
-                <AnimatePresence>
-                    {buffs.eliteTitle && (
-                        <motion.div
-                            initial={{ x: 100, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            exit={{ x: 100, opacity: 0 }}
-                            className="relative"
-                        >
-                            <div className="absolute -inset-1 bg-purple-500 rounded-2xl blur-md opacity-30" />
-                            <div className="relative bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-2xl shadow-2xl border border-white/20 flex items-center gap-3 text-xs font-black uppercase tracking-widest">
-                                <Crown size={16} className="text-yellow-400 fill-current" />
-                                <span>Status: Elite</span>
-                            </div>
-                        </motion.div>
-                    )}
-                    {buffs.xpBoost && (
-                        <motion.div
-                            initial={{ x: 100, scale: 0.5, filter: "brightness(2)" }}
-                            animate={{ x: 0, scale: 1, filter: "brightness(1)" }}
-                            exit={{ x: 100, opacity: 0 }}
-                            className="relative"
-                        >
-                            <div className="absolute -inset-1 bg-amber-500 rounded-2xl blur-md animate-pulse opacity-50" />
-                            <div className="relative bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-600 text-white px-6 py-3 rounded-2xl shadow-2xl border border-white/30 flex items-center gap-3 text-xs font-black uppercase tracking-widest">
-                                <Zap size={16} className="fill-current animate-bounce text-yellow-200" />
-                                <span className="drop-shadow-sm">Multiplicador 2x Ativo</span>
-                            </div>
-                        </motion.div>
-                    )}
-                    {buffs.radar && (
-                        <motion.div
-                            initial={{ x: 100, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            exit={{ x: 100, opacity: 0 }}
-                            className="relative"
-                        >
-                            <div className="absolute -inset-1 bg-emerald-500 rounded-2xl blur-md opacity-30" />
-                            <div className="relative bg-gradient-to-r from-emerald-500 to-teal-400 text-white px-6 py-3 rounded-2xl shadow-2xl border border-white/20 flex items-center gap-3 text-xs font-black uppercase tracking-widest">
-                                <Target size={16} className="animate-spin-slow" />
-                                <span>Radar Ativo</span>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </div>
         </div>
     );
 }

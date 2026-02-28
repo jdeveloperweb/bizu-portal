@@ -9,7 +9,8 @@ import {
     LayoutDashboard, BookOpen, ClipboardList, Layers,
     Swords, TrendingUp, User, Trophy, LogOut,
     ChevronRight, ChevronLeft, Search, Timer, CheckSquare,
-    StickyNote, Settings, BarChart3, Menu, X, FileText, PlayCircle, CreditCard, Users, Lock, Brain
+    StickyNote, Settings, BarChart3, Menu, X, FileText, PlayCircle, CreditCard, Users, Lock, Brain,
+    Zap, Target, Crown
 } from "lucide-react";
 import { getAvatarUrl } from "@/lib/imageUtils";
 import { Avatar } from "@/components/ui/Avatar";
@@ -57,14 +58,16 @@ export default function StudentSidebar() {
     const [pendingFriendsCount, setPendingFriendsCount] = useState(0);
     const [pendingTasksCount, setPendingTasksCount] = useState(0);
     const [rankingPosition, setRankingPosition] = useState<number | null>(null);
+    const [buffs, setBuffs] = useState<{ xpBoost: boolean; radar: boolean; elite: boolean }>({ xpBoost: false, radar: false, elite: false });
 
     const fetchSidebarData = useCallback(async () => {
         if (!authenticated || isFree) return;
         try {
-            const [friendsRes, tasksRes, rankingRes] = await Promise.all([
+            const [friendsRes, tasksRes, rankingRes, gamRes] = await Promise.all([
                 apiFetch("/friends/pending").catch(() => null),
                 apiFetch("/student/tasks").catch(() => null),
-                apiFetch("/student/ranking/me").catch(() => null)
+                apiFetch("/student/ranking/me").catch(() => null),
+                apiFetch("/student/gamification/me").catch(() => null)
             ]);
 
             if (friendsRes && friendsRes.ok) {
@@ -80,6 +83,15 @@ export default function StudentSidebar() {
                 const data = await rankingRes.json();
                 if (data.position) setRankingPosition(data.position);
             }
+            if (gamRes && gamRes.ok) {
+                const data = await gamRes.json();
+                const now = new Date();
+                setBuffs({
+                    xpBoost: data.xpBoostUntil ? new Date(data.xpBoostUntil) > now : false,
+                    radar: data.radarMateriaUntil ? new Date(data.radarMateriaUntil) > now : false,
+                    elite: data.activeTitle === "Elite"
+                });
+            }
         } catch (err) {
             console.error("Failed to fetch sidebar data", err);
         }
@@ -89,12 +101,14 @@ export default function StudentSidebar() {
         fetchSidebarData();
         window.addEventListener("friends:updated", fetchSidebarData);
         window.addEventListener("tasks:updated", fetchSidebarData);
+        window.addEventListener("buff-activated", fetchSidebarData);
 
         const interval = setInterval(fetchSidebarData, 120000); // 2 minutos
 
         return () => {
             window.removeEventListener("friends:updated", fetchSidebarData);
             window.removeEventListener("tasks:updated", fetchSidebarData);
+            window.removeEventListener("buff-activated", fetchSidebarData);
             clearInterval(interval);
         };
     }, [fetchSidebarData]);
@@ -210,12 +224,36 @@ export default function StudentSidebar() {
                                 <p className="text-[13px] font-bold text-slate-900 truncate leading-none mb-1">
                                     {user?.name || 'Usuário'}
                                 </p>
-                                <p className="text-[10px] font-medium text-indigo-500 truncate leading-none">
+                                <p className="text-[10px] font-medium text-indigo-500 truncate leading-none mb-2">
                                     @{user?.nickname || 'nickname'}
                                 </p>
+                                <div className="flex gap-1.5 items-center">
+                                    {buffs.xpBoost && (
+                                        <div title="XP 2x Ativo" className="w-5 h-5 rounded-md bg-amber-100 flex items-center justify-center text-amber-600 border border-amber-200">
+                                            <Zap size={10} className="fill-current" />
+                                        </div>
+                                    )}
+                                    {buffs.radar && (
+                                        <div title="Radar Ativo" className="w-5 h-5 rounded-md bg-emerald-100 flex items-center justify-center text-emerald-600 border border-emerald-200">
+                                            <Target size={10} />
+                                        </div>
+                                    )}
+                                    {buffs.elite && (
+                                        <div title="Status Elite" className="w-5 h-5 rounded-md bg-purple-100 flex items-center justify-center text-purple-600 border border-purple-200">
+                                            <Crown size={10} className="fill-current" />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
+                    {isCollapsed && (buffs.xpBoost || buffs.radar || buffs.elite) && (
+                        <div className="flex justify-center mt-2 gap-1 flex-wrap px-2">
+                            {buffs.xpBoost && <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />}
+                            {buffs.radar && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+                            {buffs.elite && <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />}
+                        </div>
+                    )}
                 </div>
 
                 <div className="px-3 py-2.5">
