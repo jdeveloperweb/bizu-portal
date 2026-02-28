@@ -80,9 +80,9 @@ export default function AdminSubscriptionsPage() {
     };
 
     const filtered = subscriptions.filter(s =>
-        s.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.plan.name.toLowerCase().includes(searchTerm.toLowerCase())
+        s.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.plan?.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -142,8 +142,8 @@ export default function AdminSubscriptionsPage() {
                                                 <User size={20} />
                                             </div>
                                             <div>
-                                                <div className="text-sm font-black text-slate-900">{s.user.name}</div>
-                                                <div className="text-[11px] font-bold text-indigo-600 uppercase tracking-tight">{s.plan.name}</div>
+                                                <div className="text-sm font-black text-slate-900">{s.user?.name || 'Usuário não identificado'}</div>
+                                                <div className="text-[11px] font-bold text-indigo-600 uppercase tracking-tight">{s.plan?.name || 'Plano não identificado'}</div>
                                             </div>
                                         </div>
                                     </td>
@@ -157,7 +157,7 @@ export default function AdminSubscriptionsPage() {
                                     <td className="px-8 py-5">
                                         <div className="flex items-center gap-2 text-slate-600 mb-1">
                                             <Calendar size={14} className="text-slate-400" />
-                                            <span className="text-[12px] font-bold">Até {format(new Date(s.currentPeriodEnd), "dd/MM/yyyy")}</span>
+                                            <span className="text-[12px] font-bold">Até {s.currentPeriodEnd ? format(new Date(s.currentPeriodEnd), "dd/MM/yyyy") : 'Sem data'}</span>
                                         </div>
                                         {s.cancelAtPeriodEnd && (
                                             <div className="flex items-center gap-1.5 text-red-500 text-[10px] font-black uppercase tracking-tighter">

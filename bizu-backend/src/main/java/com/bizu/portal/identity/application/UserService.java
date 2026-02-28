@@ -67,11 +67,11 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         
-        // Remove do Keycloak primeiro
-        keycloakService.deleteKeycloakUser(user.getEmail());
-        
-        // Remove do banco local (hard delete para ser definitivo conforme pedido)
+        // Remove do banco local primeiro (se falhar aqui, não remove do Keycloak, mantendo consistência)
         userRepository.delete(user);
+
+        // Remove do Keycloak depois
+        keycloakService.deleteKeycloakUser(user.getEmail());
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

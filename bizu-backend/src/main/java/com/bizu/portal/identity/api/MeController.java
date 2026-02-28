@@ -85,39 +85,6 @@ public class MeController {
             })
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
-    @PostMapping("/me/request-email-change")
-    public ResponseEntity<?> requestEmailChange(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, String> request) {
-        String newEmail = request.get("email");
-        if (newEmail == null || !newEmail.contains("@")) return ResponseEntity.badRequest().body("E-mail inválido");
-        if (userRepository.findByEmail(newEmail).isPresent()) return ResponseEntity.badRequest().body("Este e-mail já está em uso");
-
-        String name = jwt.getClaim("name");
-        verificationService.generateAndSendCode(newEmail, name, "EMAIL_CHANGE");
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/me/confirm-email-change")
-    public ResponseEntity<?> confirmEmailChange(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, String> request) {
-        String newEmail = request.get("email");
-        String code = request.get("code");
-        if (newEmail == null || code == null) return ResponseEntity.badRequest().body("Dados incompletos");
-
-        if (verificationService.validateCode(newEmail, "EMAIL_CHANGE", code)) {
-            String currentEmail = jwt.getClaim("email");
-            return userRepository.findByEmail(currentEmail)
-                .map(user -> {
-                    String oldEmail = user.getEmail();
-                    user.setEmail(newEmail);
-                    
-                    // Atualiza no Keycloak também
-                    keycloakService.updateKeycloakUser(oldEmail, user.getName(), newEmail);
-                    
-                    User saved = userRepository.save(user);
-                    return ResponseEntity.ok(saved);
-                }).orElseGet(() -> ResponseEntity.notFound().build());
-        }
-        return ResponseEntity.badRequest().body("Código inválido ou expirado");
-    }
 
     @PostMapping("/me/request-phone-change")
     public ResponseEntity<?> requestPhoneChange(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, String> request) {

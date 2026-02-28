@@ -106,7 +106,7 @@ export default function AdminUsuariosPage() {
     };
 
     const handleDeleteUser = async (id: string, name: string) => {
-        if (!confirm(`Tem certeza que deseja apagar o usuário ${name}? Esta ação é irreversível e removerá o acesso dele permanentemente.`)) {
+        if (!confirm(`Tem certeza que deseja apagar o usuário ${name || 'este usuário'}? Esta ação é irreversível e removerá o acesso dele permanentemente.`)) {
             return;
         }
 
@@ -236,7 +236,7 @@ export default function AdminUsuariosPage() {
                                         <td className="px-8 py-5">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center font-bold text-primary text-xs border border-primary/10">
-                                                    {user.name ? user.name.substring(0, 2).toUpperCase() : 'NA'}
+                                                    {user?.name ? user.name.substring(0, 2).toUpperCase() : 'NA'}
                                                 </div>
                                                 <div>
                                                     <div className="font-bold text-slate-900 leading-tight mb-0.5">{user.name || 'Sem Nome'}</div>
@@ -296,7 +296,7 @@ export default function AdminUsuariosPage() {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() => handleDeleteUser(user.id, user.name)}
+                                                    onClick={() => handleDeleteUser(user.id, user?.name)}
                                                     className="rounded-lg h-9 w-9 text-slate-400 hover:text-red-500 hover:bg-red-50"
                                                     title="Apagar Usuário"
                                                 >

@@ -27,12 +27,14 @@ const kalam = Kalam({
   subsets: ["latin"],
   display: "swap",
   weight: ["300", "400", "700"],
+  preload: false,
 });
 
 const caveat = Caveat({
   variable: "--font-caveat",
   subsets: ["latin"],
   display: "swap",
+  preload: false,
 });
 
 const indieFlower = Indie_Flower({
@@ -40,6 +42,7 @@ const indieFlower = Indie_Flower({
   subsets: ["latin"],
   display: "swap",
   weight: ["400"],
+  preload: false,
 });
 
 export const viewport: Viewport = {
