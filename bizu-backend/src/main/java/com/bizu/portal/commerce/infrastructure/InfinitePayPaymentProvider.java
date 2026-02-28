@@ -53,6 +53,21 @@ public class InfinitePayPaymentProvider implements PaymentProvider {
             Map<String, Object> customer = new LinkedHashMap<>();
             customer.put("name", user.getName());
             customer.put("email", user.getEmail());
+            if (user.getPhone() != null && !user.getPhone().isEmpty()) {
+                String phone = user.getPhone().replaceAll("\\D", ""); // Remove tudo que não é dígito
+                
+                if (phone.length() == 10 || phone.length() == 11) {
+                    phone = "+55" + phone;
+                } else if (phone.length() == 12 || phone.length() == 13) {
+                    // Se já tiver o 55 no começo (ex: 5511999887766)
+                    phone = "+" + phone;
+                } else if (!user.getPhone().startsWith("+")) {
+                    log.warn("Formato de telefone não reconhecido para o usuário {}: {}", user.getEmail(), user.getPhone());
+                } else {
+                    phone = user.getPhone(); // Mantém como está se já começar com +
+                }
+                customer.put("phone_number", phone);
+            }
             payload.put("customer", customer);
 
             String jsonPayload = objectMapper.writeValueAsString(payload);
