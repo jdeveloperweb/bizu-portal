@@ -97,7 +97,19 @@ public class WhatsAppService {
             "%s\n\n" +
             "⚠️ Ele vence em 1 hora.",
             name, pixCode);
-            
+        
+        sendMessage(phoneNumber, message);
+    }
+
+    public void sendPaymentPending(String phoneNumber, String name, String checkoutUrl) {
+        String message = String.format(
+            "Olá %s! 👋\n\n" +
+            "Vimos que você iniciou o pagamento para o plano Premium da Axon Academy, mas ele ainda não foi concluído.\n\n" +
+            "Para não perder seu acesso, você pode finalizar por aqui:\n" +
+            "%s\n\n" +
+            "Se precisar de ajuda, é só chamar!",
+            name, checkoutUrl);
+        
         sendMessage(phoneNumber, message);
     }
 

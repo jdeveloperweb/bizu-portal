@@ -67,6 +67,31 @@ public class PublicProfileService {
             """;
         List<Map<String, Object>> badges = jdbcTemplate.queryForList(badgesSql, userId);
         profile.put("badges", badges);
+
+        // Fetch PvP stats
+        String pvpSql = """
+            SELECT 
+                COUNT(*) FILTER (WHERE winner_id = ?) as wins,
+                COUNT(*) FILTER (WHERE (challenger_id = ? OR opponent_id = ?) AND winner_id != ? AND winner_id IS NOT NULL) as losses
+            FROM student.duels
+            WHERE status = 'COMPLETED'
+            """;
+        Map<String, Object> pvpStats = jdbcTemplate.queryForMap(pvpSql, userId, userId, userId, userId);
+        profile.put("pvpWins", pvpStats.get("wins"));
+        profile.put("pvpLosses", pvpStats.get("losses"));
+
+        // Fetch strongest subject
+        String subjectSql = """
+            SELECT q.subject
+            FROM student.attempts a
+            JOIN content.questions q ON a.question_id = q.id
+            WHERE a.user_id = ? AND q.subject IS NOT NULL
+            GROUP BY q.subject
+            ORDER BY CAST(SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) DESC, COUNT(*) DESC
+            LIMIT 1
+            """;
+        List<String> subjects = jdbcTemplate.queryForList(subjectSql, String.class, userId);
+        profile.put("strongestSubject", subjects.isEmpty() ? null : subjects.get(0));
         
         return profile;
     }

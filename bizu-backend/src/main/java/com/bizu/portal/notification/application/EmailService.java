@@ -81,6 +81,11 @@ public class EmailService {
                 Map.of("name", name, "planName", planName, "amount", amount));
     }
 
+    public void sendPaymentPendingEmail(String to, String name, String planName, String checkoutUrl) {
+        sendTemplatedEmail(to, "Seu pagamento está pendente - Axon Academy", "payment-pending", 
+                Map.of("name", name, "planName", planName, "checkoutUrl", checkoutUrl));
+    }
+
     public void sendPaymentFailedEmail(String to, String name) {
         sendTemplatedEmail(to, "Atenção: Falha no pagamento da sua assinatura", "payment-failed", 
                 Map.of("name", name));

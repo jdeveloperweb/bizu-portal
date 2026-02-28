@@ -40,6 +40,7 @@ interface Payment {
     status: string;
     paymentMethod: string;
     createdAt: string;
+    checkoutUrl?: string; // Add this
 }
 
 export default function StudentFaturamentoPage() {
@@ -151,7 +152,21 @@ export default function StudentFaturamentoPage() {
                             <div className="mt-8 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-4 text-red-700 animate-in slide-in-from-top-2">
                                 <AlertCircle size={20} />
                                 <div className="flex-1 text-[13px] font-bold">Atenção: Identificamos uma falha no seu último pagamento. Regularize para não perder o acesso.</div>
-                                <Button variant="destructive" size="sm" className="h-9 px-4 font-bold rounded-lg shadow-lg shadow-red-200">Pagar Agora</Button>
+                                <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    className="h-9 px-4 font-bold rounded-lg shadow-lg shadow-red-200"
+                                    onClick={() => {
+                                        const pending = payments.find(p => p.status === 'PENDING' && p.checkoutUrl);
+                                        if (pending?.checkoutUrl) {
+                                            window.open(pending.checkoutUrl, '_blank');
+                                        } else {
+                                            window.location.href = '/checkout';
+                                        }
+                                    }}
+                                >
+                                    Pagar Agora
+                                </Button>
                             </div>
                         )}
                     </div>
@@ -182,12 +197,24 @@ export default function StudentFaturamentoPage() {
                                                 {p.paymentMethod === 'PIX' ? <QrCode size={14} /> : <CreditCard size={14} />} {p.paymentMethod}
                                             </td>
                                             <td className="px-8 py-4 text-right">
-                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${p.status === 'SUCCEEDED' ? "bg-emerald-50 text-emerald-600" :
-                                                    p.status === 'PENDING' ? "bg-amber-50 text-amber-600" :
-                                                        "bg-red-50 text-red-600"
-                                                    }`}>
-                                                    {p.status === 'SUCCEEDED' ? "Aprovado" : p.status === 'PENDING' ? "Pendente" : "Falhou"}
-                                                </span>
+                                                <div className="flex flex-col items-end gap-2">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${p.status === 'SUCCEEDED' ? "bg-emerald-50 text-emerald-600" :
+                                                        p.status === 'PENDING' ? "bg-amber-50 text-amber-600" :
+                                                            "bg-red-50 text-red-600"
+                                                        }`}>
+                                                        {p.status === 'SUCCEEDED' ? "Aprovado" : p.status === 'PENDING' ? "Pendente" : "Falhou"}
+                                                    </span>
+                                                    {p.status === 'PENDING' && p.checkoutUrl && (
+                                                        <a
+                                                            href={p.checkoutUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors group/link"
+                                                        >
+                                                            Regularizar <ExternalLink size={10} className="group-hover/link:translate-x-0.5 transition-transform" />
+                                                        </a>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}

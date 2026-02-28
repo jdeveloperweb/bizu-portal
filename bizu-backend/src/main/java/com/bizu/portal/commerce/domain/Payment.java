@@ -38,6 +38,9 @@ public class Payment {
     @Column(name = "payment_method")
     private String paymentMethod;
 
+    @Column(name = "checkout_url")
+    private String checkoutUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "plan_id")
     @com.fasterxml.jackson.annotation.JsonIgnore

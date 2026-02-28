@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import {
     X, Trophy, Flame, UserPlus, UserCheck,
     UserMinus, Zap, Star, ShieldAlert, Loader2,
@@ -144,17 +145,27 @@ export function UserProfileModal({ nickname, isOpen, onClose }: UserProfileModal
                                 </div>
                                 <div className="shrink-0 flex gap-2">
                                     {profile.friendshipStatus === 'ACCEPTED' ? (
-                                        <button onClick={() => handleFriendAction('reject')} className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 hover:bg-rose-100 transition-colors shadow-sm" title="Desfazer Amizade">
-                                            <UserMinus size={20} />
-                                        </button>
+                                        <div className="flex gap-2">
+                                            <Link href="/arena" className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 hover:bg-indigo-100 transition-colors shadow-sm" title="Desafiar na Arena">
+                                                <Swords size={20} />
+                                            </Link>
+                                            <button onClick={() => handleFriendAction('reject')} className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 hover:bg-rose-100 transition-colors shadow-sm" title="Desfazer Amizade">
+                                                <UserMinus size={20} />
+                                            </button>
+                                        </div>
                                     ) : profile.friendshipStatus === 'PENDING' ? (
                                         <button className="px-4 py-2 rounded-xl bg-slate-100 flex items-center gap-2 text-slate-500 font-bold text-sm cursor-not-allowed shadow-sm">
                                             <UserCheck size={16} /> Pendente
                                         </button>
                                     ) : (
-                                        <button onClick={() => handleFriendAction('request')} className="px-4 py-2 rounded-xl bg-indigo-600 flex items-center gap-2 text-white font-bold text-sm hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200">
-                                            <UserPlus size={16} /> Adicionar
-                                        </button>
+                                        <div className="flex gap-2">
+                                            <Link href="/arena" className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 hover:bg-indigo-100 transition-colors shadow-sm" title="Ver na Arena">
+                                                <Swords size={20} />
+                                            </Link>
+                                            <button onClick={() => handleFriendAction('request')} className="px-4 py-2 rounded-xl bg-indigo-600 flex items-center gap-2 text-white font-bold text-sm hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200">
+                                                <UserPlus size={16} /> Adicionar
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -184,6 +195,22 @@ export function UserProfileModal({ nickname, isOpen, onClose }: UserProfileModal
                                         <Zap size={10} /> XP Total
                                     </div>
                                     <div className="text-lg font-black text-slate-800">{profile.xp?.toLocaleString()}</div>
+                                </div>
+                                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                        <Swords size={10} /> Duelos Arena
+                                    </div>
+                                    <div className="text-lg font-black text-emerald-600">
+                                        {profile.pvpWins || 0}V <span className="text-slate-300 mx-1">/</span> <span className="text-rose-500">{profile.pvpLosses || 0}D</span>
+                                    </div>
+                                </div>
+                                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                        <Brain size={10} /> Especialidade
+                                    </div>
+                                    <div className="text-[13px] font-black text-slate-800 truncate" title={profile.strongestSubject || "Ainda impreciso"}>
+                                        {profile.strongestSubject || "—"}
+                                    </div>
                                 </div>
                             </div>
 

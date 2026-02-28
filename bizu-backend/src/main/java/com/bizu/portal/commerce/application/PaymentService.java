@@ -66,9 +66,24 @@ public class PaymentService {
                 .status("PENDING")
                 .paymentMethod(method + " (" + usedProvider + ")")
                 .plan(plan)
+                .checkoutUrl(result.get("url") != null ? result.get("url").toString() : null)
                 .stripeIntentId(result.get("id") != null ? result.get("id").toString() : null)
                 .build();
         paymentRepository.save(payment);
+
+        // Send Pending Notifications
+        try {
+            String checkoutUrl = (String) result.get("url");
+            if (checkoutUrl != null) {
+                emailService.sendPaymentPendingEmail(user.getEmail(), user.getName(), plan.getName(), checkoutUrl);
+                
+                if (user.getPhone() != null && !user.getPhone().isEmpty()) {
+                    whatsAppService.sendPaymentPending(user.getPhone(), user.getName(), checkoutUrl);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to send pending payment notifications for user {}: {}", user.getEmail(), e.getMessage());
+        }
 
         return result;
     }
