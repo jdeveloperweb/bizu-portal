@@ -81,14 +81,12 @@ services:
       - DATABASE_PROVIDER=postgresql
       - DATABASE_CONNECTION_URI=postgresql://bizu_admin:${DB_PASSWORD:-bizu_pass_2024}@evolution-db:5432/evolution_db?schema=public
       - DATABASE_CONNECTION_CLIENT_NAME=evolution_api
-      - REDIS_ENABLED=true
-      - REDIS_URI=redis://evolution-redis:6379/0
-      - REDIS_PREFIX_KEY=evolution
+      - REDIS_ENABLED=false
+      - CACHE_REDIS_ENABLED=false
       - WEBSOCKET_ENABLED=true
       - QRCODE_LIMIT=30
     depends_on:
       - evolution-db
-      - evolution-redis
     networks:
       - bizu-network
 
@@ -105,16 +103,6 @@ services:
     networks:
       - bizu-network
 
-  evolution-redis:
-    image: redis:7-alpine
-    container_name: evolution-redis
-    restart: always
-    command: redis-server --appendonly yes
-    volumes:
-      - evolution_redis:/data
-    networks:
-      - bizu-network
-
 networks:
   bizu-network:
     external: true
@@ -122,4 +110,3 @@ networks:
 volumes:
   postgres_data:
   evolution_pgdata:
-  evolution_redis:
