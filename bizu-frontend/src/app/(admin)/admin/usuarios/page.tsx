@@ -18,8 +18,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api";
 import { formatPhone } from "@/lib/utils";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function AdminUsuariosPage() {
+    const { user: currentUser } = useAuth();
     const [users, setUsers] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -293,15 +295,18 @@ export default function AdminUsuariosPage() {
                                                 >
                                                     <ExternalLink className="w-4 h-4" />
                                                 </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => handleDeleteUser(user.id, user?.name)}
-                                                    className="rounded-lg h-9 w-9 text-slate-400 hover:text-red-500 hover:bg-red-50"
-                                                    title="Apagar Usuário"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
+                                                {/* Permite apagar apenas se não for o próprio admin ou outro usuário admin */}
+                                                {currentUser?.email !== user.email && !user.email?.toLowerCase().includes('admin') && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => handleDeleteUser(user.id, user?.name)}
+                                                        className="rounded-lg h-9 w-9 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                                                        title="Apagar Usuário"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </td>
                                     </motion.tr>

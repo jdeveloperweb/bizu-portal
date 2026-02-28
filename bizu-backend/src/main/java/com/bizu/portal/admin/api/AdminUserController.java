@@ -132,7 +132,12 @@ public class AdminUserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable String id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable String id, @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
+        String currentUserId = jwt.getSubject();
+        if (id.equals(currentUserId)) {
+            throw new RuntimeException("Você não pode excluir seu próprio usuário.");
+        }
+        
         userService.deleteUser(UUID.fromString(id));
         return ResponseEntity.noContent().build();
     }

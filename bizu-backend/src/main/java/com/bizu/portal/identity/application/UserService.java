@@ -67,6 +67,11 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         
+        // Proteção: Impede a exclusão de usuários com e-mail de administrador
+        if (user.getEmail().toLowerCase().contains("admin")) {
+            throw new RuntimeException("Não é permitido excluir usuários administradores do sistema.");
+        }
+        
         // Remove do banco local primeiro (se falhar aqui, não remove do Keycloak, mantendo consistência)
         userRepository.delete(user);
 
