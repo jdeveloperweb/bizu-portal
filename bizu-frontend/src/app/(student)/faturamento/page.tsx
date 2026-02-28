@@ -182,8 +182,11 @@ export default function StudentFaturamentoPage() {
                                                 {p.paymentMethod === 'PIX' ? <QrCode size={14} /> : <CreditCard size={14} />} {p.paymentMethod}
                                             </td>
                                             <td className="px-8 py-4 text-right">
-                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${p.status === 'SUCCEEDED' ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>
-                                                    {p.status === 'SUCCEEDED' ? "Aprovado" : "Falhou"}
+                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${p.status === 'SUCCEEDED' ? "bg-emerald-50 text-emerald-600" :
+                                                    p.status === 'PENDING' ? "bg-amber-50 text-amber-600" :
+                                                        "bg-red-50 text-red-600"
+                                                    }`}>
+                                                    {p.status === 'SUCCEEDED' ? "Aprovado" : p.status === 'PENDING' ? "Pendente" : "Falhou"}
                                                 </span>
                                             </td>
                                         </tr>
@@ -227,6 +230,6 @@ export default function StudentFaturamentoPage() {
                 </div>
 
             </div>
-        </div>
+        </div >
     );
 }

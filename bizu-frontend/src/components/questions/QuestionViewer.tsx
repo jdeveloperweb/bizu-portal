@@ -63,8 +63,27 @@ export default function QuestionViewer({
     };
 
     useEffect(() => {
+        // Obfuscate / clear clipboard on PrintScreen keyup
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.key === "PrintScreen") {
+                navigator.clipboard.writeText("Captura de tela bloqueada por direitos autorais.");
+            }
+        };
+
+        // Block Ctrl+P and Ctrl+S
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 's' || e.key === 'c')) {
+                e.preventDefault();
+            }
+        };
+
+        window.addEventListener("keyup", handleKeyUp);
+        window.addEventListener("keydown", handleKeyDown);
+
         return () => {
             if (autoNextTimeoutRef.current) clearTimeout(autoNextTimeoutRef.current);
+            window.removeEventListener("keyup", handleKeyUp);
+            window.removeEventListener("keydown", handleKeyDown);
         };
     }, []);
 
@@ -74,7 +93,9 @@ export default function QuestionViewer({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="bg-card/70 backdrop-blur-xl border border-border/40 rounded-[1.5rem] md:rounded-[3rem] p-4 md:p-10 shadow-2xl shadow-primary/5 relative overflow-hidden"
+            className="bg-card/70 backdrop-blur-xl border border-border/40 rounded-[1.5rem] md:rounded-[3rem] p-4 md:p-10 shadow-2xl shadow-primary/5 relative overflow-hidden select-none print:hidden"
+            onCopy={(e) => e.preventDefault()}
+            onContextMenu={(e) => e.preventDefault()}
         >
             {/* Subtle Gradient Background Effect */}
             <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-[80px] pointer-events-none" />

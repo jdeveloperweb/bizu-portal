@@ -40,7 +40,16 @@ export default function MarkdownViewer({ content, className, highlights = [] }: 
     };
 
     return (
-        <div className={cn("markdown-viewer prose dark:prose-invert max-w-none", className)}>
+        <div
+            className={cn("markdown-viewer prose dark:prose-invert max-w-none print:hidden", className)}
+            onCopy={(e) => {
+                e.preventDefault();
+                // Bloqueia a cópia para a área de transferência
+            }}
+            onCut={(e) => {
+                e.preventDefault();
+            }}
+        >
             <style jsx global>{`
                 .highlight-item {
                     background-color: rgba(250, 204, 21, 0.4);
