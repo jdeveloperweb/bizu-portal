@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Código de Verificação de Alteração - Axon Academy</title>
+    <style>
+        body {
+            font-family: 'Inter', Helvetica, Arial, sans-serif;
+            background-color: #f4f4f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background-color: #111827;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 4px solid #4f46e5;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+
+        .content {
+            padding: 40px 30px;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .greeting {
+            font-size: 20px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 20px;
+        }
+
+        .code-box {
+            background-color: #f3f4f6;
+            border: 1px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .code {
+            font-size: 42px;
+            font-weight: 800;
+            color: #4f46e5;
+            letter-spacing: 6px;
+        }
+
+        .footer {
+            background-color: #f9fafb;
+            padding: 20px 30px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AXON ACADEMY</h1>
+        </div>
+        <div class="content">
+            <div class="greeting">Olá, <span th:text="${name}">Aluno</span>!</div>
+            <p>Você solicitou a alteração do seu e-mail na Axon Academy. Para confirmar que este e-mail pertence a você,
+                use o código de segurança abaixo:</p>
+
+            <div class="code-box">
+                <div class="code" th:text="${code}">000000</div>
+            </div>
+
+            <p>Este código é válido por 15 minutos e só deve ser usado se você estiver tentando alterar suas informações
+                de perfil.</p>
+            <p>Se você não solicitou esta alteração, ignore este e-mail e não compartilhe este código com ninguém.</p>
+
+            <p style="margin-top: 30px;">
+                Atenciosamente,<br>
+                <strong>Equipe Axon Academy</strong>
+            </p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2024 Axon Academy. Todos os direitos reservados.</p>
+            <p>Este é um e-mail automático, por favor não responda.</p>
+        </div>
+    </div>
+</body>
+
+</html>

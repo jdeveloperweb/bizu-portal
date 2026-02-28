@@ -93,13 +93,110 @@ export default function ProfilePage() {
     const [phone, setPhone] = useState("");
     const [isUploading, setIsUploading] = useState(false);
 
+    // Verification states
+    const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
+    const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
+    const [emailCode, setEmailCode] = useState("");
+    const [phoneCode, setPhoneCode] = useState("");
+    const [newEmail, setNewEmail] = useState("");
+    const [isSendingCode, setIsSendingCode] = useState(false);
+
     useEffect(() => {
         if (user) {
             setName((user.name as string) || "");
             setNickname((user.nickname as string) || "");
             setPhone((user.phone as string) || "");
+            setNewEmail((user.email as string) || "");
         }
     }, [user]);
+
+    const requestEmailChange = async () => {
+        if (!newEmail.includes("@")) {
+            toast.error("Insira um e-mail válido");
+            return;
+        }
+        setIsSendingCode(true);
+        try {
+            const res = await apiFetch("/users/me/request-email-change", {
+                method: "POST",
+                body: JSON.stringify({ email: newEmail })
+            });
+            if (res.ok) {
+                setIsVerifyingEmail(true);
+                toast.success("Código enviado para o novo e-mail!");
+            } else {
+                toast.error(await res.text() || "Erro ao solicitar troca");
+            }
+        } catch {
+            toast.error("Erro de conexão");
+        } finally {
+            setIsSendingCode(false);
+        }
+    };
+
+    const confirmEmailChange = async () => {
+        setIsSaving(true);
+        try {
+            const res = await apiFetch("/users/me/confirm-email-change", {
+                method: "POST",
+                body: JSON.stringify({ email: newEmail, code: emailCode })
+            });
+            if (res.ok) {
+                await refreshUserProfile();
+                setIsVerifyingEmail(false);
+                setEmailCode("");
+                toast.success("E-mail alterado com sucesso!");
+            } else {
+                toast.error(await res.text() || "Código inválido");
+            }
+        } catch {
+            toast.error("Erro na verificação");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const requestPhoneChange = async () => {
+        setIsSendingCode(true);
+        try {
+            const res = await apiFetch("/users/me/request-phone-change", {
+                method: "POST",
+                body: JSON.stringify({ phone })
+            });
+            if (res.ok) {
+                setIsVerifyingPhone(true);
+                toast.success("Código enviado via WhatsApp/SMS!");
+            } else {
+                toast.error(await res.text() || "Erro ao enviar código");
+            }
+        } catch {
+            toast.error("Erro de conexão");
+        } finally {
+            setIsSendingCode(false);
+        }
+    };
+
+    const confirmPhoneChange = async () => {
+        setIsSaving(true);
+        try {
+            const res = await apiFetch("/users/me/confirm-phone-change", {
+                method: "POST",
+                body: JSON.stringify({ phone, code: phoneCode })
+            });
+            if (res.ok) {
+                await refreshUserProfile();
+                setIsVerifyingPhone(false);
+                setPhoneCode("");
+                toast.success("Telefone alterado com sucesso!");
+            } else {
+                toast.error(await res.text() || "Código inválido");
+            }
+        } catch {
+            toast.error("Erro na verificação");
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -217,7 +314,9 @@ export default function ProfilePage() {
         }
     };
 
-    const isModified = name !== (user?.name || "") || phone !== (user?.phone || "") || nickname !== (user?.nickname || "");
+    const isModified = name !== (user?.name || "") || nickname !== (user?.nickname || "");
+    const emailModified = newEmail !== (user?.email || "");
+    const phoneModified = phone !== (user?.phone || "");
 
 
     return (
@@ -364,32 +463,91 @@ export default function ProfilePage() {
                             <div className="space-y-2.5">
                                 <label className="text-sm font-bold text-slate-500 ml-1">E-mail</label>
                                 {isLoading ? <Skeleton className="h-14 w-full rounded-2xl" /> : (
-                                    <Input
-                                        value={user?.email || ""}
-                                        disabled
-                                        className="h-14 rounded-2xl bg-slate-50/50 border-transparent cursor-not-allowed text-base font-medium opacity-60 shadow-none"
-                                        placeholder="Seu e-mail (não pode ser alterado diretamente)"
-                                    />
+                                    <div className="space-y-3">
+                                        <div className="relative flex items-center gap-2">
+                                            <Input
+                                                value={newEmail}
+                                                onChange={(e) => setNewEmail(e.target.value)}
+                                                disabled={isSaving || isVerifyingEmail}
+                                                className={`h-14 rounded-2xl bg-slate-50 border-transparent focus:bg-white transition-all text-base font-medium shadow-none ${isVerifyingEmail ? 'opacity-50' : ''}`}
+                                                placeholder="novo@email.com"
+                                            />
+                                            {emailModified && !isVerifyingEmail && (
+                                                <Button
+                                                    onClick={requestEmailChange}
+                                                    disabled={isSendingCode}
+                                                    className="absolute right-2 h-10 px-4 rounded-xl text-xs font-bold bg-primary text-white"
+                                                >
+                                                    {isSendingCode ? <Loader2 className="w-4 h-4 animate-spin" /> : "Enviar Código"}
+                                                </Button>
+                                            )}
+                                        </div>
+                                        {isVerifyingEmail && (
+                                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-2">
+                                                <Input
+                                                    value={emailCode}
+                                                    onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                                    placeholder="Código de 6 dígitos"
+                                                    className="h-12 rounded-xl flex-1 text-center font-bold tracking-[0.5em]"
+                                                />
+                                                <Button onClick={confirmEmailChange} disabled={isSaving || emailCode.length < 6} className="h-12 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+                                                    Verificar
+                                                </Button>
+                                                <Button variant="ghost" onClick={() => setIsVerifyingEmail(false)} className="h-12 px-4 rounded-xl text-slate-400">
+                                                    Cancelar
+                                                </Button>
+                                            </motion.div>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                             <div className="space-y-2.5">
                                 <label className="text-sm font-bold text-slate-500 ml-1">Telefone</label>
                                 {isLoading ? <Skeleton className="h-14 w-full rounded-2xl" /> : (
-                                    <Input
-                                        value={phone}
-                                        onChange={(e) => setPhone(formatPhone(e.target.value))}
-                                        placeholder="(00) 00000-0000"
-                                        className="h-14 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary/10 focus:border-primary/20 transition-all text-base font-medium shadow-none"
-                                    />
+                                    <div className="space-y-3">
+                                        <div className="relative flex items-center gap-2">
+                                            <Input
+                                                value={phone}
+                                                onChange={(e) => setPhone(formatPhone(e.target.value))}
+                                                disabled={isSaving || isVerifyingPhone}
+                                                placeholder="(00) 00000-0000"
+                                                className={`h-14 rounded-2xl bg-slate-50 border-transparent focus:bg-white transition-all text-base font-medium shadow-none ${isVerifyingPhone ? 'opacity-50' : ''}`}
+                                            />
+                                            {phoneModified && !isVerifyingPhone && (
+                                                <Button
+                                                    onClick={requestPhoneChange}
+                                                    disabled={isSendingCode}
+                                                    className="absolute right-2 h-10 px-4 rounded-xl text-xs font-bold bg-primary text-white"
+                                                >
+                                                    {isSendingCode ? <Loader2 className="w-4 h-4 animate-spin" /> : "Enviar Código"}
+                                                </Button>
+                                            )}
+                                        </div>
+                                        {isVerifyingPhone && (
+                                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-2">
+                                                <Input
+                                                    value={phoneCode}
+                                                    onChange={(e) => setPhoneCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                                    placeholder="Código de 6 dígitos"
+                                                    className="h-12 rounded-xl flex-1 text-center font-bold tracking-[0.5em]"
+                                                />
+                                                <Button onClick={confirmPhoneChange} disabled={isSaving || phoneCode.length < 6} className="h-12 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+                                                    Verificar
+                                                </Button>
+                                                <Button variant="ghost" onClick={() => setIsVerifyingPhone(false)} className="h-12 px-4 rounded-xl text-slate-400">
+                                                    Cancelar
+                                                </Button>
+                                            </motion.div>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         </div>
 
-                        <div className="mt-6 p-4 rounded-2xl bg-amber-50 border border-amber-100 flex items-start gap-3">
-                            <Shield className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
-                            <p className="text-xs text-amber-800 font-medium leading-relaxed">
-                                Por segurança, a alteração de <b>E-mail</b> e <b>Telefone</b> não pode ser feita diretamente.
-                                Caso precise alterar, entre em contato com o suporte ou aguarde a nova funcionalidade de confirmação.
+                        <div className="mt-6 p-4 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-start gap-3">
+                            <Shield className="w-5 h-5 text-indigo-600 mt-0.5 shrink-0" />
+                            <p className="text-xs text-indigo-800 font-medium leading-relaxed">
+                                Para sua segurança, a alteração de <b>E-mail</b> ou <b>Telefone</b> exige a confirmação de um código enviado ao novo endereço/número informado.
                             </p>
                         </div>
 

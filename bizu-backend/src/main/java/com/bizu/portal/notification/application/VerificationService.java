@@ -44,7 +44,9 @@ public class VerificationService {
         // Disparar o envio real
         if ("EMAIL".equalsIgnoreCase(type)) {
             emailService.sendVerificationCode(recipient, name, code);
-        } else if ("WHATSAPP".equalsIgnoreCase(type)) {
+        } else if ("EMAIL_CHANGE".equalsIgnoreCase(type)) {
+            emailService.sendEmailChangeCode(recipient, name, code);
+        } else if ("WHATSAPP".equalsIgnoreCase(type) || "PHONE_CHANGE".equalsIgnoreCase(type)) {
             whatsAppService.sendVerificationCode(recipient, name, code);
         }
     }

@@ -24,6 +24,8 @@ public class MeController {
     private final CourseRepository courseRepository;
     private final AnalyticsService analyticsService;
     private final FileStorageService storageService;
+    private final com.bizu.portal.notification.application.VerificationService verificationService;
+    private final com.bizu.portal.identity.infrastructure.KeycloakService keycloakService;
 
     @GetMapping("/me")
     public ResponseEntity<User> getMe(@AuthenticationPrincipal Jwt jwt) {
@@ -82,5 +84,66 @@ public class MeController {
                 return ResponseEntity.ok(userRepository.save(user));
             })
             .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+    @PostMapping("/me/request-email-change")
+    public ResponseEntity<?> requestEmailChange(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, String> request) {
+        String newEmail = request.get("email");
+        if (newEmail == null || !newEmail.contains("@")) return ResponseEntity.badRequest().body("E-mail inválido");
+        if (userRepository.findByEmail(newEmail).isPresent()) return ResponseEntity.badRequest().body("Este e-mail já está em uso");
+
+        String name = jwt.getClaim("name");
+        verificationService.generateAndSendCode(newEmail, name, "EMAIL_CHANGE");
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/me/confirm-email-change")
+    public ResponseEntity<?> confirmEmailChange(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, String> request) {
+        String newEmail = request.get("email");
+        String code = request.get("code");
+        if (newEmail == null || code == null) return ResponseEntity.badRequest().body("Dados incompletos");
+
+        if (verificationService.validateCode(newEmail, "EMAIL_CHANGE", code)) {
+            String currentEmail = jwt.getClaim("email");
+            return userRepository.findByEmail(currentEmail)
+                .map(user -> {
+                    String oldEmail = user.getEmail();
+                    user.setEmail(newEmail);
+                    
+                    // Atualiza no Keycloak também
+                    keycloakService.updateKeycloakUser(oldEmail, user.getName(), newEmail);
+                    
+                    User saved = userRepository.save(user);
+                    return ResponseEntity.ok(saved);
+                }).orElseGet(() -> ResponseEntity.notFound().build());
+        }
+        return ResponseEntity.badRequest().body("Código inválido ou expirado");
+    }
+
+    @PostMapping("/me/request-phone-change")
+    public ResponseEntity<?> requestPhoneChange(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, String> request) {
+        String newPhone = request.get("phone");
+        if (newPhone == null || newPhone.isBlank()) return ResponseEntity.badRequest().body("Telefone inválido");
+
+        String name = jwt.getClaim("name");
+        verificationService.generateAndSendCode(newPhone, name, "PHONE_CHANGE");
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/me/confirm-phone-change")
+    public ResponseEntity<?> confirmPhoneChange(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, String> request) {
+        String newPhone = request.get("phone");
+        String code = request.get("code");
+        if (newPhone == null || code == null) return ResponseEntity.badRequest().body("Dados incompletos");
+
+        if (verificationService.validateCode(newPhone, "PHONE_CHANGE", code)) {
+            String email = jwt.getClaim("email");
+            return userRepository.findByEmail(email)
+                .map(user -> {
+                    user.setPhone(newPhone);
+                    User saved = userRepository.save(user);
+                    return ResponseEntity.ok(saved);
+                }).orElseGet(() -> ResponseEntity.notFound().build());
+        }
+        return ResponseEntity.badRequest().body("Código inválido ou expirado");
     }
 }

@@ -63,6 +63,11 @@ public class EmailService {
                 Map.of("name", name, "code", code));
     }
 
+    public void sendEmailChangeCode(String to, String name, String code) {
+        sendTemplatedEmail(to, "Código para alteração de e-mail - Axon Academy", "email-change-verification", 
+                Map.of("name", name, "code", code));
+    }
+
     public void sendWelcomeEmail(String to, String name) {
         sendTemplatedEmail(to, "Bem-vindo(a) à Axon Academy! \uD83D\uDE80", "welcome-email", 
                 Map.of("name", name));
