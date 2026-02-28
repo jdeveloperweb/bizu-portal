@@ -25,7 +25,7 @@ public class PomodoroController {
         if (jwt == null) {
             return ResponseEntity.status(401).build();
         }
-        User user = userService.syncUser(java.util.UUID.fromString(jwt.getSubject()), jwt.getClaimAsString("email"), jwt.getClaimAsString("name"));
+        User user = userService.resolveUser(jwt);
         return ResponseEntity.ok(pomodoroService.getSummary(user));
     }
 
@@ -36,7 +36,7 @@ public class PomodoroController {
         if (jwt == null) {
             return ResponseEntity.status(401).build();
         }
-        User user = userService.syncUser(java.util.UUID.fromString(jwt.getSubject()), jwt.getClaimAsString("email"), jwt.getClaimAsString("name"));
+        User user = userService.resolveUser(jwt);
         return ResponseEntity.ok(pomodoroService.saveSession(user, request));
     }
 }

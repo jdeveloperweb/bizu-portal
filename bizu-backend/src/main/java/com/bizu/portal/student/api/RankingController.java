@@ -30,10 +30,7 @@ public class RankingController {
 
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getMyRanking(@AuthenticationPrincipal Jwt jwt) {
-        String email = jwt.getClaimAsString("email");
-        String name = jwt.getClaimAsString("name");
-        UUID subjectId = UUID.fromString(jwt.getSubject());
-        UUID userId = userService.syncUser(subjectId, email, name).getId();
+        UUID userId = userService.resolveUserId(jwt);
         return ResponseEntity.ok(rankingService.getUserRanking(userId));
     }
 }

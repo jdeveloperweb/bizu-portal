@@ -143,7 +143,7 @@ public class UserService {
     }
 
     @Transactional
-    public java.util.UUID resolveUserId(org.springframework.security.oauth2.jwt.Jwt jwt) {
+    public User resolveUser(org.springframework.security.oauth2.jwt.Jwt jwt) {
         String email = jwt.getClaimAsString("email");
         if (email == null) email = jwt.getClaimAsString("preferred_username");
         if (email == null) email = jwt.getSubject();
@@ -161,14 +161,19 @@ public class UserService {
         }
         
         // Extract roles from JWT
-        Set<String> roles = new HashSet<>();
+        Set<String> roles = new java.util.HashSet<>();
         Map<String, Object> realmAccess = jwt.getClaim("realm_access");
-        if (realmAccess != null && realmAccess.containsKey("roles")) {
-            List<String> keycloakRoles = (List<String>) realmAccess.get("roles");
+        if (realmAccess != null && realmAccess.get("roles") instanceof java.util.List) {
+            java.util.List<String> keycloakRoles = (java.util.List<String>) realmAccess.get("roles");
             roles.addAll(keycloakRoles);
         }
         
-        return syncUser(subjectId, email, name, roles).getId();
+        return syncUser(subjectId, email, name, roles);
+    }
+
+    @Transactional
+    public java.util.UUID resolveUserId(org.springframework.security.oauth2.jwt.Jwt jwt) {
+        return resolveUser(jwt).getId();
     }
 
     public void forgotPassword(String email) {

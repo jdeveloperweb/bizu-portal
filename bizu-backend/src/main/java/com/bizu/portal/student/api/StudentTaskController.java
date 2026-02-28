@@ -26,28 +26,24 @@ public class StudentTaskController {
     @GetMapping
     public ResponseEntity<List<StudentTaskDTO>> getUserTasks(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = userService.resolveUserId(jwt);
-        syncUser(jwt, UUID.fromString(jwt.getSubject()));
         return ResponseEntity.ok(studentTaskService.getUserTasks(userId));
     }
 
     @GetMapping("/suggestions")
     public ResponseEntity<List<TaskSuggestionDTO>> getSuggestions(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = userService.resolveUserId(jwt);
-        syncUser(jwt, UUID.fromString(jwt.getSubject()));
         return ResponseEntity.ok(studentTaskService.generateSuggestions(userId));
     }
 
     @PostMapping
     public ResponseEntity<StudentTaskDTO> createTask(@AuthenticationPrincipal Jwt jwt, @RequestBody CreateStudentTaskDTO createDTO) {
         UUID userId = userService.resolveUserId(jwt);
-        syncUser(jwt, UUID.fromString(jwt.getSubject()));
         return ResponseEntity.ok(studentTaskService.createTask(userId, createDTO));
     }
 
     @PatchMapping("/{taskId}/status")
     public ResponseEntity<Void> updateTaskStatus(@PathVariable UUID taskId, @AuthenticationPrincipal Jwt jwt, @RequestBody UpdateStudentTaskStatusDTO dto) {
         UUID userId = userService.resolveUserId(jwt);
-        syncUser(jwt, UUID.fromString(jwt.getSubject()));
         studentTaskService.updateTaskStatus(taskId, userId, dto.getStatus());
         return ResponseEntity.ok().build();
     }
@@ -55,14 +51,8 @@ public class StudentTaskController {
     @DeleteMapping("/{taskId}")
     public ResponseEntity<Void> deleteTask(@PathVariable UUID taskId, @AuthenticationPrincipal Jwt jwt) {
         UUID userId = userService.resolveUserId(jwt);
-        syncUser(jwt, UUID.fromString(jwt.getSubject()));
         studentTaskService.deleteTask(taskId, userId);
         return ResponseEntity.noContent().build();
     }
 
-    private void syncUser(Jwt jwt, UUID userId) {
-        String email = jwt.getClaimAsString("email");
-        String name = jwt.getClaimAsString("name");
-        userService.syncUser(userId, email, name);
-    }
 }

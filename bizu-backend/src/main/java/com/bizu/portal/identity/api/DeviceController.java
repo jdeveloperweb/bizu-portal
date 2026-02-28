@@ -67,9 +67,6 @@ public class DeviceController {
     }
 
     private UUID resolveUserId(Jwt jwt) {
-        String email = jwt.getClaimAsString("email");
-        String name = jwt.getClaimAsString("name");
-        UUID subjectId = UUID.fromString(jwt.getSubject());
-        return userService.syncUser(subjectId, email, name).getId();
+        return userService.resolveUserId(jwt);
     }
 }

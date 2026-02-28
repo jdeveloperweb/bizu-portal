@@ -23,8 +23,7 @@ public class CheckoutController {
 
     @PostMapping("/create-session")
     public ResponseEntity<?> createSession(@AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt, @RequestBody CheckoutRequest request) {
-        UUID userId = userService.resolveUserId(jwt);
-        User user = userService.syncUser(userId, jwt.getClaimAsString("email"), jwt.getClaimAsString("name"));
+        User user = userService.resolveUser(jwt);
         
         java.util.Map<String, Object> result = paymentService.initiatePayment(
             user, 

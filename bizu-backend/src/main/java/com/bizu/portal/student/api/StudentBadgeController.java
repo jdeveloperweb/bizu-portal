@@ -27,10 +27,7 @@ public class StudentBadgeController {
 
     @GetMapping("/me")
     public ResponseEntity<List<BadgeDTO>> getMyBadges(@AuthenticationPrincipal Jwt jwt) {
-        String email = jwt.getClaimAsString("email");
-        String name = jwt.getClaimAsString("name");
-        UUID subjectId = UUID.fromString(jwt.getSubject());
-        UUID userId = userService.syncUser(subjectId, email, name).getId();
+        UUID userId = userService.resolveUserId(jwt);
         return ResponseEntity.ok(gamificationService.getBadgesWithProgress(userId));
     }
 }
