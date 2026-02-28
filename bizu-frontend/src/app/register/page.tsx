@@ -12,7 +12,8 @@ import { formatPhone } from "@/lib/utils";
 export default function RegisterPage() {
     const [show, setShow] = useState(false);
     const [loading, setLoading] = useState(false);
-    const { register, loginDirect } = useAuth();
+    const [step, setStep] = useState(1); // 1: Info, 2: Verification
+    const { register, loginDirect, sendVerificationCode } = useAuth();
     const { notify } = useNotification();
     const router = useRouter();
 
@@ -21,7 +22,9 @@ export default function RegisterPage() {
         email: "",
         phone: "",
         password: "",
-        confirm: ""
+        confirm: "",
+        emailCode: "",
+        phoneCode: ""
     });
 
     const isPWA = typeof window !== "undefined" && (
@@ -42,12 +45,35 @@ export default function RegisterPage() {
     const sLabels = ["", "VULNERÁVEL", "RAZOÁVEL", "SEGURA", "INVIOLÁVEL"];
     const mismatch = !!form.confirm && form.password !== form.confirm;
 
-    const handleRegister = async (e: React.FormEvent) => {
+    const handleSendCodes = async (e: React.FormEvent) => {
         e.preventDefault();
         if (mismatch) {
-            notify("Senhas não coincidem", "Por favor, verifique se as senhas informadas são iguais.", "error");
+            notify("Senhas não coincidem", "Verifique se as senhas informadas são iguais.", "error");
             return;
         }
+        setLoading(true);
+
+        try {
+            const [emailResult, whatsappResult] = await Promise.all([
+                sendVerificationCode(form.email, form.name, 'EMAIL'),
+                sendVerificationCode(form.phone, form.name, 'WHATSAPP')
+            ]);
+
+            if (emailResult && whatsappResult) {
+                notify("Códigos Enviados! 📩", "Verifique seu e-mail e seu WhatsApp.", "success");
+                setStep(2);
+            } else {
+                notify("Erro ao enviar", "Não conseguimos enviar os códigos. Verifique os dados.", "error");
+            }
+        } catch (error) {
+            notify("Erro técnico", "Não foi possível processar sua solicitação agora.", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleFinalRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
         setLoading(true);
 
         const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
@@ -55,11 +81,10 @@ export default function RegisterPage() {
         const courseId = searchParams?.get('course');
 
         try {
-            // No codes needed now as per backend simplification
-            const success = await register(form.name, form.email, form.password, form.phone, "", "");
+            const success = await register(form.name, form.email, form.password, form.phone, form.emailCode, form.phoneCode);
             if (success) {
                 await loginDirect(form.email, form.password);
-                notify("Conta criada! 🚀", "Seja bem-vindo à nossa plataforma.", "success");
+                notify("Bem-vindo(a)! 🚀", "Conta criada com sucesso.", "success");
 
                 let checkoutUrl = "/checkout";
                 if (planId) {
@@ -68,10 +93,10 @@ export default function RegisterPage() {
                 }
                 router.push(checkoutUrl);
             } else {
-                notify("Erro no cadastro", "Não foi possível criar sua conta. Verifique seus dados.", "error");
+                notify("Verificação falhou", "Os códigos informados são inválidos ou expiraram.", "error");
             }
         } catch (error) {
-            notify("Erro técnico", "Tente novamente em instantes.", "error");
+            notify("Erro no sistema", "Tente novamente em instantes.", "error");
         } finally {
             setLoading(false);
         }
@@ -102,25 +127,25 @@ export default function RegisterPage() {
                     <div className="space-y-8">
                         <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/90 text-[13px] font-semibold tracking-wide backdrop-blur-md shadow-2xl">
                             <Zap size={14} className="text-amber-400" />
-                            COMECE SUA JORNADA AGORA
+                            SEGURANÇA EM PRIMEIRO LUGAR
                         </div>
 
                         <h2 className="text-5xl xl:text-6xl font-black text-white leading-[1.05] tracking-tight">
-                            Desbloqueie seu <br />
+                            Validação em <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-400 to-fuchsia-400">
-                                potencial máximo.
+                                dois canais.
                             </span>
                         </h2>
 
                         <p className="text-slate-400 text-lg max-w-md leading-relaxed font-medium">
-                            Junte-se à elite acadêmica e tenha acesso às melhores ferramentas de estudo do mercado.
+                            Protegemos seu acesso com códigos via e-mail e WhatsApp para garantir a máxima segurança da sua conta.
                         </p>
 
                         <div className="grid grid-cols-1 gap-4 py-6">
                             {[
-                                { text: "Acesso imediato a todos os conteúdos", icon: Rocket, delay: "500ms" },
-                                { text: "Comunidade exclusiva de alunos", icon: GraduationCap, delay: "600ms" },
-                                { text: "Suporte especializado 24/7", icon: ShieldCheck, delay: "700ms" },
+                                { text: "Verificação instantânea via WhatsApp", icon: Phone, delay: "500ms" },
+                                { text: "Confirmação segura por E-mail", icon: Mail, delay: "600ms" },
+                                { text: "Proteção de dados avançada", icon: ShieldCheck, delay: "700ms" },
                             ].map((item, i) => (
                                 <div
                                     key={i}
@@ -153,12 +178,12 @@ export default function RegisterPage() {
                         <div className={`flex flex-col items-center text-center ${isPWA ? 'mb-12' : 'mb-8'}`}>
                             {!isPWA && (
                                 <div className="w-full flex justify-between items-center mb-8">
-                                    <Link href="/login" className="inline-flex items-center gap-2 text-[13px] font-bold text-slate-400 hover:text-indigo-600 transition-all group">
+                                    <button onClick={() => step === 2 ? setStep(1) : router.push('/login')} className="inline-flex items-center gap-2 text-[13px] font-bold text-slate-400 hover:text-indigo-600 transition-all group">
                                         <div className="p-2 rounded-lg bg-slate-50 group-hover:bg-indigo-50 transition-colors">
                                             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
                                         </div>
-                                        Já tenho conta
-                                    </Link>
+                                        {step === 2 ? 'Voltar' : 'Já tenho conta'}
+                                    </button>
                                     <div className="lg:hidden scale-75 origin-right">
                                         <BrandLogo size="md" variant="dark" />
                                     </div>
@@ -172,75 +197,125 @@ export default function RegisterPage() {
                             )}
 
                             <h1 className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mb-3">
-                                <span className="text-indigo-600">Crie</span> sua conta
+                                <span className="text-indigo-600">{step === 1 ? 'Crie' : 'Valide'}</span> sua conta
                             </h1>
-                            <p className="text-[15px] text-slate-500 font-medium">Junte-se à nossa comunidade hoje.</p>
+                            <p className="text-[15px] text-slate-500 font-medium">
+                                {step === 1 ? 'Junte-se à nossa comunidade hoje.' : 'Enviamos os códigos de acesso.'}
+                            </p>
+
+                            {/* Progress Indicator */}
+                            <div className="w-full flex gap-2 mt-6 mb-2">
+                                <div className={`h-1 flex-1 rounded-full ${step >= 1 ? 'bg-indigo-600' : 'bg-slate-100'}`} />
+                                <div className={`h-1 flex-1 rounded-full ${step >= 2 ? 'bg-indigo-600' : 'bg-slate-100'}`} />
+                            </div>
                         </div>
 
-                        <form onSubmit={handleRegister} className="space-y-4">
-                            <div className="space-y-1.5">
-                                <label className="block text-[11px] font-black text-slate-400 ml-1 uppercase tracking-widest">Nome Completo</label>
-                                <input type="text" required value={form.name}
-                                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    placeholder="Como quer ser chamado?"
-                                    className="w-full h-14 px-5 rounded-2xl text-[15px] bg-slate-50/50 border border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-0 placeholder:text-slate-300 outline-none transition-all font-medium" />
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <label className="block text-[11px] font-black text-slate-400 ml-1 uppercase tracking-widest">E-mail</label>
-                                <input type="email" required value={form.email}
-                                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                                    placeholder="seu@exemplo.com"
-                                    className="w-full h-14 px-5 rounded-2xl text-[15px] bg-slate-50/50 border border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-0 placeholder:text-slate-300 outline-none transition-all font-medium" />
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <label className="block text-[11px] font-black text-slate-400 ml-1 uppercase tracking-widest">WhatsApp</label>
-                                <input type="tel" required value={form.phone}
-                                    onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })}
-                                    placeholder="(00) 00000-0000"
-                                    className="w-full h-14 px-5 rounded-2xl text-[15px] bg-slate-50/50 border border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-0 placeholder:text-slate-300 outline-none transition-all font-medium" />
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <label className="block text-[11px] font-black text-slate-400 ml-1 uppercase tracking-widest">Senha</label>
-                                <div className="relative group">
-                                    <input type={show ? "text" : "password"} required value={form.password}
-                                        onChange={(e) => setForm({ ...form, password: e.target.value })}
-                                        placeholder="••••••••"
-                                        className="w-full h-14 px-5 pr-14 rounded-2xl text-[15px] bg-slate-50/50 border border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-0 placeholder:text-slate-300 outline-none transition-all font-medium" />
-                                    <button type="button" onClick={() => setShow(!show)}
-                                        className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-indigo-500 transition-colors focus:outline-none p-1">
-                                        {show ? <EyeOff size={18} /> : <Eye size={18} />}
-                                    </button>
+                        {step === 1 ? (
+                            <form onSubmit={handleSendCodes} className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="block text-[11px] font-black text-slate-400 ml-1 uppercase tracking-widest">Nome Completo</label>
+                                    <input type="text" required value={form.name}
+                                        onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                        placeholder="Como quer ser chamado?"
+                                        className="w-full h-14 px-5 rounded-2xl text-[15px] bg-slate-50/50 border border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-0 placeholder:text-slate-300 outline-none transition-all font-medium" />
                                 </div>
-                                {form.password && (
-                                    <div className="mt-1 text-[9px] font-black uppercase tracking-widest text-right" style={{ color: sColors[strength] }}>
-                                        {sLabels[strength]}
+
+                                <div className="space-y-1.5">
+                                    <label className="block text-[11px] font-black text-slate-400 ml-1 uppercase tracking-widest">E-mail</label>
+                                    <input type="email" required value={form.email}
+                                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                                        placeholder="seu@exemplo.com"
+                                        className="w-full h-14 px-5 rounded-2xl text-[15px] bg-slate-50/50 border border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-0 placeholder:text-slate-300 outline-none transition-all font-medium" />
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="block text-[11px] font-black text-slate-400 ml-1 uppercase tracking-widest">WhatsApp</label>
+                                    <input type="tel" required value={form.phone}
+                                        onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })}
+                                        placeholder="(00) 00000-0000"
+                                        className="w-full h-14 px-5 rounded-2xl text-[15px] bg-slate-50/50 border border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-0 placeholder:text-slate-300 outline-none transition-all font-medium" />
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="block text-[11px] font-black text-slate-400 ml-1 uppercase tracking-widest">Senha</label>
+                                    <div className="relative group">
+                                        <input type={show ? "text" : "password"} required value={form.password}
+                                            onChange={(e) => setForm({ ...form, password: e.target.value })}
+                                            placeholder="••••••••"
+                                            className="w-full h-14 px-5 pr-14 rounded-2xl text-[15px] bg-slate-50/50 border border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-0 placeholder:text-slate-300 outline-none transition-all font-medium" />
+                                        <button type="button" onClick={() => setShow(!show)}
+                                            className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-indigo-500 transition-colors focus:outline-none p-1">
+                                            {show ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
                                     </div>
-                                )}
-                            </div>
+                                    {form.password && (
+                                        <div className="mt-1 text-[9px] font-black uppercase tracking-widest text-right" style={{ color: sColors[strength] }}>
+                                            {sLabels[strength]}
+                                        </div>
+                                    )}
+                                </div>
 
-                            <div className="space-y-1.5">
-                                <label className="block text-[11px] font-black text-slate-400 ml-1 uppercase tracking-widest">Confirmar Senha</label>
-                                <input type={show ? "text" : "password"} required value={form.confirm}
-                                    onChange={(e) => setForm({ ...form, confirm: e.target.value })}
-                                    placeholder="••••••••"
-                                    className={`w-full h-14 px-5 rounded-2xl text-[15px] bg-slate-50/50 border border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-0 placeholder:text-slate-300 outline-none transition-all font-medium ${mismatch ? "border-red-400 text-red-600" : ""}`} />
-                            </div>
+                                <div className="space-y-1.5">
+                                    <label className="block text-[11px] font-black text-slate-400 ml-1 uppercase tracking-widest">Confirmar Senha</label>
+                                    <input type={show ? "text" : "password"} required value={form.confirm}
+                                        onChange={(e) => setForm({ ...form, confirm: e.target.value })}
+                                        placeholder="••••••••"
+                                        className={`w-full h-14 px-5 rounded-2xl text-[15px] bg-slate-50/50 border border-slate-100 focus:bg-white focus:border-indigo-500 focus:ring-0 placeholder:text-slate-300 outline-none transition-all font-medium ${mismatch ? "border-red-400 text-red-600" : ""}`} />
+                                </div>
 
-                            <button type="submit" disabled={loading || mismatch}
-                                className="group relative w-full h-14 rounded-2xl font-black text-[15px] text-white bg-indigo-600 hover:bg-slate-900 transition-all shadow-[0_10px_25px_-5px_rgba(79,70,229,0.3)] hover:shadow-[0_15px_30px_-10px_rgba(15,23,42,0.4)] hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 disabled:bg-slate-400 mt-4 overflow-hidden active:scale-[0.98]">
-                                {loading ? (
-                                    <Loader2 className="w-5 h-5 animate-spin mx-auto" />
-                                ) : (
-                                    <span className="flex items-center justify-center gap-2">
-                                        Criar minha conta
-                                        <Rocket size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                                    </span>
-                                )}
-                            </button>
-                        </form>
+                                <button type="submit" disabled={loading || mismatch}
+                                    className="group relative w-full h-14 rounded-2xl font-black text-[15px] text-white bg-indigo-600 hover:bg-slate-900 transition-all shadow-[0_10px_25px_-5px_rgba(79,70,229,0.3)] hover:shadow-[0_15px_30px_-10px_rgba(15,23,42,0.4)] hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 disabled:bg-slate-400 mt-4 overflow-hidden active:scale-[0.98]">
+                                    {loading ? (
+                                        <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                                    ) : (
+                                        <span className="flex items-center justify-center gap-2">
+                                            Próximo Passo
+                                            <Rocket size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                        </span>
+                                    )}
+                                </button>
+                            </form>
+                        ) : (
+                            <form onSubmit={handleFinalRegister} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                                <div className="space-y-4">
+                                    <div className="space-y-1.5">
+                                        <label className="block text-[11px] font-black text-slate-400 ml-1 uppercase tracking-widest flex items-center gap-2">
+                                            <Mail size={14} className="text-indigo-500" /> Código do E-mail
+                                        </label>
+                                        <input type="text" maxLength={6} required value={form.emailCode}
+                                            onChange={(e) => setForm({ ...form, emailCode: e.target.value })}
+                                            placeholder="000000"
+                                            className="w-full h-14 px-5 text-center text-xl font-black tracking-[0.4em] rounded-2xl bg-slate-50/50 border border-slate-100 focus:bg-white focus:border-indigo-500 outline-none transition-all" />
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="block text-[11px] font-black text-slate-400 ml-1 uppercase tracking-widest flex items-center gap-2">
+                                            <Phone size={14} className="text-emerald-500" /> Código do WhatsApp
+                                        </label>
+                                        <input type="text" maxLength={6} required value={form.phoneCode}
+                                            onChange={(e) => setForm({ ...form, phoneCode: e.target.value })}
+                                            placeholder="000000"
+                                            className="w-full h-14 px-5 text-center text-xl font-black tracking-[0.4em] rounded-2xl bg-slate-50/50 border border-slate-100 focus:bg-white focus:border-emerald-500 outline-none transition-all" />
+                                    </div>
+                                </div>
+
+                                <button type="submit" disabled={loading}
+                                    className="group relative w-full h-14 rounded-2xl font-black text-[15px] text-white bg-slate-900 hover:bg-indigo-600 transition-all shadow-[0_10px_25px_-5px_rgba(15,23,42,0.3)] hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 mt-2 overflow-hidden active:scale-[0.98]">
+                                    {loading ? (
+                                        <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                                    ) : (
+                                        <span className="flex items-center justify-center gap-2">
+                                            Finalizar Cadastro
+                                            <CheckCircle2 size={18} className="group-hover:scale-110 transition-transform" />
+                                        </span>
+                                    )}
+                                </button>
+
+                                <button type="button" onClick={() => setStep(1)} className="w-full text-[13px] font-bold text-slate-400 hover:text-indigo-600 transition-colors">
+                                    Voltar e corrigir dados
+                                </button>
+                            </form>
+                        )}
 
                         <div className="mt-10 text-center">
                             <p className="text-[14px] text-slate-400 font-bold">
