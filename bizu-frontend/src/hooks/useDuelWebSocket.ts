@@ -1,11 +1,21 @@
 "use client";
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import Cookies from 'js-cookie';
 
-const WS_URL = (process.env.NEXT_PUBLIC_API_URL || "https://bizu.mjolnix.com.br/api/v1").replace("/api/v1", "/ws");
+// Tenta obter a URL base da API e derivar a URL do WebSocket de forma robusta
+const getWsUrl = () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://bizu.mjoinix.com.br/api/v1";
+    // Se a URL termina com /api/v1, substitui por /ws. Caso contrário, apenas adiciona /ws
+    if (apiUrl.includes("/api/v1")) {
+        return apiUrl.replace("/api/v1", "/ws");
+    }
+    return `${apiUrl}/ws`.replace("//ws", "/ws");
+};
+
+const WS_URL = getWsUrl();
 
 export function useDuelWebSocket(duelId: string | null, onMessage: (msg: any) => void) {
     const stompClientRef = useRef<Client | null>(null);
@@ -16,6 +26,8 @@ export function useDuelWebSocket(duelId: string | null, onMessage: (msg: any) =>
     useEffect(() => {
         if (!duelId) return;
 
+        console.log(`Connecting to duel ${duelId} WebSocket on ${WS_URL}`);
+
         const socket = new SockJS(WS_URL);
         const client = new Client({
             webSocketFactory: () => socket,
@@ -24,6 +36,7 @@ export function useDuelWebSocket(duelId: string | null, onMessage: (msg: any) =>
             },
             reconnectDelay: 5000,
             onConnect: () => {
+                console.log(`Connected to duel ${duelId} WebSocket`);
                 client.subscribe(`/topic/duelos/${duelId}`, (message) => {
                     try {
                         onMessageRef.current(JSON.parse(message.body));
@@ -33,8 +46,11 @@ export function useDuelWebSocket(duelId: string | null, onMessage: (msg: any) =>
                 });
             },
             onStompError: (frame) => {
-                console.error('WebSocket Error:', frame);
+                console.error('STOMP Error in duel websocket:', frame.headers['message'], frame.body);
             },
+            onWebSocketError: (event) => {
+                console.error('WebSocket Error in duel:', event);
+            }
         });
 
         client.activate();
@@ -42,6 +58,7 @@ export function useDuelWebSocket(duelId: string | null, onMessage: (msg: any) =>
 
         return () => {
             if (stompClientRef.current) {
+                console.log(`Deactivating duel ${duelId} WebSocket`);
                 stompClientRef.current.deactivate();
             }
         };
@@ -49,3 +66,4 @@ export function useDuelWebSocket(duelId: string | null, onMessage: (msg: any) =>
 
     return stompClientRef.current;
 }
+

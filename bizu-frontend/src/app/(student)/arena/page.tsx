@@ -15,9 +15,8 @@ import ArenaDuelScreen from "@/components/arena/ArenaDuelScreen";
 import { getAvatarUrl } from "@/lib/imageUtils";
 import ActiveDuelBanner from "@/components/arena/ActiveDuelBanner";
 import { UserProfileModal } from "@/components/UserProfileModal";
-import Cookies from "js-cookie";
-import { useChallengeNotifications } from "@/hooks/useChallengeNotifications";
 import { useAuth } from "@/components/AuthProvider";
+import { useDuels } from "@/contexts/DuelContext";
 import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -56,10 +55,10 @@ export default function ArenaPage() {
 
 function ArenaPageContent() {
     const { user, isFree } = useAuth();
+    const { pendingDuels, acceptDuel, declineDuel } = useDuels();
     const [activeTab, setActiveTab] = useState<ArenaTab>("online");
     const [selectedSubject, setSelectedSubject] = useState("Aleatorio");
     const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
-    const [pendingDuels, setPendingDuels] = useState<Duel[]>([]);
     const [activeDuelId, setActiveDuelId] = useState<string | null>(null);
     const [currentUserId, setCurrentUserId] = useState<string>("");
     const [myStats, setMyStats] = useState({ wins: 0, losses: 0, winRate: 0, streak: 0 });
@@ -123,8 +122,7 @@ function ArenaPageContent() {
                     })));
                 }
 
-                const pending = await DuelService.getPendingDuels();
-                setPendingDuels(pending);
+                // Pending duels are managed by DuelContext
 
                 const statsRes = await apiFetch("/duelos/me/stats");
                 if (statsRes.ok) {
@@ -186,18 +184,24 @@ function ArenaPageContent() {
 
         loadData(true);
         const interval = setInterval(() => loadData(false), 10000);
-        return () => clearInterval(interval);
+
+        const handleDuelReceived = () => {
+            setIsInQueue(false);
+        };
+
+        window.addEventListener('duel:received', handleDuelReceived);
+
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('duel:received', handleDuelReceived);
+        };
     }, []);
 
 
 
-    useChallengeNotifications(currentUserId, (newDuel: Duel) => {
-        setPendingDuels(prev => {
-            if (prev.find(d => d.id === newDuel.id)) return prev;
-            return [newDuel, ...prev];
-        });
-        setIsInQueue(false);
-    });
+
+    // We no longer need local useChallengeNotifications here 
+    // as DuelProvider handles it globally
 
     const handleJoinQueue = async () => {
         const courseId = getStoredSelectedCourseId();
@@ -242,8 +246,7 @@ function ArenaPageContent() {
 
     const handleAccept = async (duelId: string) => {
         try {
-            await DuelService.acceptDuel(duelId);
-            setPendingDuels(prev => prev.filter(d => d.id !== duelId));
+            await acceptDuel(duelId);
             setActiveDuelId(duelId);
         } catch (error) {
             console.error(error);
@@ -253,8 +256,7 @@ function ArenaPageContent() {
 
     const handleDecline = async (duelId: string) => {
         try {
-            await DuelService.declineDuel(duelId);
-            setPendingDuels(prev => prev.filter(d => d.id !== duelId));
+            await declineDuel(duelId);
         } catch (error) {
             console.error(error);
         }
