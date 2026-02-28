@@ -15,6 +15,7 @@ import { getAvatarUrl } from "@/lib/imageUtils";
 import { useAuth } from "@/components/AuthProvider";
 import { Avatar } from "@/components/ui/Avatar";
 import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
+import { UserProfileModal } from "@/components/UserProfileModal";
 
 type RankingTab = "geral" | "semanal" | "materia";
 
@@ -41,6 +42,7 @@ export default function RankingStudentPage() {
     const [myRank, setMyRank] = useState<RankedUser | null>(null);
     const [loading, setLoading] = useState(true);
     const [availableModules, setAvailableModules] = useState<string[]>([]);
+    const [selectedProfileNickname, setSelectedProfileNickname] = useState<string | null>(null);
 
 
     useEffect(() => {
@@ -243,7 +245,11 @@ export default function RankingStudentPage() {
                                         : { bg: "from-orange-300 to-amber-400", text: "text-orange-800", badge: "bg-orange-100" };
 
                                 return (
-                                    <div key={`${user.name}-${i}`} className="flex flex-col items-center">
+                                    <div
+                                        key={`${user.name}-${i}`}
+                                        className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform"
+                                        onClick={() => user.nickname && setSelectedProfileNickname(user.nickname)}
+                                    >
                                         <div className="relative mb-3">
                                             <Avatar
                                                 src={user.avatar}
@@ -276,7 +282,7 @@ export default function RankingStudentPage() {
                         </div>
                         <div className="divide-y divide-slate-50">
                             {displayUsers.length > 0 && displayUsers.map(user => (
-                                <Link key={user.rank} href={user.nickname ? `/perfil/${user.nickname}` : '#'} className={`flex items-center gap-3 px-5 py-3 hover:bg-slate-50/50 transition-colors ${user.rank <= 3 ? "bg-indigo-50/10" : ""}`}>
+                                <button type="button" key={user.rank} onClick={() => user.nickname && setSelectedProfileNickname(user.nickname)} className={`w-full text-left flex items-center gap-3 px-5 py-3 hover:bg-slate-50/50 transition-colors ${user.rank <= 3 ? "bg-indigo-50/10" : ""}`}>
                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-extrabold text-[12px] ${user.rank === 1 ? "bg-amber-100 text-amber-700" :
                                         user.rank === 2 ? "bg-slate-200 text-slate-600" :
                                             user.rank === 3 ? "bg-orange-100 text-orange-700" :
@@ -302,7 +308,7 @@ export default function RankingStudentPage() {
                                         <div className="text-[12px] font-extrabold text-slate-800">{user.xp.toLocaleString()} XP</div>
                                         <DeltaIndicator delta={user.delta} />
                                     </div>
-                                </Link>
+                                </button>
                             ))}
 
                             {/* My position */}
@@ -395,6 +401,12 @@ export default function RankingStudentPage() {
                     </div>
                 </div>
             </div>
+
+            <UserProfileModal
+                nickname={selectedProfileNickname}
+                isOpen={!!selectedProfileNickname}
+                onClose={() => setSelectedProfileNickname(null)}
+            />
         </div>
     );
 }

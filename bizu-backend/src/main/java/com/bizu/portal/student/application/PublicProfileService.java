@@ -82,15 +82,36 @@ public class PublicProfileService {
 
         // Fetch strongest subject
         String subjectSql = """
-            SELECT q.subject
-            FROM student.attempts a
-            JOIN content.questions q ON a.question_id = q.id
-            WHERE a.user_id = ? AND q.subject IS NOT NULL
-            GROUP BY q.subject
-            ORDER BY CAST(SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) DESC, COUNT(*) DESC
+            WITH all_attempts AS (
+                SELECT a.is_correct, q.subject
+                FROM student.attempts a
+                JOIN content.questions q ON a.question_id = q.id
+                WHERE a.user_id = ? AND q.subject IS NOT NULL
+                UNION ALL
+                SELECT s.student_correct as is_correct, s.snapshot_subject as subject
+                FROM student.activity_attempt_item_snapshots s
+                JOIN student.activity_attempts aa ON s.attempt_id = aa.id
+                WHERE aa.user_id = ? AND s.snapshot_subject IS NOT NULL AND s.student_selected_option IS NOT NULL
+                UNION ALL
+                SELECT dq.challenger_correct as is_correct, q.subject
+                FROM student.duel_questions dq
+                JOIN student.duels d ON dq.duel_id = d.id
+                JOIN content.questions q ON dq.question_id = q.id
+                WHERE d.challenger_id = ? AND dq.challenger_answer_index IS NOT NULL AND q.subject IS NOT NULL
+                UNION ALL
+                SELECT dq.opponent_correct as is_correct, q.subject
+                FROM student.duel_questions dq
+                JOIN student.duels d ON dq.duel_id = d.id
+                JOIN content.questions q ON dq.question_id = q.id
+                WHERE d.opponent_id = ? AND dq.opponent_answer_index IS NOT NULL AND q.subject IS NOT NULL
+            )
+            SELECT subject
+            FROM all_attempts
+            GROUP BY subject
+            ORDER BY CAST(SUM(CASE WHEN is_correct THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) DESC, COUNT(*) DESC
             LIMIT 1
             """;
-        List<String> subjects = jdbcTemplate.queryForList(subjectSql, String.class, userId);
+        List<String> subjects = jdbcTemplate.queryForList(subjectSql, String.class, userId, userId, userId, userId);
         profile.put("strongestSubject", subjects.isEmpty() ? null : subjects.get(0));
         
         return profile;
