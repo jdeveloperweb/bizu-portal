@@ -87,7 +87,7 @@ services:
       - DATABASE_PROVIDER=postgresql
       - DATABASE_CONNECTION_URI=postgresql://bizu_admin:${DB_PASSWORD:-bizu_pass_2024}@evolution-db:5432/evolution_db?schema=public
       - DATABASE_CONNECTION_CLIENT_NAME=evolution_api
-      - REDIS_URI=redis://default:bizu_redis_senha@evolution-redis:6379
+      - REDIS_URI=redis://:bizu_redis_senha@evolution-redis:6379
       - REDIS_PREFIX_KEY=evolution
       - WEBSOCKET_ENABLED=true
       - QRCODE_LIMIT=30
