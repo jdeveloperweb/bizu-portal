@@ -1,18 +1,26 @@
 package com.bizu.portal.identity.application;
 
 import com.bizu.portal.identity.domain.User;
+import com.bizu.portal.identity.domain.Role;
 import com.bizu.portal.identity.infrastructure.KeycloakService;
 import com.bizu.portal.identity.infrastructure.UserRepository;
+import com.bizu.portal.identity.infrastructure.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final KeycloakService keycloakService;
 
     public java.util.Optional<User> findById(java.util.UUID id) {
@@ -67,12 +75,15 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         
-        // Proteção: Impede a exclusão de usuários com e-mail de administrador
-        if (user.getEmail().toLowerCase().contains("admin")) {
+        // Proteção: Impede a exclusão de usuários com e-mail de administrador ou role ADMIN
+        boolean isAdmin = user.getEmail().toLowerCase().contains("admin") || 
+                         user.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN"));
+
+        if (isAdmin) {
             throw new RuntimeException("Não é permitido excluir usuários administradores do sistema.");
         }
         
-        // Remove do banco local primeiro (se falhar aqui, não remove do Keycloak, mantendo consistência)
+        // Remove do banco local primeiro
         userRepository.delete(user);
 
         // Remove do Keycloak depois
@@ -80,7 +91,7 @@ public class UserService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public User syncUser(java.util.UUID userId, String email, String name) {
+    public User syncUser(java.util.UUID userId, String email, String name, Set<String> roles) {
         String effectiveEmail = email != null ? email : userId.toString() + "@internal.bizu.com.br";
         String effectiveName = name != null ? name : (email != null ? email : "User " + userId.toString().substring(0, 8));
 
@@ -104,6 +115,23 @@ public class UserService {
             });
         });
 
+        // Sync roles if provided
+        if (roles != null && !roles.isEmpty()) {
+            boolean changed = false;
+            for (String roleName : roles) {
+                String normalizedRole = roleName.toUpperCase();
+                if (user.getRoles().stream().noneMatch(r -> r.getName().equals(normalizedRole))) {
+                    Role role = roleRepository.findByName(normalizedRole)
+                            .orElseGet(() -> roleRepository.save(Role.builder().name(normalizedRole).build()));
+                    user.getRoles().add(role);
+                    changed = true;
+                }
+            }
+            if (changed) {
+                userRepository.save(user);
+            }
+        }
+
         // Atualiza a presença sem incrementar o version
         try {
             userRepository.updateLastSeen(user.getId());
@@ -118,7 +146,7 @@ public class UserService {
     public java.util.UUID resolveUserId(org.springframework.security.oauth2.jwt.Jwt jwt) {
         String email = jwt.getClaimAsString("email");
         if (email == null) email = jwt.getClaimAsString("preferred_username");
-        if (email == null) email = jwt.getSubject(); // Fallback final
+        if (email == null) email = jwt.getSubject();
 
         String name = jwt.getClaimAsString("name");
         if (name == null) name = jwt.getClaimAsString("preferred_username");
@@ -132,7 +160,15 @@ public class UserService {
             subjectId = java.util.UUID.nameUUIDFromBytes(email.getBytes());
         }
         
-        return syncUser(subjectId, email, name).getId();
+        // Extract roles from JWT
+        Set<String> roles = new HashSet<>();
+        Map<String, Object> realmAccess = jwt.getClaim("realm_access");
+        if (realmAccess != null && realmAccess.containsKey("roles")) {
+            List<String> keycloakRoles = (List<String>) realmAccess.get("roles");
+            roles.addAll(keycloakRoles);
+        }
+        
+        return syncUser(subjectId, email, name, roles).getId();
     }
 
     public void forgotPassword(String email) {

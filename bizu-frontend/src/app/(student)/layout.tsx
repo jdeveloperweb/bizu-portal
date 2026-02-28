@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import StudentSidebar from "@/components/StudentSidebar";
 import FloatingPomodoro from "@/components/pomodoro/FloatingPomodoro";
 import ChallengeOverlay from "@/components/arena/ChallengeOverlay";
+import { useAuth } from "@/components/AuthProvider";
 
 
 export default function StudentLayout({
@@ -12,7 +13,15 @@ export default function StudentLayout({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    const { isAdmin } = useAuth();
     const isCheckoutRoute = pathname?.startsWith("/checkout");
+
+    if (isAdmin && !pathname?.startsWith("/admin")) {
+        if (typeof window !== "undefined") {
+            window.location.href = "/admin";
+        }
+        return null;
+    }
 
     if (isCheckoutRoute) {
         return <main className="min-h-screen bg-background text-foreground">{children}</main>;

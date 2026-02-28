@@ -25,11 +25,10 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-    const { authenticated, logout, user } = useAuth();
+    const { authenticated, logout, user, isAdmin } = useAuth();
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
 
-    const isAdmin = getRealmRoles(user).some((role) => role.toUpperCase() === "ADMIN");
     const dashboardHref = isAdmin ? "/admin" : "/dashboard";
 
     useEffect(() => {

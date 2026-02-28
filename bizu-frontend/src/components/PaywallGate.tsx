@@ -12,12 +12,13 @@ import Link from "next/link";
  */
 export default function PaywallGate({ children }: { children: React.ReactNode }) {
     const { entitlementExpired, activeCourseId, loading } = useCourse();
-    const { isFree } = useAuth();
+    const { isAdmin, isFree } = useAuth();
     const pathname = usePathname();
 
     // Don't block public pages, admin pages, or settings
     const isExempt =
         !pathname ||
+        isAdmin ||
         pathname === "/" ||
         pathname === "/login" ||
         pathname === "/register" ||

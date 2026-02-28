@@ -21,7 +21,7 @@ const getRealmRoles = (user: unknown): string[] => {
 };
 
 export default function LoginPage() {
-    const { loginDirect, authenticated, user } = useAuth();
+    const { loginDirect, authenticated, user, isAdmin } = useAuth();
     const { notify } = useNotification();
     const router = useRouter();
     const [show, setShow] = useState(false);
@@ -51,16 +51,13 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (authenticated && user) {
-            const roles = getRealmRoles(user);
-            const isAdmin = roles.some((role: string) => role.toUpperCase() === "ADMIN");
-
             if (isAdmin) {
                 router.push("/admin");
             } else {
                 router.push("/dashboard");
             }
         }
-    }, [authenticated, user, router]);
+    }, [authenticated, user, isAdmin, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

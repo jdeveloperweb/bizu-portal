@@ -22,6 +22,7 @@ interface AuthContextType {
     entitlements: any[];
     isPremium: boolean;
     isFree: boolean;
+    isAdmin: boolean;
 }
 
 interface AuthUser {
@@ -409,9 +410,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         (subscription.status === "ACTIVE" || subscription.status === "PAST_DUE") &&
         !subscription.plan?.free;
     const isFree = authenticated && !isPremium;
+    const isAdmin = authenticated && (
+        user?.roles?.some((r: any) => r.name === 'ADMIN') ||
+        user?.realm_access?.roles?.includes('ADMIN') ||
+        user?.role === 'ADMIN'
+    );
 
     return (
-        <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register, sendVerificationCode, selectedCourseId, setSelectedCourseId, refreshUserProfile, subscription, entitlements, isPremium, isFree }}>
+        <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register, sendVerificationCode, selectedCourseId, setSelectedCourseId, refreshUserProfile, subscription, entitlements, isPremium, isFree, isAdmin }}>
             {children}
         </AuthContext.Provider>
     );

@@ -30,7 +30,7 @@ const quickActions = [
 ];
 
 export default function DashboardPage() {
-    const { user } = useAuth();
+    const { user, isAdmin } = useAuth();
     const router = useRouter();
     const { isGracePeriod } = useCourse();
     const {
@@ -70,7 +70,7 @@ export default function DashboardPage() {
                 if (subscriptionRes.ok) {
                     const data = await subscriptionRes.json();
                     setSubscription(data);
-                } else if (subscriptionRes.status === 404 && user?.role !== 'ADMIN') {
+                } else if (subscriptionRes.status === 404 && !isAdmin) {
                     // Se não tem assinatura e não é admin, manda pro checkout
                     router.push("/checkout");
                 }

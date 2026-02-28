@@ -12,13 +12,13 @@ interface Course {
 
 export default function CourseSelectionGate({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const { authenticated, loading, selectedCourseId, setSelectedCourseId, refreshUserProfile } = useAuth();
+    const { authenticated, loading, selectedCourseId, setSelectedCourseId, refreshUserProfile, isAdmin } = useAuth();
     const [courses, setCourses] = useState<Course[]>([]);
     const [saving, setSaving] = useState(false);
     const [selected, setSelected] = useState("");
 
     useEffect(() => {
-        if (!authenticated || loading || selectedCourseId) return;
+        if (!authenticated || loading || selectedCourseId || isAdmin) return;
 
         const loadCourses = async () => {
             const res = await apiFetch("/public/courses");
@@ -28,13 +28,13 @@ export default function CourseSelectionGate({ children }: { children: React.Reac
         };
 
         loadCourses();
-    }, [authenticated, loading, selectedCourseId]);
+    }, [authenticated, loading, selectedCourseId, isAdmin]);
 
     const isPublicPath = !pathname || pathname === "/" || pathname === "/login" || pathname === "/register" ||
         pathname.startsWith("/pricing") || pathname.startsWith("/termos") || pathname.startsWith("/privacidade") ||
         pathname.startsWith("/forgot-password") || pathname.startsWith("/checkout");
 
-    const shouldBlock = authenticated && !loading && !selectedCourseId && !isPublicPath && !pathname?.startsWith("/admin");
+    const shouldBlock = authenticated && !loading && !selectedCourseId && !isPublicPath && !pathname?.startsWith("/admin") && !isAdmin;
 
     const handleConfirm = async () => {
         if (!selected) return;
