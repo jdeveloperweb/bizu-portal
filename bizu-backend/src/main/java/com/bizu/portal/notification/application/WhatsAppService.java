@@ -36,6 +36,7 @@ public class WhatsAppService {
         
         try {
             String endpoint = apiUrl + "/message/sendText/" + instanceName;
+            log.info("[WHATSAPP] Enviando requisição para: {}", endpoint);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -47,22 +48,21 @@ public class WhatsAppService {
                 rawPhone = "55" + rawPhone;
             }
 
-            Map<String, Object> textMessage = new HashMap<>();
-            textMessage.put("text", message);
-
             Map<String, Object> body = new HashMap<>();
             body.put("number", rawPhone);
-            body.put("textMessage", textMessage);
-            
-            Map<String, Object> options = new HashMap<>();
-            options.put("delay", 1500);
-            options.put("presence", "composing");
-            body.put("options", options);
+            body.put("text", message);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
-            restTemplate.postForObject(endpoint, request, Map.class);
-            log.info("[WHATSAPP] Mensagem enviada para {} com sucesso", rawPhone);
+            try {
+                org.springframework.http.ResponseEntity<Map> response = restTemplate.postForEntity(endpoint, request, Map.class);
+                log.info("[WHATSAPP] Resposta da Evolution API para {}: {} - {}", 
+                    rawPhone, response.getStatusCode(), response.getBody());
+            } catch (org.springframework.web.client.HttpClientErrorException e) {
+                log.error("[WHATSAPP] Erro de cliente ({}): {}", e.getStatusCode(), e.getResponseBodyAsString());
+            } catch (org.springframework.web.client.HttpServerErrorException e) {
+                log.error("[WHATSAPP] Erro de servidor ({}): {}", e.getStatusCode(), e.getResponseBodyAsString());
+            }
         } catch (Exception e) {
             log.error("[WHATSAPP] Falha ao enviar para {}: {}", phoneNumber, e.getMessage());
         }
