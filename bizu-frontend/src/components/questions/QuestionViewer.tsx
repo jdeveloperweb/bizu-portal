@@ -218,15 +218,24 @@ export default function QuestionViewer({
                         </Button>
                     )
                 ) : isSubmitted ? (
-                    <div className="w-full sm:w-[280px] h-12 md:h-14 p-3.5 md:p-4 rounded-[1rem] md:rounded-[1.25rem] bg-primary/[0.03] border border-primary/10 overflow-hidden relative">
+                    <button
+                        onClick={() => {
+                            if (autoNextTimeoutRef.current) clearTimeout(autoNextTimeoutRef.current);
+                            onNext?.();
+                        }}
+                        className="w-full sm:w-[280px] h-12 md:h-14 p-3.5 md:p-4 rounded-[1rem] md:rounded-[1.25rem] bg-primary/[0.03] border border-primary/10 overflow-hidden relative group hover:bg-primary/[0.08] hover:border-primary/30 transition-all duration-300"
+                    >
                         <div className="flex items-center justify-center gap-2 h-full relative z-10">
                             <motion.div
                                 animate={{ rotate: 360 }}
                                 transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                             >
-                                <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary/60" />
+                                <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary/60 group-hover:text-primary transition-colors" />
                             </motion.div>
-                            <span className="text-[9px] md:text-xs font-black text-primary/80 uppercase tracking-widest">Avançando agora...</span>
+                            <div className="flex flex-col items-center">
+                                <span className="text-[9px] md:text-xs font-black text-primary/80 uppercase tracking-widest group-hover:text-primary transition-colors">Avançando agora...</span>
+                                <span className="text-[7px] md:text-[8px] text-primary/40 uppercase font-black tracking-tighter group-hover:text-primary/60">Clique para pular</span>
+                            </div>
                         </div>
                         <div className="absolute bottom-0 left-0 h-1 w-full bg-primary/5">
                             <motion.div
@@ -237,7 +246,7 @@ export default function QuestionViewer({
                                 transition={{ duration: AUTO_NEXT_DELAY_MS / 1000, ease: "linear" }}
                             />
                         </div>
-                    </div>
+                    </button>
                 ) : (
                     <div className="flex items-center gap-2 text-[9px] md:text-[10px] font-black text-muted-foreground/30 uppercase tracking-widest pr-4">
                         <Sparkles className="w-3.5 h-3.5 animate-pulse" />

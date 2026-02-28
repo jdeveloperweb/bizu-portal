@@ -95,6 +95,7 @@ import { PomodoroProvider } from "@/contexts/PomodoroContext";
 import { GamificationProvider } from "@/components/gamification/GamificationProvider";
 import { InstallPWA } from "@/components/pwa/InstallPWA";
 import PWASplashScreen from "@/components/pwa/PWASplashScreen";
+import { DuelProvider } from "@/contexts/DuelContext";
 
 export default function RootLayout({
   children,
@@ -114,8 +115,10 @@ export default function RootLayout({
                   <CourseSelectionGate>
                     <PaywallGate>
                       <GamificationProvider>
-                        {children}
-                        <InstallPWA />
+                        <DuelProvider>
+                          {children}
+                          <InstallPWA />
+                        </DuelProvider>
                       </GamificationProvider>
                     </PaywallGate>
                   </CourseSelectionGate>

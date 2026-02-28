@@ -34,6 +34,7 @@ public class PaymentService {
     private final com.bizu.portal.commerce.infrastructure.SubscriptionRepository subscriptionRepository;
     private final EntitlementService entitlementService;
     private final com.bizu.portal.commerce.infrastructure.PaymentRepository paymentRepository;
+    private final AxonStoreService axonStoreService;
     private final java.util.List<PaymentProvider> providers;
 
     @Transactional
@@ -143,7 +144,7 @@ public class PaymentService {
         );
 
         if (alreadyActive) {
-            log.info("Assinatura do plano {} já está ativa para o usuário {}", plan.getName(), user.getEmail());
+            log.info("Assinatura do plano {} já estava ativa para o usuário {}", plan.getName(), user.getEmail());
             return;
         }
 
@@ -190,6 +191,21 @@ public class PaymentService {
 
         if (plan.isGroup()) {
             subscriptionGroupService.createGroup(user, plan);
+        }
+
+        // Axon Pack Fulfillment
+        String planCode = plan.getCode();
+        if (planCode != null && planCode.startsWith("AXON_PACK_")) {
+            try {
+                int amount = Integer.parseInt(planCode.replace("AXON_PACK_", ""));
+                // Directly add to user balance
+                axonStoreService.addAxons(userId, amount);
+                
+                notificationService.send(userId, "🧠 Axons Recebidos!", 
+                    "Seu pacote de " + amount + " Axons foi creditado com sucesso em sua conta.");
+            } catch (Exception e) {
+                log.error("Erro ao creditar Axons para plano {}: {}", planCode, e.getMessage());
+            }
         }
 
         // Logic to update user metadata or role to ACTIVE_SUBSCRIBER

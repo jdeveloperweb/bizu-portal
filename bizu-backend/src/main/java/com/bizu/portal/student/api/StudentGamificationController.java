@@ -38,6 +38,7 @@ public class StudentGamificationController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("totalXp", stats.getTotalXp());
+        response.put("axons", stats.getAxonCoins());
         response.put("currentStreak", stats.getCurrentStreak());
         int currentLevel = levelCalculator.calculateLevel(stats.getTotalXp());
         response.put("level", currentLevel);

@@ -9,6 +9,7 @@ import { useDuelWebSocket } from "@/hooks/useDuelWebSocket";
 import { useGamification } from "@/components/gamification/GamificationProvider";
 import { apiFetch } from "@/lib/api";
 import { getAvatarUrl } from "@/lib/imageUtils";
+import { Avatar } from "@/components/ui/Avatar";
 import confetti from "canvas-confetti";
 
 interface ArenaDuelScreenProps {
@@ -186,23 +187,13 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                         <div className="flex items-center justify-between gap-8 md:px-6">
                             {/* Challenger */}
                             <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-                                <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center overflow-hidden shadow-lg ${isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
-                                    {duel.challenger?.avatarUrl ? (
-                                        <img
-                                            src={getAvatarUrl(duel.challenger.avatarUrl)}
-                                            className="w-full h-full object-cover"
-                                            alt={duel.challenger.name}
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).style.display = 'none';
-                                                (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-white text-lg md:text-xl font-bold">${(duel.challenger?.name || "U").slice(0, 2).toUpperCase()}</span>`;
-                                            }}
-                                        />
-                                    ) : (
-                                        <span className="text-white text-lg md:text-xl font-bold">
-                                            {(duel.challenger?.name || "U").slice(0, 2).toUpperCase()}
-                                        </span>
-                                    )}
-                                </div>
+                                <Avatar
+                                    src={duel.challenger?.avatarUrl}
+                                    name={duel.challenger?.name}
+                                    size="lg"
+                                    className={`md:w-16 md:h-16 ${isChallenger ? "ring-4 ring-indigo-200" : ""}`}
+                                    fallbackClassName="bg-indigo-600 text-white"
+                                />
                                 <span className="text-[10px] md:text-sm font-bold text-slate-800 truncate w-full text-center">{duel.challenger?.name}</span>
                                 <div className="flex gap-0.5 md:gap-1 mt-0.5">
                                     {Array.from({ length: 10 }).map((_, i) => (
@@ -237,23 +228,13 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
 
                             {/* Opponent */}
                             <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-                                <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center overflow-hidden shadow-lg ${!isChallenger ? "ring-4 ring-indigo-200" : ""}`}>
-                                    {duel.opponent?.avatarUrl ? (
-                                        <img
-                                            src={getAvatarUrl(duel.opponent.avatarUrl)}
-                                            className="w-full h-full object-cover"
-                                            alt={duel.opponent.name}
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).style.display = 'none';
-                                                (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-slate-600 text-lg md:text-xl font-bold">${(duel.opponent?.name || "U").slice(0, 2).toUpperCase()}</span>`;
-                                            }}
-                                        />
-                                    ) : (
-                                        <span className="text-slate-600 text-lg md:text-xl font-bold">
-                                            {(duel.opponent?.name || "U").slice(0, 2).toUpperCase()}
-                                        </span>
-                                    )}
-                                </div>
+                                <Avatar
+                                    src={duel.opponent?.avatarUrl}
+                                    name={duel.opponent?.name}
+                                    size="lg"
+                                    className={`md:w-16 md:h-16 ${!isChallenger ? "ring-4 ring-indigo-200" : ""}`}
+                                    fallbackClassName="bg-slate-200 text-slate-600"
+                                />
                                 <span className="text-[10px] md:text-sm font-bold text-slate-800 truncate w-full text-center">{duel.opponent?.name}</span>
                                 <div className="flex gap-0.5 md:gap-1 mt-0.5">
                                     {Array.from({ length: 10 }).map((_, i) => (

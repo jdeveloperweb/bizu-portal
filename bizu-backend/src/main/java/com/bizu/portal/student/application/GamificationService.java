@@ -24,8 +24,9 @@ import java.util.stream.Collectors;
 public class GamificationService {
 
     private final GamificationRepository gamificationRepository;
-    private final BadgeRepository badgeRepository;
-    private final UserBadgeRepository userBadgeRepository;
+    private final com.bizu.portal.student.infrastructure.BadgeRepository badgeRepository;
+    private final com.bizu.portal.student.infrastructure.UserBadgeRepository userBadgeRepository;
+    private final com.bizu.portal.student.infrastructure.InventoryRepository inventoryRepository;
     private final LevelCalculator levelCalculator;
     private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
@@ -174,6 +175,7 @@ public class GamificationService {
             .orElseGet(() -> GamificationStats.builder()
                 .userId(userId)
                 .totalXp(0)
+                .axonCoins(0)
                 .currentStreak(0)
                 .maxStreak(0)
                 .build());
@@ -182,6 +184,11 @@ public class GamificationService {
         int previousLevel = levelCalculator.calculateLevel(previousXp);
         
         stats.setTotalXp(previousXp + amount);
+        
+        // Award AxonCoins - 1 coin per 1 XP gained
+        if (amount > 0) {
+            stats.setAxonCoins((stats.getAxonCoins() != null ? stats.getAxonCoins() : 0) + amount);
+        }
         
         // Update streak
         updateStreakLogic(stats);
@@ -221,9 +228,32 @@ public class GamificationService {
                 if (nowDate.minusDays(1).equals(lastDate)) {
                     // Consecutivo
                     stats.setCurrentStreak(stats.getCurrentStreak() + 1);
-                } else {
-                    // Quebrou a sequência
-                    stats.setCurrentStreak(1);
+                } else if (nowDate.isAfter(lastDate.plusDays(1))) {
+                    // Missed one or more days. Check for STREAK_FREEZE.
+                    long daysMissed = java.time.temporal.ChronoUnit.DAYS.between(lastDate, nowDate) - 1;
+                    
+                    Optional<com.bizu.portal.student.domain.Inventory> freeze = inventoryRepository.findByUserIdAndItemCode(stats.getUserId(), "STREAK_FREEZE");
+                    if (freeze.isPresent() && freeze.get().getQuantity() > 0) {
+                        int available = freeze.get().getQuantity();
+                        int toConsume = (int) Math.min(daysMissed, available);
+                        
+                        freeze.get().setQuantity(available - toConsume);
+                        inventoryRepository.save(freeze.get());
+                        
+                        // Keep the streak as if they did study those days (active maintenance)
+                        // Or just bridge the gap
+                        if (toConsume >= daysMissed) {
+                            // Perfect protection
+                            stats.setCurrentStreak(stats.getCurrentStreak() + 1);
+                            log.info("Usuário {} usou {} Escudo(s) de Ofensiva para manter a streak.", stats.getUserId(), toConsume);
+                        } else {
+                            // Protection failed (not enough items)
+                            stats.setCurrentStreak(1);
+                        }
+                    } else {
+                        // Quebrou a sequência
+                        stats.setCurrentStreak(1);
+                    }
                 }
                 
                 if (stats.getMaxStreak() == null || stats.getCurrentStreak() > stats.getMaxStreak()) {

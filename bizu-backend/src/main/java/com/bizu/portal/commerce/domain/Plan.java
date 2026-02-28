@@ -21,8 +21,10 @@ public class Plan {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
+
+    private String code;
 
     @Column(columnDefinition = "TEXT")
     private String description;

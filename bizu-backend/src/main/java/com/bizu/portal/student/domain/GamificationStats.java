@@ -31,6 +31,10 @@ public class GamificationStats implements org.springframework.data.domain.Persis
     @Column(name = "max_streak")
     private Integer maxStreak = 0;
 
+    @Builder.Default
+    @Column(name = "axon_coins")
+    private Integer axonCoins = 0;
+
     @Column(name = "last_activity_at")
     private OffsetDateTime lastActivityAt;
 

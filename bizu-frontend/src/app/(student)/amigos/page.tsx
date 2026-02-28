@@ -85,12 +85,18 @@ export default function AmigosPage() {
 
     const handleAcceptRequest = async (id: string) => {
         const res = await apiFetch(`/friends/accept/${id}`, { method: 'POST' });
-        if (res.ok) fetchPending();
+        if (res.ok) {
+            fetchPending();
+            window.dispatchEvent(new CustomEvent("friends:updated"));
+        }
     };
 
     const handleRejectRequest = async (id: string) => {
         const res = await apiFetch(`/friends/reject/${id}`, { method: 'DELETE' });
-        if (res.ok) fetchPending();
+        if (res.ok) {
+            fetchPending();
+            window.dispatchEvent(new CustomEvent("friends:updated"));
+        }
     };
 
     if (isFree) {

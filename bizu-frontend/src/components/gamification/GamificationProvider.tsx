@@ -3,7 +3,8 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import LevelUpOverlay from "./LevelUpOverlay";
 import XPRewardAnimation from "./XPRewardAnimation";
-import { getGlobalOverlayShown, setGlobalOverlayShown } from "../arena/ChallengeOverlay";
+// We removed setGlobalOverlayShown dependency to allow duels to show properly.
+// Overlays should probably be managed by a higher-level toast/notification system in the future.
 
 interface Reward {
     xpGained: number;
@@ -26,14 +27,10 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
     const [showLevelUp, setShowLevelUp] = useState(false);
 
     const showReward = useCallback((newReward: Reward) => {
-        // According to user request: "se algum overlay tiver aparecido, ele não aparece mais"
-        if (getGlobalOverlayShown()) return;
-
         setReward(newReward);
 
         if (newReward.xpGained > 0) {
             setShowXP(true);
-            setGlobalOverlayShown(true);
         }
 
         if (newReward.leveledUp) {
@@ -56,7 +53,6 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
                         show={showXP}
                         onComplete={() => {
                             setShowXP(false);
-                            setGlobalOverlayShown(false);
                         }}
                     />
                     <LevelUpOverlay
@@ -64,7 +60,6 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
                         show={showLevelUp}
                         onClose={() => {
                             setShowLevelUp(false);
-                            setGlobalOverlayShown(false);
                         }}
                     />
                 </>

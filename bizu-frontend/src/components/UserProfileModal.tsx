@@ -10,6 +10,7 @@ import {
     TrendingUp, BookOpen
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { Avatar } from "@/components/ui/Avatar";
 import { useAuth } from "@/components/AuthProvider";
 
 const iconMap: Record<string, any> = {
@@ -116,11 +117,12 @@ export function UserProfileModal({ nickname, isOpen, onClose }: UserProfileModal
 
                     {/* Floating Avatar */}
                     <div className="absolute -bottom-10 left-8">
-                        <div className="w-24 h-24 rounded-3xl bg-white p-1.5 shadow-xl">
-                            <div className="w-full h-full rounded-2xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center text-3xl font-extrabold text-indigo-700">
-                                {profile?.avatar || profile?.name?.substring(0, 2).toUpperCase() || "?"}
-                            </div>
-                        </div>
+                        <Avatar
+                            src={profile?.avatar}
+                            name={profile?.name}
+                            size="xl"
+                            className="p-1.5 bg-white shadow-xl !w-24 !h-24 !rounded-3xl"
+                        />
                     </div>
                 </div>
 

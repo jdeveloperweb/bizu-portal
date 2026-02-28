@@ -1,74 +1,23 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
 import { Swords, X } from "lucide-react";
-import { useChallengeNotifications } from "@/hooks/useChallengeNotifications";
-import { useAuth } from "@/components/AuthProvider";
-import { DuelService, Duel } from "@/lib/duelService";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-
-// Global flag to track if ANY overlay has been shown in the current page session
-// This follows the user requirement: "se algum overlay tiver aparecido, ele não aparece mais"
-let globalOverlayShown = false;
+import { useDuels } from "@/contexts/DuelContext";
 
 export default function ChallengeOverlay() {
-    const { user } = useAuth();
     const router = useRouter();
-    const [pendingDuels, setPendingDuels] = useState<Duel[]>([]);
-    const [currentUserId, setCurrentUserId] = useState<string>("");
-    const [isVisible, setIsVisible] = useState(false);
-
-    // We use a ref to track if this specific component instance has already shown an overlay
-    const hasShownInThisSession = useRef(false);
-
-    useEffect(() => {
-        if (user) {
-            const userId = (user.id || user.sub) as string;
-            setCurrentUserId(userId);
-        }
-    }, [user]);
-
-    useEffect(() => {
-        const fetchInitialPending = async () => {
-            if (!currentUserId || globalOverlayShown) return;
-
-            try {
-                const pending = await DuelService.getPendingDuels();
-                if (pending && pending.length > 0 && !globalOverlayShown) {
-                    setPendingDuels(pending);
-                    setIsVisible(true);
-                    globalOverlayShown = true;
-                    hasShownInThisSession.current = true;
-                }
-            } catch (err) {
-                console.error("Erro ao buscar duelos pendentes:", err);
-            }
-        };
-        fetchInitialPending();
-    }, [currentUserId]);
-
-    useChallengeNotifications(currentUserId, (newDuel: Duel) => {
-        // According to user request: "só aparece se eu estiver com a tela atualizada"
-        // and "se algum overlay tiver aparecido, ele não aparece mais".
-        // This means we IGNORE real-time notifications if one has already been shown
-        // or if the user is not in a "just updated/refreshed" state (tracked by globalOverlayShown).
-
-        if (globalOverlayShown) return;
-
-        if (!newDuel || !newDuel.id || !newDuel.challenger) return;
-
-        setPendingDuels([newDuel]);
-        setIsVisible(true);
-        globalOverlayShown = true;
-        hasShownInThisSession.current = true;
-    });
+    const {
+        activeDuel: duel,
+        showOverlay: isVisible,
+        setShowOverlay,
+        acceptDuel,
+        declineDuel
+    } = useDuels();
 
     const handleAccept = async (duelId: string) => {
         try {
-            await DuelService.acceptDuel(duelId);
-            setIsVisible(false);
-            setGlobalOverlayShown(false);
+            await acceptDuel(duelId);
             router.push(`/arena?duelId=${duelId}`);
         } catch (error) {
             console.error("Erro ao aceitar desafio:", error);
@@ -77,17 +26,13 @@ export default function ChallengeOverlay() {
 
     const handleDecline = async (duelId: string) => {
         try {
-            await DuelService.declineDuel(duelId);
-            setIsVisible(false);
-            setGlobalOverlayShown(false);
+            await declineDuel(duelId);
         } catch (error) {
             console.error("Erro ao recusar desafio:", error);
         }
     };
 
-    if (!isVisible || pendingDuels.length === 0) return null;
-
-    const duel = pendingDuels[0];
+    if (!isVisible || !duel) return null;
 
     return (
         <AnimatePresence>
@@ -172,10 +117,7 @@ export default function ChallengeOverlay() {
                     </div>
 
                     <button
-                        onClick={() => {
-                            setIsVisible(false);
-                            setGlobalOverlayShown(false);
-                        }}
+                        onClick={() => setShowOverlay(false)}
                         className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
                     >
                         <X size={20} />
@@ -186,10 +128,9 @@ export default function ChallengeOverlay() {
     );
 }
 
-// Export the global variable for other components (like GamificationProvider) to use/set
-export const setGlobalOverlayShown = (value: boolean) => {
-    globalOverlayShown = value;
-};
+// These are no longer needed as we use the context, but keep exports empty if needed for backward compatibility
+// Although it's better to remove them to avoid confusion.
+export const setGlobalOverlayShown = (_value: boolean) => { };
+export const getGlobalOverlayShown = () => false;
 
-export const getGlobalOverlayShown = () => globalOverlayShown;
 

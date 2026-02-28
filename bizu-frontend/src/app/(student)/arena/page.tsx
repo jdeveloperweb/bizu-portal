@@ -22,6 +22,7 @@ import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar } from "@/components/ui/Avatar";
 
 type ArenaTab = "online" | "ranking" | "historico";
 
@@ -306,17 +307,12 @@ function ArenaPageContent() {
                         {pendingDuels.map(duel => (
                             <div key={duel.id} className="card-elevated !rounded-2xl p-4 bg-white border-2 border-indigo-100 flex items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center overflow-hidden text-indigo-600 font-bold text-xs ring-2 ring-white">
-                                        {duel.challenger.avatarUrl ? (
-                                            <img
-                                                src={getAvatarUrl(duel.challenger.avatarUrl)}
-                                                className="w-full h-full object-cover"
-                                                alt={duel.challenger.name}
-                                            />
-                                        ) : (
-                                            duel.challenger.name?.slice(0, 2).toUpperCase() || <Swords size={20} />
-                                        )}
-                                    </div>
+                                    <Avatar
+                                        src={duel.challenger.avatarUrl}
+                                        name={duel.challenger.name}
+                                        size="md"
+                                        className="ring-2 ring-white"
+                                    />
                                     <div>
                                         <div className="text-sm font-bold text-slate-800">{duel.challenger.name}</div>
                                         <div className="text-[10px] text-slate-500">Matéria: {duel.subject}</div>
@@ -416,25 +412,12 @@ function ArenaPageContent() {
                                             setIsProfileModalOpen(true);
                                         }}
                                     >
-                                        <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center overflow-hidden text-[12px] font-bold text-indigo-700 border border-indigo-200/50 shadow-sm">
-                                            {user.avatar && (user.avatar.includes('/') || user.avatar.startsWith('http')) ? (
-                                                <img
-                                                    src={getAvatarUrl(user.avatar)}
-                                                    className="w-full h-full object-cover"
-                                                    alt={user.name}
-                                                    onError={(e) => {
-                                                        (e.target as HTMLImageElement).style.display = 'none';
-                                                        const parent = (e.target as HTMLImageElement).parentElement;
-                                                        if (parent) {
-                                                            const initials = user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
-                                                            parent.innerText = initials || 'US';
-                                                        }
-                                                    }}
-                                                />
-                                            ) : (
-                                                <span>{user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || "US"}</span>
-                                            )}
-                                        </div>
+                                        <Avatar
+                                            src={user.avatar}
+                                            name={user.name}
+                                            size="md"
+                                            className="md:w-11 md:h-11 border border-indigo-200/50"
+                                        />
                                         <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${user.status === "online" ? "bg-emerald-400" : "bg-amber-400"
                                             }`} />
                                     </div>
@@ -486,19 +469,13 @@ function ArenaPageContent() {
                                             }`}>
                                             {i + 1}º
                                         </div>
-                                        <div
-                                            className="w-10 h-10 flex-shrink-0 rounded-xl bg-indigo-50 flex items-center justify-center overflow-hidden cursor-pointer"
-                                            onClick={() => {
-                                                setSelectedProfileNickname(r.nickname);
-                                                setIsProfileModalOpen(true);
-                                            }}
-                                        >
-                                            {r.avatar ? (
-                                                <img src={getAvatarUrl(r.avatar)} className="w-full h-full object-cover" alt={r.name} />
-                                            ) : (
-                                                <span className="text-indigo-600 font-bold">{r.name.substring(0, 2).toUpperCase()}</span>
-                                            )}
-                                        </div>
+                                        <Avatar
+                                            src={r.avatar}
+                                            name={r.name}
+                                            size="md"
+                                            className="bg-indigo-50"
+                                            fallbackClassName="text-indigo-600"
+                                        />
                                         <div className="flex-1 min-w-0">
                                             <div
                                                 className="text-sm font-bold text-slate-800 truncate cursor-pointer hover:text-indigo-600 transition-colors"

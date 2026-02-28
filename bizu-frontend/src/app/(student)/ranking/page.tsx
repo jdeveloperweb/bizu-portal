@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getStoredSelectedCourseId } from "@/lib/course-selection";
 import { getAvatarUrl } from "@/lib/imageUtils";
 import { useAuth } from "@/components/AuthProvider";
+import { Avatar } from "@/components/ui/Avatar";
 import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 
 type RankingTab = "geral" | "semanal" | "materia";
@@ -244,21 +245,12 @@ export default function RankingStudentPage() {
                                 return (
                                     <div key={`${user.name}-${i}`} className="flex flex-col items-center">
                                         <div className="relative mb-3">
-                                            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${colors.bg} flex items-center justify-center overflow-hidden shadow-lg border-2 border-white/20 relative`}>
-                                                {user.avatar && (user.avatar.includes('/') || user.avatar.startsWith('http')) ? (
-                                                    <img
-                                                        src={getAvatarUrl(user.avatar)}
-                                                        className="w-full h-full object-cover"
-                                                        alt={user.name}
-                                                        onError={(e) => {
-                                                            (e.target as HTMLImageElement).style.display = 'none';
-                                                            (e.target as HTMLImageElement).parentElement!.innerText = user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <span className="text-white font-extrabold text-sm">{user.avatar}</span>
-                                                )}
-                                            </div>
+                                            <Avatar
+                                                src={user.avatar}
+                                                name={user.name}
+                                                size="lg"
+                                                className="border-2 border-white/20"
+                                            />
                                             {rank === 1 && (
                                                 <Crown size={16} className="text-amber-500 absolute -top-3.5 left-1/2 -translate-x-1/2 drop-shadow-sm" />
                                             )}
@@ -292,21 +284,12 @@ export default function RankingStudentPage() {
                                         }`}>
                                         {user.rank}
                                     </div>
-                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center overflow-hidden text-[11px] font-bold text-indigo-700 border border-indigo-200/30">
-                                        {user.avatar && (user.avatar.includes('/') || user.avatar.startsWith('http')) ? (
-                                            <img
-                                                src={getAvatarUrl(user.avatar)}
-                                                className="w-full h-full object-cover"
-                                                alt={user.name}
-                                                onError={(e) => {
-                                                    (e.target as HTMLImageElement).style.display = 'none';
-                                                    (e.target as HTMLImageElement).parentElement!.innerText = user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
-                                                }}
-                                            />
-                                        ) : (
-                                            user.avatar
-                                        )}
-                                    </div>
+                                    <Avatar
+                                        src={user.avatar}
+                                        name={user.name}
+                                        size="sm"
+                                        className="!rounded-xl border border-indigo-200/30"
+                                    />
                                     <div className="flex-1 min-w-0">
                                         <div className="text-[13px] font-bold text-slate-800">{user.name}</div>
                                         {user.nickname && <div className="text-[10px] text-slate-400">@{user.nickname}</div>}
@@ -328,21 +311,13 @@ export default function RankingStudentPage() {
                                     <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center font-extrabold text-[11px] text-white">
                                         {myRank.rank > 0 ? myRank.rank : "-"}
                                     </div>
-                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center overflow-hidden text-[11px] font-bold text-white border border-indigo-400">
-                                        {myRank.avatar && (myRank.avatar.includes('/') || myRank.avatar.startsWith('http')) ? (
-                                            <img
-                                                src={getAvatarUrl(myRank.avatar)}
-                                                className="w-full h-full object-cover"
-                                                alt={myRank.name}
-                                                onError={(e) => {
-                                                    (e.target as HTMLImageElement).style.display = 'none';
-                                                    (e.target as HTMLImageElement).parentElement!.innerText = myRank.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
-                                                }}
-                                            />
-                                        ) : (
-                                            myRank.avatar
-                                        )}
-                                    </div>
+                                    <Avatar
+                                        src={myRank.avatar}
+                                        name={myRank.name}
+                                        size="sm"
+                                        className="!rounded-xl border border-indigo-400 bg-gradient-to-br from-indigo-500 to-violet-600"
+                                        fallbackClassName="bg-indigo-600 text-white"
+                                    />
                                     <div className="flex-1 min-w-0">
                                         <div className="text-[13px] font-bold text-indigo-800">{myRank.name} (sua posicao)</div>
                                         <div className="text-[10px] text-indigo-500 flex items-center gap-2">

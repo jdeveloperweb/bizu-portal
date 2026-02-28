@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
@@ -9,10 +9,13 @@ import {
     LayoutDashboard, BookOpen, ClipboardList, Layers,
     Swords, TrendingUp, User, Trophy, LogOut,
     ChevronRight, ChevronLeft, Search, Timer, CheckSquare,
-    StickyNote, Settings, BarChart3, Menu, X, FileText, PlayCircle, CreditCard, Users, Lock
+    StickyNote, Settings, BarChart3, Menu, X, FileText, PlayCircle, CreditCard, Users, Lock, Brain
 } from "lucide-react";
 import { getAvatarUrl } from "@/lib/imageUtils";
+import { Avatar } from "@/components/ui/Avatar";
 import { usePomodoro } from "@/contexts/PomodoroContext";
+import { useDuels } from "@/contexts/DuelContext";
+import { apiFetch } from "@/lib/api";
 
 const studyNav = [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -23,6 +26,7 @@ const studyNav = [
     { href: "/pomodoro", icon: Timer, label: "Pomodoro" },
     { href: "/flashcards", icon: Layers, label: "Flashcards" },
     { href: "/arena", icon: Swords, label: "Arena PVP" },
+    { href: "/loja", icon: Brain, label: "Axon Store" },
 ];
 
 const planNav = [
@@ -45,12 +49,39 @@ const bottomNav = [
 
 export default function StudentSidebar() {
     const pathname = usePathname();
-    const { logout, user, subscription, entitlements, selectedCourseId, isFree } = useAuth();
+    const { logout, user, subscription, entitlements, selectedCourseId, isFree, authenticated } = useAuth();
     const { setIsOpen: setPomodoroOpen } = usePomodoro();
+    const { pendingDuels } = useDuels();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [pendingFriendsCount, setPendingFriendsCount] = useState(0);
 
-    const Item = ({ href, icon: Icon, label }: { href: string; icon: typeof LayoutDashboard; label: string }) => {
+    const fetchPendingFriends = useCallback(async () => {
+        if (!authenticated || isFree) return;
+        try {
+            const res = await apiFetch("/friends/pending");
+            if (res.ok) {
+                const data = await res.json();
+                setPendingFriendsCount(data.length);
+            }
+        } catch (err) {
+            console.error("Failed to fetch pending friends count", err);
+        }
+    }, [authenticated, isFree]);
+
+    useEffect(() => {
+        fetchPendingFriends();
+        window.addEventListener("friends:updated", fetchPendingFriends);
+
+        const interval = setInterval(fetchPendingFriends, 120000); // 2 minutos
+
+        return () => {
+            window.removeEventListener("friends:updated", fetchPendingFriends);
+            clearInterval(interval);
+        };
+    }, [fetchPendingFriends]);
+
+    const Item = ({ href, icon: Icon, label, badge }: { href: string; icon: typeof LayoutDashboard; label: string; badge?: number }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
         const isPremiumRoute = ["/pomodoro", "/simulados", "/flashcards", "/arena", "/redacao", "/desempenho", "/ranking", "/conquistas", "/amigos"].some(r => href.startsWith(r));
         const showLock = isFree && isPremiumRoute;
@@ -66,12 +97,24 @@ export default function StudentSidebar() {
             <Link href={href}
                 onClick={handleClick}
                 title={isCollapsed ? label : undefined}
-                className={`group flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-2.5 px-3'} py-[7px] rounded-lg text-[13px] font-medium transition-all ${active
+                className={`group relative flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-2.5 px-3'} py-[7px] rounded-lg text-[13px] font-medium transition-all ${active
                     ? "bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-500/10 dark:to-violet-500/10 text-indigo-700 dark:text-indigo-400 font-semibold"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}>
-                <Icon size={16} className={active ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground opacity-70 group-hover:opacity-100"} />
+                <div className="relative">
+                    <Icon size={16} className={active ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground opacity-70 group-hover:opacity-100"} />
+                    {isCollapsed && badge && badge > 0 && (
+                        <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-rose-500 text-white text-[8px] flex items-center justify-center rounded-full border border-white font-bold">
+                            {badge > 9 ? '9+' : badge}
+                        </div>
+                    )}
+                </div>
                 {!isCollapsed && <span className="flex-1">{label}</span>}
+                {!isCollapsed && badge && badge > 0 && (
+                    <span className="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                        {badge}
+                    </span>
+                )}
                 {showLock && !isCollapsed && <Lock size={12} className="text-amber-500 shrink-0" />}
                 {active && !isCollapsed && !showLock && <ChevronRight size={12} className="text-indigo-400 shrink-0" />}
             </Link>
@@ -117,19 +160,10 @@ export default function StudentSidebar() {
                 {/* User Profile Summary */}
                 <div className={`px-3 py-4 border-b border-border bg-slate-50/50 ${isCollapsed ? 'flex justify-center' : ''}`}>
                     <div className={`flex items-center gap-3 ${!isCollapsed ? 'px-2' : ''}`}>
-                        <div className="w-10 h-10 rounded-xl overflow-hidden bg-indigo-100 border border-indigo-200 shadow-sm shrink-0" title={user?.name || 'Usuário'}>
-                            {user?.avatarUrl ? (
-                                <img
-                                    src={getAvatarUrl(user.avatarUrl)}
-                                    className="w-full h-full object-cover"
-                                    alt="Profile"
-                                />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-indigo-600 font-bold text-sm">
-                                    {(user?.name || 'U').slice(0, 1).toUpperCase()}
-                                </div>
-                            )}
-                        </div>
+                        <Avatar
+                            src={user?.avatarUrl}
+                            name={user?.name || 'Usuário'}
+                        />
                         {!isCollapsed && (
                             <div className="flex-1 min-w-0">
                                 <p className="text-[13px] font-bold text-slate-900 truncate leading-none mb-1">
@@ -158,7 +192,13 @@ export default function StudentSidebar() {
                         <div className="h-4" />
                     )}
                     <div className="space-y-px mb-3">
-                        {studyNav.map((i) => <Item key={i.href} {...i} />)}
+                        {studyNav.map((i) => (
+                            <Item
+                                key={i.href}
+                                {...i}
+                                badge={i.label === "Arena PVP" ? pendingDuels.length : undefined}
+                            />
+                        ))}
                         {entitlements?.find(e => e.course?.id === selectedCourseId)?.course?.hasEssay && (
                             <Item href="/redacao" icon={FileText} label="Redação" />
                         )}
@@ -179,7 +219,13 @@ export default function StudentSidebar() {
                         <div className="w-4 h-px bg-border mx-auto my-3" />
                     )}
                     <div className="space-y-px mb-3">
-                        {trackNav.map((i) => <Item key={i.href} {...i} />)}
+                        {trackNav.map((i) => (
+                            <Item
+                                key={i.href}
+                                {...i}
+                                badge={i.label === "Amigos" ? pendingFriendsCount : undefined}
+                            />
+                        ))}
                     </div>
                     <div className="border-t border-border pt-2 space-y-px mt-2">
                         {bottomNav.map((i) => <Item key={i.href} {...i} />)}

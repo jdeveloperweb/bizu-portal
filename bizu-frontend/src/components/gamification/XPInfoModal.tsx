@@ -15,9 +15,9 @@ export default function XPInfoModal({ isOpen, onClose }: XPInfoModalProps) {
         { icon: BookOpen, label: "Quizzes de Módulos", xp: "Até 40 XP", desc: "XP base (20) + bônus por desempenho ao finalizar um quiz de aula." },
         { icon: Swords, label: "Arena PVP (Vitória)", xp: "+100 XP", desc: "Vença um duelo contra outro aluno na Arena." },
         { icon: Swords, label: "Arena PVP (Empate)", xp: "+50 XP", desc: "Ambos ganham XP em caso de empate técnico." },
-        { icon: Swords, label: "Arena PVP (Derrota)", xp: "+25 XP", desc: "Mesmo perdendo, você ganha XP pela participação." },
-        { icon: Clock, label: "Sessão Pomodoro", xp: "1 XP / min", desc: "Ganhe XP proporcional ao tempo de foco cronometrado." },
-        { icon: Target, label: "Completar Tarefa", xp: "+25 XP", desc: "Mantenha sua agenda em dia e ganhe bônus por cada tarefa concluída." },
+        { icon: Swords, label: "Arena PVP (Derrota)", xp: "+25 XP & Axons", desc: "Mesmo perdendo, você ganha XP e Axons pela participação." },
+        { icon: Clock, label: "Sessão Pomodoro", xp: "1 XP & Axon / min", desc: "Ganhe recompensas proporcionais ao tempo de foco cronometrado." },
+        { icon: Target, label: "Completar Tarefa", xp: "+25 XP & Axons", desc: "Mantenha sua agenda em dia e ganhe bônus por cada tarefa concluída." },
         { icon: Trophy, label: "Conquistas (Badges)", xp: "50-500 XP", desc: "Ganhe bônus massivos ao desbloquear insignias raras." },
         { icon: Flame, label: "Ofensiva (Streak)", xp: "Bônus Diário", desc: "Mantenha sua sequência de estudos para ganhar mais XP." },
     ];
@@ -52,8 +52,8 @@ export default function XPInfoModal({ isOpen, onClose }: XPInfoModalProps) {
                                         <X size={20} />
                                     </button>
                                 </div>
-                                <h2 className="text-2xl font-black italic tracking-tight">Manual do Jogador</h2>
-                                <p className="text-indigo-100/80 text-sm font-medium">Saiba como ganhar XP e subir de nível mais rápido.</p>
+                                <h2 className="text-2xl font-black italic tracking-tight">Manual do Estudante Elite</h2>
+                                <p className="text-indigo-100/80 text-sm font-medium">Saiba como ganhar XP, Axons e subir de patente.</p>
                             </div>
                         </div>
 

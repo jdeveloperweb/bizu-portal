@@ -11,4 +11,5 @@ import java.util.UUID;
 public interface PlanRepository extends JpaRepository<Plan, UUID> {
     List<Plan> findAllByActiveTrueOrderBySortOrder();
     List<Plan> findAllByCourseIdOrderBySortOrder(UUID courseId);
+    java.util.Optional<Plan> findByCode(String code);
 }

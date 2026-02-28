@@ -118,6 +118,7 @@ export default function DashboardPage() {
     const totalResolved = stats?.totalAttempted || 0;
     const accuracy = stats?.overallAccuracy ? parseFloat(stats.overallAccuracy).toFixed(1) + "%" : "0%";
     const totalXp = gamification?.totalXp || 0;
+    const totalAxons = gamification?.axons || 0;
     const streak = gamification?.currentStreak ?? gamification?.streak ?? 0;
     const userName = typeof user?.name === "string" && user.name.trim().length > 0 ? user.name : "Aluno";
 
@@ -270,13 +271,19 @@ export default function DashboardPage() {
                     <div
                         onClick={() => setIsXPModalOpen(true)}
                         className="flex items-center gap-2.5 text-sm font-bold text-indigo-600 bg-indigo-50/50 border border-indigo-100 px-4 py-2.5 rounded-2xl cursor-pointer hover:bg-indigo-100/70 transition-all hover:scale-105 group"
+                        title="Ver ganhos de XP e Axons"
                     >
                         <Trophy size={16} />
                         {isLoading ? <Skeleton className="h-4 w-12" /> : <span>{totalXp} <span className="text-[10px] uppercase tracking-wider opacity-70 border-l border-indigo-200 ml-1 pl-1">XP</span></span>}
-                        <div className="hidden group-hover:block ml-1">
-                            <Info size={14} className="text-indigo-400" />
-                        </div>
                     </div>
+
+                    <Link
+                        href="/loja"
+                        className="flex items-center gap-2.5 text-sm font-bold text-violet-600 bg-violet-50/50 border border-violet-100 px-4 py-2.5 rounded-2xl cursor-pointer hover:bg-violet-100/70 transition-all hover:scale-105 group"
+                    >
+                        <Brain size={16} />
+                        {isLoading ? <Skeleton className="h-4 w-12" /> : <span>{totalAxons} <span className="text-[10px] uppercase tracking-wider opacity-70 border-l border-violet-200 ml-1 pl-1">AXONS</span></span>}
+                    </Link>
 
                     <div className="hidden md:block h-8 w-[1px] bg-slate-100 mx-1" />
 
