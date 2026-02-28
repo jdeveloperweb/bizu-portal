@@ -116,12 +116,12 @@ export function UserProfileModal({ nickname, isOpen, onClose }: UserProfileModal
                     </button>
 
                     {/* Floating Avatar */}
-                    <div className="absolute -bottom-10 left-8">
+                    <div className="absolute -bottom-10 left-8 p-1.5 bg-white shadow-xl rounded-[2rem]">
                         <Avatar
                             src={profile?.avatar}
                             name={profile?.name}
                             size="xl"
-                            className="p-1.5 bg-white shadow-xl !w-24 !h-24 !rounded-3xl"
+                            className="!w-24 !h-24 !rounded-[1.5rem]"
                         />
                     </div>
                 </div>
