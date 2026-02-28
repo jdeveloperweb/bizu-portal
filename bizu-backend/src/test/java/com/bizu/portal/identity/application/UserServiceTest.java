@@ -63,7 +63,7 @@ class UserServiceTest {
         when(userRepository.saveAndFlush(org.mockito.ArgumentMatchers.any(User.class)))
                 .thenThrow(new ObjectOptimisticLockingFailureException(User.class, userId));
 
-        User saved = userService.syncUser(userId, "student@bizu.com", "Student");
+        User saved = userService.syncUser(userId, "student@bizu.com", "Student", null);
 
         assertThat(saved.getId()).isEqualTo(userId);
         verify(userRepository).saveAndFlush(org.mockito.ArgumentMatchers.any(User.class));
