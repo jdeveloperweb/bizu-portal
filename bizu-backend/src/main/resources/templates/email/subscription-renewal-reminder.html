@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviso de Renovação de Assinatura - Axon Academy</title>
+    <style>
+        body {
+            font-family: 'Inter', Helvetica, Arial, sans-serif;
+            background-color: #f4f4f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background-color: #2563eb;
+            padding: 40px 30px;
+            text-align: center;
+            border-bottom: 4px solid #3b82f6;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: 1px;
+        }
+
+        .content {
+            padding: 40px 30px;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .greeting {
+            font-size: 22px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 20px;
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .footer {
+            background-color: #f9fafb;
+            padding: 20px 30px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>RENOVAÇÃO DE ASSINATURA</h1>
+        </div>
+        <div class="content">
+            <div class="greeting">Olá, <span th:text="${name}">Aluno</span>! 🗓️</div>
+            <p>Este é um lembrete importante de que sua assinatura no plano <strong><span
+                        th:text="${planName}">Premium</span></strong> será renovada automaticamente em <strong><span
+                        th:text="${daysLeft}">3</span> dias</strong>.</p>
+            <p>Para garantir que você continue tendo acesso a todo o material da <strong>Axon Academy</strong>, por
+                favor verifique se o seu método de pagamento atualizado possui saldo ou limite suficiente.</p>
+
+            <p>Você não precisa fazer nada! A renovação ocorrerá automaticamente.</p>
+
+            <p>Se você deseja gerenciar sua assinatura, acesse o portal pelo link abaixo:</p>
+
+            <div class="button-container">
+                <a href="https://axonacademy.com.br/dashboard"
+                    style="color: #2563eb; text-decoration: underline; font-weight: 600;">Acessar Portal do Aluno</a>
+            </div>
+
+            <p style="margin-top: 30px;">
+                Bons estudos contínuos!<br>
+                <strong>Equipe Axon Academy</strong>
+            </p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2024 Axon Academy. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</body>
+
+</html>

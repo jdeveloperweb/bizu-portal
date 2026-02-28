@@ -32,6 +32,25 @@ spring:
       password: ${REDIS_PASSWORD:}
       timeout: 2000ms
 
+  mail:
+    host: smtp.hostinger.com
+    port: 465
+    username: ${MAIL_USERNAME:noreply@mjolnix.com.br}
+    password: ${MAIL_PASSWORD:P3dr0l3m02#@1}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          starttls:
+            enable: true
+
+axon:
+  mail:
+    from-address: ${MAIL_USERNAME:noreply@mjolnix.com.br}
+    from-name: "Axon Academy"
+
 server:
   port: 8080
 

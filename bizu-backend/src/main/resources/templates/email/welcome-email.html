@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bem-vindo à Axon Academy</title>
+    <style>
+        body { font-family: 'Inter', Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .header { background-color: #111827; padding: 40px 30px; text-align: center; border-bottom: 4px solid #f59e0b; }
+        .header h1 { color: #f59e0b; margin: 0; font-size: 28px; letter-spacing: 1px; }
+        .content { padding: 40px 30px; color: #374151; line-height: 1.6; }
+        .greeting { font-size: 22px; font-weight: 600; color: #111827; margin-bottom: 20px; }
+        .button-container { text-align: center; margin: 30px 0; }
+        .button { background-color: #f59e0b; color: #ffffff !important; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block; }
+        .footer { background-color: #f9fafb; padding: 20px 30px; text-align: center; color: #6b7280; font-size: 14px; border-top: 1px solid #e5e7eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AXON ACADEMY</h1>
+        </div>
+        <div class="content">
+            <div class="greeting">Bem-vindo(a), <span th:text="${name}">Aluno</span>! 🎉</div>
+            <p>Seu cadastro na <strong>Axon Academy</strong> foi concluído com sucesso e estamos muito felizes em ter você conosco.</p>
+            <p>Você acaba de dar o primeiro passo na jornada para alcançar seus objetivos de estudo e conquistar a sua tão sonhada aprovação.</p>
+            
+            <p>Agora você já pode aproveitar nossa plataforma focada em resultados reais, com as melhores questões e simulados.</p>
+            
+            <div class="button-container">
+                <a href="https://axonacademy.com.br/login" class="button">Acessar a Plataforma</a>
+            </div>
+            
+            <p>Se precisar de ajuda ou tiver alguma dúvida, nossa equipe de suporte está sempre pronta para ajudar.</p>
+            
+            <p style="margin-top: 30px;">
+                Bons estudos!<br>
+                <strong>Equipe Axon Academy</strong>
+            </p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2024 Axon Academy. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>

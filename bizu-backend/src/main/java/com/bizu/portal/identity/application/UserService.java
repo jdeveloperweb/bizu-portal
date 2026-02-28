@@ -20,7 +20,7 @@ public class UserService {
     }
 
     @Transactional
-    public User registerUser(String name, String email, String password) {
+    public User registerUser(String name, String email, String password, String phone) {
         if (userRepository.findByEmail(email).isPresent()) {
             throw new RuntimeException("Este e-mail já está cadastrado.");
         }
@@ -34,6 +34,7 @@ public class UserService {
                 .id(java.util.UUID.randomUUID())
                 .name(name)
                 .email(email)
+                .phone(phone)
                 .nickname(nickname)
                 .status("ACTIVE")
                 .build();

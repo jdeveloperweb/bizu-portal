@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento Confirmado - Axon Academy</title>
+    <style>
+        body {
+            font-family: 'Inter', Helvetica, Arial, sans-serif;
+            background-color: #f4f4f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background-color: #065f46;
+            padding: 40px 30px;
+            text-align: center;
+            border-bottom: 4px solid #10b981;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: 1px;
+        }
+
+        .content {
+            padding: 40px 30px;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .greeting {
+            font-size: 22px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 20px;
+        }
+
+        .details-box {
+            background-color: #f3f4f6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+
+        .details-box p {
+            margin: 10px 0;
+        }
+
+        .details-box strong {
+            color: #111827;
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .button {
+            background-color: #10b981;
+            color: #ffffff !important;
+            padding: 14px 28px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .footer {
+            background-color: #f9fafb;
+            padding: 20px 30px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PAGAMENTO APROVADO</h1>
+        </div>
+        <div class="content">
+            <div class="greeting">Olá, <span th:text="${name}">Aluno</span>! 🎉</div>
+            <p>Seu pagamento foi aprovado e sua assinatura está <strong>ativa</strong>!</p>
+
+            <div class="details-box">
+                <p><strong>Plano:</strong> <span th:text="${planName}">Premium</span></p>
+                <p><strong>Valor:</strong> R$ <span th:text="${amount}">0,00</span></p>
+            </div>
+
+            <p>Seu acesso já está liberado. Acesse a plataforma agora mesmo para continuar seus estudos.</p>
+
+            <div class="button-container">
+                <a href="https://axonacademy.com.br/login" class="button">Acessar a Plataforma</a>
+            </div>
+
+            <p style="margin-top: 30px;">
+                Bons estudos!<br>
+                <strong>Equipe Axon Academy</strong>
+            </p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2024 Axon Academy. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -7,6 +7,8 @@ import com.bizu.portal.commerce.infrastructure.PlanRepository;
 import com.bizu.portal.identity.domain.User;
 import com.bizu.portal.identity.infrastructure.UserRepository;
 import com.bizu.portal.student.application.NotificationService;
+import com.bizu.portal.notification.application.EmailService;
+import com.bizu.portal.notification.application.WhatsAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,8 @@ public class PaymentService {
     private final PlanRepository planRepository;
     private final SubscriptionGroupService subscriptionGroupService;
     private final NotificationService notificationService;
+    private final EmailService emailService;
+    private final WhatsAppService whatsAppService;
     private final CouponService couponService;
     private final com.bizu.portal.admin.application.SystemSettingsService settingsService;
     private final com.bizu.portal.commerce.infrastructure.SubscriptionRepository subscriptionRepository;
@@ -171,6 +175,17 @@ public class PaymentService {
 
         notificationService.send(userId, "🚀 Assinatura Ativada!", 
             "Seja bem-vindo ao Bizu! Seu plano " + plan.getName() + " já está ativo e pronto para uso.");
+
+        // Send Email and WhatsApp notifications
+        try {
+            emailService.sendPaymentSuccessEmail(user.getEmail(), user.getName(), plan.getName(), plan.getPrice() != null ? plan.getPrice().toString() : "0.00");
+            
+            if (user.getPhone() != null && !user.getPhone().isEmpty()) {
+                whatsAppService.sendPaymentSuccess(user.getPhone(), user.getName());
+            }
+        } catch (Exception e) {
+            log.error("Failed to send approval notifications to user {}: {}", user.getEmail(), e.getMessage());
+        }
     }
 
     @Transactional
