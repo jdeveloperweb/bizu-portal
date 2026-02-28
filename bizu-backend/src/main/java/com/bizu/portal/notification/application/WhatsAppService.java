@@ -20,7 +20,7 @@ public class WhatsAppService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${axon.whatsapp.evolution.url:http://localhost:8081}")
+    @Value("${axon.whatsapp.evolution.url:http://localhost:8099}")
     private String apiUrl;
 
     @Value("${axon.whatsapp.evolution.api-key:BizuAxonAcademy@2024}")
