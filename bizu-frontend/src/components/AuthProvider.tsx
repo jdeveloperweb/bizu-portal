@@ -13,7 +13,8 @@ interface AuthContextType {
     token?: string;
     user: AuthUser | null;
     loading: boolean;
-    register: (name: string, email: string, password: string) => Promise<boolean>;
+    register: (name: string, email: string, password: string, phone: string, emailCode: string, phoneCode: string) => Promise<boolean>;
+    sendVerificationCode: (recipient: string, name: string, type: 'EMAIL' | 'WHATSAPP') => Promise<boolean>;
     selectedCourseId?: string;
     setSelectedCourseId: (courseId?: string) => void;
     refreshUserProfile: () => Promise<void>;
@@ -366,7 +367,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         keycloak?.logout({ redirectUri: window.location.origin });
     };
 
-    const register = async (name: string, email: string, password: string) => {
+    const sendVerificationCode = async (recipient: string, name: string, type: 'EMAIL' | 'WHATSAPP') => {
+        try {
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
+            const endpoint = apiBase.endsWith('/api/v1')
+                ? `${apiBase}/public/auth/send-verification-code`
+                : `${apiBase}/api/v1/public/auth/send-verification-code`;
+
+            const res = await fetch(endpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ recipient, name, type }),
+            });
+            return res.ok;
+        } catch (error) {
+            console.error("Failed to send verification code", error);
+            return false;
+        }
+    };
+
+    const register = async (name: string, email: string, password: string, phone: string, emailCode: string, phoneCode: string) => {
         try {
             const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
             const endpoint = apiBase.endsWith('/api/v1')
@@ -376,7 +396,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const res = await fetch(endpoint, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, email, password }),
+                body: JSON.stringify({ name, email, password, phone, emailCode, phoneCode }),
             });
             return res.ok;
         } catch (error) {
@@ -391,7 +411,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const isFree = authenticated && !isPremium;
 
     return (
-        <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register, selectedCourseId, setSelectedCourseId, refreshUserProfile, subscription, entitlements, isPremium, isFree }}>
+        <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register, sendVerificationCode, selectedCourseId, setSelectedCourseId, refreshUserProfile, subscription, entitlements, isPremium, isFree }}>
             {children}
         </AuthContext.Provider>
     );
