@@ -117,8 +117,7 @@ services:
 
 networks:
   bizu-network:
-    name: bizu-network
-    driver: bridges
+    external: true
 
 volumes:
   postgres_data:
