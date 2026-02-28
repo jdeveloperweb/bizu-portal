@@ -36,8 +36,6 @@ public class PublicAuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         try {
-            // A validação de códigos foi removida conforme solicitado pelo usuário
-            /*
             // Validate EMAIL code
             if (request.getEmailCode() == null || !verificationService.validateCode(request.getEmail(), "EMAIL", request.getEmailCode())) {
                 return ResponseEntity.badRequest().body("Código de e-mail inválido ou expirado.");
@@ -47,7 +45,6 @@ public class PublicAuthController {
             if (request.getPhoneCode() == null || !verificationService.validateCode(request.getPhone(), "WHATSAPP", request.getPhoneCode())) {
                 return ResponseEntity.badRequest().body("Código de WhatsApp inválido ou expirado.");
             }
-            */
 
             User user = userService.registerUser(request.getName(), request.getEmail(), request.getPassword(), request.getPhone());
             return ResponseEntity.ok(user);

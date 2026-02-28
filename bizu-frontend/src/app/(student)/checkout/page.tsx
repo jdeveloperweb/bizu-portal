@@ -148,7 +148,7 @@ function CheckoutContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { notify } = useNotification();
-    const { refreshUserProfile } = useAuth();
+    const { refreshUserProfile, user } = useAuth();
 
     const [step, setStep] = useState<CheckoutStep>("PLANS");
     const [plans, setPlans] = useState<Plan[]>([]);
@@ -164,10 +164,17 @@ function CheckoutContent() {
     const [pixData, setPixData] = useState<{ qrCode: string; qrCodeBase64: string } | null>(null);
     const [isCardFocused, setIsCardFocused] = useState(false);
     const [cardNumber, setCardNumber] = useState("");
-    const [cardName, setCardName] = useState("");
+    const [cardName, setCardName] = useState(user?.name || "");
     const [cardCpf, setCardCpf] = useState("");
     const [cardExpiry, setCardExpiry] = useState("");
     const [cardCvc, setCardCvc] = useState("");
+
+    // Pre-fill user data when it becomes available
+    useEffect(() => {
+        if (user) {
+            if (user.name && !cardName) setCardName(user.name.toUpperCase());
+        }
+    }, [user, cardName]);
 
     const initialPlanId = searchParams.get("plan");
     const initialCourseId = searchParams.get("course");
@@ -272,7 +279,10 @@ function CheckoutContent() {
                     planId: selectedPlan?.id,
                     amount: selectedPlan?.price,
                     provider: paymentProvider,
-                    method: paymentMethod
+                    method: paymentMethod,
+                    customerPhone: user?.phone,
+                    customerName: user?.name,
+                    customerEmail: user?.email
                 }),
             });
 
