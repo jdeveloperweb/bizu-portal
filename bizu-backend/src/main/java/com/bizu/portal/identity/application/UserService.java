@@ -76,22 +76,25 @@ public class UserService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public User syncUser(java.util.UUID userId, String email, String name) {
+        String effectiveEmail = email != null ? email : userId.toString() + "@internal.bizu.com.br";
+        String effectiveName = name != null ? name : (email != null ? email : "User " + userId.toString().substring(0, 8));
+
         User user = userRepository.findById(userId).orElseGet(() -> {
-            return userRepository.findByEmail(email).orElseGet(() -> {
-                String generatedNickname = generateNickname(email);
+            return userRepository.findByEmail(effectiveEmail).orElseGet(() -> {
+                String generatedNickname = generateNickname(effectiveEmail);
                 User newUser = User.builder()
                         .id(userId)
-                        .email(email)
+                        .email(effectiveEmail)
                         .nickname(generatedNickname)
-                        .name(name != null ? name : email)
+                        .name(effectiveName)
                         .status("ACTIVE")
                         .build();
                 
                 try {
                     return userRepository.save(newUser);
                 } catch (Exception ex) {
-                    return userRepository.findByEmail(email)
-                            .orElseThrow(() -> new RuntimeException("Erro ao criar usuário localmente: " + email, ex));
+                    return userRepository.findByEmail(effectiveEmail)
+                            .orElseThrow(() -> new RuntimeException("Erro ao criar usuário localmente: " + effectiveEmail, ex));
                 }
             });
         });

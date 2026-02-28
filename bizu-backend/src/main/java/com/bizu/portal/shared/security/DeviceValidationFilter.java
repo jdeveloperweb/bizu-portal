@@ -43,7 +43,10 @@ public class DeviceValidationFilter extends OncePerRequestFilter {
             }
 
             if (userId != null) {
-                if (!deviceService.isValidDevice(userId, fingerprint)) {
+                boolean isAdmin = auth.getAuthorities().stream()
+                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                
+                if (!isAdmin && !deviceService.isValidDevice(userId, fingerprint)) {
                     log.warn("Tentativa de acesso de dispositivo não autorizado para o usuário {}. Fingerprint recebida: {}", userId, fingerprint);
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.setContentType("application/json");
