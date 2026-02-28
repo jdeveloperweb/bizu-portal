@@ -8,10 +8,7 @@ import Cookies from 'js-cookie';
 // Tenta obter a URL base da API e derivar a URL do WebSocket de forma robusta
 const getWsUrl = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://bizu.mjolnix.com.br/api/v1";
-    // Se a URL termina com /api/v1, substitui por /ws. Caso contrário, apenas adiciona /ws
-    if (apiUrl.includes("/api/v1")) {
-        return apiUrl.replace("/api/v1", "/ws");
-    }
+    // Como o NextJS intercepta rotas não-API, movemos o WS para dentro do namespace /api/v1/ws
     return `${apiUrl}/ws`.replace("//ws", "/ws");
 };
 
