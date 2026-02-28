@@ -28,9 +28,10 @@ public class EmailService {
     @Value("${axon.mail.from-name}")
     private String fromName;
 
-    @Async
+    @Async("taskExecutor")
     public void sendTemplatedEmail(String to, String subject, String templateName, Map<String, Object> variables) {
-        log.info("Enviando e-mail para {} com assunto '{}' usando template '{}'", to, subject, templateName);
+        long startTime = System.currentTimeMillis();
+        log.info("[EMAIL] Iniciando geração e envio para {} - Template: {}", to, templateName);
         
         try {
             Context context = new Context();
@@ -39,7 +40,8 @@ public class EmailService {
             String htmlContent = templateEngine.process("email/" + templateName, context);
             
             MimeMessage message = javaMailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            // Use true somente se houver anexos. Para HTML simples, false é mais rápido.
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
             
             helper.setTo(to);
             helper.setFrom(fromAddress, fromName);
@@ -48,11 +50,12 @@ public class EmailService {
             
             javaMailSender.send(message);
             
-            log.info("E-mail enviado com sucesso para {}", to);
+            long duration = System.currentTimeMillis() - startTime;
+            log.info("[EMAIL] Enviado com sucesso para {} em {}ms", to, duration);
         } catch (MessagingException | java.io.UnsupportedEncodingException e) {
-            log.error("Erro ao enviar e-mail para {}: {}", to, e.getMessage(), e);
+            log.error("[EMAIL] Erro ao enviar para {}: {}", to, e.getMessage());
         } catch (Exception e) {
-            log.error("Erro não esperado ao enviar e-mail para {}: {}", to, e.getMessage(), e);
+            log.error("[EMAIL] Erro inesperado ao enviar para {}: {}", to, e.getMessage());
         }
     }
 

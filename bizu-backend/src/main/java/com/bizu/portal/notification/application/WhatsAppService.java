@@ -30,7 +30,7 @@ public class WhatsAppService {
     @Value("${axon.whatsapp.evolution.instance:AxonBot}")
     private String instanceName;
 
-    @Async
+    @Async("taskExecutor")
     public void sendMessage(String phoneNumber, String message) {
         log.info("[WHATSAPP] Processando envio para {}", phoneNumber);
         

@@ -45,8 +45,13 @@ spring:
           auth: true
           ssl:
             enable: true
-          starttls:
-            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+          socketFactory:
+            port: 465
+            class: javax.net.ssl.SSLSocketFactory
+            fallback: false
 
 axon:
   mail:
