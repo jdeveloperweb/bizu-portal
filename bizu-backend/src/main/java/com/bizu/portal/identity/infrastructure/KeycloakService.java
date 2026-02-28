@@ -111,6 +111,45 @@ public class KeycloakService {
         }
     }
 
+    public void forgotPassword(String email) {
+        String adminToken = getAdminToken();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(adminToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // Search for user by email to get their ID
+        String searchUrl = String.format("%s/admin/realms/%s/users?username=%s", authServerUrl, realm, email);
+        
+        try {
+            ResponseEntity<List> searchResponse = restTemplate.exchange(
+                searchUrl, 
+                HttpMethod.GET, 
+                new HttpEntity<>(headers), 
+                List.class
+            );
+
+            List users = searchResponse.getBody();
+            if (users == null || users.isEmpty()) {
+                log.warn("Usuário não encontrado no Keycloak para reset de senha: {}", email);
+                return; // Silently fail to avoid user enumeration
+            }
+
+            Map<String, Object> keycloakUser = (Map<String, Object>) users.get(0);
+            String userId = (String) keycloakUser.get("id");
+
+            // Execute "UPDATE_PASSWORD" action via email (must be PUT)
+            String actionUrl = String.format("%s/admin/realms/%s/users/%s/execute-actions-email", authServerUrl, realm, userId);
+            List<String> actions = Collections.singletonList("UPDATE_PASSWORD");
+            
+            restTemplate.exchange(actionUrl, HttpMethod.PUT, new HttpEntity<>(actions, headers), String.class);
+            
+            log.info("E-mail de reset de senha enviado para {} (ID: {})", email, userId);
+        } catch (Exception e) {
+            log.error("Erro ao enviar e-mail de reset de senha no Keycloak", e);
+            throw new RuntimeException("Erro ao processar solicitação de recuperação de senha");
+        }
+    }
+
     public void deleteKeycloakUser(String email) {
         String adminToken = getAdminToken();
         HttpHeaders headers = new HttpHeaders();

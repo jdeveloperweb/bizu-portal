@@ -2,22 +2,40 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Mail, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Mail, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
+import { apiFetch } from "@/lib/api";
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
+    const [error, setError] = useState<string | null>(null);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        // Simular envio de e-mail (integração futura com Keycloak/Backend)
-        setTimeout(() => {
-            setLoading(false);
+        setError(null);
+
+        try {
+            const response = await apiFetch("/public/auth/forgot-password", {
+                method: "POST",
+                body: JSON.stringify({ email }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({ message: "Erro ao processar solicitação" }));
+                throw new Error(data.message || "Erro ao processar solicitação");
+            }
+
             setSubmitted(true);
-        }, 1500);
+        } catch (err: any) {
+            console.error("Forgot password error:", err);
+            setError(err.message || "Ocorreu um erro inesperado. Tente novamente mais tarde.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -38,6 +56,12 @@ export default function ForgotPasswordPage() {
                 <div className="bg-white py-8 px-4 shadow-xl shadow-slate-200/50 sm:rounded-2xl sm:px-10 border border-slate-100">
                     {!submitted ? (
                         <form className="space-y-6" onSubmit={handleSubmit}>
+                            {error && (
+                                <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-start text-red-600 text-sm animate-in fade-in slide-in-from-top-1 duration-300">
+                                    <AlertCircle className="w-5 h-5 mr-3 shrink-0" />
+                                    <span>{error}</span>
+                                </div>
+                            )}
                             <div>
                                 <label htmlFor="email" className="block text-sm font-bold text-slate-700 uppercase tracking-wider mb-2">
                                     Endereço de E-mail

@@ -127,6 +127,10 @@ public class UserService {
         return syncUser(subjectId, email, name).getId();
     }
 
+    public void forgotPassword(String email) {
+        keycloakService.forgotPassword(email);
+    }
+
     private String generateNickname(String email) {
         if (email == null || !email.contains("@")) {
             return "user_" + java.util.UUID.randomUUID().toString().substring(0, 8);

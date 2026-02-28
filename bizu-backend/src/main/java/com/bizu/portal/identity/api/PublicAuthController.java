@@ -53,6 +53,21 @@ public class PublicAuthController {
         }
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        try {
+            userService.forgotPassword(request.getEmail());
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erro ao processar solicitação: " + e.getMessage());
+        }
+    }
+
+    @Data
+    public static class ForgotPasswordRequest {
+        private String email;
+    }
+
     @Data
     public static class SendCodeRequest {
         private String recipient; // Email or Phone
