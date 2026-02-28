@@ -57,7 +57,7 @@ export default function RegisterPage() {
                 notify("Códigos Enviados! 📩", "Verifique seu e-mail e seu WhatsApp.", "success");
                 setStep(2);
             } else if (emailResult || whatsappResult) {
-                notify("Atenção", "Um dos códigos pode não ter sido enviado. Verifique ambos.", "warning");
+                notify("Atenção", "Um dos códigos pode não ter sido enviado. Verifique ambos.", "info");
                 setStep(2);
             } else {
                 notify("Erro ao enviar", "Não conseguimos enviar os códigos. Verifique os dados informados.", "error");
