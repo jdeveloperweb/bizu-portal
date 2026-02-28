@@ -59,15 +59,17 @@ export default function StudentSidebar() {
     const [pendingTasksCount, setPendingTasksCount] = useState(0);
     const [rankingPosition, setRankingPosition] = useState<number | null>(null);
     const [buffs, setBuffs] = useState<{ xpBoost: boolean; radar: boolean; elite: boolean }>({ xpBoost: false, radar: false, elite: false });
+    const [onlineCount, setOnlineCount] = useState<number>(0);
 
     const fetchSidebarData = useCallback(async () => {
         if (!authenticated || isFree) return;
         try {
-            const [friendsRes, tasksRes, rankingRes, gamRes] = await Promise.all([
+            const [friendsRes, tasksRes, rankingRes, gamRes, onlineRes] = await Promise.all([
                 apiFetch("/friends/pending").catch(() => null),
                 apiFetch("/student/tasks").catch(() => null),
                 apiFetch("/student/ranking/me").catch(() => null),
-                apiFetch("/student/gamification/me").catch(() => null)
+                apiFetch("/student/gamification/me").catch(() => null),
+                apiFetch(`/duelos/online/count${selectedCourseId ? `?courseId=${selectedCourseId}` : ''}`).catch(() => null)
             ]);
 
             if (friendsRes && friendsRes.ok) {
@@ -91,6 +93,10 @@ export default function StudentSidebar() {
                     radar: data.radarMateriaUntil ? new Date(data.radarMateriaUntil) > now : false,
                     elite: data.activeTitle === "Elite"
                 });
+            }
+            if (onlineRes && onlineRes.ok) {
+                const data = await onlineRes.json();
+                setOnlineCount(data.count || 0);
             }
         } catch (err) {
             console.error("Failed to fetch sidebar data", err);
@@ -164,7 +170,7 @@ export default function StudentSidebar() {
                     )}
                 </div>
                 {!isCollapsed && displayLabel}
-                {!isCollapsed && badge && badge > 0 && (
+                {!isCollapsed && (typeof badge === 'number' && badge > 0) && (
                     <span className="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                         {badge}
                     </span>
@@ -276,6 +282,14 @@ export default function StudentSidebar() {
                                 key={i.href}
                                 {...i}
                                 badge={i.label === "Arena PVP" ? pendingDuels.length : undefined}
+                                customBadge={
+                                    i.label === "Arena PVP" && (!pendingDuels || pendingDuels.length === 0) && onlineCount > 0 ? (
+                                        <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded text-[10px] font-bold text-emerald-600 dark:text-emerald-400" title={`${onlineCount} online`}>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_5px_rgba(16,185,129,0.5)]" />
+                                            {onlineCount}
+                                        </div>
+                                    ) : undefined
+                                }
                             />
                         ))}
                         {entitlements?.find(e => e.course?.id === selectedCourseId)?.course?.hasEssay && (

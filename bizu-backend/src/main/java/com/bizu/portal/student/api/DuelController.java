@@ -67,6 +67,23 @@ public class DuelController {
         return ResponseEntity.ok(jdbcTemplate.queryForList(sql, args));
     }
 
+    @GetMapping("/online/count")
+    public ResponseEntity<Map<String, Integer>> getOnlineUsersCount(@RequestParam(required = false) UUID courseId) {
+        String baseCondition = "WHERE u.last_seen_at > (NOW() - INTERVAL '60 seconds') ";
+        String condition = courseId != null ? 
+            "JOIN commerce.course_entitlements ce ON u.id = ce.user_id " + baseCondition + "AND ce.course_id = ? AND ce.active = true " : 
+            baseCondition;
+        Object[] args = courseId != null ? new Object[]{courseId} : new Object[]{};
+        
+        String sql = """
+            SELECT COUNT(u.id)
+            FROM identity.users u
+            """ + condition;
+            
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, args);
+        return ResponseEntity.ok(Map.of("count", count != null ? count : 0));
+    }
+
     @GetMapping("/me/stats")
     public ResponseEntity<Map<String, Object>> getMyStats(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = resolveUserId(jwt);
