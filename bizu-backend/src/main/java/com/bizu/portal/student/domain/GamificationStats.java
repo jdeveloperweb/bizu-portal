@@ -38,6 +38,18 @@ public class GamificationStats implements org.springframework.data.domain.Persis
     @Column(name = "last_activity_at")
     private OffsetDateTime lastActivityAt;
 
+    @Column(name = "xp_boost_until")
+    private OffsetDateTime xpBoostUntil;
+
+    @Column(name = "radar_materia_until")
+    private OffsetDateTime radarMateriaUntil;
+
+    @Column(name = "radar_materia_code")
+    private String radarMateriaCode;
+
+    @Column(name = "active_title")
+    private String activeTitle;
+
     @Transient
     private boolean isNew = true;
 

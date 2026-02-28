@@ -160,4 +160,18 @@ public class DuelController {
         }
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/fila/entrar")
+    public ResponseEntity<Void> joinQueue(@AuthenticationPrincipal Jwt jwt, @RequestParam UUID courseId) {
+        UUID userId = resolveUserId(jwt);
+        duelService.joinQueue(userId, courseId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/fila/sair")
+    public ResponseEntity<Void> leaveQueue(@AuthenticationPrincipal Jwt jwt, @RequestParam UUID courseId) {
+        UUID userId = resolveUserId(jwt);
+        duelService.leaveQueue(userId, courseId);
+        return ResponseEntity.ok().build();
+    }
 }

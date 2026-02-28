@@ -69,6 +69,8 @@ function ArenaPageContent() {
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingRanking, setIsLoadingRanking] = useState(false);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+    const [isInQueue, setIsInQueue] = useState(false);
+    const [queueTime, setQueueTime] = useState(0);
 
     const [selectedProfileNickname, setSelectedProfileNickname] = useState<string | null>(null);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -80,6 +82,16 @@ function ArenaPageContent() {
             setActiveDuelId(urlDuelId);
         }
     }, [searchParams]);
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (isInQueue) {
+            interval = setInterval(() => setQueueTime(t => t + 1), 1000);
+        } else {
+            setQueueTime(0);
+        }
+        return () => clearInterval(interval);
+    }, [isInQueue]);
 
     useEffect(() => {
         if (user) {
@@ -184,7 +196,33 @@ function ArenaPageContent() {
             if (prev.find(d => d.id === newDuel.id)) return prev;
             return [newDuel, ...prev];
         });
+        setIsInQueue(false);
     });
+
+    const handleJoinQueue = async () => {
+        const courseId = getStoredSelectedCourseId();
+        if (!courseId) {
+            alert("Selecione um curso primeiro.");
+            return;
+        }
+        try {
+            await DuelService.joinQueue(courseId);
+            setIsInQueue(true);
+        } catch (err) {
+            alert("Erro ao entrar na fila.");
+        }
+    };
+
+    const handleLeaveQueue = async () => {
+        const courseId = getStoredSelectedCourseId();
+        if (!courseId) return;
+        try {
+            await DuelService.leaveQueue(courseId);
+            setIsInQueue(false);
+        } catch (err) {
+            alert("Erro ao sair da fila.");
+        }
+    };
 
     const handleChallenge = async (opponentId: string) => {
         try {
@@ -276,7 +314,6 @@ function ArenaPageContent() {
                 />
             )}
 
-            {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -295,6 +332,20 @@ function ArenaPageContent() {
                         <Flame size={13} /> {myStats.streak} seguidas
                     </div>
                 </div>
+            </div>
+
+            {/* Queue Button */}
+            <div className="mb-6 flex justify-center">
+                {isInQueue ? (
+                    <button onClick={handleLeaveQueue} className="flex items-center gap-2 px-6 py-3 bg-red-100/80 text-red-600 rounded-full font-bold shadow-sm hover:bg-red-200 transition-all border border-red-200">
+                        <Clock size={18} className="animate-spin" /> Procurando Oponente ({Math.floor(queueTime / 60)}:{String(queueTime % 60).padStart(2, '0')})...
+                        <span className="text-[10px] ml-2 text-red-500 font-extrabold uppercase tracking-widest bg-white px-2 py-0.5 rounded-full">Cancelar</span>
+                    </button>
+                ) : (
+                    <button onClick={handleJoinQueue} className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-violet-600 text-white rounded-full font-bold shadow-md hover:shadow-lg transition-all active:scale-95">
+                        <Swords size={18} /> Procurar Duelo Aleatório
+                    </button>
+                )}
             </div>
 
             {/* Pending Challenges List */}

@@ -114,8 +114,8 @@ public class StudentTaskService {
         studentTaskRepository.save(task);
         
         if ("concluida".equalsIgnoreCase(newStatus) && !"concluida".equalsIgnoreCase(oldStatus)) {
-            // Reward 25 XP for completing a manual task
-            gamificationService.addXp(userId, 25);
+            // Task completed, but no XP rewarded for manual/checklist tasks
+            // Verified system tasks (like responding questions) are handled by other services
         }
     }
 

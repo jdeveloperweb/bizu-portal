@@ -121,6 +121,7 @@ C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bi
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\shared\security\DeviceValidationFilter.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\shared\security\KeycloakJwtAuthenticationConverter.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\shared\security\SecurityConfig.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\api\AxonStoreController.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\api\DuelController.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\api\EssayController.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\api\MaterialLibraryDTO.java
@@ -141,6 +142,7 @@ C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bi
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\api\StudentTaskController.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\ActivityService.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\AttemptService.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\AxonStoreService.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\BadgeDTO.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\CreateNoteRequest.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\CreateStudentTaskDTO.java
@@ -182,6 +184,7 @@ C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bi
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\domain\Essay.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\domain\FlashcardProgress.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\domain\GamificationStats.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\domain\Inventory.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\domain\MaterialCompletion.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\domain\Note.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\domain\PomodoroSession.java
@@ -199,6 +202,7 @@ C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bi
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\infrastructure\EssayRepository.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\infrastructure\FlashcardProgressRepository.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\infrastructure\GamificationRepository.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\infrastructure\InventoryRepository.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\infrastructure\MaterialCompletionRepository.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\infrastructure\NoteRepository.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\infrastructure\PomodoroSessionRepository.java

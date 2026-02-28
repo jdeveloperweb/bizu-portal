@@ -70,4 +70,51 @@ public class AxonStoreService {
         stats.setAxonCoins((stats.getAxonCoins() != null ? stats.getAxonCoins() : 0) + amount);
         return gamificationRepository.save(stats);
     }
+
+    @Transactional
+    public void useItem(UUID userId, String itemCode) {
+        Inventory inventory = inventoryRepository.findByUserIdAndItemCode(userId, itemCode)
+                .orElseThrow(() -> new RuntimeException("Item não encontrado no seu inventário"));
+
+        if (inventory.getQuantity() <= 0) {
+            throw new RuntimeException("Quantidade insuficiente deste item");
+        }
+
+        GamificationStats stats = gamificationRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Stats não encontrados"));
+
+        OffsetDateTime now = OffsetDateTime.now();
+
+        switch (itemCode) {
+            case "DOUBLE_XP_2H":
+                OffsetDateTime currentBoost = stats.getXpBoostUntil();
+                OffsetDateTime baseTime = (currentBoost != null && currentBoost.isAfter(now)) ? currentBoost : now;
+                stats.setXpBoostUntil(baseTime.plusHours(2));
+                break;
+            case "RADAR_MATERIA_24H":
+                stats.setRadarMateriaUntil(now.plusDays(1));
+                // Lógica de qual matéria será definida no front ou via subtipo, por enquanto fixamos uma ou deixamos pra definir
+                break;
+            case "STATUS_ELITE":
+                stats.setActiveTitle("Elite");
+                break;
+            case "STREAK_FREEZE":
+                throw new RuntimeException("O Escudo de Ofensiva é ativado AUTOMATICAMENTE quando você falha na streak!");
+            default:
+                throw new RuntimeException("Este item não pode ser ativado manualmente.");
+        }
+
+        // Consumir o item (exceto itens permanentes se houver, mas aqui todos são consumíveis exceto título que pode ser ativado várias vezes?)
+        // Vamos consumir todos que dão boost temporário
+        if (!itemCode.startsWith("STATUS_")) {
+            inventory.setQuantity(inventory.getQuantity() - 1);
+            if (inventory.getQuantity() == 0) {
+                inventoryRepository.delete(inventory);
+            } else {
+                inventoryRepository.save(inventory);
+            }
+        }
+
+        gamificationRepository.save(stats);
+    }
 }

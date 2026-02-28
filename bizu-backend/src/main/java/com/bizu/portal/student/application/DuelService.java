@@ -11,6 +11,8 @@ import com.bizu.portal.student.infrastructure.DuelRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -29,6 +31,9 @@ public class DuelService {
     private final NotificationService notificationService;
     private final GamificationService gamificationService;
     private final UserRepository userRepository;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
+    private final ConcurrentHashMap<UUID, ConcurrentLinkedQueue<UUID>> matchQueues = new ConcurrentHashMap<>();
 
     @Transactional
     public Duel createDuel(UUID challengerId, UUID opponentId, String subject) {
@@ -57,6 +62,51 @@ public class DuelService {
         
         initializeDuel(duel);
         return duel;
+    }
+
+    public void joinQueue(UUID userId, UUID courseId) {
+        List<Duel> activeDuels = duelRepository.findActiveDuelsByUserId(userId);
+        if (!activeDuels.isEmpty()) {
+            throw new RuntimeException("Você já está em um duelo ativo.");
+        }
+        
+        matchQueues.computeIfAbsent(courseId, k -> new ConcurrentLinkedQueue<>())
+                   .add(userId);
+                   
+        tryMatch(courseId);
+    }
+
+    public void leaveQueue(UUID userId, UUID courseId) {
+        ConcurrentLinkedQueue<UUID> queue = matchQueues.get(courseId);
+        if (queue != null) {
+            queue.remove(userId);
+        }
+    }
+
+    private synchronized void tryMatch(UUID courseId) {
+        ConcurrentLinkedQueue<UUID> queue = matchQueues.get(courseId);
+        if (queue == null || queue.size() < 2) return;
+        
+        UUID p1 = queue.poll();
+        UUID p2 = queue.poll();
+        
+        if (p1 != null && p2 != null) {
+            if (p1.equals(p2)) { 
+                queue.add(p1);
+                return;
+            }
+            
+            log.info("Match found for users {} and {}", p1, p2);
+            Duel duel = createDuel(p1, p2, "Aleatório");
+            
+            notificationService.send(p1, "Duelo Encontrado!", "Um oponente foi encontrado para o duelo na Arena.");
+            
+            messagingTemplate.convertAndSend("/topic/desafios/" + p1, duel);
+            messagingTemplate.convertAndSend("/topic/desafios/" + p2, duel);
+        } else {
+            if (p1 != null) queue.add(p1);
+            if (p2 != null) queue.add(p2);
+        }
     }
 
     @Transactional

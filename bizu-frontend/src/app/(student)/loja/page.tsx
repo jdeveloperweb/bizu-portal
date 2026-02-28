@@ -120,6 +120,26 @@ export default function AxonStorePage() {
         }
     };
 
+    const handleUseItem = async (item: StoreItem) => {
+        try {
+            const res = await apiFetch("/student/store/use", {
+                method: "POST",
+                body: JSON.stringify({ itemCode: item.code })
+            });
+
+            if (res.ok) {
+                toast.success(`${item.name} ativado com sucesso! Aproveite o buff.`);
+                fetchStoreData();
+                // Forçar recarregamento da aura e stats
+                window.dispatchEvent(new Event("buff-activated"));
+            } else {
+                toast.error(await res.text());
+            }
+        } catch (error) {
+            toast.error("Erro ao ativar item");
+        }
+    };
+
     const handleBuyAxonPack = async (packCode: string) => {
         toast.promise(
             (async () => {
@@ -238,19 +258,35 @@ export default function AxonStorePage() {
                             </div>
 
                             {invQuantity > 0 && (
-                                <div className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full mb-4">
-                                    Você possui: {invQuantity}
-                                </div>
+                                <motion.div
+                                    animate={{
+                                        boxShadow: ["0px 0px 0px rgba(99,102,241,0)", "0px 0px 15px rgba(99,102,241,0.4)", "0px 0px 0px rgba(99,102,241,0)"]
+                                    }}
+                                    transition={{ duration: 2, repeat: Infinity }}
+                                    className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-4 py-1.5 rounded-full mb-4 flex items-center gap-2"
+                                >
+                                    <Sparkles size={10} /> Você possui: {invQuantity}
+                                </motion.div>
                             )}
 
-                            <button
-                                onClick={() => handleBuy(item)}
-                                disabled={isBuying === item.id}
-                                className="w-full py-4 bg-slate-50 border border-slate-200 text-slate-900 font-bold rounded-2xl hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
-                            >
-                                <Brain size={14} className="group-hover:animate-bounce" />
-                                {isBuying === item.id ? "Comprando..." : `${item.price} Axons`}
-                            </button>
+                            {invQuantity > 0 ? (
+                                <button
+                                    onClick={() => handleUseItem(item)}
+                                    className="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-200"
+                                >
+                                    <Zap size={14} className="animate-pulse" />
+                                    Ativar Agora
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => handleBuy(item)}
+                                    disabled={isBuying === item.id}
+                                    className="w-full py-4 bg-slate-50 border border-slate-200 text-slate-900 font-bold rounded-2xl hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
+                                >
+                                    <Brain size={14} className="group-hover:animate-bounce" />
+                                    {isBuying === item.id ? "Comprando..." : `${item.price} Axons`}
+                                </button>
+                            )}
                         </motion.div>
                     );
                 })}

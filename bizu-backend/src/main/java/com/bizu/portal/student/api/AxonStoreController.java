@@ -44,6 +44,18 @@ public class AxonStoreController {
         }
     }
 
+    @PostMapping("/use")
+    public ResponseEntity<?> useItem(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, String> body) {
+        UUID userId = userService.resolveUserId(jwt);
+        String itemCode = body.get("itemCode");
+        try {
+            axonStoreService.useItem(userId, itemCode);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PostMapping("/checkout")
     public ResponseEntity<?> checkoutPack(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, String> body) {
         UUID userId = userService.resolveUserId(jwt);

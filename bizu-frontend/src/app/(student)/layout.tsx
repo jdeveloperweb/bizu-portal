@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import StudentSidebar from "@/components/StudentSidebar";
 import FloatingPomodoro from "@/components/pomodoro/FloatingPomodoro";
 import ChallengeOverlay from "@/components/arena/ChallengeOverlay";
+import ActiveBuffsAura from "@/components/ActiveBuffsAura";
 import { useAuth } from "@/components/AuthProvider";
 
 
@@ -35,6 +36,7 @@ export default function StudentLayout({
             </main>
             <FloatingPomodoro />
             <ChallengeOverlay />
+            <ActiveBuffsAura />
         </div>
     );
 }

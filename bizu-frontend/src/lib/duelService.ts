@@ -93,6 +93,20 @@ export const DuelService = {
         return res.json();
     },
 
+    joinQueue: async (courseId: string) => {
+        const res = await apiFetch(`/duelos/fila/entrar?courseId=${courseId}`, {
+            method: "POST",
+        });
+        return res;
+    },
+
+    leaveQueue: async (courseId: string) => {
+        const res = await apiFetch(`/duelos/fila/sair?courseId=${courseId}`, {
+            method: "POST",
+        });
+        return res;
+    },
+
     getHistory: async () => {
         const res = await apiFetch("/duelos/historico");
         if (!res.ok) return [];

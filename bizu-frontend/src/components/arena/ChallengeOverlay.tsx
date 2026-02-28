@@ -4,6 +4,7 @@ import { Swords, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDuels } from "@/contexts/DuelContext";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function ChallengeOverlay() {
     const router = useRouter();
@@ -14,6 +15,9 @@ export default function ChallengeOverlay() {
         acceptDuel,
         declineDuel
     } = useDuels();
+
+    const { user } = useAuth();
+    const currentUserId = user?.id || user?.sub;
 
     const handleAccept = async (duelId: string) => {
         try {
@@ -33,6 +37,10 @@ export default function ChallengeOverlay() {
     };
 
     if (!isVisible || !duel) return null;
+
+    const isChallenger = duel.challenger.id === currentUserId;
+    const opponentName = isChallenger ? duel.opponent.name : duel.challenger.name;
+    const challengeText = isChallenger && duel.subject === "Aleatório" ? "Adversário encontrado:" : "Você foi desafiado por:";
 
     return (
         <AnimatePresence>
@@ -84,13 +92,15 @@ export default function ChallengeOverlay() {
                         </div>
 
                         <div className="space-y-2 mb-8">
-                            <h3 className="text-3xl font-black text-slate-900 tracking-tight">Desafio Recebido!</h3>
+                            <h3 className="text-3xl font-black text-slate-900 tracking-tight">
+                                {duel.subject === "Aleatório" ? "Duelo Encontrado!" : "Desafio Recebido!"}
+                            </h3>
                             <div className="flex flex-col items-center text-slate-500 leading-relaxed">
-                                <span className="text-lg font-medium">Você foi desafiado por:</span>
+                                <span className="text-lg font-medium">{challengeText}</span>
                                 {/* Robust text container for long names */}
                                 <div className="w-full max-w-[320px] overflow-hidden">
-                                    <span className="text-2xl font-black text-indigo-600 truncate block py-1" title={duel.challenger.name}>
-                                        {duel.challenger.name}
+                                    <span className="text-2xl font-black text-indigo-600 truncate block py-1" title={opponentName}>
+                                        {opponentName}
                                     </span>
                                 </div>
                                 <span className="text-sm mt-1">

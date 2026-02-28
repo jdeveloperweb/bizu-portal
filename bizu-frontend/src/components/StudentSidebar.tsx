@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
@@ -55,36 +55,55 @@ export default function StudentSidebar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [pendingFriendsCount, setPendingFriendsCount] = useState(0);
+    const [pendingTasksCount, setPendingTasksCount] = useState(0);
+    const [rankingPosition, setRankingPosition] = useState<number | null>(null);
 
-    const fetchPendingFriends = useCallback(async () => {
+    const fetchSidebarData = useCallback(async () => {
         if (!authenticated || isFree) return;
         try {
-            const res = await apiFetch("/friends/pending");
-            if (res.ok) {
-                const data = await res.json();
+            const [friendsRes, tasksRes, rankingRes] = await Promise.all([
+                apiFetch("/friends/pending").catch(() => null),
+                apiFetch("/student/tasks").catch(() => null),
+                apiFetch("/student/ranking/me").catch(() => null)
+            ]);
+
+            if (friendsRes && friendsRes.ok) {
+                const data = await friendsRes.json();
                 setPendingFriendsCount(data.length);
             }
+            if (tasksRes && tasksRes.ok) {
+                const data = await tasksRes.json();
+                const pending = data.filter((t: any) => t.status !== 'COMPLETED');
+                setPendingTasksCount(pending.length);
+            }
+            if (rankingRes && rankingRes.ok) {
+                const data = await rankingRes.json();
+                if (data.position) setRankingPosition(data.position);
+            }
         } catch (err) {
-            console.error("Failed to fetch pending friends count", err);
+            console.error("Failed to fetch sidebar data", err);
         }
     }, [authenticated, isFree]);
 
     useEffect(() => {
-        fetchPendingFriends();
-        window.addEventListener("friends:updated", fetchPendingFriends);
+        fetchSidebarData();
+        window.addEventListener("friends:updated", fetchSidebarData);
+        window.addEventListener("tasks:updated", fetchSidebarData);
 
-        const interval = setInterval(fetchPendingFriends, 120000); // 2 minutos
+        const interval = setInterval(fetchSidebarData, 120000); // 2 minutos
 
         return () => {
-            window.removeEventListener("friends:updated", fetchPendingFriends);
+            window.removeEventListener("friends:updated", fetchSidebarData);
+            window.removeEventListener("tasks:updated", fetchSidebarData);
             clearInterval(interval);
         };
-    }, [fetchPendingFriends]);
+    }, [fetchSidebarData]);
 
-    const Item = ({ href, icon: Icon, label, badge }: { href: string; icon: typeof LayoutDashboard; label: string; badge?: number }) => {
+    const Item = ({ href, icon: Icon, label, badge, customBadge }: { href: string; icon: typeof LayoutDashboard; label: string; badge?: number; customBadge?: React.ReactNode }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
         const isPremiumRoute = ["/pomodoro", "/simulados", "/flashcards", "/arena", "/redacao", "/desempenho", "/ranking", "/conquistas", "/amigos"].some(r => href.startsWith(r));
         const showLock = isFree && isPremiumRoute;
+        const hasArenaInvite = label === "Arena PVP" && typeof badge === "number" && badge > 0;
 
         const handleClick = () => {
             setIsMobileMenuOpen(false);
@@ -93,30 +112,52 @@ export default function StudentSidebar() {
             }
         };
 
+        const baseClass = `group relative flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-2.5 px-3'} py-[7px] rounded-lg text-[13px] font-medium transition-all`;
+        let stateClass = "";
+
+        if (hasArenaInvite) {
+            stateClass = "bg-rose-50 text-rose-600 shadow-sm border border-rose-100 hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20";
+        } else if (active) {
+            stateClass = "bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-500/10 dark:to-violet-500/10 text-indigo-700 dark:text-indigo-400 font-semibold";
+        } else {
+            stateClass = "text-muted-foreground hover:bg-muted hover:text-foreground";
+        }
+
+        const isPomodoro = label === "Pomodoro";
+        const { isRunning, timeLeft } = usePomodoro();
+        const displayLabel = isPomodoro && isRunning ? (
+            <span className="flex items-center gap-1.5 flex-1 line-clamp-1">
+                {label}
+                <span className="text-indigo-600 font-bold bg-indigo-100 px-1 py-px rounded text-[10px] animate-pulse whitespace-nowrap">
+                    {String(Math.floor(timeLeft / 60)).padStart(2, '0')}:{String(timeLeft % 60).padStart(2, '0')}
+                </span>
+            </span>
+        ) : (
+            <span className="flex-1 line-clamp-1">{label}</span>
+        );
+
         return (
             <Link href={href}
                 onClick={handleClick}
                 title={isCollapsed ? label : undefined}
-                className={`group relative flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-2.5 px-3'} py-[7px] rounded-lg text-[13px] font-medium transition-all ${active
-                    ? "bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-500/10 dark:to-violet-500/10 text-indigo-700 dark:text-indigo-400 font-semibold"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    }`}>
+                className={`${baseClass} ${stateClass}`}>
                 <div className="relative">
-                    <Icon size={16} className={active ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground opacity-70 group-hover:opacity-100"} />
+                    <Icon size={16} className={hasArenaInvite ? "text-rose-500 animate-pulse" : active ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground opacity-70 group-hover:opacity-100"} />
                     {isCollapsed && badge && badge > 0 && (
                         <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-rose-500 text-white text-[8px] flex items-center justify-center rounded-full border border-white font-bold">
                             {badge > 9 ? '9+' : badge}
                         </div>
                     )}
                 </div>
-                {!isCollapsed && <span className="flex-1">{label}</span>}
+                {!isCollapsed && displayLabel}
                 {!isCollapsed && badge && badge > 0 && (
                     <span className="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                         {badge}
                     </span>
                 )}
+                {!isCollapsed && customBadge}
                 {showLock && !isCollapsed && <Lock size={12} className="text-amber-500 shrink-0" />}
-                {active && !isCollapsed && !showLock && <ChevronRight size={12} className="text-indigo-400 shrink-0" />}
+                {active && !isCollapsed && !showLock && !hasArenaInvite && <ChevronRight size={12} className="text-indigo-400 shrink-0" />}
             </Link>
         );
     };
@@ -210,7 +251,7 @@ export default function StudentSidebar() {
                         <div className="w-4 h-px bg-border mx-auto my-3" />
                     )}
                     <div className="space-y-px mb-3">
-                        {planNav.map((i) => <Item key={i.href} {...i} />)}
+                        {planNav.map((i) => <Item key={i.href} {...i} badge={i.label === "Tarefas" ? pendingTasksCount || undefined : undefined} />)}
                     </div>
 
                     {!isCollapsed ? (
@@ -224,6 +265,13 @@ export default function StudentSidebar() {
                                 key={i.href}
                                 {...i}
                                 badge={i.label === "Amigos" ? pendingFriendsCount : undefined}
+                                customBadge={
+                                    i.label === "Ranking" && rankingPosition ? (
+                                        <span className="bg-amber-100 text-amber-700 border border-amber-200 text-[10px] font-bold px-1.5 py-0.5 rounded-md min-w-[24px] text-center">
+                                            #{rankingPosition}
+                                        </span>
+                                    ) : undefined
+                                }
                             />
                         ))}
                     </div>

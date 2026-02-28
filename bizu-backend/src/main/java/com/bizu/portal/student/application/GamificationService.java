@@ -182,6 +182,12 @@ public class GamificationService {
 
         int previousXp = stats.getTotalXp();
         int previousLevel = levelCalculator.calculateLevel(previousXp);
+
+        // Apply XP Boost if active
+        if (stats.getXpBoostUntil() != null && stats.getXpBoostUntil().isAfter(OffsetDateTime.now())) {
+            amount *= 2;
+            log.info("XP dobrado para o usuário {} devido ao buff ativo!", userId);
+        }
         
         stats.setTotalXp(previousXp + amount);
         
