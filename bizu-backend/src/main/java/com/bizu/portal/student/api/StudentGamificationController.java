@@ -45,6 +45,9 @@ public class StudentGamificationController {
         response.put("rank", levelCalculator.calculateRank(currentLevel));
         response.put("nextLevelProgress", levelCalculator.calculateProgressToNextLevel(stats.getTotalXp()));
         response.put("xpToNextLevel", levelCalculator.calculateXpForLevel(currentLevel + 1));
+        response.put("xpBoostUntil", stats.getXpBoostUntil());
+        response.put("radarMateriaUntil", stats.getRadarMateriaUntil());
+        response.put("activeTitle", stats.getActiveTitle());
         response.put("levelTable", levelCalculator.getAllLevelRequirements(50));
 
         return ResponseEntity.ok(response);

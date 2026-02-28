@@ -3,10 +3,14 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Target } from "lucide-react";
+import { Zap, Target, Crown } from "lucide-react";
 
 export default function ActiveBuffsAura() {
-    const [buffs, setBuffs] = useState<{ xpBoost: boolean; radar: boolean }>({ xpBoost: false, radar: false });
+    const [buffs, setBuffs] = useState<{
+        xpBoost: boolean;
+        radar: boolean;
+        eliteTitle: boolean;
+    }>({ xpBoost: false, radar: false, eliteTitle: false });
 
     const checkBuffs = async () => {
         try {
@@ -16,7 +20,8 @@ export default function ActiveBuffsAura() {
                 const now = new Date();
                 setBuffs({
                     xpBoost: data.xpBoostUntil ? new Date(data.xpBoostUntil) > now : false,
-                    radar: data.radarMateriaUntil ? new Date(data.radarMateriaUntil) > now : false
+                    radar: data.radarMateriaUntil ? new Date(data.radarMateriaUntil) > now : false,
+                    eliteTitle: data.activeTitle === "Elite"
                 });
             }
         } catch (e) {
@@ -27,18 +32,28 @@ export default function ActiveBuffsAura() {
     useEffect(() => {
         checkBuffs();
         window.addEventListener("buff-activated", checkBuffs);
-        const interval = setInterval(checkBuffs, 30000); // Check every 30s
+        const interval = setInterval(checkBuffs, 30000);
         return () => {
             window.removeEventListener("buff-activated", checkBuffs);
             clearInterval(interval);
         };
     }, []);
 
-    if (!buffs.xpBoost && !buffs.radar) return null;
+    if (!buffs.xpBoost && !buffs.radar && !buffs.eliteTitle) return null;
 
     return (
         <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden">
             <AnimatePresence>
+                {/* ELITE TITLE AURA - PURPLE RECOGNITION */}
+                {buffs.eliteTitle && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,_rgba(168,85,247,0.05),_transparent_60%)]"
+                    />
+                )}
+
                 {/* XP BOOST RPG EFFECT */}
                 {buffs.xpBoost && (
                     <>
@@ -105,6 +120,20 @@ export default function ActiveBuffsAura() {
             {/* Corner Indicators with Flare */}
             <div className="absolute top-4 right-4 flex flex-col gap-3 pointer-events-auto">
                 <AnimatePresence>
+                    {buffs.eliteTitle && (
+                        <motion.div
+                            initial={{ x: 100, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            exit={{ x: 100, opacity: 0 }}
+                            className="relative"
+                        >
+                            <div className="absolute -inset-1 bg-purple-500 rounded-2xl blur-md opacity-30" />
+                            <div className="relative bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-2xl shadow-2xl border border-white/20 flex items-center gap-3 text-xs font-black uppercase tracking-widest">
+                                <Crown size={16} className="text-yellow-400 fill-current" />
+                                <span>Status: Elite</span>
+                            </div>
+                        </motion.div>
+                    )}
                     {buffs.xpBoost && (
                         <motion.div
                             initial={{ x: 100, scale: 0.5, filter: "brightness(2)" }}

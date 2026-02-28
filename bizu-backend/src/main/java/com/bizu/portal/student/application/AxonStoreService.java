@@ -95,17 +95,17 @@ public class AxonStoreService {
                 stats.setRadarMateriaUntil(now.plusDays(1));
                 // Lógica de qual matéria será definida no front ou via subtipo, por enquanto fixamos uma ou deixamos pra definir
                 break;
+            case "STREAK_FREEZE":
+                // Escudo é passivo, mas permitimos "ativar" para feedback visual no front
+                break;
             case "STATUS_ELITE":
                 stats.setActiveTitle("Elite");
                 break;
-            case "STREAK_FREEZE":
-                throw new RuntimeException("O Escudo de Ofensiva é ativado AUTOMATICAMENTE quando você falha na streak!");
             default:
                 throw new RuntimeException("Este item não pode ser ativado manualmente.");
         }
 
-        // Consumir o item (exceto itens permanentes se houver, mas aqui todos são consumíveis exceto título que pode ser ativado várias vezes?)
-        // Vamos consumir todos que dão boost temporário
+        // Itens de STATUS (Títulos) são permanentes e não são consumidos
         if (!itemCode.startsWith("STATUS_")) {
             inventory.setQuantity(inventory.getQuantity() - 1);
             if (inventory.getQuantity() == 0) {
