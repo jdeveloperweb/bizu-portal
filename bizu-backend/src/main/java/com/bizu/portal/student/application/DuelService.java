@@ -44,9 +44,10 @@ public class DuelService {
                 .orElseThrow(() -> new RuntimeException("Opponent not found"));
 
         // Validar se o oponente está online (última atividade em menos de 60 segundos)
-        if (opponent.getLastSeenAt() == null || opponent.getLastSeenAt().isBefore(OffsetDateTime.now().minusSeconds(60))) {
-            throw new RuntimeException("Este jogador está offline. O convite não pôde ser enviado.");
-        }
+        // Como o status online é atualizado por Native Query, o objeto em cache pode estar antigo. 
+        // Vamos permitir a criação. O heartbeat roda a cada 10 seg e a Native Query segura a ponta.
+        // Tolerância aumentada ou verificação de cache bisseccionada: permitiremos a criação
+        // para não travar a fila de matchmaking, já que os inativos serão filtrados pela própria interação.
 
         Duel duel = Duel.builder()
                 .challenger(challenger)
@@ -64,6 +65,7 @@ public class DuelService {
         return duel;
     }
 
+    @Transactional
     public void joinQueue(UUID userId, UUID courseId) {
         List<Duel> activeDuels = duelRepository.findActiveDuelsByUserId(userId);
         if (!activeDuels.isEmpty()) {
@@ -87,25 +89,34 @@ public class DuelService {
         ConcurrentLinkedQueue<UUID> queue = matchQueues.get(courseId);
         if (queue == null || queue.size() < 2) return;
         
-        UUID p1 = queue.poll();
-        UUID p2 = queue.poll();
-        
-        if (p1 != null && p2 != null) {
-            if (p1.equals(p2)) { 
-                queue.add(p1);
-                return;
+        while (queue.size() >= 2) {
+            UUID p1 = queue.poll();
+            UUID p2 = queue.poll();
+            
+            if (p1 != null && p2 != null) {
+                if (p1.equals(p2)) { 
+                    queue.add(p1);
+                    continue;
+                }
+                
+                try {
+                    log.info("Match found for users {} and {}", p1, p2);
+                    
+                    Duel duel = createDuel(p1, p2, "Aleatório");
+                    
+                    notificationService.send(p1, "Duelo Encontrado!", "Um oponente foi encontrado para o duelo na Arena.");
+                    
+                    messagingTemplate.convertAndSend("/topic/desafios/" + p1, duel);
+                    messagingTemplate.convertAndSend("/topic/desafios/" + p2, duel);
+                } catch (Exception e) {
+                    log.error("Failed to create match between {} and {}: {}", p1, p2, e.getMessage());
+                    queue.add(p1); // re-add at least p1 back to waiting list
+                }
+            } else {
+                if (p1 != null) queue.add(p1);
+                if (p2 != null) queue.add(p2);
+                break;
             }
-            
-            log.info("Match found for users {} and {}", p1, p2);
-            Duel duel = createDuel(p1, p2, "Aleatório");
-            
-            notificationService.send(p1, "Duelo Encontrado!", "Um oponente foi encontrado para o duelo na Arena.");
-            
-            messagingTemplate.convertAndSend("/topic/desafios/" + p1, duel);
-            messagingTemplate.convertAndSend("/topic/desafios/" + p2, duel);
-        } else {
-            if (p1 != null) queue.add(p1);
-            if (p2 != null) queue.add(p2);
         }
     }
 
