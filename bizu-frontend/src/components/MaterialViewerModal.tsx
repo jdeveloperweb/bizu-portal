@@ -113,10 +113,11 @@ export default function MaterialViewerModal({ material, isOpen, onClose, onCompl
                         <Button
                             variant="outline"
                             size="sm"
-                            className="rounded-xl hidden sm:flex gap-2"
+                            className="rounded-xl flex gap-2"
                             onClick={() => window.open(material.fileUrl, '_blank')}
+                            title="Baixar material"
                         >
-                            <Download size={16} /> Baixar
+                            <Download size={16} /> <span className="hidden sm:inline">Baixar</span>
                         </Button>
                         <button
                             onClick={onClose}
@@ -131,8 +132,11 @@ export default function MaterialViewerModal({ material, isOpen, onClose, onCompl
                 <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         {/* Main Viewer */}
-                        <div className="lg:col-span-8 space-y-6">
-                            <div className="aspect-video bg-black rounded-[32px] overflow-hidden shadow-xl border-4 border-slate-50 dark:border-slate-800 relative">
+                        <div className="lg:col-span-8 space-y-6 flex flex-col">
+                            <div className={cn(
+                                "bg-black rounded-[32px] overflow-hidden shadow-xl border-4 border-slate-50 dark:border-slate-800 relative w-full",
+                                isPDF ? "h-[75vh]" : "aspect-video"
+                            )}>
                                 {material.fileType === 'VIDEO' ? (
                                     embedVideoUrl ? (
                                         <iframe
@@ -201,20 +205,6 @@ export default function MaterialViewerModal({ material, isOpen, onClose, onCompl
                                     )}
                                 >
                                     {isCompleted ? "Concluído" : "Marcar como Concluído"}
-                                </Button>
-                            </div>
-
-                            <div className="p-6 rounded-[32px] border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center text-center">
-                                <div className="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 mb-4">
-                                    <Download size={24} />
-                                </div>
-                                <h5 className="font-bold text-slate-800 dark:text-slate-200 text-sm">Download Disponível</h5>
-                                <p className="text-xs text-slate-400 mt-1 mb-4">Baixe o material para estudar de forma offline.</p>
-                                <Button
-                                    className="w-full rounded-2xl bg-indigo-600 hover:bg-indigo-700"
-                                    onClick={() => window.open(material.fileUrl, '_blank')}
-                                >
-                                    Baixar Agora
                                 </Button>
                             </div>
                         </div>
