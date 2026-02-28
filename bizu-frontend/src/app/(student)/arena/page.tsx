@@ -14,6 +14,7 @@ import { DuelService, Duel } from "@/lib/duelService";
 import ArenaDuelScreen from "@/components/arena/ArenaDuelScreen";
 import { getAvatarUrl } from "@/lib/imageUtils";
 import ActiveDuelBanner from "@/components/arena/ActiveDuelBanner";
+import { UserProfileModal } from "@/components/UserProfileModal";
 import Cookies from "js-cookie";
 import { useChallengeNotifications } from "@/hooks/useChallengeNotifications";
 import { useAuth } from "@/components/AuthProvider";
@@ -28,6 +29,7 @@ interface OnlineUser {
     id: string;
     name: string;
     avatar: string;
+    nickname: string;
     level: number;
     xp: number;
     winRate: number;
@@ -37,6 +39,7 @@ interface OnlineUser {
 interface RankingUser {
     id: string;
     name: string;
+    nickname: string;
     avatar: string;
     wins: number;
 }
@@ -65,6 +68,9 @@ function ArenaPageContent() {
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingRanking, setIsLoadingRanking] = useState(false);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+    const [selectedProfileNickname, setSelectedProfileNickname] = useState<string | null>(null);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const searchParams = useSearchParams();
 
     useEffect(() => {
@@ -95,6 +101,7 @@ function ArenaPageContent() {
                     setOnlineUsers(users.map((u: any) => ({
                         id: u.id,
                         name: u.name || "Usuário",
+                        nickname: u.nickname || "",
                         avatar: u.avatar || "", // Keep empty if no URL
                         level: parseInt(Math.floor(Number(u.level) || 1).toString()),
                         xp: Number(u.xp) || 0,
@@ -251,6 +258,13 @@ function ArenaPageContent() {
 
     return (
         <div className="p-4 md:p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
+            {selectedProfileNickname && (
+                <UserProfileModal
+                    nickname={selectedProfileNickname}
+                    isOpen={isProfileModalOpen}
+                    onClose={() => setIsProfileModalOpen(false)}
+                />
+            )}
             {!activeDuelId && <ActiveDuelBanner onReturn={(id) => setActiveDuelId(id)} />}
 
             {activeDuelId && (
@@ -395,7 +409,13 @@ function ArenaPageContent() {
                         ) : onlineUsers.map(user => (
                             <div key={user.id} className="card-elevated !rounded-2xl p-3 md:p-4 hover:!transform-none">
                                 <div className="flex items-center gap-2.5 md:gap-3">
-                                    <div className="relative flex-shrink-0">
+                                    <div
+                                        className="relative flex-shrink-0 cursor-pointer"
+                                        onClick={() => {
+                                            setSelectedProfileNickname(user.nickname);
+                                            setIsProfileModalOpen(true);
+                                        }}
+                                    >
                                         <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center overflow-hidden text-[12px] font-bold text-indigo-700 border border-indigo-200/50 shadow-sm">
                                             {user.avatar && (user.avatar.includes('/') || user.avatar.startsWith('http')) ? (
                                                 <img
@@ -419,18 +439,21 @@ function ArenaPageContent() {
                                             }`} />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-1.5">
+                                        <span className="flex items-center gap-0.5 whitespace-nowrap cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => {
+                                            setSelectedProfileNickname(user.nickname);
+                                            setIsProfileModalOpen(true);
+                                        }}>
                                             <span className="text-[13px] font-bold text-slate-800 truncate">{user.name}</span>
-                                            {user.status === "em_duelo" && (
-                                                <span className="text-[8px] md:text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">Em duelo</span>
-                                            )}
-                                        </div>
-                                        <div className="text-[9px] md:text-[10px] text-slate-400 flex items-center gap-1.5 md:gap-2">
-                                            <span className="flex items-center gap-0.5 whitespace-nowrap"><Zap size={9} className="text-amber-500" /> Lv.{user.level}</span>
-                                            <span className="hidden xs:inline-block">•</span>
-                                            <span className="hidden xs:inline-block">{user.xp.toLocaleString()} XP</span>
-                                            <span className="flex items-center gap-0.5 whitespace-nowrap"><Target size={9} /> {user.winRate}%</span>
-                                        </div>
+                                        </span>
+                                        {user.status === "em_duelo" && (
+                                            <span className="text-[8px] md:text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">Em duelo</span>
+                                        )}
+                                    </div>
+                                    <div className="text-[9px] md:text-[10px] text-slate-400 flex items-center gap-1.5 md:gap-2">
+                                        <span className="flex items-center gap-0.5 whitespace-nowrap"><Zap size={9} className="text-amber-500" /> Lv.{user.level}</span>
+                                        <span className="hidden xs:inline-block">•</span>
+                                        <span className="hidden xs:inline-block">{user.xp.toLocaleString()} XP</span>
+                                        <span className="flex items-center gap-0.5 whitespace-nowrap"><Target size={9} /> {user.winRate}%</span>
                                     </div>
                                     <button
                                         disabled={user.status === "em_duelo" || user.id === currentUserId}
@@ -463,7 +486,13 @@ function ArenaPageContent() {
                                             }`}>
                                             {i + 1}º
                                         </div>
-                                        <div className="w-10 h-10 flex-shrink-0 rounded-xl bg-indigo-50 flex items-center justify-center overflow-hidden">
+                                        <div
+                                            className="w-10 h-10 flex-shrink-0 rounded-xl bg-indigo-50 flex items-center justify-center overflow-hidden cursor-pointer"
+                                            onClick={() => {
+                                                setSelectedProfileNickname(r.nickname);
+                                                setIsProfileModalOpen(true);
+                                            }}
+                                        >
                                             {r.avatar ? (
                                                 <img src={getAvatarUrl(r.avatar)} className="w-full h-full object-cover" alt={r.name} />
                                             ) : (
@@ -471,7 +500,15 @@ function ArenaPageContent() {
                                             )}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="text-sm font-bold text-slate-800 truncate">{r.name}</div>
+                                            <div
+                                                className="text-sm font-bold text-slate-800 truncate cursor-pointer hover:text-indigo-600 transition-colors"
+                                                onClick={() => {
+                                                    setSelectedProfileNickname(r.nickname);
+                                                    setIsProfileModalOpen(true);
+                                                }}
+                                            >
+                                                {r.name}
+                                            </div>
                                             <div className="text-[10px] text-slate-500">Ganhador de {r.wins} duelos na semana</div>
                                         </div>
                                         {i < 3 && (
@@ -507,7 +544,15 @@ function ArenaPageContent() {
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-1.5 flex-wrap">
-                                                    <span className="text-[13px] font-bold text-slate-800 truncate">vs {opponent.name}</span>
+                                                    <span
+                                                        className="text-[13px] font-bold text-slate-800 truncate cursor-pointer hover:text-indigo-600 transition-colors"
+                                                        onClick={() => {
+                                                            setSelectedProfileNickname(opponent.nickname || null);
+                                                            setIsProfileModalOpen(true);
+                                                        }}
+                                                    >
+                                                        vs {opponent.name}
+                                                    </span>
                                                     <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${result === "Vitoria" ? "bg-emerald-50 text-emerald-600" :
                                                         result === "Derrota" ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-600"
                                                         }`}>{result}</span>
@@ -609,7 +654,7 @@ function ArenaPageContent() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 

@@ -10,6 +10,7 @@ import {
     TrendingUp, BookOpen
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
 
 const iconMap: Record<string, any> = {
     sunrise: Sunrise,
@@ -45,6 +46,8 @@ export function UserProfileModal({ nickname, isOpen, onClose }: UserProfileModal
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { user } = useAuth();
+    const isMe = profile?.id === user?.id || profile?.id === user?.sub;
 
     useEffect(() => {
         if (isOpen && nickname) {
@@ -143,31 +146,33 @@ export function UserProfileModal({ nickname, isOpen, onClose }: UserProfileModal
                                     </h2>
                                     <p className="text-indigo-600 font-bold">@{profile.nickname}</p>
                                 </div>
-                                <div className="shrink-0 flex gap-2">
-                                    {profile.friendshipStatus === 'ACCEPTED' ? (
-                                        <div className="flex gap-2">
-                                            <Link href="/arena" className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 hover:bg-indigo-100 transition-colors shadow-sm" title="Desafiar na Arena">
-                                                <Swords size={20} />
-                                            </Link>
-                                            <button onClick={() => handleFriendAction('reject')} className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 hover:bg-rose-100 transition-colors shadow-sm" title="Desfazer Amizade">
-                                                <UserMinus size={20} />
+                                {!isMe && (
+                                    <div className="shrink-0 flex gap-2">
+                                        {profile.friendshipStatus === 'ACCEPTED' ? (
+                                            <div className="flex gap-2">
+                                                <Link href="/arena" className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 hover:bg-indigo-100 transition-colors shadow-sm" title="Desafiar na Arena">
+                                                    <Swords size={20} />
+                                                </Link>
+                                                <button onClick={() => handleFriendAction('reject')} className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 hover:bg-rose-100 transition-colors shadow-sm" title="Desfazer Amizade">
+                                                    <UserMinus size={20} />
+                                                </button>
+                                            </div>
+                                        ) : profile.friendshipStatus === 'PENDING' ? (
+                                            <button className="px-4 py-2 rounded-xl bg-slate-100 flex items-center gap-2 text-slate-500 font-bold text-sm cursor-not-allowed shadow-sm">
+                                                <UserCheck size={16} /> Pendente
                                             </button>
-                                        </div>
-                                    ) : profile.friendshipStatus === 'PENDING' ? (
-                                        <button className="px-4 py-2 rounded-xl bg-slate-100 flex items-center gap-2 text-slate-500 font-bold text-sm cursor-not-allowed shadow-sm">
-                                            <UserCheck size={16} /> Pendente
-                                        </button>
-                                    ) : (
-                                        <div className="flex gap-2">
-                                            <Link href="/arena" className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 hover:bg-indigo-100 transition-colors shadow-sm" title="Ver na Arena">
-                                                <Swords size={20} />
-                                            </Link>
-                                            <button onClick={() => handleFriendAction('request')} className="px-4 py-2 rounded-xl bg-indigo-600 flex items-center gap-2 text-white font-bold text-sm hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200">
-                                                <UserPlus size={16} /> Adicionar
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
+                                        ) : (
+                                            <div className="flex gap-2">
+                                                <Link href="/arena" className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 hover:bg-indigo-100 transition-colors shadow-sm" title="Ver na Arena">
+                                                    <Swords size={20} />
+                                                </Link>
+                                                <button onClick={() => handleFriendAction('request')} className="px-4 py-2 rounded-xl bg-indigo-600 flex items-center gap-2 text-white font-bold text-sm hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200">
+                                                    <UserPlus size={16} /> Adicionar
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Level & Streak Pills */}

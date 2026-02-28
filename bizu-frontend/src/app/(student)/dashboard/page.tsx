@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import LevelTable from "@/components/gamification/LevelTable";
 import ActiveDuelBanner from "@/components/arena/ActiveDuelBanner";
 import { Skeleton } from "@/components/ui/skeleton";
+import MaterialViewerModal from "@/components/MaterialViewerModal";
 
 const quickActions = [
     { icon: Target, label: "Quiz", desc: "Questões personalizadas", href: "/questoes/treino" },
@@ -46,6 +47,15 @@ export default function DashboardPage() {
     const [courses, setCourses] = useState<any[]>([]);
     const [subscription, setSubscription] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+
+    // Modal state
+    const [selectedMaterial, setSelectedMaterial] = useState<any>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleViewMaterial = (material: any) => {
+        setSelectedMaterial(material);
+        setIsModalOpen(true);
+    };
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -325,7 +335,7 @@ export default function DashboardPage() {
                                 )}
                                 <div className="flex flex-col sm:flex-row items-center gap-4 mt-8">
                                     <Link
-                                        href={mainCourse ? (mainCourse.nextMaterialId ? `/cursos/${mainCourse.id}/player/${mainCourse.nextMaterialId}` : `/cursos/${mainCourse.id}`) : "/cursos"}
+                                        href={mainCourse ? `/cursos/${mainCourse.id}` : "/cursos"}
                                         className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white text-slate-900 px-8 py-4 rounded-2xl text-base font-black hover:bg-indigo-50 transition-all hover:scale-105 shadow-xl"
                                     >
                                         {mainCourse?.progress === 100 ? "Revisar Curso" : "Assistir Agora"} <ChevronRight size={18} />
@@ -405,7 +415,11 @@ export default function DashboardPage() {
                                     ))
                                 ) : recentMaterials.length > 0 ? (
                                     recentMaterials.slice(0, 3).map((m, i) => (
-                                        <Link key={m.id} href={`/materiais/${m.id}`} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all cursor-pointer group">
+                                        <div
+                                            key={m.id}
+                                            onClick={() => handleViewMaterial(m)}
+                                            className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all cursor-pointer group"
+                                        >
                                             <div className={cn(
                                                 "w-10 h-10 rounded-xl flex items-center justify-center text-[10px] font-black group-hover:scale-110 transition-transform",
                                                 m.fileType === 'VIDEO' ? "bg-indigo-50 text-indigo-600" : "bg-rose-50 text-rose-600"
@@ -416,7 +430,7 @@ export default function DashboardPage() {
                                                 <div className="text-[13px] font-bold text-foreground truncate">{m.title}</div>
                                                 <div className="text-[11px] text-muted-foreground font-medium">{m.description || "Material complementar"}</div>
                                             </div>
-                                        </Link>
+                                        </div>
                                     ))
                                 ) : (
                                     <div className="text-center py-10 text-xs text-muted-foreground">Nenhum material disponível.</div>
@@ -543,6 +557,11 @@ export default function DashboardPage() {
 
                 </div>
             </div>
+            <MaterialViewerModal
+                material={selectedMaterial}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
         </div>
     );
 }

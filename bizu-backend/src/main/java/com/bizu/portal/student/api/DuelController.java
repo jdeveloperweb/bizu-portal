@@ -43,6 +43,7 @@ public class DuelController {
             SELECT 
                 u.id as "id",
                 u.name as "name",
+                u.nickname as "nickname",
                 u.avatar_url as "avatar",
                 COALESCE(g.total_xp, 0) as "xp",
                 FLOOR(POWER(COALESCE(g.total_xp, 0) / 1000.0, 2.0/3.0)) + 1 as "level",
@@ -140,8 +141,9 @@ public class DuelController {
         return ResponseEntity.ok(ranking.stream().map(r -> Map.of(
             "id", r[0],
             "name", r[1],
-            "avatar", r[2] != null ? r[2] : "",
-            "wins", r[3]
+            "nickname", r[2] != null ? r[2] : "",
+            "avatar", r[3] != null ? r[3] : "",
+            "wins", r[4]
         )).collect(java.util.stream.Collectors.toList()));
     }
 

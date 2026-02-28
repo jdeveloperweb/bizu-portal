@@ -10,6 +10,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import MaterialViewerModal from "@/components/MaterialViewerModal";
 
 function MaterialsContent() {
     const searchParams = useSearchParams();
@@ -18,6 +19,15 @@ function MaterialsContent() {
     const [materials, setMaterials] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+
+    // Modal state
+    const [selectedMaterial, setSelectedMaterial] = useState<any>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleViewMaterial = (material: any) => {
+        setSelectedMaterial(material);
+        setIsModalOpen(true);
+    };
 
     useEffect(() => {
         const fetchMaterials = async () => {
@@ -124,11 +134,12 @@ function MaterialsContent() {
                                         </td>
                                         <td className="px-8 py-5 text-right">
                                             <div className="flex items-center justify-end gap-3">
-                                                <Link href={`/materiais/${material.moduleId}?materialId=${material.id}`}>
-                                                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">
-                                                        <Eye size={14} /> Visualizar
-                                                    </button>
-                                                </Link>
+                                                <button
+                                                    onClick={() => handleViewMaterial(material)}
+                                                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
+                                                >
+                                                    <Eye size={14} /> Visualizar
+                                                </button>
                                                 <a
                                                     href={material.fileUrl}
                                                     target="_blank"
@@ -147,6 +158,12 @@ function MaterialsContent() {
                 </div>
             )}
 
+            {/* Material Viewer Modal */}
+            <MaterialViewerModal
+                material={selectedMaterial}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
         </div>
     );
 }

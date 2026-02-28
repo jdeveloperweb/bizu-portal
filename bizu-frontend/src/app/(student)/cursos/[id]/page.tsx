@@ -14,6 +14,7 @@ import { useParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 import { Lock } from "lucide-react";
+import MaterialViewerModal from "@/components/MaterialViewerModal";
 
 export default function CourseDetailsPage() {
     const params = useParams<{ id: string | string[] }>();
@@ -23,6 +24,19 @@ export default function CourseDetailsPage() {
     const [completedMaterials, setCompletedMaterials] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { isFree, isPremium } = useAuth();
+
+    // Modal state
+    const [selectedMaterial, setSelectedMaterial] = useState<any>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleViewMaterial = (material: any) => {
+        setSelectedMaterial(material);
+        setIsModalOpen(true);
+    };
+
+    const handleMaterialComplete = (materialId: string) => {
+        setCompletedMaterials(prev => [...prev, materialId]);
+    };
 
     useEffect(() => {
         if (!courseId) {
@@ -210,16 +224,17 @@ export default function CourseDetailsPage() {
                                             </div>
                                             <p className="text-muted-foreground">{currentModule.description}</p>
                                         </div>
-                                        <Link href={`/cursos/${course.id}/player/${currentModule.materials[0]?.id || ""}`}>
-                                            <Button className={cn(
-                                                "rounded-2xl h-14 px-8 font-black gap-2 text-lg shadow-xl transition-all hover:scale-105 shrink-0 border-none text-white",
+                                        <button
+                                            onClick={() => handleViewMaterial(currentModule.materials[0])}
+                                            className={cn(
+                                                "rounded-2xl h-14 px-8 font-black gap-2 text-lg shadow-xl transition-all hover:scale-105 shrink-0 border-none text-white flex items-center justify-center",
                                                 moduleStatus?.color,
                                                 moduleStatus?.shadow
-                                            )}>
-                                                <Play className="w-5 h-5 fill-current" />
-                                                {moduleStatus?.label}
-                                            </Button>
-                                        </Link>
+                                            )}
+                                        >
+                                            <Play className="w-5 h-5 fill-current" />
+                                            {moduleStatus?.label}
+                                        </button>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
@@ -270,25 +285,27 @@ export default function CourseDetailsPage() {
                                         {currentModule.materials && currentModule.materials.length > 0 ? (
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {currentModule.materials.map((material: any) => (
-                                                    <Link key={material.id} href={`/cursos/${course.id}/player/${material.id}`}>
-                                                        <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-lg transition-all group">
-                                                            <div className={cn(
-                                                                "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                                                                completedMaterials.includes(material.id) ? "bg-success/10 text-success" : "bg-white text-slate-400 group-hover:text-primary transition-colors"
-                                                            )}>
-                                                                {completedMaterials.includes(material.id) ? (
-                                                                    <CheckCircle2 className="w-5 h-5" />
-                                                                ) : (
-                                                                    material.fileType === 'VIDEO' ? <Play className="w-5 h-5 fill-current" /> : <FileText className="w-5 h-5" />
-                                                                )}
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="font-bold text-sm truncate group-hover:text-primary transition-colors">{material.title}</div>
-                                                                <div className="text-[10px] text-slate-400 uppercase font-black tracking-widest">{material.fileType || 'AULA'}</div>
-                                                            </div>
-                                                            <ChevronRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-all" />
+                                                    <div
+                                                        key={material.id}
+                                                        onClick={() => handleViewMaterial(material)}
+                                                        className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-lg transition-all group cursor-pointer"
+                                                    >
+                                                        <div className={cn(
+                                                            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                                                            completedMaterials.includes(material.id) ? "bg-success/10 text-success" : "bg-white text-slate-400 group-hover:text-primary transition-colors"
+                                                        )}>
+                                                            {completedMaterials.includes(material.id) ? (
+                                                                <CheckCircle2 className="w-5 h-5" />
+                                                            ) : (
+                                                                material.fileType === 'VIDEO' ? <Play className="w-5 h-5 fill-current" /> : <FileText className="w-5 h-5" />
+                                                            )}
                                                         </div>
-                                                    </Link>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="font-bold text-sm truncate group-hover:text-primary transition-colors">{material.title}</div>
+                                                            <div className="text-[10px] text-slate-400 uppercase font-black tracking-widest">{material.fileType || 'AULA'}</div>
+                                                        </div>
+                                                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-all" />
+                                                    </div>
                                                 ))}
                                             </div>
                                         ) : (
@@ -307,6 +324,13 @@ export default function CourseDetailsPage() {
                     )}
                 </div>
             </div>
+
+            <MaterialViewerModal
+                material={selectedMaterial}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onComplete={handleMaterialComplete}
+            />
         </div>
     );
 }
