@@ -104,7 +104,6 @@ export default function SimuladosPage() {
                     <PageHeader
                         title="Simulados de Concurso"
                         description="Treine em tempo real com questões selecionadas e cronometradas."
-                        badge="MARIA PENHA ET AL."
                     />
 
                     <div className="flex items-center gap-3">
