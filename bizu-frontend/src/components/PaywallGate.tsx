@@ -27,7 +27,8 @@ export default function PaywallGate({ children }: { children: React.ReactNode })
         pathname.startsWith("/privacidade") ||
         pathname.startsWith("/admin") ||
         pathname.startsWith("/configuracoes") ||
-        pathname.startsWith("/perfil");
+        pathname.startsWith("/perfil") ||
+        pathname.startsWith("/checkout");
 
     if (isExempt || loading || !entitlementExpired || isFree) {
         return <>{children}</>;

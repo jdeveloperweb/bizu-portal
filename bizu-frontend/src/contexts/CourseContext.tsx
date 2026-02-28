@@ -40,6 +40,8 @@ export interface CourseContextType {
     entitlementExpired: boolean;
     /** Whether user is within the 5-day grace period for late payment */
     isGracePeriod: boolean;
+    /** Manually refresh user entitlements */
+    refreshEntitlements: () => Promise<void>;
 }
 
 const defaultGamification: GamificationState = { xp: 0, streak: 0, maxStreak: 0 };
@@ -218,6 +220,7 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
                 loading,
                 entitlementExpired,
                 isGracePeriod,
+                refreshEntitlements: loadEntitlements,
             }}
         >
             {children}

@@ -13,6 +13,7 @@ import Link from "next/link";
 import { compressImage, getAvatarUrl } from "@/lib/imageUtils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPhone } from "@/lib/utils";
+import SubscriptionManagementModal from "@/components/student/SubscriptionManagementModal";
 
 const formatPrice = (price?: number | string, currency = "BRL") => {
     if (price === undefined || price === null || price === "") return null;
@@ -86,6 +87,7 @@ export default function ProfilePage() {
     const [courseName, setCourseName] = useState<string>("");
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
 
     // Form states
     const [name, setName] = useState("");
@@ -529,7 +531,10 @@ export default function ProfilePage() {
                                         </div>
                                     )}
                                 </div>
-                                <Button className="rounded-2xl border-2 border-indigo-200 bg-white text-indigo-600 hover:bg-indigo-600 hover:text-white h-12 px-8 font-bold transition-all w-full md:w-auto">
+                                <Button
+                                    onClick={() => setIsSubscriptionModalOpen(true)}
+                                    className="rounded-2xl border-2 border-indigo-200 bg-white text-indigo-600 hover:bg-indigo-600 hover:text-white h-12 px-8 font-bold transition-all w-full md:w-auto"
+                                >
                                     Gerenciar Assinatura
                                 </Button>
                             </div>
@@ -616,6 +621,10 @@ export default function ProfilePage() {
                     </motion.div>
                 </div>
             </div>
+            <SubscriptionManagementModal
+                open={isSubscriptionModalOpen}
+                onOpenChange={setIsSubscriptionModalOpen}
+            />
         </motion.div>
     );
 }

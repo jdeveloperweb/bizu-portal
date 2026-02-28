@@ -53,6 +53,21 @@ public class PublicProfileService {
         if (result.isEmpty()) {
             throw new RuntimeException("User not found: " + nickname);
         }
-        return result.get(0);
+        
+        Map<String, Object> profile = result.get(0);
+        UUID userId = (UUID) profile.get("id");
+        
+        // Fetch earned badges
+        String badgesSql = """
+            SELECT b.name, b.description, b.icon_url as icon, b.color, ub.earned_at as "earnedAt"
+            FROM student.badges b
+            JOIN student.user_badges ub ON b.id = ub.badge_id
+            WHERE ub.user_id = ?
+            ORDER BY ub.earned_at DESC
+            """;
+        List<Map<String, Object>> badges = jdbcTemplate.queryForList(badgesSql, userId);
+        profile.put("badges", badges);
+        
+        return profile;
     }
 }

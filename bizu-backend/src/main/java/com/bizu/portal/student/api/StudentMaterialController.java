@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+
 @RestController
 @RequestMapping("/api/v1/student/materials")
 @RequiredArgsConstructor
@@ -33,7 +34,7 @@ public class StudentMaterialController {
     private final com.bizu.portal.student.application.GamificationService gamificationService;
 
     @GetMapping
-    public ResponseEntity<List<Material>> getAllMaterials(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<List<MaterialLibraryDTO>> getAllMaterials(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = userService.resolveUserId(jwt);
         
         List<UUID> subscribedCourseIds = entitlementService.getActiveEntitlements(userId)
@@ -42,14 +43,16 @@ public class StudentMaterialController {
             .collect(Collectors.toList());
             
         List<Material> allMaterials = materialRepository.findAll();
-        List<Material> subscribedMaterials = allMaterials.stream()
+        List<MaterialLibraryDTO> subscribedMaterials = allMaterials.stream()
             .filter(m -> m.getModule() != null && m.getModule().getCourse() != null && 
                          subscribedCourseIds.contains(m.getModule().getCourse().getId()))
             .filter(this::isAttachedMaterial)
+            .map(this::mapToDTO)
             .collect(Collectors.toList());
             
         return ResponseEntity.ok(subscribedMaterials);
     }
+
 
     @GetMapping("/completed")
     public ResponseEntity<List<UUID>> getCompletedMaterials(@AuthenticationPrincipal Jwt jwt) {
@@ -93,13 +96,38 @@ public class StudentMaterialController {
     }
 
     @GetMapping("/module/{moduleId}")
-    public ResponseEntity<List<Material>> getMaterialsByModule(@PathVariable UUID moduleId) {
-        List<Material> moduleMaterials = materialService.findByModuleId(moduleId).stream()
+    public ResponseEntity<List<MaterialLibraryDTO>> getMaterialsByModule(@PathVariable UUID moduleId) {
+        List<MaterialLibraryDTO> moduleMaterials = materialService.findByModuleId(moduleId).stream()
             .filter(this::isAttachedMaterial)
+            .map(this::mapToDTO)
             .collect(Collectors.toList());
 
         return ResponseEntity.ok(moduleMaterials);
     }
+
+    private MaterialLibraryDTO mapToDTO(Material m) {
+        String moduleTitle = "N/A";
+        String courseTitle = "N/A";
+        
+        if (m.getModule() != null) {
+            moduleTitle = m.getModule().getTitle();
+            if (m.getModule().getCourse() != null) {
+                courseTitle = m.getModule().getCourse().getTitle();
+            }
+        }
+        
+        return MaterialLibraryDTO.builder()
+            .id(m.getId())
+            .title(m.getTitle())
+            .description(m.getDescription())
+            .fileUrl(m.getFileUrl())
+            .fileType(m.getFileType())
+            .moduleId(m.getModuleId())
+            .moduleTitle(moduleTitle)
+            .courseTitle(courseTitle)
+            .build();
+    }
+
 
     private boolean isAttachedMaterial(Material material) {
         if (material == null) {
@@ -111,6 +139,17 @@ public class StudentMaterialController {
         boolean isArticle = "ARTICLE".equals(normalizedFileType);
         boolean hasAttachedFile = material.getFileUrl() != null && !material.getFileUrl().isBlank();
 
-        return !isArticle && hasAttachedFile;
+        if (isArticle || !hasAttachedFile) {
+            return false;
+        }
+
+        // Filtro para excluir links externos (YouTube/Vimeo) - Materiais da Biblioteca devem ser arquivos
+        String url = material.getFileUrl().toLowerCase();
+        boolean isExternalVideo = url.contains("youtube.com") || 
+                                 url.contains("youtu.be") || 
+                                 url.contains("vimeo.com");
+
+        return !isExternalVideo;
     }
+
 }

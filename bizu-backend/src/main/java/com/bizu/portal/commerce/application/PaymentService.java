@@ -132,6 +132,14 @@ public class PaymentService {
             return;
         }
 
+        // Desativar outras assinaturas ativas para o mesmo curso (ou todas se for plano geral)
+        existingSubs.stream()
+            .filter(sub -> "ACTIVE".equalsIgnoreCase(sub.getStatus()))
+            .forEach(sub -> {
+                sub.setStatus("CANCELED");
+                subscriptionRepository.save(sub);
+            });
+
         // Calcular data de expiração
         int monthsCount = 1;
         String interval = plan.getBillingInterval() != null ? plan.getBillingInterval().toUpperCase() : "MONTHLY";
@@ -215,6 +223,49 @@ public class PaymentService {
         } else {
             log.error("Pagamento {} sem ID de plano vinculado!", orderNsu);
         }
+    }
+
+    public java.math.BigDecimal calculateUpgradePrice(Subscription currentSub, Plan newPlan) {
+        if (currentSub == null || currentSub.getPlan() == null || currentSub.getPlan().getPrice() == null) {
+            return newPlan.getPrice();
+        }
+
+        OffsetDateTime now = OffsetDateTime.now();
+        if (now.isAfter(currentSub.getCurrentPeriodEnd())) {
+            return newPlan.getPrice();
+        }
+
+        long totalSeconds = java.time.Duration.between(currentSub.getCurrentPeriodStart(), currentSub.getCurrentPeriodEnd()).getSeconds();
+        long remainingSeconds = java.time.Duration.between(now, currentSub.getCurrentPeriodEnd()).getSeconds();
+
+        if (totalSeconds <= 0) return newPlan.getPrice();
+
+        BigDecimal currentPrice = currentSub.getPlan().getPrice();
+        
+        // Se o plano atual for mais caro (downgrade), retornamos zero (ou valor mínimo) para a troca
+        // Mas o usuário pediu "diferenças de preço quando for aumentar", então focamos no upgrade.
+        BigDecimal credit = currentPrice.multiply(new BigDecimal(remainingSeconds))
+                .divide(new BigDecimal(totalSeconds), 2, java.math.RoundingMode.HALF_UP);
+
+        BigDecimal diff = newPlan.getPrice().subtract(credit);
+        
+        // Valor mínimo de 1 real para processar gateway
+        return diff.max(new BigDecimal("1.00"));
+    }
+
+    @Transactional
+    public java.util.Map<String, Object> initiateUpgrade(User user, UUID newPlanId, String providerName) {
+        Subscription currentSub = subscriptionRepository.findFirstByUserIdAndStatusInOrderByCreatedAtDesc(user.getId(), 
+                java.util.List.of("ACTIVE", "PAST_DUE", "active", "PAID"))
+                .orElseThrow(() -> new RuntimeException("Nenhuma assinatura ativa para upgrade"));
+
+        Plan newPlan = planRepository.findById(newPlanId).orElseThrow();
+        BigDecimal upgradePrice = calculateUpgradePrice(currentSub, newPlan);
+
+        log.info("Iniciando Upgrade para usuário {}: {} -> {} (Preço: R$ {})", 
+                user.getEmail(), currentSub.getPlan().getName(), newPlan.getName(), upgradePrice);
+
+        return initiatePayment(user, upgradePrice, providerName, "CREDIT_CARD", newPlanId);
     }
 
     public java.math.BigDecimal calculateFinalPrice(java.math.BigDecimal originalPrice, String couponCode) {

@@ -24,6 +24,8 @@ public class SubscriptionController {
     private final UserRepository userRepository;
     private final UserService userService;
     private final com.bizu.portal.commerce.infrastructure.PaymentRepository paymentRepository;
+    private final com.bizu.portal.commerce.application.PlanService planService;
+    private final com.bizu.portal.commerce.application.PaymentService paymentService;
 
     @GetMapping("/me")
     public ResponseEntity<Subscription> getMySubscription(@AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
@@ -56,5 +58,35 @@ public class SubscriptionController {
         sub.setCancelAtPeriodEnd(true);
         subscriptionRepository.save(sub);
         return ResponseEntity.ok(java.util.Map.of("message", "Sua assinatura será cancelada ao fim do período atual."));
+    }
+
+    @GetMapping("/me/upgrade-preview")
+    public ResponseEntity<?> previewUpgrade(@AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt, 
+                                          @org.springframework.web.bind.annotation.RequestParam UUID newPlanId) {
+        UUID userId = userService.resolveUserId(jwt);
+        Subscription currentSub = subscriptionRepository.findFirstByUserIdAndStatusInOrderByCreatedAtDesc(userId, 
+                java.util.List.of("ACTIVE", "PAST_DUE", "active", "PAID"))
+            .orElseThrow(() -> new RuntimeException("Nenhuma assinatura ativa encontrada"));
+        
+        com.bizu.portal.commerce.domain.Plan newPlan = planService.findById(newPlanId);
+        java.math.BigDecimal upgradePrice = paymentService.calculateUpgradePrice(currentSub, newPlan);
+        
+        return ResponseEntity.ok(java.util.Map.of(
+            "currentPlan", currentSub.getPlan().getName(),
+            "newPlan", newPlan.getName(),
+            "upgradePrice", upgradePrice,
+            "currency", newPlan.getCurrency()
+        ));
+    }
+
+    @PostMapping("/me/upgrade")
+    public ResponseEntity<?> upgradeSubscription(@AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt, 
+                                               @org.springframework.web.bind.annotation.RequestParam UUID newPlanId,
+                                               @org.springframework.web.bind.annotation.RequestParam(required = false) String provider) {
+        UUID userId = userService.resolveUserId(jwt);
+        com.bizu.portal.identity.domain.User user = userRepository.findById(userId).orElseThrow();
+        
+        java.util.Map<String, Object> result = paymentService.initiateUpgrade(user, newPlanId, provider);
+        return ResponseEntity.ok(result);
     }
 }

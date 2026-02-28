@@ -143,12 +143,14 @@ const getPaymentModeLabel = (billingInterval?: string) => {
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { useCourse } from "@/contexts/CourseContext";
 
 function CheckoutContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { notify } = useNotification();
     const { refreshUserProfile, user } = useAuth();
+    const { refreshEntitlements } = useCourse();
 
     const [step, setStep] = useState<CheckoutStep>("PLANS");
     const [plans, setPlans] = useState<Plan[]>([]);
@@ -205,7 +207,10 @@ function CheckoutContent() {
                 apiFetch("/checkout/confirm", {
                     method: "POST",
                     body: JSON.stringify({ planId: planParam }),
-                }).then(() => refreshUserProfile()).catch(console.error);
+                }).then(() => {
+                    refreshUserProfile();
+                    refreshEntitlements();
+                }).catch(console.error);
             }
         }
 

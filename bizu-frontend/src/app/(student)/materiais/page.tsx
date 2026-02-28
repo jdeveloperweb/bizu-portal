@@ -70,9 +70,9 @@ function MaterialsContent() {
             </div>
 
             {isLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[1, 2, 3, 4, 5, 6].map(i => (
-                        <Skeleton key={i} className="h-64 rounded-[32px] bg-muted/20" />
+                <div className="space-y-4">
+                    {[1, 2, 3, 4, 5].map(i => (
+                        <Skeleton key={i} className="h-16 w-full rounded-2xl bg-muted/20" />
                     ))}
                 </div>
             ) : filteredMaterials.length === 0 ? (
@@ -82,50 +82,71 @@ function MaterialsContent() {
                     <p className="text-sm text-slate-400">Tente buscar por termos diferentes ou confira seus cursos.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredMaterials.map((material) => (
-                        <div key={material.id} className="group bg-card border border-slate-100 rounded-[32px] p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
-                            {/* Accent Background */}
-                            <div className={cn(
-                                "absolute top-0 right-0 w-32 h-32 blur-[60px] opacity-10 -mr-16 -mt-16 transition-all group-hover:opacity-20",
-                                material.fileType === 'VIDEO' ? "bg-indigo-600" : "bg-rose-600"
-                            )} />
-
-                            <div className="flex items-start justify-between mb-6 relative z-10">
-                                <div className={cn(
-                                    "w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110",
-                                    material.fileType === 'VIDEO' ? "bg-indigo-50 text-indigo-600" : "bg-rose-50 text-rose-600"
-                                )}>
-                                    {material.fileType === 'VIDEO' ? <Play className="w-6 h-6 fill-current" /> : <FileText className="w-6 h-6" />}
-                                </div>
-                                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
-                                    {material.fileType}
-                                </div>
-                            </div>
-
-                            <div className="relative z-10 mb-8">
-                                <h3 className="text-lg font-bold text-slate-800 mb-2 group-hover:text-indigo-600 transition-colors line-clamp-2">
-                                    {material.title}
-                                </h3>
-                                <p className="text-sm text-slate-500 line-clamp-2 min-h-[40px]">
-                                    {material.description || "Material complementar para auxiliar seus estudos e revisões diárias."}
-                                </p>
-                            </div>
-
-                            <div className="flex items-center gap-2 relative z-10">
-                                <Link href={`/materiais/${material.moduleId}?materialId=${material.id}`} className="flex-1">
-                                    <button className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white py-3 rounded-2xl text-sm font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">
-                                        <Eye size={16} /> Visualizar
-                                    </button>
-                                </Link>
-                                <button className="w-12 h-12 flex items-center justify-center rounded-2xl border-2 border-slate-100 text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all">
-                                    <Download size={18} />
-                                </button>
-                            </div>
-                        </div>
-                    ))}
+                <div className="bg-card rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse min-w-[800px]">
+                            <thead>
+                                <tr className="border-b border-slate-50 bg-slate-50/30">
+                                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Material</th>
+                                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Módulo</th>
+                                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Curso</th>
+                                    <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {filteredMaterials.map((material) => (
+                                    <tr key={material.id} className="group hover:bg-slate-50/50 transition-all duration-200">
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className={cn(
+                                                    "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105",
+                                                    material.fileType === 'PDF' || material.fileType === 'DOC' ? "bg-rose-50 text-rose-600" : "bg-indigo-50 text-indigo-600"
+                                                )}>
+                                                    {material.fileType === 'PDF' || material.fileType === 'DOC' ? <FileText size={22} /> : <Play size={22} />}
+                                                </div>
+                                                <div className="max-w-md">
+                                                    <h4 className="font-bold text-slate-800 leading-tight group-hover:text-primary transition-colors">{material.title}</h4>
+                                                    <p className="text-xs text-slate-400 mt-1 line-clamp-1">{material.description || "Material de apoio para aula"}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs font-semibold text-slate-600 truncate max-w-[200px]">
+                                                    {material.moduleTitle || "Módulo Geral"}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100/50">
+                                                {material.courseTitle || "Independente"}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-5 text-right">
+                                            <div className="flex items-center justify-end gap-3">
+                                                <Link href={`/materiais/${material.moduleId}?materialId=${material.id}`}>
+                                                    <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">
+                                                        <Eye size={14} /> Visualizar
+                                                    </button>
+                                                </Link>
+                                                <a
+                                                    href={material.fileUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="w-10 h-10 flex items-center justify-center rounded-xl border-2 border-slate-50 text-slate-300 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all"
+                                                >
+                                                    <Download size={18} />
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
+
         </div>
     );
 }
