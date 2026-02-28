@@ -17,6 +17,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api";
+import { formatPhone } from "@/lib/utils";
 
 export default function AdminUsuariosPage() {
     const [users, setUsers] = useState<any[]>([]);
@@ -30,6 +31,7 @@ export default function AdminUsuariosPage() {
     const [formUser, setFormUser] = useState({
         name: "",
         email: "",
+        phone: "",
         planId: ""
     });
 
@@ -69,6 +71,7 @@ export default function AdminUsuariosPage() {
         setFormUser({
             name: user.name || "",
             email: user.email || "",
+            phone: formatPhone(user.phone || ""),
             planId: user.planId || ""
         });
         setIsEditing(true);
@@ -83,6 +86,7 @@ export default function AdminUsuariosPage() {
                 body: JSON.stringify({
                     name: formUser.name,
                     email: formUser.email,
+                    phone: formUser.phone,
                     planId: formUser.planId || null
                 })
             });
@@ -240,6 +244,12 @@ export default function AdminUsuariosPage() {
                                                         <Mail className="w-3 h-3" />
                                                         {user.email || 'Sem e-mail'}
                                                     </div>
+                                                    {user.phone && (
+                                                        <div className="text-[10px] text-slate-400 font-medium flex items-center gap-1.5 mt-0.5">
+                                                            <div className="w-3 h-3 flex items-center justify-center">📞</div>
+                                                            {user.phone}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </td>
@@ -348,6 +358,16 @@ export default function AdminUsuariosPage() {
                                         placeholder="email@exemplo.com"
                                         value={formUser.email}
                                         onChange={e => setFormUser({ ...formUser, email: e.target.value })}
+                                        className="input-field h-12 px-4 rounded-xl border-slate-200 focus:ring-primary/10"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Telefone</label>
+                                    <input
+                                        placeholder="(00) 00000-0000"
+                                        value={formUser.phone}
+                                        onChange={e => setFormUser({ ...formUser, phone: formatPhone(e.target.value) })}
                                         className="input-field h-12 px-4 rounded-xl border-slate-200 focus:ring-primary/10"
                                     />
                                 </div>

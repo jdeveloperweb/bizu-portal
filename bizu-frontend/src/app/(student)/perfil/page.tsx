@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { compressImage, getAvatarUrl } from "@/lib/imageUtils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatPhone } from "@/lib/utils";
 
 const formatPrice = (price?: number | string, currency = "BRL") => {
     if (price === undefined || price === null || price === "") return null;
@@ -367,6 +368,7 @@ export default function ProfilePage() {
                                         value={user?.email || ""}
                                         disabled
                                         className="h-14 rounded-2xl bg-slate-50/50 border-transparent cursor-not-allowed text-base font-medium opacity-60 shadow-none"
+                                        placeholder="Seu e-mail (não pode ser alterado diretamente)"
                                     />
                                 )}
                             </div>
@@ -375,12 +377,20 @@ export default function ProfilePage() {
                                 {isLoading ? <Skeleton className="h-14 w-full rounded-2xl" /> : (
                                     <Input
                                         value={phone}
-                                        onChange={(e) => setPhone(e.target.value)}
+                                        onChange={(e) => setPhone(formatPhone(e.target.value))}
                                         placeholder="(00) 00000-0000"
                                         className="h-14 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary/10 focus:border-primary/20 transition-all text-base font-medium shadow-none"
                                     />
                                 )}
                             </div>
+                        </div>
+
+                        <div className="mt-6 p-4 rounded-2xl bg-amber-50 border border-amber-100 flex items-start gap-3">
+                            <Shield className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
+                            <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                                Por segurança, a alteração de <b>E-mail</b> e <b>Telefone</b> não pode ser feita diretamente.
+                                Caso precise alterar, entre em contato com o suporte ou aguarde a nova funcionalidade de confirmação.
+                            </p>
                         </div>
 
                         <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-6">

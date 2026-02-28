@@ -43,7 +43,7 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUser(java.util.UUID id, String name, String email) {
+    public User updateUser(java.util.UUID id, String name, String email, String phone) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
@@ -52,6 +52,7 @@ public class UserService {
         
         user.setName(name);
         user.setEmail(email);
+        user.setPhone(phone);
 
         // Atualiza no Keycloak se necessário
         if (!name.equals(oldName) || !email.equals(oldEmail)) {

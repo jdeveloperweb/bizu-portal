@@ -7,6 +7,7 @@ import BrandLogo from "@/components/BrandLogo";
 import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
 import { useNotification } from "@/components/NotificationProvider";
+import { formatPhone } from "@/lib/utils";
 
 export default function RegisterPage() {
     const [show, setShow] = useState(false);
@@ -170,8 +171,8 @@ export default function RegisterPage() {
                                 <div className="space-y-2">
                                     <label className="block text-[13px] font-extrabold text-slate-800 ml-1 uppercase">WhatsApp (com DDD)</label>
                                     <input type="tel" required value={form.phone}
-                                        onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                                        placeholder="Ex: 5511999999999"
+                                        onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })}
+                                        placeholder="(00) 00000-0000"
                                         className="w-full h-[58px] px-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:bg-white focus:border-indigo-500 focus:ring-0 outline-none transition-all shadow-sm font-medium" />
                                 </div>
                                 <div className="space-y-2">

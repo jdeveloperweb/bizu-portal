@@ -73,7 +73,7 @@ public class AdminUserController {
     @Transactional
     public ResponseEntity<User> updateUser(@PathVariable UUID id, @RequestBody UserUpdateDto updateDto) {
         // Primeiro atualiza os dados básicos do usuário
-        User user = userService.updateUser(id, updateDto.getName(), updateDto.getEmail());
+        User user = userService.updateUser(id, updateDto.getName(), updateDto.getEmail(), updateDto.getPhone());
         
         // Se houver troca de plano solicitada
         if (updateDto.getPlanId() != null && !updateDto.getPlanId().isEmpty() && !"null".equalsIgnoreCase(updateDto.getPlanId())) {
@@ -166,6 +166,7 @@ public class AdminUserController {
                 .id(user.getId().toString())
                 .name(user.getName() != null ? user.getName() : "Sem Nome")
                 .email(user.getEmail() != null ? user.getEmail() : "")
+                .phone(user.getPhone())
                 .status(user.getStatus() != null ? user.getStatus() : "ACTIVE")
                 .plan(planName)
                 .planId(planId)
@@ -182,6 +183,7 @@ public class AdminUserController {
     public static class UserUpdateDto {
         private String name;
         private String email;
+        private String phone;
         private String planId;
         private Integer months;
     }
@@ -192,6 +194,7 @@ public class AdminUserController {
         private String id;
         private String name;
         private String email;
+        private String phone;
         private String status;
         private String plan;
         private String planId;

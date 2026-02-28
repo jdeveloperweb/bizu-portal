@@ -48,7 +48,6 @@ public class MeController {
                     user.setNickname(request.nickname());
                 }
                 if (request.name() != null) user.setName(request.name());
-                if (request.phone() != null) user.setPhone(request.phone());
                 return ResponseEntity.ok(userRepository.save(user));
             })
             .orElseGet(() -> ResponseEntity.notFound().build());
