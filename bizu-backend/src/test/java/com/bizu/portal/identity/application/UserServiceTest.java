@@ -37,7 +37,7 @@ class UserServiceTest {
         when(userRepository.saveAndFlush(org.mockito.ArgumentMatchers.any(User.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        User saved = userService.syncUser(userId, "student@bizu.com", "Student");
+        User saved = userService.syncUser(userId, "student@bizu.com", "Student", null);
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).saveAndFlush(userCaptor.capture());
