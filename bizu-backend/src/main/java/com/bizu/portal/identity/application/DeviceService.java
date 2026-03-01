@@ -37,11 +37,9 @@ public class DeviceService {
         List<Device> userDevices = deviceRepository.findAllByUser(user);
         
         if (userDevices.size() >= MAX_DEVICES_PER_USER) {
-            // Remove the oldest device to make room for the new one (as per policy)
-            Device oldest = userDevices.stream()
-                .min(Comparator.comparing(Device::getLastSeenAt))
-                .orElseThrow();
-            deviceRepository.delete(oldest);
+            String maskedEmail = maskEmail(user.getEmail());
+            String maskedPhone = maskPhone(user.getPhone());
+            throw new DeviceLimitReachedException(maskedEmail, maskedPhone);
         }
 
         return Device.builder()
@@ -52,6 +50,41 @@ public class DeviceService {
             .userAgent(userAgent)
             .lastIp(ip)
             .isTrusted(false)
+            .build();
+    }
+
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) return email;
+        String[] parts = email.split("@");
+        String local = parts[0];
+        if (local.length() <= 4) return "***@" + parts[1];
+        String start = local.substring(0, 2);
+        String end = local.substring(local.length() - 2);
+        return start + "..." + end + "@" + parts[1];
+    }
+
+    private String maskPhone(String phone) {
+        if (phone == null || phone.length() < 4) return phone;
+        return "..." + phone.substring(phone.length() - 4);
+    }
+
+    @Transactional
+    public Device replaceDeviceWithVerification(User user, String fingerprint, String os, String browser, String ip, String userAgent) {
+        // Find existing device(s) and remove them (since limit is 1)
+        List<Device> userDevices = deviceRepository.findAllByUser(user);
+        for (Device d : userDevices) {
+            deviceRepository.delete(d);
+        }
+        
+        // Register the new one
+        return Device.builder()
+            .user(user)
+            .deviceFingerprint(fingerprint)
+            .osInfo(os)
+            .browserInfo(browser)
+            .userAgent(userAgent)
+            .lastIp(ip)
+            .isTrusted(true)
             .build();
     }
 

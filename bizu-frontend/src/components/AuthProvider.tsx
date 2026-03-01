@@ -5,6 +5,7 @@ import keycloak from "@/lib/auth";
 import Cookies from "js-cookie";
 import { normalizeSelectedCourseId } from "@/lib/course-selection";
 import { apiFetch } from "@/lib/api";
+import { DeviceLimitModal } from "./ui/DeviceLimitModal";
 
 interface AuthContextType {
     authenticated: boolean;
@@ -52,6 +53,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [entitlements, setEntitlements] = useState<any[]>([]);
     const [selectedCourseId, setSelectedCourseIdState] = useState<string | undefined>(undefined);
     const [refreshing, setRefreshing] = useState(false);
+    const [deviceLimitData, setDeviceLimitData] = useState<{
+        maskedEmail: string;
+        maskedPhone: string;
+        fingerprint: string;
+        os: string;
+        browser: string;
+    } | null>(null);
 
     const applySelectedCourseId = (nextUser: AuthUser) => {
         const nextSelectedCourseId = normalizeSelectedCourseId(nextUser?.metadata?.selectedCourseId);
@@ -91,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         else if (userAgent.indexOf("MSIE") !== -1 || !!(document as any).documentMode) browser = "IE";
 
         try {
-            await apiFetch("/devices/register", {
+            const res = await apiFetch("/devices/register", {
                 method: "POST",
                 body: JSON.stringify({
                     fingerprint,
@@ -99,6 +107,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     browser
                 })
             });
+
+            if (res.status === 409) {
+                const data = await res.json();
+                if (data.error === "DEVICE_LIMIT_REACHED") {
+                    setDeviceLimitData({
+                        maskedEmail: data.maskedEmail,
+                        maskedPhone: data.maskedPhone,
+                        fingerprint,
+                        os,
+                        browser
+                    });
+                }
+            } else if (res.ok) {
+                setDeviceLimitData(null);
+            }
         } catch (err) {
             console.error("Failed to register device", err);
         }
@@ -401,6 +424,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return (
         <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register, sendVerificationCode, selectedCourseId, setSelectedCourseId, refreshUserProfile, subscription, entitlements, isPremium, isFree, isAdmin }}>
             {children}
+            {deviceLimitData && (
+                <DeviceLimitModal
+                    {...deviceLimitData}
+                    onSuccess={() => {
+                        setDeviceLimitData(null);
+                        refreshUserProfile();
+                    }}
+                    onCancel={() => {
+                        setDeviceLimitData(null);
+                        logout();
+                    }}
+                />
+            )}
         </AuthContext.Provider>
     );
 }
