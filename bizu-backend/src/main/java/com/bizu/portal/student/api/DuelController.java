@@ -29,7 +29,10 @@ public class DuelController {
     private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @GetMapping("/online")
-    public ResponseEntity<List<Map<String, Object>>> getOnlineUsers(@AuthenticationPrincipal Jwt jwt, @RequestParam(required = false) UUID courseId) {
+    public ResponseEntity<List<Map<String, Object>>> getOnlineUsers(@AuthenticationPrincipal Jwt jwt, 
+                                                                  @RequestParam(required = false) UUID courseId,
+                                                                  @RequestParam(defaultValue = "0") int page,
+                                                                  @RequestParam(defaultValue = "10") int size) {
         if (jwt != null) {
             resolveUserId(jwt);
         }
@@ -37,7 +40,9 @@ public class DuelController {
         String condition = courseId != null ? 
             "JOIN commerce.course_entitlements ce ON u.id = ce.user_id " + baseCondition + "AND ce.course_id = ? AND ce.active = true " : 
             baseCondition;
-        Object[] args = courseId != null ? new Object[]{courseId} : new Object[]{};
+        
+        int offset = page * size;
+        Object[] args = courseId != null ? new Object[]{courseId, size, offset} : new Object[]{size, offset};
         
         String sql = """
             SELECT 
@@ -62,7 +67,7 @@ public class DuelController {
             LEFT JOIN student.gamification_stats g ON u.id = g.user_id
             """ + condition + """
             ORDER BY u.last_seen_at DESC
-            LIMIT 10
+            LIMIT ? OFFSET ?
             """;
         
         return ResponseEntity.ok(jdbcTemplate.queryForList(sql, args));
@@ -151,24 +156,39 @@ public class DuelController {
     }
 
     @GetMapping("/ranking")
-    public ResponseEntity<List<Map<String, Object>>> getDuelRanking(@RequestParam(required = false) UUID courseId) {
+    public ResponseEntity<com.bizu.portal.shared.pagination.PageResponse<Map<String, Object>>> getDuelRanking(
+            @RequestParam(required = false) UUID courseId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         if (courseId == null) {
-            return ResponseEntity.ok(List.of()); // Or handle as you wish, but user wants course ranking
+            return ResponseEntity.ok(new com.bizu.portal.shared.pagination.PageResponse<>(List.of(), 0, size, 0, 0, true));
         }
-        List<Object[]> ranking = duelRepository.getWeeklyRanking(courseId);
-        return ResponseEntity.ok(ranking.stream().map(r -> Map.of(
+        org.springframework.data.domain.Page<Object[]> rankingPage = duelRepository.getWeeklyRanking(courseId, org.springframework.data.domain.PageRequest.of(page, size));
+        
+        List<Map<String, Object>> content = rankingPage.getContent().stream().map(r -> Map.of(
             "id", r[0],
             "name", r[1],
             "nickname", r[2] != null ? r[2] : "",
             "avatar", r[3] != null ? r[3] : "",
             "wins", r[4]
-        )).collect(java.util.stream.Collectors.toList()));
+        )).collect(java.util.stream.Collectors.toList());
+
+        return ResponseEntity.ok(new com.bizu.portal.shared.pagination.PageResponse<>(
+            content,
+            rankingPage.getNumber(),
+            rankingPage.getSize(),
+            rankingPage.getTotalElements(),
+            rankingPage.getTotalPages(),
+            rankingPage.isLast()
+        ));
     }
 
     @GetMapping("/historico")
-    public ResponseEntity<List<Duel>> getDuelHistory(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<com.bizu.portal.shared.pagination.PageResponse<Duel>> getDuelHistory(
+            @AuthenticationPrincipal Jwt jwt, 
+            org.springframework.data.domain.Pageable pageable) {
         UUID userId = resolveUserId(jwt);
-        return ResponseEntity.ok(duelRepository.findHistoryByUserId(userId));
+        return ResponseEntity.ok(com.bizu.portal.shared.pagination.PageResponse.of(duelRepository.findHistoryByUserId(userId, pageable)));
     }
 
     @PostMapping("/heartbeat")

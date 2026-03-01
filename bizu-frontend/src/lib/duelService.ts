@@ -95,10 +95,11 @@ export const DuelService = {
         return res.json();
     },
 
-    getRanking: async (courseId?: string) => {
-        const query = courseId ? `?courseId=${courseId}` : "";
-        const res = await apiFetch(`/duelos/ranking${query}`);
-        if (!res.ok) return [];
+    getRanking: async (courseId?: string, page: number = 0, size: number = 10) => {
+        const query = [`page=${page}`, `size=${size}`];
+        if (courseId) query.push(`courseId=${courseId}`);
+        const res = await apiFetch(`/duelos/ranking?${query.join("&")}`);
+        if (!res.ok) return { content: [], last: true };
         return res.json();
     },
 
@@ -116,8 +117,16 @@ export const DuelService = {
         return res;
     },
 
-    getHistory: async () => {
-        const res = await apiFetch("/duelos/historico");
+    getHistory: async (page: number = 0, size: number = 10) => {
+        const res = await apiFetch(`/duelos/historico?page=${page}&size=${size}`);
+        if (!res.ok) return { content: [], last: true };
+        return res.json();
+    },
+
+    getOnlineUsers: async (courseId?: string, page: number = 0, size: number = 10) => {
+        const query = [`page=${page}`, `size=${size}`];
+        if (courseId) query.push(`courseId=${courseId}`);
+        const res = await apiFetch(`/duelos/online?${query.join("&")}`);
         if (!res.ok) return [];
         return res.json();
     }

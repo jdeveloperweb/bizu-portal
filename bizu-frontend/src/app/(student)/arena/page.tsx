@@ -77,6 +77,15 @@ function ArenaPageContent() {
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const searchParams = useSearchParams();
 
+    const [onlineUsersPage, setOnlineUsersPage] = useState(0);
+    const [hasMoreOnline, setHasMoreOnline] = useState(true);
+    const [rankingPage, setRankingPage] = useState(0);
+    const [hasMoreRanking, setHasMoreRanking] = useState(true);
+    const [historyPage, setHistoryPage] = useState(0);
+    const [hasMoreHistory, setHasMoreHistory] = useState(true);
+
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+
     useEffect(() => {
         const urlDuelId = searchParams.get("duelId");
         if (urlDuelId) {
@@ -101,31 +110,87 @@ function ArenaPageContent() {
         }
     }, [user]);
 
+    const fetchOnlineUsers = async (page = 0, append = false) => {
+        if (!append) setIsLoading(true);
+        else setIsLoadingMore(true);
+        try {
+            const currentCourseId = getStoredSelectedCourseId();
+            const data = await DuelService.getOnlineUsers(currentCourseId || undefined, page, 10);
+
+            const mapped = data.map((u: any) => ({
+                id: u.id,
+                name: u.name || "Usuário",
+                nickname: u.nickname || "",
+                avatar: u.avatar || "",
+                level: parseInt(Math.floor(Number(u.level) || 1).toString()),
+                xp: Number(u.xp) || 0,
+                winRate: Number(u.winRate) || 0,
+                status: u.status || "online"
+            }));
+
+            if (append) {
+                setOnlineUsers(prev => [...prev, ...mapped]);
+            } else {
+                setOnlineUsers(mapped);
+            }
+            setHasMoreOnline(mapped.length === 10);
+            setOnlineUsersPage(page);
+        } catch (error) {
+            console.error("Failed to load online users", error);
+        } finally {
+            setIsLoading(false);
+            setIsLoadingMore(false);
+        }
+    };
+
+    const fetchRanking = async (page = 0, append = false) => {
+        if (!append) setIsLoadingRanking(true);
+        else setIsLoadingMore(true);
+        try {
+            const currentCourseId = getStoredSelectedCourseId();
+            const data = await DuelService.getRanking(currentCourseId || undefined, page, 10);
+            if (append) {
+                setRanking(prev => [...prev, ...data.content]);
+            } else {
+                setRanking(data.content);
+            }
+            setHasMoreRanking(!data.last);
+            setRankingPage(page);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsLoadingRanking(false);
+            setIsLoadingMore(false);
+        }
+    };
+
+    const fetchHistory = async (page = 0, append = false) => {
+        if (!append) setIsLoadingHistory(true);
+        else setIsLoadingMore(true);
+        try {
+            const data = await DuelService.getHistory(page, 10);
+            if (append) {
+                setHistory(prev => [...prev, ...data.content]);
+            } else {
+                setHistory(data.content);
+            }
+            setHasMoreHistory(!data.last);
+            setHistoryPage(page);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsLoadingHistory(false);
+            setIsLoadingMore(false);
+        }
+    };
+
     useEffect(() => {
+        const loadInitialData = async () => {
+            setIsLoading(true);
+            const currentCourseId = getStoredSelectedCourseId();
 
-        const loadData = async (showLoading = true) => {
-            if (showLoading) setIsLoading(true);
+            // Stats
             try {
-                const currentCourseId = getStoredSelectedCourseId();
-                const courseQuery = currentCourseId ? `?courseId=${currentCourseId}` : "";
-
-                const res = await apiFetch(`/duelos/online${courseQuery}`);
-                if (res.ok) {
-                    const users = await res.json();
-                    setOnlineUsers(users.map((u: any) => ({
-                        id: u.id,
-                        name: u.name || "Usuário",
-                        nickname: u.nickname || "",
-                        avatar: u.avatar || "", // Keep empty if no URL
-                        level: parseInt(Math.floor(Number(u.level) || 1).toString()),
-                        xp: Number(u.xp) || 0,
-                        winRate: Number(u.winRate) || 0,
-                        status: u.status || "online"
-                    })));
-                }
-
-                // Pending duels are managed by DuelContext
-
                 const statsRes = await apiFetch("/duelos/me/stats");
                 if (statsRes.ok) {
                     const data = await statsRes.json();
@@ -137,7 +202,6 @@ function ArenaPageContent() {
                     });
                 }
 
-                // Fetch modules for the selected course
                 if (currentCourseId) {
                     const courseRes = await apiFetch(`/public/courses/${currentCourseId}`);
                     if (courseRes.ok) {
@@ -147,50 +211,26 @@ function ArenaPageContent() {
                         }
                     }
                 }
+            } catch (e) { console.error(e); }
 
-                // Initial fetch for ranking and history if needed
-                fetchRanking(currentCourseId || undefined);
-                fetchHistory();
+            await Promise.all([
+                fetchOnlineUsers(0, false),
+                fetchRanking(0, false),
+                fetchHistory(0, false)
+            ]);
+            setIsLoading(false);
+        };
 
-            } catch (error) {
-                console.error("Failed to load arena data", error);
-            } finally {
-                if (showLoading) setIsLoading(false);
+        loadInitialData();
+
+        // Auto refresh only for online users first page
+        const interval = setInterval(() => {
+            if (onlineUsersPage === 0 && activeTab === "online") {
+                fetchOnlineUsers(0, false);
             }
-        };
+        }, 15000);
 
-        const fetchRanking = async (courseId?: string) => {
-            setIsLoadingRanking(true);
-            try {
-                const data = await DuelService.getRanking(courseId);
-                setRanking(data);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setIsLoadingRanking(false);
-            }
-        };
-
-        const fetchHistory = async () => {
-            setIsLoadingHistory(true);
-            try {
-                const data = await DuelService.getHistory();
-                setHistory(data);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setIsLoadingHistory(false);
-            }
-        };
-
-
-        loadData(true);
-        const interval = setInterval(() => loadData(false), 10000);
-
-        const handleDuelReceived = () => {
-            setIsInQueue(false);
-        };
-
+        const handleDuelReceived = () => setIsInQueue(false);
         window.addEventListener('duel:received', handleDuelReceived);
 
         return () => {
@@ -198,6 +238,9 @@ function ArenaPageContent() {
             window.removeEventListener('duel:received', handleDuelReceived);
         };
     }, []);
+
+    // Reset pagination when course changes? Handled by dependency array if we want, but here it's more static.
+    // Let's add a reset mechanism when tab changes or if we want to refresh.
 
 
 
@@ -468,166 +511,211 @@ function ArenaPageContent() {
                 <div className="lg:col-span-2 space-y-3">
                     {/* Online Players */}
                     {activeTab === "online" && (
-                        isLoading ? (
-                            <div className="space-y-3">
-                                {[1, 2, 3].map(i => (
-                                    <Skeleton key={i} className="h-20 w-full rounded-2xl" />
-                                ))}
-                            </div>
-                        ) : onlineUsers.length === 0 ? (
-                            <div className="p-12 text-center card-elevated !rounded-2xl border-dashed border-2 border-slate-100 bg-slate-50/50">
-                                <Users size={32} className="mx-auto text-slate-300 mb-3" />
-                                <p className="text-slate-500 text-sm font-medium">Nenhum jogador online no momento.</p>
-                                <p className="text-slate-400 text-[11px]">Tente novamente em alguns minutos.</p>
-                            </div>
-                        ) : onlineUsers.map(user => (
-                            <div key={user.id} className="card-elevated !rounded-2xl p-3 md:p-4 hover:!transform-none">
-                                <div className="flex items-center gap-2.5 md:gap-3">
-                                    <div
-                                        className="relative flex-shrink-0 cursor-pointer"
-                                        onClick={() => {
-                                            setSelectedProfileNickname(user.nickname);
-                                            setIsProfileModalOpen(true);
-                                        }}
-                                    >
-                                        <Avatar
-                                            src={user.avatar}
-                                            name={user.name}
-                                            size="md"
-                                            className="md:w-11 md:h-11 border border-indigo-200/50"
-                                        />
-                                        <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${user.status === "online" ? "bg-emerald-400" : "bg-amber-400"
-                                            }`} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <span className="flex items-center gap-0.5 whitespace-nowrap cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => {
-                                            setSelectedProfileNickname(user.nickname);
-                                            setIsProfileModalOpen(true);
-                                        }}>
-                                            <span className="text-[13px] font-bold text-slate-800 truncate">{user.name}</span>
-                                        </span>
-                                        {user.status === "em_duelo" && (
-                                            <span className="text-[8px] md:text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">Em duelo</span>
-                                        )}
-                                        {user.status === "focado" && (
-                                            <span className="text-[8px] md:text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">Focado</span>
-                                        )}
-                                    </div>
-                                    <div className="text-[9px] md:text-[10px] text-slate-400 flex items-center gap-1.5 md:gap-2">
-                                        <span className="flex items-center gap-0.5 whitespace-nowrap"><Zap size={9} className="text-amber-500" /> Lv.{user.level}</span>
-                                        <span className="hidden xs:inline-block">•</span>
-                                        <span className="hidden xs:inline-block">{user.xp.toLocaleString()} XP</span>
-                                        <span className="flex items-center gap-0.5 whitespace-nowrap"><Target size={9} /> {user.winRate}%</span>
-                                    </div>
-                                    <button
-                                        disabled={user.status === "em_duelo" || user.status === "focado" || user.id === currentUserId}
-                                        onClick={() => handleChallenge(user.id)}
-                                        className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[10px] md:text-[11px] font-bold flex items-center justify-center gap-1 transition-all flex-shrink-0 ${user.status === "em_duelo" || user.status === "focado" || user.id === currentUserId
-                                            ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                            : "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm hover:shadow-md active:scale-95"
-                                            }`}>
-                                        <Swords size={12} /> <span className="hidden sm:inline">Desafiar</span>
-                                    </button>
+                        <>
+                            {isLoading && onlineUsers.length === 0 ? (
+                                <div className="space-y-3">
+                                    {[1, 2, 3].map(i => (
+                                        <Skeleton key={i} className="h-20 w-full rounded-2xl" />
+                                    ))}
                                 </div>
-                            </div>
-                        ))
+                            ) : onlineUsers.length === 0 ? (
+                                <div className="p-12 text-center card-elevated !rounded-2xl border-dashed border-2 border-slate-100 bg-slate-50/50">
+                                    <Users size={32} className="mx-auto text-slate-300 mb-3" />
+                                    <p className="text-slate-500 text-sm font-medium">Nenhum jogador online no momento.</p>
+                                    <p className="text-slate-400 text-[11px]">Tente novamente em alguns minutos.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {onlineUsers.map(user => (
+                                        <div key={user.id} className="card-elevated !rounded-2xl p-3 md:p-4 hover:!transform-none">
+                                            <div className="flex items-center gap-2.5 md:gap-3">
+                                                <div
+                                                    className="relative flex-shrink-0 cursor-pointer"
+                                                    onClick={() => {
+                                                        setSelectedProfileNickname(user.nickname);
+                                                        setIsProfileModalOpen(true);
+                                                    }}
+                                                >
+                                                    <Avatar
+                                                        src={user.avatar}
+                                                        name={user.name}
+                                                        size="md"
+                                                        className="md:w-11 md:h-11 border border-indigo-200/50"
+                                                    />
+                                                    <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${user.status === "online" ? "bg-emerald-400" : "bg-amber-400"
+                                                        }`} />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <span className="flex items-center gap-0.5 whitespace-nowrap cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => {
+                                                        setSelectedProfileNickname(user.nickname);
+                                                        setIsProfileModalOpen(true);
+                                                    }}>
+                                                        <span className="text-[13px] font-bold text-slate-800 truncate">{user.name}</span>
+                                                    </span>
+                                                    {user.status === "em_duelo" && (
+                                                        <span className="text-[8px] md:text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">Em duelo</span>
+                                                    )}
+                                                    {user.status === "focado" && (
+                                                        <span className="text-[8px] md:text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">Focado</span>
+                                                    )}
+                                                </div>
+                                                <div className="text-[9px] md:text-[10px] text-slate-400 flex items-center gap-1.5 md:gap-2">
+                                                    <span className="flex items-center gap-0.5 whitespace-nowrap"><Zap size={9} className="text-amber-500" /> Lv.{user.level}</span>
+                                                    <span className="hidden xs:inline-block">•</span>
+                                                    <span className="hidden xs:inline-block">{user.xp.toLocaleString()} XP</span>
+                                                    <span className="flex items-center gap-0.5 whitespace-nowrap"><Target size={9} /> {user.winRate}%</span>
+                                                </div>
+                                                <button
+                                                    disabled={user.status === "em_duelo" || user.status === "focado" || user.id === currentUserId}
+                                                    onClick={() => handleChallenge(user.id)}
+                                                    className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[10px] md:text-[11px] font-bold flex items-center justify-center gap-1 transition-all flex-shrink-0 ${user.status === "em_duelo" || user.status === "focado" || user.id === currentUserId
+                                                        ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                                        : "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm hover:shadow-md active:scale-95"
+                                                        }`}>
+                                                    <Swords size={12} /> <span className="hidden sm:inline">Desafiar</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {hasMoreOnline && (
+                                        <button
+                                            onClick={() => fetchOnlineUsers(onlineUsersPage + 1, true)}
+                                            disabled={isLoadingMore}
+                                            className="w-full py-3 text-[11px] font-bold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 rounded-2xl transition-all border border-dashed border-indigo-200"
+                                        >
+                                            {isLoadingMore ? "Carregando..." : "Carregar mais jogadores"}
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </>
                     )}
 
 
                     {/* Ranking & History placeholders simplified for real data soon */}
                     {activeTab === "ranking" && (
                         <div className="space-y-3">
-                            {isLoadingRanking ? (
-                                <div className="p-8 text-center text-slate-400 italic">Carregando ranking global...</div>
+                            {isLoadingRanking && ranking.length === 0 ? (
+                                <div className="space-y-3">
+                                    {[1, 2, 3].map(i => (
+                                        <Skeleton key={i} className="h-20 w-full rounded-2xl" />
+                                    ))}
+                                </div>
                             ) : ranking.length === 0 ? (
                                 <div className="p-8 text-center text-slate-400 italic">Nenhum dado de ranking disponível.</div>
                             ) : (
-                                ranking.map((r, i) => (
-                                    <div key={r.id} className="card-elevated !rounded-2xl p-3 md:p-4 flex items-center gap-3 md:gap-4">
-                                        <div className={`w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center font-bold text-sm ${i === 0 ? "bg-amber-100 text-amber-600" :
-                                            i === 1 ? "bg-slate-100 text-slate-500" :
-                                                i === 2 ? "bg-orange-100 text-orange-600" : "bg-slate-50 text-slate-400"
-                                            }`}>
-                                            {i + 1}º
-                                        </div>
-                                        <Avatar
-                                            src={r.avatar}
-                                            name={r.name}
-                                            size="md"
-                                            className="bg-indigo-50"
-                                            fallbackClassName="text-indigo-600"
-                                        />
-                                        <div className="flex-1 min-w-0">
-                                            <div
-                                                className="text-sm font-bold text-slate-800 truncate cursor-pointer hover:text-indigo-600 transition-colors"
-                                                onClick={() => {
-                                                    setSelectedProfileNickname(r.nickname);
-                                                    setIsProfileModalOpen(true);
-                                                }}
-                                            >
-                                                {r.name}
+                                <>
+                                    {ranking.map((r, i) => (
+                                        <div key={r.id + i} className="card-elevated !rounded-2xl p-3 md:p-4 flex items-center gap-3 md:gap-4">
+                                            <div className={`w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center font-bold text-sm ${i === 0 ? "bg-amber-100 text-amber-600" :
+                                                i === 1 ? "bg-slate-100 text-slate-500" :
+                                                    i === 2 ? "bg-orange-100 text-orange-600" : "bg-slate-50 text-slate-400"
+                                                }`}>
+                                                {i + 1}º
                                             </div>
-                                            <div className="text-[10px] text-slate-500">Ganhador de {r.wins} duelos na semana</div>
-                                        </div>
-                                        {i < 3 && (
-                                            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-bold">
-                                                <Crown size={12} /> XP Bônus: {i === 0 ? "500" : i === 1 ? "300" : "200"}
+                                            <Avatar
+                                                src={r.avatar}
+                                                name={r.name}
+                                                size="md"
+                                                className="bg-indigo-50"
+                                                fallbackClassName="text-indigo-600"
+                                            />
+                                            <div className="flex-1 min-w-0">
+                                                <div
+                                                    className="text-sm font-bold text-slate-800 truncate cursor-pointer hover:text-indigo-600 transition-colors"
+                                                    onClick={() => {
+                                                        setSelectedProfileNickname(r.nickname);
+                                                        setIsProfileModalOpen(true);
+                                                    }}
+                                                >
+                                                    {r.name}
+                                                </div>
+                                                <div className="text-[10px] text-slate-500">Ganhador de {r.wins} duelos na semana</div>
                                             </div>
-                                        )}
-                                    </div>
-                                ))
+                                            {i < 3 && (
+                                                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-bold">
+                                                    <Crown size={12} /> XP Bônus: {i === 0 ? "500" : i === 1 ? "300" : "200"}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                    {hasMoreRanking && (
+                                        <button
+                                            onClick={() => fetchRanking(rankingPage + 1, true)}
+                                            disabled={isLoadingMore}
+                                            className="w-full py-3 text-[11px] font-bold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 rounded-2xl transition-all border border-dashed border-indigo-200"
+                                        >
+                                            {isLoadingMore ? "Carregando..." : "Carregar mais do ranking"}
+                                        </button>
+                                    )}
+                                </>
                             )}
                         </div>
                     )}
                     {activeTab === "historico" && (
                         <div className="space-y-3">
-                            {isLoadingHistory ? (
-                                <div className="p-8 text-center text-slate-400 italic">Carregando histórico...</div>
+                            {isLoadingHistory && history.length === 0 ? (
+                                <div className="space-y-3">
+                                    {[1, 2, 3].map(i => (
+                                        <Skeleton key={i} className="h-20 w-full rounded-2xl" />
+                                    ))}
+                                </div>
                             ) : history.length === 0 ? (
                                 <div className="p-8 text-center text-slate-400 italic">Sem duelos recentes.</div>
                             ) : (
-                                history.map(duel => {
-                                    const isChallenger = duel.challenger.id === currentUserId;
-                                    const opponent = isChallenger ? duel.opponent : duel.challenger;
-                                    const myScore = isChallenger ? duel.challengerScore : duel.opponentScore;
-                                    const opScore = isChallenger ? duel.opponentScore : duel.challengerScore;
-                                    const result = duel.winner?.id === currentUserId ? "Vitoria" : duel.winner ? "Derrota" : "Empate";
+                                <>
+                                    {history.map(duel => {
+                                        const isChallenger = duel.challenger.id === currentUserId;
+                                        const opponent = isChallenger ? duel.opponent : duel.challenger;
+                                        const myScore = isChallenger ? duel.challengerScore : duel.opponentScore;
+                                        const opScore = isChallenger ? duel.opponentScore : duel.challengerScore;
+                                        const result = duel.winner?.id === currentUserId ? "Vitoria" : duel.winner ? "Derrota" : "Empate";
 
-                                    return (
-                                        <div key={duel.id} className="card-elevated !rounded-2xl p-3 md:p-4 flex items-center gap-3 md:gap-4">
-                                            <div className={`w-10 h-10 flex-shrink-0 rounded-xl flex items-center justify-center ${result === "Vitoria" ? "bg-emerald-50 text-emerald-600" :
-                                                result === "Derrota" ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-600"
-                                                }`}>
-                                                {result === "Vitoria" ? <Trophy size={18} /> : <Swords size={18} />}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-1.5 flex-wrap">
-                                                    <span
-                                                        className="text-[13px] font-bold text-slate-800 truncate cursor-pointer hover:text-indigo-600 transition-colors"
-                                                        onClick={() => {
-                                                            setSelectedProfileNickname(opponent.nickname || null);
-                                                            setIsProfileModalOpen(true);
-                                                        }}
-                                                    >
-                                                        vs {opponent.name}
-                                                    </span>
-                                                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${result === "Vitoria" ? "bg-emerald-50 text-emerald-600" :
-                                                        result === "Derrota" ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-600"
-                                                        }`}>{result}</span>
+                                        return (
+                                            <div key={duel.id} className="card-elevated !rounded-2xl p-3 md:p-4 flex items-center gap-3 md:gap-4">
+                                                <div className={`w-10 h-10 flex-shrink-0 rounded-xl flex items-center justify-center ${result === "Vitoria" ? "bg-emerald-50 text-emerald-600" :
+                                                    result === "Derrota" ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-600"
+                                                    }`}>
+                                                    {result === "Vitoria" ? <Trophy size={18} /> : <Swords size={18} />}
                                                 </div>
-                                                <div className="text-[10px] text-slate-500 truncate">
-                                                    Placar: {myScore} - {opScore} • {duel.subject}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                        <span
+                                                            className="text-[13px] font-bold text-slate-800 truncate cursor-pointer hover:text-indigo-600 transition-colors"
+                                                            onClick={() => {
+                                                                setSelectedProfileNickname(opponent.nickname || null);
+                                                                setIsProfileModalOpen(true);
+                                                            }}
+                                                        >
+                                                            vs {opponent.name}
+                                                        </span>
+                                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${result === "Vitoria" ? "bg-emerald-50 text-emerald-600" :
+                                                            result === "Derrota" ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-600"
+                                                            }`}>{result}</span>
+                                                    </div>
+                                                    <div className="text-[10px] text-slate-500 truncate">
+                                                        Placar: {myScore} - {opScore} • {duel.subject}
+                                                    </div>
+                                                    <div className="text-[9px] text-slate-400">
+                                                        {new Date(duel.completedAt!).toLocaleDateString()}
+                                                    </div>
                                                 </div>
-                                                <div className="text-[9px] text-slate-400">
-                                                    {new Date(duel.completedAt!).toLocaleDateString()}
+                                                <div className="text-right flex-shrink-0">
+                                                    <div className="text-[11px] md:text-[12px] font-bold text-slate-800">+{result === "Vitoria" ? 100 : 25} XP</div>
                                                 </div>
                                             </div>
-                                            <div className="text-right flex-shrink-0">
-                                                <div className="text-[11px] md:text-[12px] font-bold text-slate-800">+{result === "Vitoria" ? 100 : 25} XP</div>
-                                            </div>
-                                        </div>
-                                    );
-                                })
+                                        );
+                                    })}
+                                    {hasMoreHistory && (
+                                        <button
+                                            onClick={() => fetchHistory(historyPage + 1, true)}
+                                            disabled={isLoadingMore}
+                                            className="w-full py-3 text-[11px] font-bold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 rounded-2xl transition-all border border-dashed border-indigo-200"
+                                        >
+                                            {isLoadingMore ? "Carregando..." : "Carregar mais do histórico"}
+                                        </button>
+                                    )}
+                                </>
                             )}
                         </div>
                     )}
