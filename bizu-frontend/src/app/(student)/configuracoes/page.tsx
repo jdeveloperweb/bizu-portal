@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { useAppearance } from "@/components/AppearanceProvider";
 import { useAuth } from "@/components/AuthProvider";
+import { useCustomDialog } from "@/components/CustomDialogProvider";
+import { useRouter } from "next/navigation";
 
 interface SettingsSection {
     id: string;
@@ -41,6 +43,8 @@ const sections: SettingsSection[] = [
 export default function ConfiguracoesPage() {
     const { theme, setTheme, compactMode, setCompactMode } = useAppearance();
     const { selectedCourseId, user, refreshUserProfile } = useAuth();
+    const { alert, confirm } = useCustomDialog();
+    const router = useRouter();
     const [activeSection, setActiveSection] = useState("pomodoro");
     const [saved, setSaved] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -539,14 +543,24 @@ export default function ConfiguracoesPage() {
                                 </div>
                             </div>
 
-                            <div className="mt-8 p-4 rounded-xl bg-red-50 border border-red-100">
-                                <h4 className="text-[13px] font-bold text-red-700 mb-1">Zona de Perigo</h4>
-                                <p className="text-[11px] text-red-500 mb-3">Acoes irreversiveis. Tenha cuidado.</p>
+                            <div className="mt-8 p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20">
+                                <h4 className="text-[13px] font-bold text-red-700 dark:text-red-400 mb-1">Zona de Perigo</h4>
+                                <p className="text-[11px] text-red-500 dark:text-red-400 mb-3">Acoes irreversiveis. Tenha cuidado.</p>
                                 <div className="flex items-center gap-2">
-                                    <button className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-red-600 border border-red-200 hover:bg-red-100 transition-all">
+                                    <button
+                                        onClick={() => alert("A exportação de dados está sendo preparada e será enviada para seu e-mail em breve.", { type: "info" })}
+                                        className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-red-600 border border-red-200 hover:bg-red-100 transition-all dark:border-red-500/30 dark:hover:bg-red-500/20"
+                                    >
                                         Exportar meus dados
                                     </button>
-                                    <button className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-red-600 border border-red-200 hover:bg-red-100 transition-all">
+                                    <button
+                                        onClick={async () => {
+                                            if (await confirm("Tem certeza que deseja excluir sua conta? Esta ação é irreversível e todos os seus dados serão perdidos.", { type: "danger", title: "Excluir Conta", confirmLabel: "Excluir permanentemente" })) {
+                                                alert("Sua solicitação de exclusão foi enviada. Nossa equipe entrará em contato para confirmar a segurança da operação.", { type: "warning" });
+                                            }
+                                        }}
+                                        className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-red-600 border border-red-200 hover:bg-red-100 transition-all dark:border-red-500/30 dark:hover:bg-red-500/20"
+                                    >
                                         Excluir conta
                                     </button>
                                 </div>

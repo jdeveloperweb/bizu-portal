@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
+import { useCustomDialog } from "@/components/CustomDialogProvider";
 
 interface Note {
     id: string;
@@ -47,6 +48,7 @@ export default function AnotacoesPage() {
     const [isEditing, setIsEditing] = useState(false);
 
     const { selectedCourseId } = useAuth();
+    const { alert, confirm } = useCustomDialog();
 
     // Edit States
     const [editTitle, setEditTitle] = useState("");
@@ -124,13 +126,14 @@ export default function AnotacoesPage() {
     };
 
     const deleteNote = async (id: string) => {
-        if (!confirm("Tem certeza que deseja excluir esta anotação?")) return;
-        setNotes(prev => prev.filter(n => n.id !== id));
-        if (selectedNote?.id === id) setSelectedNote(null);
-        try {
-            await apiFetch(`/student/notes/${id}`, { method: "DELETE" });
-        } catch (e) {
-            console.error(e);
+        if (await confirm("Tem certeza que deseja excluir esta anotação?", { type: "danger" })) {
+            setNotes(prev => prev.filter(n => n.id !== id));
+            if (selectedNote?.id === id) setSelectedNote(null);
+            try {
+                await apiFetch(`/student/notes/${id}`, { method: "DELETE" });
+            } catch (e) {
+                console.error(e);
+            }
         }
     };
 
@@ -144,7 +147,7 @@ export default function AnotacoesPage() {
 
     const saveEdit = async () => {
         if (!editTitle || !editContent) {
-            alert("Título e conteúdo são obrigatórios.");
+            alert("Título e conteúdo são obrigatórios.", { type: "warning" });
             return;
         }
 
@@ -180,11 +183,11 @@ export default function AnotacoesPage() {
             } else {
                 const errorData = await res.json().catch(() => ({}));
                 console.error("Erro ao salvar:", errorData);
-                alert(`Erro ao salvar anotação: ${errorData.message || res.statusText}`);
+                alert(`Erro ao salvar anotação: ${errorData.message || res.statusText}`, { type: "danger" });
             }
         } catch (e) {
             console.error(e);
-            alert("Erro de conexão ao salvar anotação.");
+            alert("Erro de conexão ao salvar anotação.", { type: "danger" });
         }
     };
 

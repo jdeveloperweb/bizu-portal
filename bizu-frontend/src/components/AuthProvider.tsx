@@ -4,6 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import keycloak from "@/lib/auth";
 import Cookies from "js-cookie";
 import { normalizeSelectedCourseId } from "@/lib/course-selection";
+import { apiFetch } from "@/lib/api";
 
 interface AuthContextType {
     authenticated: boolean;
@@ -90,7 +91,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         else if (userAgent.indexOf("MSIE") !== -1 || !!(document as any).documentMode) browser = "IE";
 
         try {
-            const { apiFetch } = await import("@/lib/api");
             await apiFetch("/devices/register", {
                 method: "POST",
                 body: JSON.stringify({
@@ -171,17 +171,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Register device first to ensure backend has it before we make other calls
         await registerDevice();
 
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
-        const endpoint = apiBase.endsWith('/api/v1')
-            ? `${apiBase}/users/me`
-            : `${apiBase}/api/v1/users/me`;
+        const res = await apiFetch("/users/me");
 
-        const res = await fetch(endpoint, {
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-        });
 
         if (res.ok) {
             const me = await res.json();
@@ -190,12 +181,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // Fetch subscription and entitlements
             try {
-                const subRes = await fetch(apiBase.endsWith('/api/v1') ? `${apiBase}/subscriptions/me` : `${apiBase}/api/v1/subscriptions/me`, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+                const subRes = await apiFetch("/subscriptions/me");
                 if (subRes.ok) {
                     const subData = await subRes.json();
                     setSubscription(subData);
@@ -203,12 +189,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     setSubscription(null);
                 }
 
-                const entRes = await fetch(apiBase.endsWith('/api/v1') ? `${apiBase}/student/entitlements/me` : `${apiBase}/api/v1/student/entitlements/me`, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+                const entRes = await apiFetch("/student/entitlements/me");
                 if (entRes.ok) {
                     const entData = await entRes.json();
                     setEntitlements(entData);

@@ -22,6 +22,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar } from "@/components/ui/Avatar";
+import { useCustomDialog } from "@/components/CustomDialogProvider";
 
 type ArenaTab = "online" | "ranking" | "historico";
 
@@ -56,6 +57,7 @@ export default function ArenaPage() {
 function ArenaPageContent() {
     const { user, isFree, refreshUserProfile } = useAuth();
     const { pendingDuels, acceptDuel, declineDuel } = useDuels();
+    const { alert, confirm } = useCustomDialog();
     const [activeTab, setActiveTab] = useState<ArenaTab>("online");
     const [selectedSubject, setSelectedSubject] = useState("Aleatorio");
     const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
@@ -213,12 +215,12 @@ function ArenaPageContent() {
             const res = await DuelService.joinQueue(courseId);
             if (!res.ok) {
                 const errorData = await res.json().catch(() => null);
-                alert(errorData?.message || "Erro ao entrar na fila.");
+                alert(errorData?.message || "Erro ao entrar na fila.", { type: "danger" });
                 return;
             }
             setIsInQueue(true);
         } catch (err) {
-            alert("Erro ao entrar na fila.");
+            alert("Erro ao entrar na fila.", { type: "danger" });
         }
     };
 
@@ -229,7 +231,7 @@ function ArenaPageContent() {
             await DuelService.leaveQueue(courseId);
             setIsInQueue(false);
         } catch (err) {
-            alert("Erro ao sair da fila.");
+            alert("Erro ao sair da fila.", { type: "danger" });
         }
     };
 
@@ -241,13 +243,13 @@ function ArenaPageContent() {
                 console.log("Duel created, entering screen:", duel.id);
                 setActiveDuelId(duel.id);
             } else if (duel && duel.message) {
-                alert(duel.message);
+                alert(duel.message, { type: "warning" });
             } else {
                 throw new Error("Invalid duel object received");
             }
         } catch (error) {
             console.error("Failed to challenge:", error);
-            alert("Erro ao enviar desafio. Tente novamente.");
+            alert("Erro ao enviar desafio. Tente novamente.", { type: "danger" });
         }
     };
 
@@ -257,7 +259,7 @@ function ArenaPageContent() {
             setActiveDuelId(duelId);
         } catch (error) {
             console.error(error);
-            alert("Erro ao aceitar o duelo.");
+            alert("Erro ao aceitar o duelo.", { type: "danger" });
         }
     };
 
@@ -276,7 +278,7 @@ function ArenaPageContent() {
             return;
         }
 
-        if (!confirm("Isso vai cadastrar 50 questões de teste para este curso. Continuar?")) return;
+        if (!await confirm("Isso vai cadastrar 50 questões de teste para este curso. Continuar?")) return;
 
         try {
             const res = await apiFetch(`/public/dev/seed-questions?courseId=${currentCourseId}&count=50`, {
@@ -284,12 +286,12 @@ function ArenaPageContent() {
             });
             if (res.ok) {
                 const data = await res.json();
-                alert(`Sucesso! ${data.created} questões criadas.`);
+                await alert(`Sucesso! ${data.created} questões criadas.`, { type: "success" });
                 window.location.reload();
             }
         } catch (err) {
             console.error(err);
-            alert("Erro ao semear questões.");
+            alert("Erro ao semear questões.", { type: "danger" });
         }
     };
 

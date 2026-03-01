@@ -19,9 +19,11 @@ import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api";
 import { formatPhone } from "@/lib/utils";
 import { useAuth } from "@/components/AuthProvider";
+import { useCustomDialog } from "@/components/CustomDialogProvider";
 
 export default function AdminUsuariosPage() {
     const { user: currentUser } = useAuth();
+    const { alert, confirm } = useCustomDialog();
     const [users, setUsers] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -99,29 +101,28 @@ export default function AdminUsuariosPage() {
                 setEditingUser(null);
             } else {
                 const err = await res.text();
-                alert("Falha ao atualizar usuário: " + err);
+                alert("Falha ao atualizar usuário: " + err, { type: "danger" });
             }
         } catch (error) {
             console.error("Failed to update user", error);
-            alert("Erro ao atualizar usuário.");
+            alert("Erro ao atualizar usuário.", { type: "danger" });
         }
     };
 
     const handleDeleteUser = async (id: string, name: string) => {
-        if (!confirm(`Tem certeza que deseja apagar o usuário ${name || 'este usuário'}? Esta ação é irreversível e removerá o acesso dele permanentemente.`)) {
-            return;
-        }
-
-        try {
-            const res = await apiFetch(`/admin/users/${id}`, { method: "DELETE" });
-            if (res.ok) {
-                setUsers(prev => prev.filter(u => u.id !== id));
-            } else {
-                alert("Falha ao apagar usuário.");
+        if (await confirm(`Tem certeza que deseja apagar o usuário ${name || 'este usuário'}? Esta ação é irreversível e removerá o acesso dele permanentemente.`, { type: "danger", title: "Apagar Usuário" })) {
+            try {
+                const res = await apiFetch(`/admin/users/${id}`, { method: "DELETE" });
+                if (res.ok) {
+                    setUsers(prev => prev.filter(u => u.id !== id));
+                    alert("Usuário removido com sucesso.", { type: "success" });
+                } else {
+                    alert("Falha ao apagar usuário.", { type: "danger" });
+                }
+            } catch (error) {
+                console.error("Failed to delete user", error);
+                alert("Erro ao tentar apagar usuário.", { type: "danger" });
             }
-        } catch (error) {
-            console.error("Failed to delete user", error);
-            alert("Erro ao tentar apagar usuário.");
         }
     };
 

@@ -18,6 +18,7 @@ import { useState, useEffect, Suspense, useMemo, useRef } from "react";
 import { apiFetch } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/AuthProvider";
+import { useCustomDialog } from "@/components/CustomDialogProvider";
 
 interface Module {
     id: string;
@@ -57,6 +58,7 @@ function TreinoContent() {
     const router = useRouter();
     const simuladoId = searchParams.get("simulado");
     const { selectedCourseId, isFree } = useAuth();
+    const { alert } = useCustomDialog();
 
     const [simulado, setSimulado] = useState<SimuladoData | null>(null);
     const [courses, setCourses] = useState<Course[]>([]);
@@ -176,8 +178,9 @@ function TreinoContent() {
         if (currentQuestionIdx < filteredQuestions.length - 1) {
             setCurrentQuestionIdx(currentQuestionIdx + 1);
         } else {
-            alert("Quiz concluído!");
-            router.push("/dashboard");
+            alert("Quiz concluído!", { type: "success" }).then(() => {
+                router.push("/dashboard");
+            });
         }
     };
 
@@ -303,7 +306,7 @@ function TreinoContent() {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => alert("As configurações de treino são exclusivas para assinantes Premium.")}
+                                    onClick={() => alert("As configurações de treino são exclusivas para assinantes Premium.", { type: "info", title: "Premium" })}
                                     className="rounded-2xl h-10 sm:h-12 px-4 sm:px-5 flex items-center gap-2 font-black transition-all shadow-sm bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
                                 >
                                     <Lock className="w-4 h-4" />

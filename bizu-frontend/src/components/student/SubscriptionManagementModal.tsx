@@ -5,6 +5,7 @@ import { X, Loader2, ArrowRight, CheckCircle2, CreditCard, Sparkles } from "luci
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { useAuth } from "@/components/AuthProvider";
+import { useCustomDialog } from "@/components/CustomDialogProvider";
 import { Button } from "@/components/ui/button";
 
 type Plan = {
@@ -34,6 +35,7 @@ const formatPrice = (price: number | string, currency = "BRL") => {
 
 export default function SubscriptionManagementModal({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
     const { subscription, selectedCourseId, refreshUserProfile } = useAuth();
+    const { confirm } = useCustomDialog();
     const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
@@ -106,7 +108,7 @@ export default function SubscriptionManagementModal({ open, onOpenChange }: { op
     };
 
     const handleCancel = async () => {
-        if (!confirm("Tem certeza que deseja cancelar sua assinatura? Você manterá o acesso até o fim do período atual.")) return;
+        if (!(await confirm("Tem certeza que deseja cancelar sua assinatura? Você manterá o acesso até o fim do período atual.", { type: "danger", title: "Cancelar Assinatura" }))) return;
 
         setIsProcessing(true);
         try {

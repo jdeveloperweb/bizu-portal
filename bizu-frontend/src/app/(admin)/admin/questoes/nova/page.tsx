@@ -21,10 +21,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 
 import { apiFetch } from "@/lib/api";
+import { useCustomDialog } from "@/components/CustomDialogProvider";
 
 function QuestionFormContainer() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { alert } = useCustomDialog();
     const editId = searchParams.get("id");
 
     const [content, setContent] = useState("");
@@ -73,7 +75,7 @@ function QuestionFormContainer() {
                 })
                 .catch(err => {
                     console.error("Error fetching question", err);
-                    alert("Erro ao carregar os dados da questão.");
+                    alert("Erro ao carregar os dados da questão.", { type: "danger" });
                 })
                 .finally(() => setIsLoading(false));
         } else {
@@ -172,11 +174,13 @@ function QuestionFormContainer() {
             });
 
             if (res.ok) {
-                router.push("/admin/questoes");
+                alert(editId ? "Questão atualizada!" : "Questão publicada com sucesso!", { type: "success" }).then(() => {
+                    router.push("/admin/questoes");
+                });
             }
         } catch (error) {
             console.error("Failed to save question", error);
-            alert("Erro ao salvar a questão. Verifique os campos e tente novamente.");
+            alert("Erro ao salvar a questão. Verifique os campos e tente novamente.", { type: "danger" });
         }
     };
 

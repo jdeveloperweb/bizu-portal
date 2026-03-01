@@ -64,6 +64,7 @@ public class DeviceValidationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         return path.startsWith("/api/v1/public/") || 
                path.startsWith("/api/v1/admin/branding/active") ||
-               path.equals("/ws");
+               path.startsWith("/api/v1/public/auth") ||
+               path.startsWith("/ws");
     }
 }

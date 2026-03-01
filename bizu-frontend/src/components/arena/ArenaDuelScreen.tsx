@@ -8,6 +8,7 @@ import { Duel, DuelQuestion, DuelService, DuelStats } from "@/lib/duelService";
 import { useDuelWebSocket } from "@/hooks/useDuelWebSocket";
 import { useGamification } from "@/components/gamification/GamificationProvider";
 import { apiFetch } from "@/lib/api";
+import { useCustomDialog } from "@/components/CustomDialogProvider";
 import { toast } from "sonner";
 import { getAvatarUrl } from "@/lib/imageUtils";
 import { Avatar } from "@/components/ui/Avatar";
@@ -28,7 +29,7 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
     const [isMaximized, setIsMaximized] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [stats, setStats] = useState<DuelStats | null>(null);
-    const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
+    const { alert, confirm } = useCustomDialog();
 
     useDuelWebSocket(duelId, (updatedDuel) => {
         setDuel(updatedDuel);
@@ -164,23 +165,19 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
             return;
         }
 
-        setShowAbandonConfirm(true);
-    };
-
-    const confirmAbandon = async () => {
-        try {
-            const res = await DuelService.declineDuel(duelId);
-            if (!res.ok) {
-                const error = await res.json();
-                toast.error(error.message || "Erro ao abandonar duelo.");
-                return;
+        if (await confirm("Ao abandonar, você será considerado o perdedor e perderá 100 XP. Cuidado: excesso de abandonos leva ao bloqueio do recurso.", { type: "danger", title: "Abandonar Duelo?", confirmLabel: "Sim, abandonar (-100 XP)", cancelLabel: "Continuar lutando" })) {
+            try {
+                const res = await DuelService.declineDuel(duelId);
+                if (!res.ok) {
+                    const error = await res.json();
+                    toast.error(error.message || "Erro ao abandonar duelo.");
+                    return;
+                }
+                onClose();
+            } catch (err) {
+                console.error("Failed to cancel duel", err);
+                onClose();
             }
-            onClose();
-        } catch (err) {
-            console.error("Failed to cancel duel", err);
-            onClose();
-        } finally {
-            setShowAbandonConfirm(false);
         }
     };
 
@@ -217,49 +214,6 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
     return (
         <div className={`fixed inset-0 z-[10000] bg-slate-900 flex items-center justify-center ${isMaximized ? "p-0" : "sm:p-4"}`}>
             <div className={`w-full bg-white overflow-hidden shadow-2xl relative flex flex-col h-full ${isMaximized ? "sm:h-screen sm:rounded-none" : "max-w-4xl sm:rounded-3xl sm:h-[90vh]"}`}>
-                {/* Abandon Confirmation Modal */}
-                <AnimatePresence>
-                    {showAbandonConfirm && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 z-[200] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4"
-                        >
-                            <motion.div
-                                initial={{ scale: 0.9, y: 20 }}
-                                animate={{ scale: 1, y: 0 }}
-                                exit={{ scale: 0.9, y: 20 }}
-                                className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-slate-100"
-                            >
-                                <div className="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-6">
-                                    <XCircle size={32} />
-                                </div>
-                                <h3 className="text-xl md:text-2xl font-black text-slate-900 text-center mb-3">Abandonar Duelo?</h3>
-                                <p className="text-slate-500 text-center mb-6 leading-relaxed">
-                                    Ao abandonar, você será considerado o <span className="font-bold text-red-500">perdedor</span> e perderá <span className="font-bold text-red-500">100 XP</span>.
-                                    <br /><br />
-                                    <span className="text-sm italic">Cuidado: Fechar a janela ou ficar inativo também é considerado <span className="font-bold">abandono</span> e conta para o limite diário de 3 vezes, podendo levar ao bloqueio do recurso.</span>
-                                </p>
-
-                                <div className="space-y-3">
-                                    <button
-                                        onClick={confirmAbandon}
-                                        className="w-full py-4 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-700 transition-all shadow-lg active:scale-[0.98]"
-                                    >
-                                        Sim, abandonar (-100 XP)
-                                    </button>
-                                    <button
-                                        onClick={() => setShowAbandonConfirm(false)}
-                                        className="w-full py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-all"
-                                    >
-                                        Continuar lutando
-                                    </button>
-                                </div>
-                            </motion.div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
                 {/* Close Button */}
                 <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-[100]">
                     <Button
