@@ -185,9 +185,9 @@ export default function StudentSidebar() {
     return (
         <>
             {/* Menu Mobile Topo */}
-            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-background border-b border-border flex items-center justify-between px-4 z-40">
-                <BrandLogo size="md" variant="dark" />
-                <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 -mr-2 text-muted-foreground hover:text-indigo-600 transition-colors">
+            <div className="md:hidden fixed top-0 left-0 right-0 h-[calc(4rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] bg-indigo-600 border-b border-indigo-500/30 flex items-center justify-between px-4 z-40 shadow-lg shadow-indigo-500/10">
+                <BrandLogo size="md" variant="light" />
+                <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 -mr-2 text-white/80 hover:text-white transition-colors">
                     {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
                 </button>
             </div>

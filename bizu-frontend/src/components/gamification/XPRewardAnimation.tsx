@@ -13,17 +13,19 @@ interface XPRewardAnimationProps {
 
 export default function XPRewardAnimation({ amount, show, onComplete }: XPRewardAnimationProps) {
     useEffect(() => {
-        if (show && amount > 0) {
-            // Pequena explosão de confete para XP
-            confetti({
-                particleCount: 40,
-                spread: 60,
-                origin: { y: 0.7 },
-                colors: ['#6366F1', '#818CF8', '#A5B4FC'], // Cores do Bizu
-                zIndex: 200
-            });
+        if (show && amount !== 0) {
+            if (amount > 0) {
+                // Pequena explosão de confete apenas para XP positivo
+                confetti({
+                    particleCount: 40,
+                    spread: 60,
+                    origin: { y: 0.7 },
+                    colors: ['#6366F1', '#818CF8', '#A5B4FC'],
+                    zIndex: 200
+                });
+            }
 
-            // Auto-complete após a animação
+            // Auto-complete após a animação (importante para liberar a fila)
             const timer = setTimeout(() => {
                 onComplete();
             }, 3000);

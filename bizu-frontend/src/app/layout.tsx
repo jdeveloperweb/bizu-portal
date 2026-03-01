@@ -46,7 +46,7 @@ const indieFlower = Indie_Flower({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#0f172a",
+  themeColor: "#6366f1",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

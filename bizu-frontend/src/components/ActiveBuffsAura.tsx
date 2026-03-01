@@ -93,9 +93,9 @@ export default function ActiveBuffsAura() {
                         {[...Array(6)].map((_, i) => (
                             <motion.div
                                 key={`xp-p-${i}`}
-                                initial={{ y: "100vh", x: `${20 + i * 15}%`, opacity: 0, scale: 0 }}
+                                initial={{ y: "-10vh", x: `${20 + i * 15}%`, opacity: 0, scale: 0 }}
                                 animate={{
-                                    y: "-10vh",
+                                    y: "110vh",
                                     opacity: [0, 0.8, 0],
                                     scale: [0.5, 1, 0.5],
                                 }}

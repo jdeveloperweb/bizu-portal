@@ -180,117 +180,96 @@ public class GamificationService {
                 .maxStreak(0)
                 .build());
 
-        int previousXp = stats.getTotalXp();
+        int previousXp = stats.getTotalXp() != null ? stats.getTotalXp() : 0;
         int previousLevel = levelCalculator.calculateLevel(previousXp);
+        int netAmount = amount;
 
-        // Apply XP Boost if active (only for positive amounts)
-        if (amount > 0 && stats.getXpBoostUntil() != null && stats.getXpBoostUntil().isAfter(OffsetDateTime.now())) {
-            amount *= 2;
-            log.info("XP dobrado para o usuário {} devido ao buff ativo!", userId);
+        // 1. Process positive gains
+        if (netAmount > 0) {
+            // Apply XP Boost
+            if (stats.getXpBoostUntil() != null && stats.getXpBoostUntil().isAfter(OffsetDateTime.now())) {
+                netAmount *= 2;
+                log.info("XP dobrado para o usuário {} (Buff ativo)", userId);
+            }
+            
+            // 2. Update streak and apply penalty if broken
+            OffsetDateTime now = OffsetDateTime.now();
+            OffsetDateTime lastActivity = stats.getLastActivityAt();
+            
+            if (lastActivity != null) {
+                java.time.LocalDate lastDate = lastActivity.toLocalDate();
+                java.time.LocalDate nowDate = now.toLocalDate();
+                
+                if (nowDate.isAfter(lastDate) && !nowDate.minusDays(1).equals(lastDate)) {
+                    // Check for streak freeze
+                    long daysMissed = java.time.temporal.ChronoUnit.DAYS.between(lastDate, nowDate) - 1;
+                    Optional<com.bizu.portal.student.domain.Inventory> freeze = inventoryRepository.findByUserIdAndItemCode(userId, "STREAK_FREEZE");
+                    
+                    if (freeze.isPresent() && freeze.get().getQuantity() > 0) {
+                        int toConsume = (int) Math.min(daysMissed, freeze.get().getQuantity());
+                        freeze.get().setQuantity(freeze.get().getQuantity() - toConsume);
+                        inventoryRepository.save(freeze.get());
+                        if (toConsume >= daysMissed) {
+                            stats.setCurrentStreak(stats.getCurrentStreak() + 1);
+                        } else {
+                            stats.setCurrentStreak(1);
+                        }
+                    } else {
+                        // Penalty for breaking streak: -100 XP
+                        log.info("Usuário {} quebrou streak. Aplicando penalidade de -100 XP", userId);
+                        netAmount -= 100;
+                        stats.setCurrentStreak(1);
+                    }
+                } else if (nowDate.isAfter(lastDate)) {
+                    stats.setCurrentStreak(stats.getCurrentStreak() + 1);
+                }
+            } else {
+                stats.setCurrentStreak(1);
+            }
+            
+            if (stats.getMaxStreak() == null || stats.getCurrentStreak() > stats.getMaxStreak()) {
+                stats.setMaxStreak(stats.getCurrentStreak());
+            }
+            stats.setLastActivityAt(now);
         }
-        
-        int newTotalXp = Math.max(0, previousXp + amount);
-        int finalAmount = newTotalXp - previousXp; // Actual change
+
+        // 3. Apply final amount and floor at 0
+        int newTotalXp = Math.max(0, previousXp + netAmount);
+        int finalChange = newTotalXp - previousXp;
         stats.setTotalXp(newTotalXp);
         
-        // Award AxonCoins - 1 coin per 1 XP gained (only if positive)
-        if (finalAmount > 0) {
-            stats.setAxonCoins((stats.getAxonCoins() != null ? stats.getAxonCoins() : 0) + finalAmount);
-        }
-        
-        // Update streak (only on gaining XP or activity)
-        if (amount > 0) {
-            updateStreakLogic(stats);
+        // 4. Award AxonCoins (only for positive net changes)
+        if (finalChange > 0) {
+            stats.setAxonCoins((stats.getAxonCoins() != null ? stats.getAxonCoins() : 0) + finalChange);
         }
         
         gamificationRepository.save(stats);
         
-        int currentXp = stats.getTotalXp();
-        int currentLevel = levelCalculator.calculateLevel(currentXp);
+        int currentLevel = levelCalculator.calculateLevel(newTotalXp);
         boolean leveledUp = currentLevel > previousLevel;
         
-        if (finalAmount < 0) {
-            log.info("Removido {} XP do usuário {}. Total: {}. Nível: {}", Math.abs(finalAmount), userId, currentXp, currentLevel);
-        } else {
-            log.info("Adicionado {} XP ao usuário {}. Total: {}. Nível: {}", finalAmount, userId, currentXp, currentLevel);
-        }
+        log.info("Usuário {}: {} XP. Total: {}. Nível: {}", userId, finalChange >= 0 ? "+" + finalChange : finalChange, newTotalXp, currentLevel);
         
-        if (currentXp > previousXp) {
-            checkXpBadges(userId, currentXp);
+        if (newTotalXp > previousXp) {
+            checkXpBadges(userId, newTotalXp);
         }
         
         return RewardDTO.builder()
-            .xpGained(amount)
-            .totalXp(currentXp)
+            .xpGained(finalChange)
+            .totalXp(newTotalXp)
             .currentLevel(currentLevel)
             .previousLevel(previousLevel)
             .leveledUp(leveledUp)
-            .nextLevelProgress(levelCalculator.calculateProgressToNextLevel(currentXp))
+            .nextLevelProgress(levelCalculator.calculateProgressToNextLevel(newTotalXp))
             .build();
-    }
-
-    private void updateStreakLogic(GamificationStats stats) {
-        java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
-        java.time.OffsetDateTime lastActivity = stats.getLastActivityAt();
-
-        if (lastActivity == null) {
-            stats.setCurrentStreak(1);
-            stats.setMaxStreak(1);
-        } else {
-            java.time.LocalDate lastDate = lastActivity.toLocalDate();
-            java.time.LocalDate nowDate = now.toLocalDate();
-
-            if (nowDate.isAfter(lastDate)) {
-                if (nowDate.minusDays(1).equals(lastDate)) {
-                    // Consecutivo
-                    stats.setCurrentStreak(stats.getCurrentStreak() + 1);
-                } else if (nowDate.isAfter(lastDate.plusDays(1))) {
-                    // Missed one or more days. Check for STREAK_FREEZE.
-                    long daysMissed = java.time.temporal.ChronoUnit.DAYS.between(lastDate, nowDate) - 1;
-                    
-                    Optional<com.bizu.portal.student.domain.Inventory> freeze = inventoryRepository.findByUserIdAndItemCode(stats.getUserId(), "STREAK_FREEZE");
-                    if (freeze.isPresent() && freeze.get().getQuantity() > 0) {
-                        int available = freeze.get().getQuantity();
-                        int toConsume = (int) Math.min(daysMissed, available);
-                        
-                        freeze.get().setQuantity(available - toConsume);
-                        inventoryRepository.save(freeze.get());
-                        
-                        // Keep the streak as if they did study those days (active maintenance)
-                        // Or just bridge the gap
-                        if (toConsume >= daysMissed) {
-                            // Perfect protection
-                            stats.setCurrentStreak(stats.getCurrentStreak() + 1);
-                            log.info("Usuário {} usou {} Escudo(s) de Ofensiva para manter a streak.", stats.getUserId(), toConsume);
-                        } else {
-                            // Protection failed (not enough items)
-                            stats.setCurrentStreak(1);
-                        }
-                    } else {
-                        // Quebrou a sequência
-                        stats.setCurrentStreak(1);
-                        // Penalidade por quebrar a streak
-                        addXp(stats.getUserId(), -100);
-                        log.info("Usuário {} quebrou a streak e perdeu 100 XP.", stats.getUserId());
-                    }
-                }
-                
-                if (stats.getMaxStreak() == null || stats.getCurrentStreak() > stats.getMaxStreak()) {
-                    stats.setMaxStreak(stats.getCurrentStreak());
-                }
-            }
-            // Se for o mesmo dia, não faz nada com o contador da streak, apenas atualiza o timestamp se quiser
-        }
-        stats.setLastActivityAt(now);
     }
 
     private void checkXpBadges(UUID userId, int totalXp) {
         // Broad check for badges that might be earned
         badgeRepository.findAll().forEach(badge -> {
-            int target = badge.getTargetProgress() != null && badge.getTargetProgress() > 0 ? badge.getTargetProgress() : 1;
             
             // For FIRST_1000_XP specifically
-            if ("FIRST_1000_XP".equals(badge.getCode()) && totalXp >= target) {
+            if ("FIRST_1000_XP".equals(badge.getCode()) && totalXp >= 1000) {
                 awardBadge(userId, badge.getCode());
             }
         });
@@ -317,7 +296,13 @@ public class GamificationService {
 
                 // Grant XP for the badge
                 if (badge.getXp() != null && badge.getXp() > 0) {
-                    addXp(userId, badge.getXp());
+                    // Aqui usamos uma pequena mutação direta para evitar recursão
+                    GamificationStats stats = gamificationRepository.findById(userId).orElse(null);
+                    if (stats != null) {
+                        stats.setTotalXp(stats.getTotalXp() + badge.getXp());
+                        stats.setAxonCoins(stats.getAxonCoins() + badge.getXp());
+                        gamificationRepository.save(stats);
+                    }
                 }
             }
         }

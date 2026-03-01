@@ -31,7 +31,7 @@ export default function StudentLayout({
     return (
         <div className="flex min-h-screen bg-background text-foreground">
             <StudentSidebar />
-            <main className="flex-1 overflow-y-auto pt-14 md:pt-0 w-full min-w-0">
+            <main className="flex-1 overflow-y-auto pt-[calc(4rem+env(safe-area-inset-top))] md:pt-0 w-full min-w-0">
                 {children}
             </main>
             <FloatingPomodoro />
