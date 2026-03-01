@@ -11,6 +11,7 @@ import {
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
+import { BadgeInsignia } from "@/components/gamification/BadgeInsignia";
 
 type BadgeCategory = "todas" | "consistencia" | "performance" | "social" | "especial";
 
@@ -197,61 +198,22 @@ export default function ConquistasPage() {
             </div>
 
             {/* Badge Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {filteredBadges.map(badge => {
-                    const Icon = badge.icon;
-                    return (
-                        <div key={badge.id} className={`card-elevated !rounded-2xl p-5 hover:!transform-none transition-all duration-300 ${!badge.earned ? "opacity-80 hover:opacity-100" : "bg-white"
-                            }`}>
-                            <div className="flex items-start gap-3">
-                                <div className="relative group cursor-pointer shrink-0">
-                                    {badge.earned && (
-                                        <div className={`absolute -inset-0.5 bg-gradient-to-r ${badge.color} rounded-xl blur opacity-30 group-hover:opacity-70 transition duration-500 group-hover:duration-200 animate-pulse`} />
-                                    )}
-                                    <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-500 ${badge.earned
-                                        ? `bg-gradient-to-br ${badge.color} shadow-md group-hover:scale-110 group-hover:-translate-y-0.5`
-                                        : "bg-slate-100 border border-slate-200"
-                                        }`}>
-                                        <div className={`transition-all duration-300 ${badge.earned ? "group-hover:rotate-12 hover:scale-110" : ""}`}>
-                                            <Icon size={20} className={`${badge.earned ? "text-white drop-shadow-md" : "text-slate-400"}`} />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-0.5">
-                                        <span className="text-[13px] font-bold text-slate-800">{badge.name}</span>
-                                        {badge.earned && (
-                                            <CheckCircle2 size={12} className="text-emerald-500" />
-                                        )}
-                                    </div>
-                                    <p className="text-[11px] text-slate-400 mb-2">{badge.description}</p>
-
-                                    {badge.earned ? (
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                                                <Zap size={8} /> +{badge.xp} XP
-                                            </span>
-                                            {badge.earnedDate && (
-                                                <span className="text-[10px] text-slate-400">{badge.earnedDate}</span>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-1.5">
-                                                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                    <div className={`h-full rounded-full bg-gradient-to-r ${badge.color} transition-all duration-1000 ease-out`}
-                                                        style={{ width: `${badge.progress || 0}%` }} />
-                                                </div>
-                                                <span className="text-[10px] font-bold text-slate-500">{badge.progress || 0}%</span>
-                                            </div>
-                                            <span className="text-[10px] text-slate-400">{badge.requirement}</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {filteredBadges.map(badge => (
+                    <BadgeInsignia
+                        key={badge.id}
+                        name={badge.name}
+                        description={badge.description}
+                        icon={badge.icon}
+                        earned={badge.earned}
+                        color={badge.color}
+                        progress={badge.progress}
+                        requirement={badge.requirement}
+                        xp={badge.xp}
+                        earnedDate={badge.earnedDate}
+                        variant="detailed"
+                    />
+                ))}
             </div>
 
             {filteredBadges.length === 0 && !loading && (

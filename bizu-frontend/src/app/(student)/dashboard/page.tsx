@@ -23,6 +23,7 @@ import ActiveDuelBanner from "@/components/arena/ActiveDuelBanner";
 import { Skeleton } from "@/components/ui/skeleton";
 import MaterialViewerModal from "@/components/MaterialViewerModal";
 import XPInfoModal from "@/components/gamification/XPInfoModal";
+import { BadgeInsignia } from "@/components/gamification/BadgeInsignia";
 import { HelpCircle, Info } from "lucide-react";
 
 const quickActions = [
@@ -129,14 +130,14 @@ export default function DashboardPage() {
     );
 
     const achivementsData = [
-        { icon: Flame, unlocked: hasEarnedBadge('first_blood'), color: "from-orange-400 to-rose-500", shadow: "shadow-orange-500/40", anim: "group-hover:rotate-12 group-hover:scale-125" },
-        { icon: Target, unlocked: hasEarnedBadge('sharpshooter'), color: "from-blue-400 to-indigo-500", shadow: "shadow-blue-500/40", anim: "group-hover:scale-125" },
-        { icon: Swords, unlocked: hasEarnedBadge('arena_master'), color: "from-emerald-400 to-teal-500", shadow: "shadow-emerald-500/40", anim: "group-hover:-rotate-12 group-hover:scale-125" },
-        { icon: Star, unlocked: hasEarnedBadge('dedication'), color: "from-amber-300 to-orange-400", shadow: "shadow-amber-500/40", anim: "group-hover:rotate-45 group-hover:scale-125" },
-        { icon: Brain, unlocked: hasEarnedBadge('genius') },
-        { icon: Crown, unlocked: hasEarnedBadge('champion') },
-        { icon: Layers, unlocked: hasEarnedBadge('flashcard_pro') },
-        { icon: BookOpen, unlocked: hasEarnedBadge('bookworm') },
+        { name: "Gladiador", icon: Swords, unlocked: hasEarnedBadge('arena_master'), color: "from-purple-500 to-indigo-600" },
+        { name: "Fogo Amigo", icon: Flame, unlocked: hasEarnedBadge('first_blood'), color: "from-orange-400 to-rose-500" },
+        { name: "Sniper", icon: Target, unlocked: hasEarnedBadge('sharpshooter'), color: "from-blue-400 to-indigo-500" },
+        { name: "Dedicação", icon: Star, unlocked: hasEarnedBadge('dedication'), color: "from-amber-300 to-orange-400" },
+        { name: "Mestre", icon: Brain, unlocked: hasEarnedBadge('genius'), color: "from-emerald-400 to-teal-500" },
+        { name: "Rei da Arena", icon: Crown, unlocked: hasEarnedBadge('champion'), color: "from-yellow-400 to-amber-600" },
+        { name: "Multitask", icon: Layers, unlocked: hasEarnedBadge('flashcard_pro'), color: "from-cyan-400 to-blue-500" },
+        { name: "Estudioso", icon: BookOpen, unlocked: hasEarnedBadge('bookworm'), color: "from-violet-400 to-purple-600" },
     ];
 
     if (earnedBadgesCount > 0 && !achivementsData.some((achievement) => achievement.unlocked)) {
@@ -511,18 +512,14 @@ export default function DashboardPage() {
                                     <Skeleton key={i} className="aspect-square rounded-2xl" />
                                 ))
                             ) : achivementsData.map((c, i) => (
-                                <div key={i} className="relative group cursor-pointer aspect-square">
-                                    <div
-                                        className={`w-full h-full rounded-2xl flex items-center justify-center transition-all duration-300 ${c.unlocked
-                                            ? `bg-gradient-to-br ${c.color} shadow-lg group-hover:scale-110`
-                                            : "bg-slate-50 border border-slate-100"
-                                            }`}>
-                                        <c.icon
-                                            size={c.unlocked ? 20 : 16}
-                                            className={`${c.unlocked ? "text-white" : "text-slate-300"}`}
-                                        />
-                                    </div>
-                                </div>
+                                <BadgeInsignia
+                                    key={i}
+                                    name={c.name}
+                                    icon={c.icon}
+                                    earned={c.unlocked}
+                                    color={c.color}
+                                    variant="compact"
+                                />
                             ))}
                         </div>
                         <Link href="/conquistas" className="mt-8 flex items-center justify-center gap-2 text-xs font-bold text-slate-500 hover:text-indigo-600 transition-colors">

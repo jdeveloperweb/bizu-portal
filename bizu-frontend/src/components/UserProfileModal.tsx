@@ -12,6 +12,7 @@ import {
 import { apiFetch } from "@/lib/api";
 import { Avatar } from "@/components/ui/Avatar";
 import { useAuth } from "@/components/AuthProvider";
+import { BadgeInsignia } from "@/components/gamification/BadgeInsignia";
 
 const iconMap: Record<string, any> = {
     sunrise: Sunrise,
@@ -235,22 +236,16 @@ export function UserProfileModal({ nickname, isOpen, onClose }: UserProfileModal
 
                                 {profile.badges && profile.badges.length > 0 ? (
                                     <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
-                                        {profile.badges.slice(0, 12).map((badge: any, i: number) => {
-                                            const Icon = iconMap[badge.icon] || Trophy;
-                                            return (
-                                                <div key={i} className="group relative">
-                                                    <div className={`aspect-square rounded-2xl bg-gradient-to-br ${badge.color || 'from-indigo-500 to-violet-600'} flex items-center justify-center p-2.5 shadow-sm transition-transform hover:-translate-y-1 hover:rotate-3 cursor-default`}>
-                                                        <Icon size={18} className="text-white drop-shadow" />
-
-                                                        {/* Tooltip on hover */}
-                                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-900 text-white text-[10px] rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-30 pointer-events-none shadow-xl">
-                                                            <p className="font-bold">{badge.name}</p>
-                                                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-900" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
+                                        {profile.badges.slice(0, 12).map((badge: any, i: number) => (
+                                            <BadgeInsignia
+                                                key={i}
+                                                name={badge.name}
+                                                icon={iconMap[badge.icon] || Trophy}
+                                                earned={true}
+                                                color={badge.color}
+                                                variant="compact"
+                                            />
+                                        ))}
                                     </div>
                                 ) : (
                                     <div className="py-6 px-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-center">
