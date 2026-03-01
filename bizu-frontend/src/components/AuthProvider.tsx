@@ -75,13 +75,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const registerDevice = useCallback(async () => {
-        if (typeof window === "undefined") return;
+        if (typeof window === "undefined") return false;
 
-        let fingerprint = localStorage.getItem("device_fingerprint");
-        if (!fingerprint) {
-            fingerprint = crypto.randomUUID();
-            localStorage.setItem("device_fingerprint", fingerprint);
-        }
+        let fingerprint = localStorage.getItem("device_fingerprint") || "";
+        // Note: fingerprint will be automatically generated in apiFetch if missing.
+        // But we read it here to ensure it's up to date if already exists.
 
         const userAgent = window.navigator.userAgent;
         let os = "Unknown OS";
@@ -118,12 +116,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         os,
                         browser
                     });
+                    return false;
                 }
             } else if (res.ok) {
                 setDeviceLimitData(null);
+                return true;
             }
+            return false;
         } catch (err) {
             console.error("Failed to register device", err);
+            return false;
         }
     }, []);
 
@@ -192,7 +194,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!token) return;
 
         // Register device first to ensure backend has it before we make other calls
-        await registerDevice();
+        const registered = await registerDevice();
+        if (!registered) return;
 
         const res = await apiFetch("/users/me");
 
