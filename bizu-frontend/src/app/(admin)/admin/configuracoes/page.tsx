@@ -7,17 +7,20 @@ import {
     Mail,
     Video,
     Server,
-    Loader2
+    Loader2,
+    AlertTriangle
 } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
+import { ResetPlatformModal } from "./ResetPlatformModal";
 
 export default function AdminConfiguracoesPage() {
     const [activeTab, setActiveTab] = useState("pagamento");
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
     // Initial State
     const [settings, setSettings] = useState({
@@ -437,12 +440,43 @@ export default function AdminConfiguracoesPage() {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Danger Zone */}
+                                <div className="space-y-5 p-6 rounded-2xl bg-destructive/5 border border-destructive/20 mt-8">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive">
+                                            <AlertTriangle className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-[15px] font-bold text-destructive">Zona de Perigo (Danger Zone)</h4>
+                                            <p className="text-xs text-destructive/80 font-medium">Ações sensíveis e destrutivas.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl bg-card border border-destructive/10">
+                                        <div>
+                                            <h5 className="font-bold text-sm text-foreground">Zerar Plataforma (Conteúdo)</h5>
+                                            <p className="text-xs text-muted-foreground mt-0.5">Apaga todos os cursos, módulos, testes e progresso dos alunos.</p>
+                                        </div>
+                                        <Button
+                                            variant="destructive"
+                                            className="whitespace-nowrap rounded-xl font-bold shadow-lg shadow-destructive/20 h-10"
+                                            onClick={() => setIsResetModalOpen(true)}
+                                        >
+                                            Zerar Plataforma
+                                        </Button>
+                                    </div>
+                                </div>
                             </div>
                         )}
 
                     </div>
                 </div>
             </div>
+
+            <ResetPlatformModal
+                isOpen={isResetModalOpen}
+                onClose={() => setIsResetModalOpen(true)}
+            />
         </div>
     );
 }
