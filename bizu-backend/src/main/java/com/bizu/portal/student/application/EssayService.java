@@ -68,11 +68,12 @@ public class EssayService {
         String prompt = "Você é um professor avaliador rigoroso e justo de redações, especialista na correção do ENEM. " +
                 "Analise a redação enviada e forneça um feedback detalhado ao aluno em Markdown. " +
                 "O TEMA DA REDAÇÃO É: \"" + (essay.getTopic() != null ? essay.getTopic() : "Não especificado") + "\". " +
-                "Siga rigorosamente as 5 competências do ENEM (0 a 200 pontos cada): " +
+                "Siga rigorosamente as 5 competências do ENEM (0 a 200 pontos cada, totalizando de 0 a 1000). " +
                 "C1: Domínio da norma culta; C2: Compreensão do tema; C3: Organização e interpretação; C4: Coesão; C5: Intervenção. " +
                 "Analise cuidadosamente se o aluno abordou o tema proposto ou se houve fuga ao tema. " +
-                "Ao final do feedback, inclua OBRIGATORIAMENTE um bloco JSON entre as tags [RESULTADO] e [/RESULTADO] exatamente com este formato: " +
-                "{\"c1\": 160, \"c2\": 160, \"c3\": 140, \"c4\": 160, \"c5\": 140, \"total\": 760, \"improvement\": \"Sua proposta de intervenção menciona o agente...\"}";
+                "Ao final do feedback, inclua OBRIGATORIAMENTE um bloco JSON entre as tags [RESULTADO] e [/RESULTADO]. " +
+                "IMPORTANTE: O JSON deve conter inteiros de 0 a 200 para competências e 0 a 1000 para o total. " +
+                "Formato: {\"c1\": 160, \"c2\": 160, \"c3\": 140, \"c4\": 160, \"c5\": 140, \"total\": 760, \"improvement\": \"...\"}";
 
         String aiResponse;
         if (essay.getContent() != null && !essay.getContent().trim().isEmpty()) {
@@ -91,10 +92,14 @@ public class EssayService {
 
     private void parseAiResults(Essay essay, String response) {
         try {
-            Pattern pattern = Pattern.compile("\\[RESULTADO\\](.*?)\\[/RESULTADO\\]", Pattern.DOTALL);
+            Pattern pattern = Pattern.compile("\\[RESULTADO\\](.*?)\\[/RESULTADO\\]", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(response);
             if (matcher.find()) {
                 String jsonStr = matcher.group(1).trim();
+                
+                // Remover possíveis blocos de código markdown que a IA possa ter inserido
+                jsonStr = jsonStr.replaceAll("```json", "").replaceAll("```", "").trim();
+                
                 JsonNode node = objectMapper.readTree(jsonStr);
                 
                 essay.setC1Score(node.path("c1").asInt());
@@ -105,13 +110,14 @@ public class EssayService {
                 essay.setGrade(new BigDecimal(node.path("total").asInt()));
                 essay.setImprovementHint(node.path("improvement").asText());
                 
-                // Remove the JSON block from feedback for a cleaner display
-                essay.setFeedback(response.replace(matcher.group(0), "").trim());
+                // Remove o JSON do feedback final para o aluno não ver o "código"
+                String cleanFeedback = response.replace(matcher.group(0), "").trim();
+                essay.setFeedback(cleanFeedback);
             } else {
-                // Fallback to old grade extraction if JSON not found
                 essay.setGrade(extractGrade(response));
             }
         } catch (Exception e) {
+            System.err.println("Erro ao parsear resultado da redação: " + e.getMessage());
             essay.setGrade(extractGrade(response));
         }
     }

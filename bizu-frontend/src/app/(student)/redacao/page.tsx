@@ -60,8 +60,8 @@ export default function RedacaoPage() {
             document.body.appendChild(div);
 
             const height = div.offsetHeight;
-            const lines = Math.floor(height / 32);
-            setLineCount(lines);
+            const lines = height > 0 ? Math.floor(height / 32) : content.split('\n').length;
+            setLineCount(Math.max(lines, content.split('\n').length));
 
             document.body.removeChild(div);
         };
@@ -612,29 +612,29 @@ export default function RedacaoPage() {
                         </div>
 
                         <div className="space-y-6">
-                            <div className="bg-card border border-border rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-                                <div className="relative z-10 flex flex-col gap-8">
+                            <div className="bg-card border border-border rounded-3xl p-8 shadow-lg relative overflow-hidden flex flex-col gap-8">
+                                <div className="relative z-10 space-y-8">
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600">
-                                                <Sparkles size={18} />
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600">
+                                                <Sparkles size={20} />
                                             </div>
-                                            <h3 className="font-bold text-lg">Resultado da Correção</h3>
+                                            <h3 className="font-bold text-xl tracking-tight">Resultado da Correção</h3>
                                         </div>
                                         <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-[10px] font-black uppercase tracking-widest">
                                             Concluído
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <p className="text-muted-foreground text-sm font-medium mb-1">Nota geral</p>
+                                    <div className="p-6 rounded-3xl bg-muted/30 border border-border/50 flex flex-col items-center justify-center text-center">
+                                        <p className="text-muted-foreground text-xs font-black uppercase tracking-widest mb-1">Nota total obtida</p>
                                         <div className="flex items-baseline gap-1">
-                                            <span className="text-6xl font-black text-foreground">{selectedEssay.grade || 0}</span>
-                                            <span className="text-2xl font-black text-emerald-500">/1000</span>
+                                            <span className="text-7xl font-black text-foreground antialiased">{selectedEssay.grade || 0}</span>
+                                            <span className="text-2xl font-black text-emerald-500 opacity-50">/ 1000</span>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-6">
+                                    <div className="space-y-5">
                                         <CompetencyProgress
                                             title="Competência I — Domínio da norma culta"
                                             score={selectedEssay.c1Score || 0}
@@ -662,19 +662,23 @@ export default function RedacaoPage() {
                                         />
                                     </div>
 
-                                    {selectedEssay.improvementHint && (
+                                    {selectedEssay.improvementHint && selectedEssay.improvementHint !== "null" && (
                                         <motion.div
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 relative"
+                                            className="p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 relative overflow-hidden group hover:border-emerald-500/30 transition-colors"
                                         >
-                                            <p className="text-sm leading-relaxed text-slate-600">
-                                                <span className="text-emerald-600 font-bold">Ponto de melhoria:</span> {selectedEssay.improvementHint}
-                                            </p>
+                                            <div className="flex gap-3 relative z-10">
+                                                <AlertCircle size={18} className="text-emerald-500 shrink-0 mt-0.5" />
+                                                <p className="text-sm leading-relaxed text-slate-600 italic">
+                                                    <span className="text-emerald-600 font-black uppercase text-[10px] tracking-widest block not-italic mb-1">Ponto de melhoria importante:</span>
+                                                    {selectedEssay.improvementHint}
+                                                </p>
+                                            </div>
                                         </motion.div>
                                     )}
                                 </div>
-                                <div className="absolute -right-20 -top-20 opacity-[0.05] rotate-12 text-primary">
+                                <div className="absolute -right-20 -top-20 opacity-[0.03] rotate-12 text-primary pointer-events-none">
                                     <Sparkles size={300} />
                                 </div>
                             </div>
