@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Swords, Trophy, Timer, CheckCircle2, XCircle, Zap, Shield, Crown, Maximize2, Minimize2, Target, Maximize, Minimize } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Duel, DuelQuestion, DuelService } from "@/lib/duelService";
+import { Duel, DuelQuestion, DuelService, DuelStats } from "@/lib/duelService";
 import { useDuelWebSocket } from "@/hooks/useDuelWebSocket";
 import { useGamification } from "@/components/gamification/GamificationProvider";
 import { apiFetch } from "@/lib/api";
+import { toast } from "sonner";
 import { getAvatarUrl } from "@/lib/imageUtils";
 import { Avatar } from "@/components/ui/Avatar";
 import confetti from "canvas-confetti";
@@ -26,6 +27,8 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
     const [showCorrection, setShowCorrection] = useState(false);
     const [isMaximized, setIsMaximized] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [stats, setStats] = useState<DuelStats | null>(null);
+    const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
 
     useDuelWebSocket(duelId, (updatedDuel) => {
         setDuel(updatedDuel);
@@ -60,6 +63,21 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
 
         return () => clearInterval(interval);
     }, [duelId, duel?.status]);
+
+    const fetchStats = async () => {
+        try {
+            const res = await apiFetch("/duelos/me/stats");
+            if (res.ok) {
+                setStats(await res.json());
+            }
+        } catch (err) {
+            console.error("Failed to fetch stats", err);
+        }
+    };
+
+    useEffect(() => {
+        fetchStats();
+    }, []);
 
     useEffect(() => {
         if (!duel || duel.status !== "IN_PROGRESS") return;
@@ -139,14 +157,30 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
     };
 
     const handleCancel = async () => {
-        if (confirm("Tem certeza que deseja abandonar e cancelar este duelo?")) {
-            try {
-                await DuelService.declineDuel(duelId);
-                onClose();
-            } catch (err) {
-                console.error("Failed to cancel duel", err);
-                onClose();
+        if (!stats) return;
+
+        if (stats.abandonBlockedUntil && new Date(stats.abandonBlockedUntil) > new Date()) {
+            toast.error("Você está bloqueado de abandonar duelos por 1 semana devido ao excesso de abandones.");
+            return;
+        }
+
+        setShowAbandonConfirm(true);
+    };
+
+    const confirmAbandon = async () => {
+        try {
+            const res = await DuelService.declineDuel(duelId);
+            if (!res.ok) {
+                const error = await res.json();
+                toast.error(error.message || "Erro ao abandonar duelo.");
+                return;
             }
+            onClose();
+        } catch (err) {
+            console.error("Failed to cancel duel", err);
+            onClose();
+        } finally {
+            setShowAbandonConfirm(false);
         }
     };
 
@@ -183,6 +217,49 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
     return (
         <div className={`fixed inset-0 z-[10000] bg-slate-900 flex items-center justify-center ${isMaximized ? "p-0" : "sm:p-4"}`}>
             <div className={`w-full bg-white overflow-hidden shadow-2xl relative flex flex-col h-full ${isMaximized ? "sm:h-screen sm:rounded-none" : "max-w-4xl sm:rounded-3xl sm:h-[90vh]"}`}>
+                {/* Abandon Confirmation Modal */}
+                <AnimatePresence>
+                    {showAbandonConfirm && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 z-[200] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4"
+                        >
+                            <motion.div
+                                initial={{ scale: 0.9, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                exit={{ scale: 0.9, y: 20 }}
+                                className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-slate-100"
+                            >
+                                <div className="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-6">
+                                    <XCircle size={32} />
+                                </div>
+                                <h3 className="text-xl md:text-2xl font-black text-slate-900 text-center mb-3">Abandonar Duelo?</h3>
+                                <p className="text-slate-500 text-center mb-6 leading-relaxed">
+                                    Ao abandonar, você será considerado o <span className="font-bold text-red-500">perdedor</span> e perderá <span className="font-bold text-red-500">100 XP</span>.
+                                    <br /><br />
+                                    <span className="text-sm italic">O abandono frequente prejudica a experiência competitiva e pode levar ao bloqueio temporário do recurso.</span>
+                                </p>
+
+                                <div className="space-y-3">
+                                    <button
+                                        onClick={confirmAbandon}
+                                        className="w-full py-4 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-700 transition-all shadow-lg active:scale-[0.98]"
+                                    >
+                                        Sim, abandonar (-100 XP)
+                                    </button>
+                                    <button
+                                        onClick={() => setShowAbandonConfirm(false)}
+                                        className="w-full py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-all"
+                                    >
+                                        Continuar lutando
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
                 {/* Close Button */}
                 <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-[100]">
                     <Button
@@ -417,13 +494,22 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                         </div>
                     </div>
                     {duel.status === "IN_PROGRESS" && (
-                        <button
-                            onClick={handleCancel}
-                            className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1 transition-colors ml-auto md:ml-0"
-                        >
-                            <XCircle size={14} /> <span className="hidden sm:inline">Abandonar Duelo</span>
-                            <span className="sm:hidden">Sair</span>
-                        </button>
+                        <div className="flex items-center gap-4 ml-auto md:ml-0">
+                            {stats && (
+                                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-bold ${stats.dailyAbandonCount >= 2 ? "bg-red-50 text-red-600 border-red-100 animate-pulse" : "bg-slate-100 text-slate-500 border-slate-200"}`}>
+                                    <XCircle size={12} />
+                                    {stats.dailyAbandonCount}/3 abandonos hoje
+                                </div>
+                            )}
+                            <button
+                                onClick={handleCancel}
+                                className={`text-xs font-black flex items-center gap-1 transition-colors ${stats?.abandonBlockedUntil && new Date(stats.abandonBlockedUntil) > new Date() ? "text-slate-400 cursor-not-allowed" : "text-red-500 hover:text-red-600"}`}
+                                title={stats?.abandonBlockedUntil && new Date(stats.abandonBlockedUntil) > new Date() ? "Pena de bloqueio ativa" : "Abandonar"}
+                            >
+                                <XCircle size={14} /> <span className="hidden sm:inline">Abandonar Duelo</span>
+                                <span className="sm:hidden">Sair</span>
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>

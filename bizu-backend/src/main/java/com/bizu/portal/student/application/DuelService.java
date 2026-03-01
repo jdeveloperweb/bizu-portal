@@ -31,6 +31,7 @@ public class DuelService {
     private final NotificationService notificationService;
     private final GamificationService gamificationService;
     private final UserRepository userRepository;
+    private final com.bizu.portal.student.infrastructure.GamificationRepository gamificationRepository;
     private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     private final ConcurrentHashMap<UUID, ConcurrentLinkedQueue<UUID>> matchQueues = new ConcurrentHashMap<>();
@@ -243,13 +244,42 @@ public class DuelService {
         Duel duel = duelRepository.findById(duelId).orElseThrow();
         
         if ("IN_PROGRESS".equals(duel.getStatus())) {
+            // Implementação da política de abandono
+            com.bizu.portal.student.domain.GamificationStats stats = gamificationRepository.findById(userId)
+                .orElseGet(() -> com.bizu.portal.student.domain.GamificationStats.builder()
+                    .userId(userId)
+                    .build());
+            
+            OffsetDateTime now = OffsetDateTime.now();
+            
+            // 1. Verificar se está bloqueado
+            if (stats.getAbandonBlockedUntil() != null && stats.getAbandonBlockedUntil().isAfter(now)) {
+                throw new RuntimeException("Ação bloqueada! Você está impossibilitado de abandonar duelos por 1 semana devido ao excesso de abandones.");
+            }
+            
+            // 2. Incrementar contador diário
+            if (stats.getLastAbandonAt() == null || stats.getLastAbandonAt().toLocalDate().isBefore(now.toLocalDate())) {
+                stats.setDailyAbandonCount(1);
+            } else {
+                stats.setDailyAbandonCount(stats.getDailyAbandonCount() + 1);
+            }
+            stats.setLastAbandonAt(now);
+            
+            // 3. Verificar limite de 3 abandones por dia
+            if (stats.getDailyAbandonCount() >= 3) {
+                stats.setAbandonBlockedUntil(now.plusWeeks(1));
+                notificationService.send(userId, "Recurso Bloqueado!", "Você abandonou 3 duelos hoje. O recurso de abandonar duelos está bloqueado por 1 semana.");
+            }
+            
+            gamificationRepository.save(stats);
+
             // Se estava em progresso e alguém saiu, o OUTRO vence
             User winner = duel.getChallenger().getId().equals(userId) 
                 ? duel.getOpponent() 
                 : duel.getChallenger();
             
             finishDuel(duel, winner);
-            notificationService.send(userId, "Você abandonou o duelo!", "Como penalidade por abandonar, você perdeu 100 XP.");
+            notificationService.send(userId, "Você abandonou o duelo!", "CUIDADO: Abandonar duelos prejudica sua experiência e de outros alunos. Você perdeu 100 XP.");
             log.info("Duel {} abandoned by {}. Winner: {}", duelId, userId, winner.getId());
         } else {
             // Se ainda estava pendente (convite), apenas cancela

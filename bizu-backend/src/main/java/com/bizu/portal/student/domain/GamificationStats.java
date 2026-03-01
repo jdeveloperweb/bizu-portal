@@ -50,6 +50,16 @@ public class GamificationStats implements org.springframework.data.domain.Persis
     @Column(name = "active_title")
     private String activeTitle;
 
+    @Builder.Default
+    @Column(name = "daily_abandon_count")
+    private Integer dailyAbandonCount = 0;
+
+    @Column(name = "last_abandon_at")
+    private OffsetDateTime lastAbandonAt;
+
+    @Column(name = "abandon_blocked_until")
+    private OffsetDateTime abandonBlockedUntil;
+
     @Transient
     private boolean isNew = true;
 

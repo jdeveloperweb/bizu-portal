@@ -50,7 +50,9 @@ public interface DuelRepository extends JpaRepository<Duel, UUID> {
                    "  FROM student.duels " +
                    "  WHERE (challenger_id = :userId OR opponent_id = :userId) AND status = 'COMPLETED' " +
                    "  ORDER BY completed_at DESC " +
-                   ") s2 WHERE s2.rn <= s.rn AND winner_id = :userId) s3)), 0) as streak",
+                   ") s2 WHERE s2.rn <= s.rn AND winner_id = :userId) s3)), 0) as streak, " +
+                   "(SELECT COALESCE(daily_abandon_count, 0) FROM student.gamification_stats WHERE user_id = :userId) as \"dailyAbandonCount\", " +
+                   "(SELECT abandon_blocked_until FROM student.gamification_stats WHERE user_id = :userId) as \"abandonBlockedUntil\"",
             nativeQuery = true)
     java.util.Map<String, Object> getMyDuelStats(@org.springframework.data.repository.query.Param("userId") java.util.UUID userId);
 }

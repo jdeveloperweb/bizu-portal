@@ -1,5 +1,14 @@
 import { apiFetch } from "./api";
 
+export interface DuelStats {
+    wins: number;
+    losses: number;
+    winRate: number;
+    streak: number;
+    dailyAbandonCount: number;
+    abandonBlockedUntil?: string | null;
+}
+
 export interface Question {
     id: string;
     statement: string;
