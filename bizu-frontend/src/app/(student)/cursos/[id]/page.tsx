@@ -14,7 +14,7 @@ import { useParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 import { Lock } from "lucide-react";
-import MaterialViewerModal from "@/components/MaterialViewerModal";
+import { useRouter } from "next/navigation";
 
 export default function CourseDetailsPage() {
     const params = useParams<{ id: string | string[] }>();
@@ -25,13 +25,10 @@ export default function CourseDetailsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const { isFree, isPremium } = useAuth();
 
-    // Modal state
-    const [selectedMaterial, setSelectedMaterial] = useState<any>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const router = useRouter();
 
     const handleViewMaterial = (material: any) => {
-        setSelectedMaterial(material);
-        setIsModalOpen(true);
+        router.push(`/cursos/${courseId}/player/${material.id}`);
     };
 
     const handleMaterialComplete = (materialId: string) => {
@@ -324,13 +321,6 @@ export default function CourseDetailsPage() {
                     )}
                 </div>
             </div>
-
-            <MaterialViewerModal
-                material={selectedMaterial}
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onComplete={handleMaterialComplete}
-            />
         </div>
     );
 }

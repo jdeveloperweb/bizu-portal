@@ -1,11 +1,12 @@
 "use client";
 
-import { X, FileText, Play, Download, ExternalLink, Info, CheckCircle2 } from "lucide-react";
+import { X, FileText, Play, Download, ExternalLink, Info, CheckCircle2, Highlighter, StickyNote, X as CloseIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getVideoEmbedUrl } from "@/lib/video-embed";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/api";
+import MarkdownViewer from "@/components/MarkdownViewer";
 
 interface Material {
     id: string;
@@ -15,6 +16,7 @@ interface Material {
     fileType: string;
     moduleTitle?: string;
     courseTitle?: string;
+    content?: string;
 }
 
 interface MaterialViewerModalProps {
@@ -28,11 +30,38 @@ export default function MaterialViewerModal({ material, isOpen, onClose, onCompl
     const [isCompleted, setIsCompleted] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    // Context for article highligting
+    const [highlights, setHighlights] = useState<any[]>([]);
+    const [selection, setSelection] = useState<{ text: string, x: number, y: number } | null>(null);
+    const [isAddingNote, setIsAddingNote] = useState(false);
+    const [noteContent, setNoteContent] = useState("");
+
     useEffect(() => {
         if (isOpen && material) {
             checkCompletion();
+            if (material.fileType === "ARTICLE" || material.content) {
+                fetchHighlights();
+            }
         }
     }, [isOpen, material]);
+
+    const fetchHighlights = async () => {
+        if (!material) return;
+        try {
+            const notesRes = await apiFetch(`/student/notes`);
+            if (notesRes.ok) {
+                const allNotes = await notesRes.json();
+                const materialHighlights = allNotes.filter((n: any) => n.materialId === material.id);
+                setHighlights(materialHighlights.map((n: any) => ({
+                    id: n.id,
+                    text: n.highlightedText || "",
+                    color: n.highlightColor
+                })));
+            }
+        } catch (error) {
+            console.error("Error fetching notes", error);
+        }
+    };
 
     const checkCompletion = async () => {
         if (!material) return;
@@ -67,12 +96,73 @@ export default function MaterialViewerModal({ material, isOpen, onClose, onCompl
         }
     };
 
+    const handleTextSelection = () => {
+        setTimeout(() => {
+            const sel = window.getSelection();
+            if (sel && !sel.isCollapsed && sel.toString().trim().length > 3) {
+                try {
+                    const range = sel.getRangeAt(0);
+                    const rect = range.getBoundingClientRect();
+                    setSelection({
+                        text: sel.toString().trim(),
+                        x: rect.left + rect.width / 2 + window.scrollX,
+                        y: rect.top + window.scrollY
+                    });
+                } catch (e) {
+                    console.warn("Erro ao processar seleção", e);
+                }
+            } else {
+                if (!isAddingNote) {
+                    setSelection(null);
+                    setIsAddingNote(false);
+                }
+            }
+        }, 100);
+    };
+
+    const saveHighlight = async (withNote = false) => {
+        if (!selection || !material) return;
+
+        const payload = {
+            title: `Destaque em: ${material.title}`,
+            content: withNote ? noteContent : "Texto destacado no artigo.",
+            materialId: material.id,
+            highlightedText: selection.text,
+            highlightColor: "yellow",
+            tags: ["highlight"],
+            pinned: false,
+            starred: false
+        };
+
+        try {
+            const res = await apiFetch(`/student/notes`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                const newNote = await res.json();
+                setHighlights(prev => [...prev, {
+                    id: newNote.id,
+                    text: selection.text,
+                    color: "yellow"
+                }]);
+                setSelection(null);
+                setIsAddingNote(false);
+                setNoteContent("");
+            }
+        } catch (error) {
+            console.error("Erro ao salvar destaque", error);
+        }
+    };
+
     if (!isOpen || !material) return null;
 
     const embedVideoUrl = material.fileType === "VIDEO" ? getVideoEmbedUrl(material.fileUrl) : null;
 
     // Check if it's a PDF to try embedding it
     const isPDF = material.fileType === "PDF" || (material.fileUrl && material.fileUrl.toLowerCase().endsWith('.pdf'));
+    const isArticle = material.fileType === "ARTICLE" || Boolean(material.content);
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -135,7 +225,7 @@ export default function MaterialViewerModal({ material, isOpen, onClose, onCompl
                         <div className="lg:col-span-8 space-y-6 flex flex-col">
                             <div className={cn(
                                 "bg-black rounded-[32px] overflow-hidden shadow-xl border-4 border-slate-50 dark:border-slate-800 relative w-full",
-                                isPDF ? "h-[75vh]" : "aspect-video"
+                                (isPDF || isArticle) ? "h-[75vh]" : "aspect-video"
                             )}>
                                 {material.fileType === 'VIDEO' ? (
                                     embedVideoUrl ? (
@@ -160,6 +250,78 @@ export default function MaterialViewerModal({ material, isOpen, onClose, onCompl
                                         className="w-full h-full border-none"
                                         title={material.title}
                                     />
+                                ) : isArticle ? (
+                                    <div className="w-full h-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 overflow-y-auto">
+                                        <article className="max-w-4xl mx-auto px-6 sm:px-10 py-12">
+                                            <div className="text-center mb-10">
+                                                <span className="bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] inline-block">Artigo</span>
+                                                <h1 className="text-2xl sm:text-3xl font-[900] text-slate-900 dark:text-white mt-6 tracking-tight leading-tight">
+                                                    {material.title}
+                                                </h1>
+                                            </div>
+                                            <div className="text-slate-600 dark:text-slate-300 leading-[1.8]" onMouseUp={handleTextSelection} onTouchEnd={handleTextSelection}>
+                                                <MarkdownViewer
+                                                    content={material.content || material.description || "Nenhum conteúdo para este artigo."}
+                                                    highlights={highlights}
+                                                />
+                                            </div>
+
+                                            {/* Selection Tooltip */}
+                                            {selection && (
+                                                <div
+                                                    className="fixed z-[99999] bg-white dark:bg-slate-800 shadow-2xl border border-slate-200 dark:border-slate-700 rounded-xl p-2 flex flex-col gap-2 animate-in fade-in zoom-in duration-200"
+                                                    style={{
+                                                        top: Math.max(10, selection.y - 120),
+                                                        left: selection.x,
+                                                        transform: 'translateX(-50%)',
+                                                        width: isAddingNote ? '280px' : 'auto'
+                                                    }}
+                                                >
+                                                    {!isAddingNote ? (
+                                                        <div className="flex items-center gap-1">
+                                                            <button
+                                                                onClick={() => saveHighlight(false)}
+                                                                className="flex items-center gap-2 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-xs font-bold text-amber-600 transition-colors"
+                                                            >
+                                                                <Highlighter size={14} /> Marcar
+                                                            </button>
+                                                            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
+                                                            <button
+                                                                onClick={() => setIsAddingNote(true)}
+                                                                className="flex items-center gap-2 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-xs font-bold text-indigo-600 transition-colors"
+                                                            >
+                                                                <StickyNote size={14} /> Anotar
+                                                            </button>
+                                                            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
+                                                            <button
+                                                                onClick={() => setSelection(null)}
+                                                                className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
+                                                            >
+                                                                <CloseIcon size={14} />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="p-1 space-y-2">
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <span className="text-[10px] font-bold uppercase text-slate-400">Nova Anotação</span>
+                                                                <button onClick={() => setIsAddingNote(false)}><CloseIcon size={12} /></button>
+                                                            </div>
+                                                            <textarea
+                                                                autoFocus
+                                                                value={noteContent}
+                                                                onChange={(e) => setNoteContent(e.target.value)}
+                                                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-primary h-20 resize-none text-slate-900 dark:text-slate-100"
+                                                                placeholder="Digite sua anotação..."
+                                                            />
+                                                            <Button size="sm" className="w-full text-[11px] h-8" onClick={() => saveHighlight(true)}>
+                                                                Salvar Destaque e Nota
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </article>
+                                    </div>
                                 ) : (
                                     <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-800/50">
                                         <FileText className="w-20 h-20 text-indigo-400 mb-6 opacity-20" />
