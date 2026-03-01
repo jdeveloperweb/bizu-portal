@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, Loader2, ArrowLeft, Rocket, GraduationCap, Mail, Phone, CheckCircle2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowLeft, Rocket, Mail, Phone, CheckCircle2 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
@@ -121,15 +121,6 @@ export default function RegisterPage() {
                 <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" style={{ background: "linear-gradient(to top,#020617,transparent)" }} />
 
                 <div className="relative z-10 w-full max-w-sm px-4 flex flex-col items-center text-center">
-                    {/* Icon mark — glowing */}
-                    <div className="relative mb-7">
-                        <div className="absolute inset-0 rounded-2xl animate-pulse"
-                            style={{ background: "rgba(99,102,241,0.2)", transform: "scale(1.5)", filter: "blur(12px)" }} />
-                        <div className="relative w-16 h-16 rounded-2xl flex items-center justify-center"
-                            style={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)", boxShadow: "0 0 44px rgba(99,102,241,0.45), 0 8px 24px rgba(99,102,241,0.3)" }}>
-                            <GraduationCap size={28} className="text-white" />
-                        </div>
-                    </div>
 
                     {/* AXON wordmark */}
                     <span

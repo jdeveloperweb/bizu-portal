@@ -86,20 +86,6 @@ export default function PWASplashScreen() {
 
                 {/* Brand */}
                 <div className="splash-brand flex flex-col items-center gap-3">
-                    {/* Icon mark */}
-                    <div
-                        className="w-16 h-16 rounded-2xl flex items-center justify-center mb-2"
-                        style={{
-                            background: "linear-gradient(135deg,#6366F1,#4F46E5)",
-                            boxShadow: "0 0 40px rgba(99,102,241,0.35), 0 8px 24px rgba(99,102,241,0.3)",
-                        }}
-                    >
-                        {/* Graduation cap inline SVG to avoid extra import */}
-                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-                        </svg>
-                    </div>
 
                     {/* AXON wordmark */}
                     <span
