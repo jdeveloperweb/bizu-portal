@@ -1,0 +1,7 @@
+ALTER TABLE essay.essays 
+ADD COLUMN c1_score INTEGER,
+ADD COLUMN c2_score INTEGER,
+ADD COLUMN c3_score INTEGER,
+ADD COLUMN c4_score INTEGER,
+ADD COLUMN c5_score INTEGER,
+ADD COLUMN improvement_hint TEXT;
