@@ -202,10 +202,10 @@ export default function RedacaoPage() {
     const CompetencyProgress = ({ title, score, colorClass }: { title: string, score: number, colorClass: string }) => (
         <div className="space-y-2">
             <div className="flex justify-between items-center text-sm">
-                <span className="font-medium text-slate-400">{title}</span>
+                <span className="font-medium text-muted-foreground">{title}</span>
                 <span className={`font-bold ${colorClass}`}>{score}/200</span>
             </div>
-            <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+            <div className="h-2 w-full bg-muted rounded-full overflow-hidden shadow-inner">
                 <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${(score / 200) * 100}%` }}
@@ -592,24 +592,24 @@ export default function RedacaoPage() {
                         </div>
 
                         <div className="space-y-6">
-                            <div className="bg-[#0f172a] border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden text-white">
+                            <div className="bg-card border border-border rounded-3xl p-8 shadow-2xl relative overflow-hidden">
                                 <div className="relative z-10 flex flex-col gap-8">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+                                            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600">
                                                 <Sparkles size={18} />
                                             </div>
                                             <h3 className="font-bold text-lg">Resultado da Correção</h3>
                                         </div>
-                                        <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest">
+                                        <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-[10px] font-black uppercase tracking-widest">
                                             Concluído
                                         </div>
                                     </div>
 
                                     <div>
-                                        <p className="text-slate-400 text-sm font-medium mb-1">Nota geral</p>
+                                        <p className="text-muted-foreground text-sm font-medium mb-1">Nota geral</p>
                                         <div className="flex items-baseline gap-1">
-                                            <span className="text-6xl font-black text-white">{selectedEssay.grade || 0}</span>
+                                            <span className="text-6xl font-black text-foreground">{selectedEssay.grade || 0}</span>
                                             <span className="text-2xl font-black text-emerald-500">/1000</span>
                                         </div>
                                     </div>
@@ -618,27 +618,27 @@ export default function RedacaoPage() {
                                         <CompetencyProgress
                                             title="Competência I — Domínio da norma culta"
                                             score={selectedEssay.c1Score || 0}
-                                            colorClass="text-emerald-400"
+                                            colorClass="text-emerald-500"
                                         />
                                         <CompetencyProgress
                                             title="Competência II — Compreensão do tema"
                                             score={selectedEssay.c2Score || 0}
-                                            colorClass="text-indigo-400"
+                                            colorClass="text-indigo-500"
                                         />
                                         <CompetencyProgress
                                             title="Competência III — Argumentação"
                                             score={selectedEssay.c3Score || 0}
-                                            colorClass="text-amber-400"
+                                            colorClass="text-amber-500"
                                         />
                                         <CompetencyProgress
                                             title="Competência IV — Coesão textual"
                                             score={selectedEssay.c4Score || 0}
-                                            colorClass="text-purple-400"
+                                            colorClass="text-purple-500"
                                         />
                                         <CompetencyProgress
                                             title="Competência V — Proposta de intervenção"
                                             score={selectedEssay.c5Score || 0}
-                                            colorClass="text-pink-400"
+                                            colorClass="text-pink-500"
                                         />
                                     </div>
 
@@ -646,15 +646,15 @@ export default function RedacaoPage() {
                                         <motion.div
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 relative"
+                                            className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 relative"
                                         >
-                                            <p className="text-sm leading-relaxed text-slate-300">
-                                                <span className="text-emerald-400 font-bold">Ponto de melhoria:</span> {selectedEssay.improvementHint}
+                                            <p className="text-sm leading-relaxed text-slate-600">
+                                                <span className="text-emerald-600 font-bold">Ponto de melhoria:</span> {selectedEssay.improvementHint}
                                             </p>
                                         </motion.div>
                                     )}
                                 </div>
-                                <div className="absolute -right-20 -top-20 opacity-[0.03] rotate-12">
+                                <div className="absolute -right-20 -top-20 opacity-[0.05] rotate-12 text-primary">
                                     <Sparkles size={300} />
                                 </div>
                             </div>
