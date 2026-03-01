@@ -20,7 +20,7 @@ const getRealmRoles = (user: unknown): string[] => {
 };
 
 const navLinks = [
-    { href: "/#funcionalidades", label: "Funcionalidades" },
+    { href: "/pricing", label: "Cursos" },
     { href: "/pricing", label: "Planos" },
 ];
 
