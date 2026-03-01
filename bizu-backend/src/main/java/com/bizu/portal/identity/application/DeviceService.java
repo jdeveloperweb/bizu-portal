@@ -20,19 +20,20 @@ public class DeviceService {
     private static final int MAX_DEVICES_PER_USER = 1;
 
     @Transactional
-    public Device registerOrUpdateDevice(User user, String fingerprint, String os, String browser, String ip) {
+    public Device registerOrUpdateDevice(User user, String fingerprint, String os, String browser, String ip, String userAgent) {
         Device device = deviceRepository.findByUserAndDeviceFingerprint(user, fingerprint)
-            .orElseGet(() -> createNewDevice(user, fingerprint, os, browser, ip));
+            .orElseGet(() -> createNewDevice(user, fingerprint, os, browser, ip, userAgent));
 
         device.setLastIp(ip);
         device.setLastSeenAt(OffsetDateTime.now());
         device.setOsInfo(os);
         device.setBrowserInfo(browser);
+        device.setUserAgent(userAgent);
 
         return deviceRepository.save(device);
     }
 
-    private Device createNewDevice(User user, String fingerprint, String os, String browser, String ip) {
+    private Device createNewDevice(User user, String fingerprint, String os, String browser, String ip, String userAgent) {
         List<Device> userDevices = deviceRepository.findAllByUser(user);
         
         if (userDevices.size() >= MAX_DEVICES_PER_USER) {
@@ -48,6 +49,7 @@ public class DeviceService {
             .deviceFingerprint(fingerprint)
             .osInfo(os)
             .browserInfo(browser)
+            .userAgent(userAgent)
             .lastIp(ip)
             .isTrusted(false)
             .build();
@@ -69,7 +71,7 @@ public class DeviceService {
         deviceRepository.delete(device);
     }
     @Transactional(readOnly = true)
-    public boolean isValidDevice(UUID userId, String fingerprint) {
+    public boolean isValidDevice(UUID userId, String fingerprint, String currentUserAgent) {
         if (fingerprint == null || fingerprint.isBlank()) {
             return false;
         }
@@ -81,6 +83,15 @@ public class DeviceService {
         }
 
         return userDevices.stream()
-            .anyMatch(d -> d.getDeviceFingerprint().equals(fingerprint));
+            .anyMatch(d -> {
+                boolean fingerprintMatch = d.getDeviceFingerprint().equals(fingerprint);
+                if (!fingerprintMatch) return false;
+                
+                // Se o fingerprint bater, também validamos se o User-Agent é o mesmo.
+                // Se o registro antigo não tinha User-Agent (migração), permitimos e atualizamos depois.
+                if (d.getUserAgent() == null) return true;
+                
+                return d.getUserAgent().equals(currentUserAgent);
+            });
     }
 }

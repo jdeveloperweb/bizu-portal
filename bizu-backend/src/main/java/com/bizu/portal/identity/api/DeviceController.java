@@ -41,12 +41,14 @@ public class DeviceController {
             ip = httpRequest.getRemoteAddr();
         }
 
+        String userAgent = httpRequest.getHeader("User-Agent");
         Device device = deviceService.registerOrUpdateDevice(
             user,
             request.getFingerprint(),
             request.getOs(),
             request.getBrowser(),
-            ip
+            ip,
+            userAgent
         );
         
         return ResponseEntity.ok(device);

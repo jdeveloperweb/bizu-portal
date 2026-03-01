@@ -32,6 +32,9 @@ public class Device {
     @Column(name = "browser_info")
     private String browserInfo;
 
+    @Column(name = "user_agent")
+    private String userAgent;
+
     @Column(name = "last_ip")
     private String lastIp;
 

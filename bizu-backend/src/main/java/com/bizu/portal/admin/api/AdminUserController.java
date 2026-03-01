@@ -144,12 +144,16 @@ public class AdminUserController {
 
     private AdminUserDto toDto(User user, GamificationStats stats, Subscription sub) {
         String xp = "0";
-        if (stats != null && stats.getTotalXp() != null) {
-            int totalXp = stats.getTotalXp();
-            if (totalXp >= 1000) {
-                xp = String.format("%.1fk", totalXp / 1000.0).replace(".0k", "k");
-            } else {
-                xp = String.valueOf(totalXp);
+        OffsetDateTime abandonBlockedUntil = null;
+        if (stats != null) {
+            abandonBlockedUntil = stats.getAbandonBlockedUntil();
+            if (stats.getTotalXp() != null) {
+                int totalXp = stats.getTotalXp();
+                if (totalXp >= 1000) {
+                    xp = String.format("%.1fk", totalXp / 1000.0).replace(".0k", "k");
+                } else {
+                    xp = String.valueOf(totalXp);
+                }
             }
         }
 
@@ -179,7 +183,21 @@ public class AdminUserController {
                 .joined(user.getCreatedAt() != null ? user.getCreatedAt().toString() : "")
                 .xp(xp)
                 .currentPeriodEnd(sub != null ? sub.getCurrentPeriodEnd() : null)
+                .abandonBlockedUntil(abandonBlockedUntil)
                 .build();
+    }
+
+    @PostMapping("/{id}/unlock-arena")
+    @Transactional
+    public ResponseEntity<Void> unlockArena(@PathVariable UUID id) {
+        GamificationStats stats = gamificationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Estatísticas não encontradas para o usuário"));
+        
+        stats.setAbandonBlockedUntil(null);
+        stats.setDailyAbandonCount(0);
+        gamificationRepository.save(stats);
+        
+        return ResponseEntity.ok().build();
     }
 
     @Data
@@ -207,5 +225,6 @@ public class AdminUserController {
         private String joined;
         private String xp;
         private java.time.OffsetDateTime currentPeriodEnd;
+        private java.time.OffsetDateTime abandonBlockedUntil;
     }
 }

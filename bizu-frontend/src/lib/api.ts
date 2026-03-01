@@ -17,10 +17,26 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     let deviceFingerprint = "";
     if (typeof window !== "undefined") {
         deviceFingerprint = localStorage.getItem("device_fingerprint") || "";
-        if (!deviceFingerprint && token) {
-            // Se houver token mas não houver fingerprint, algo está errado ou é o primeiro acesso
-            // O AuthProvider deve cuidar de gerar e registrar, mas como fallback:
-            deviceFingerprint = crypto.randomUUID();
+
+        // Se não houver fingerprint ou se for um UUID antigo (formato 8-4-4-4-12),
+        // geramos um novo baseado em hardware para maior segurança.
+        const isLegacyUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(deviceFingerprint);
+
+        if (!deviceFingerprint || isLegacyUUID) {
+            const screenRes = `${window.screen.width}x${window.screen.height}`;
+            const platform = window.navigator.platform;
+            const timezone = Intl ? new Intl.DateTimeFormat().resolvedOptions().timeZone : "unknown";
+            const hardwareConcurrency = window.navigator.hardwareConcurrency || "unknown";
+
+            // Composição simples para o fingerprint
+            const rawFingerprint = `${screenRes}|${platform}|${timezone}|${hardwareConcurrency}`;
+
+            // Usamos um pseudo-hash simples para não precisar de bibliotecas pesadas aqui,
+            // ou apenas o Base64 da composição + um salt aleatório para garantir unicidade inicial
+            // mas mantendo a dependência de hardware.
+            const salt = crypto.randomUUID().substring(0, 8);
+            deviceFingerprint = `hw_${btoa(rawFingerprint).substring(0, 32)}_${salt}`;
+
             localStorage.setItem("device_fingerprint", deviceFingerprint);
         }
     }

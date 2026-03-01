@@ -12,7 +12,9 @@ import {
     Shield,
     ExternalLink,
     Trash2,
-    TrendingUp
+    TrendingUp,
+    Lock,
+    Unlock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -122,6 +124,23 @@ export default function AdminUsuariosPage() {
             } catch (error) {
                 console.error("Failed to delete user", error);
                 alert("Erro ao tentar apagar usuário.", { type: "danger" });
+            }
+        }
+    };
+
+    const handleUnlockArena = async (userId: string, name: string) => {
+        if (await confirm(`Deseja desbloquear o acesso à Arena para ${name || 'este aluno'}?`, { title: "Desbloquear Arena" })) {
+            try {
+                const res = await apiFetch(`/admin/users/${userId}/unlock-arena`, { method: "POST" });
+                if (res.ok) {
+                    alert("Usuário desbloqueado com sucesso!", { type: "success" });
+                    fetchUsers();
+                } else {
+                    alert("Falha ao desbloquear usuário.", { type: "danger" });
+                }
+            } catch (error) {
+                console.error("Failed to unlock arena", error);
+                alert("Erro ao tentar desbloquear Arena.", { type: "danger" });
             }
         }
     };
@@ -253,6 +272,12 @@ export default function AdminUsuariosPage() {
                                                             {user.phone}
                                                         </div>
                                                     )}
+                                                    {user.abandonBlockedUntil && new Date(user.abandonBlockedUntil) > new Date() && (
+                                                        <div className="flex items-center gap-1 mt-1 text-[9px] font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100 w-fit">
+                                                            <Lock className="w-2.5 h-2.5" />
+                                                            BLOQUEADO ARENA
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </td>
@@ -287,6 +312,17 @@ export default function AdminUsuariosPage() {
                                         </td>
                                         <td className="px-8 py-5 text-right">
                                             <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-1 group-hover:translate-x-0">
+                                                {user.abandonBlockedUntil && new Date(user.abandonBlockedUntil) > new Date() && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => handleUnlockArena(user.id, user.name)}
+                                                        className="rounded-lg h-9 w-9 text-amber-500 hover:text-amber-600 hover:bg-amber-50"
+                                                        title="Desbloquear Arena"
+                                                    >
+                                                        <Unlock className="w-4 h-4" />
+                                                    </Button>
+                                                )}
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
@@ -296,7 +332,6 @@ export default function AdminUsuariosPage() {
                                                 >
                                                     <ExternalLink className="w-4 h-4" />
                                                 </Button>
-                                                {/* Permite apagar apenas se não for o próprio admin ou outro usuário admin */}
                                                 {currentUser?.email !== user.email && !user.email?.toLowerCase().includes('admin') && (
                                                     <Button
                                                         variant="ghost"
@@ -415,6 +450,6 @@ export default function AdminUsuariosPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </motion.div>
+        </motion.div >
     );
 }
