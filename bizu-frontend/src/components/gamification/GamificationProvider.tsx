@@ -42,7 +42,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
             // Iniciar exibição
             setCurrentReward(nextReward);
 
-            if (nextReward.xpGained > 0) {
+            if (nextReward.xpGained !== 0) {
                 setShowXP(true);
             }
 
@@ -50,7 +50,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
                 setTimeout(() => {
                     setShowLevelUp(true);
                 }, 1500);
-            } else if (nextReward.xpGained > 0) {
+            } else if (nextReward.xpGained !== 0) {
                 // Se não subir de nível, liberar para o próximo após a animação de XP (3s)
                 setTimeout(() => {
                     setShowXP(false);
@@ -58,7 +58,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
                     setTimeout(() => setIsProcessing(false), 500);
                 }, 3500);
             } else {
-                // Caso não tenha XP nem LevelUp (improvável mas por segurança)
+                // Caso não tenha XP nem LevelUp
                 setIsProcessing(false);
             }
         }

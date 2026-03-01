@@ -183,21 +183,25 @@ public class GamificationService {
         int previousXp = stats.getTotalXp();
         int previousLevel = levelCalculator.calculateLevel(previousXp);
 
-        // Apply XP Boost if active
-        if (stats.getXpBoostUntil() != null && stats.getXpBoostUntil().isAfter(OffsetDateTime.now())) {
+        // Apply XP Boost if active (only for positive amounts)
+        if (amount > 0 && stats.getXpBoostUntil() != null && stats.getXpBoostUntil().isAfter(OffsetDateTime.now())) {
             amount *= 2;
             log.info("XP dobrado para o usuário {} devido ao buff ativo!", userId);
         }
         
-        stats.setTotalXp(previousXp + amount);
+        int newTotalXp = Math.max(0, previousXp + amount);
+        int finalAmount = newTotalXp - previousXp; // Actual change
+        stats.setTotalXp(newTotalXp);
         
-        // Award AxonCoins - 1 coin per 1 XP gained
-        if (amount > 0) {
-            stats.setAxonCoins((stats.getAxonCoins() != null ? stats.getAxonCoins() : 0) + amount);
+        // Award AxonCoins - 1 coin per 1 XP gained (only if positive)
+        if (finalAmount > 0) {
+            stats.setAxonCoins((stats.getAxonCoins() != null ? stats.getAxonCoins() : 0) + finalAmount);
         }
         
-        // Update streak
-        updateStreakLogic(stats);
+        // Update streak (only on gaining XP or activity)
+        if (amount > 0) {
+            updateStreakLogic(stats);
+        }
         
         gamificationRepository.save(stats);
         
@@ -205,9 +209,15 @@ public class GamificationService {
         int currentLevel = levelCalculator.calculateLevel(currentXp);
         boolean leveledUp = currentLevel > previousLevel;
         
-        log.info("Adicionado {} XP ao usuário {}. Total: {}. Nível: {}", amount, userId, currentXp, currentLevel);
+        if (finalAmount < 0) {
+            log.info("Removido {} XP do usuário {}. Total: {}. Nível: {}", Math.abs(finalAmount), userId, currentXp, currentLevel);
+        } else {
+            log.info("Adicionado {} XP ao usuário {}. Total: {}. Nível: {}", finalAmount, userId, currentXp, currentLevel);
+        }
         
-        checkXpBadges(userId, currentXp);
+        if (currentXp > previousXp) {
+            checkXpBadges(userId, currentXp);
+        }
         
         return RewardDTO.builder()
             .xpGained(amount)

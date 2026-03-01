@@ -308,11 +308,11 @@ public class DuelService {
         if (winner != null) {
             gamificationService.addXp(winner.getId(), 100);
             
-            // Recompensa menor para o perdedor
+            // Penalidade para o perdedor
             UUID loserId = duel.getChallenger().getId().equals(winner.getId()) 
                 ? duel.getOpponent().getId() 
                 : duel.getChallenger().getId();
-            gamificationService.addXp(loserId, 25);
+            gamificationService.addXp(loserId, -50);
         } else {
             // Empate
             gamificationService.addXp(duel.getChallenger().getId(), 50);

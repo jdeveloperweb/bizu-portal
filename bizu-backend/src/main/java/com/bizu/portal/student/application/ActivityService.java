@@ -216,9 +216,21 @@ public class ActivityService {
             case OFFICIAL_EXAM -> 50;
             case MODULE_QUIZ -> 20;
         };
+        
+        int penaltyPerError = switch (attempt.getActivityType()) {
+            case OFFICIAL_EXAM -> 10;
+            case MODULE_QUIZ -> 5;
+        };
+
+        int errors = attempt.getTotalQuestions() - attempt.getCorrectAnswers();
+        int totalPenalty = errors * penaltyPerError;
+
         double correctRatio = attempt.getTotalQuestions() > 0
             ? (double) attempt.getCorrectAnswers() / attempt.getTotalQuestions()
             : 0;
-        return (int) (baseXp * (1 + correctRatio));
+            
+        int totalGained = (int) (baseXp * (1 + correctRatio));
+        
+        return totalGained - totalPenalty;
     }
 }

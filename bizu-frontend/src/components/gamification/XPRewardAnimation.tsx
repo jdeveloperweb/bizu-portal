@@ -51,15 +51,19 @@ export default function XPRewardAnimation({ amount, show, onComplete }: XPReward
                         className="flex flex-col items-center gap-4"
                     >
                         {/* Glow effect */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-primary/30 rounded-full blur-3xl" />
+                        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full blur-3xl ${amount > 0 ? "bg-primary/30" : "bg-red-500/30"}`} />
 
-                        <div className="relative bg-primary text-primary-foreground px-8 py-4 rounded-[32px] shadow-[0_20px_50px_rgba(var(--primary),0.4)] flex items-center gap-4 border-4 border-white/20 backdrop-blur-sm">
+                        <div className={`relative ${amount > 0 ? "bg-primary" : "bg-red-500"} text-white px-8 py-4 rounded-[32px] shadow-[0_20px_50px_rgba(var(--primary),0.4)] flex items-center gap-4 border-4 border-white/20 backdrop-blur-sm`}>
                             <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
                                 <Zap className="w-6 h-6 fill-current" />
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Recompensa</span>
-                                <span className="text-4xl font-black tabular-nums">+{amount} XP</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">
+                                    {amount > 0 ? "Recompensa" : "Penalidade"}
+                                </span>
+                                <span className="text-4xl font-black tabular-nums">
+                                    {amount > 0 ? `+${amount}` : amount} XP
+                                </span>
                             </div>
                         </div>
 
@@ -69,8 +73,8 @@ export default function XPRewardAnimation({ amount, show, onComplete }: XPReward
                             transition={{ delay: 0.2 }}
                             className="bg-card/80 backdrop-blur-md border border-white/20 px-4 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-2"
                         >
-                            <Star className="w-3 h-3 text-primary fill-current" />
-                            <span>Mandou bem!</span>
+                            <Star className={`w-3 h-3 fill-current ${amount > 0 ? "text-primary" : "text-red-500"}`} />
+                            <span>{amount > 0 ? "Mandou bem!" : "Não desista!"}</span>
                         </motion.div>
                     </motion.div>
                 </div>
