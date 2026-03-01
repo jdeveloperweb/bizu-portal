@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
-    ArrowRight, BookOpen, GraduationCap, BarChart3,
-    CheckCircle2, Star, Shield, ChevronRight,
-    BookMarked, Target, FileText, Users
+    ArrowRight, Swords, Trophy, Zap, Star,
+    Shield, ChevronRight, GraduationCap,
+    Brain, Sparkles, TrendingUp, Target,
+    BookOpen, FlameIcon, Award, CheckCircle2, Lock
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 
@@ -18,51 +19,26 @@ interface Course {
     themeColor?: string;
 }
 
-/* ─── Animated Counter ─── */
-function StatCounter({ value, suffix = "", label }: { value: number; suffix?: string; label: string }) {
-    const [count, setCount] = useState(0);
-    const ref = useRef<HTMLDivElement>(null);
-    const inView = useInView(ref, { once: true });
-
-    useEffect(() => {
-        if (!inView) return;
-        const duration = 1800;
-        const step = value / (duration / 16);
-        let curr = 0;
-        const timer = setInterval(() => {
-            curr += step;
-            if (curr >= value) { setCount(value); clearInterval(timer); }
-            else setCount(Math.floor(curr));
-        }, 16);
-        return () => clearInterval(timer);
-    }, [inView, value]);
-
-    return (
-        <div ref={ref} className="text-center">
-            <div className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight tabular-nums">
-                {count.toLocaleString("pt-BR")}{suffix}
-            </div>
-            <div className="text-sm text-slate-500 font-medium mt-1.5">{label}</div>
-        </div>
-    );
-}
-
-/* ─── Fade-in on scroll ─── */
+/* ─── Scroll reveal ─── */
 function FadeIn({
     children, delay = 0, className = "", from = "bottom"
 }: {
-    children: React.ReactNode; delay?: number; className?: string; from?: "bottom" | "left" | "right";
+    children: React.ReactNode; delay?: number; className?: string; from?: "bottom" | "left" | "right" | "none";
 }) {
     const ref = useRef<HTMLDivElement>(null);
-    const inView = useInView(ref, { once: true, margin: "-64px" });
-    const initial = from === "left" ? { opacity: 0, x: -32 } : from === "right" ? { opacity: 0, x: 32 } : { opacity: 0, y: 28 };
+    const inView = useInView(ref, { once: true, margin: "-60px" });
+    const initial =
+        from === "left" ? { opacity: 0, x: -28 } :
+        from === "right" ? { opacity: 0, x: 28 } :
+        from === "none" ? { opacity: 0 } :
+        { opacity: 0, y: 24 };
 
     return (
         <motion.div
             ref={ref}
             initial={initial}
             animate={inView ? { opacity: 1, x: 0, y: 0 } : {}}
-            transition={{ duration: 0.65, delay, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
             className={className}
         >
             {children}
@@ -70,83 +46,108 @@ function FadeIn({
     );
 }
 
-/* ─── Static data ─── */
+/* ─── XP bar (decorative) ─── */
+function XPBar({ value, max, color = "#6366F1" }: { value: number; max: number; color?: string }) {
+    const pct = Math.min(100, (value / max) * 100);
+    return (
+        <div className="relative h-2.5 bg-white/10 rounded-full overflow-hidden">
+            <motion.div
+                className="absolute inset-y-0 left-0 rounded-full"
+                style={{ background: color }}
+                initial={{ width: 0 }}
+                animate={{ width: `${pct}%` }}
+                transition={{ duration: 1.2, delay: 0.8, ease: "easeOut" }}
+            />
+        </div>
+    );
+}
+
+/* ─── Floating badge (decorative) ─── */
+function FloatingBadge({
+    icon: Icon, label, color, delay, className
+}: {
+    icon: React.ElementType; label: string; color: string; delay?: number; className?: string;
+}) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: delay ?? 0.8, ease: "backOut" }}
+            className={`absolute flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-3 py-2 shadow-xl ${className}`}
+        >
+            <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: `${color}30` }}>
+                <Icon size={14} style={{ color }} />
+            </div>
+            <span className="text-xs font-bold text-white/90 whitespace-nowrap">{label}</span>
+        </motion.div>
+    );
+}
+
+/* ─── Feature card ─── */
 const FEATURES = [
     {
-        icon: BookMarked,
-        title: "Banco de Questões",
-        desc: "Mais de 50.000 questões comentadas, organizadas por banca e disciplina, atualizadas semanalmente.",
-        color: "text-indigo-600", bg: "bg-indigo-50/80",
+        icon: Swords,
+        title: "Arena de Duelos",
+        desc: "Desafie outros candidatos em tempo real. Questões cronometradas, adrenalina de verdade. Quem acerta mais, sobe no ranking.",
+        accent: "#6366F1",
+        bg: "from-indigo-950/50 to-indigo-900/30",
+        border: "border-indigo-500/20",
+        tag: "PvP em tempo real",
     },
     {
-        icon: BarChart3,
-        title: "Análise de Desempenho",
-        desc: "Métricas precisas por disciplina. Saiba exatamente onde focar para maximizar seu resultado.",
-        color: "text-emerald-600", bg: "bg-emerald-50/80",
+        icon: Zap,
+        title: "XP & Progressão",
+        desc: "Cada questão respondida, cada simulado, cada duelo vencido — tudo vira XP. Suba de nível e desbloqueie conquistas únicas.",
+        accent: "#F59E0B",
+        bg: "from-amber-950/50 to-amber-900/30",
+        border: "border-amber-500/20",
+        tag: "Gamificação real",
     },
     {
-        icon: Target,
-        title: "Simulados Semanais",
-        desc: "Provas inéditas com o mesmo padrão das principais bancas. Treine como se fosse a prova real.",
-        color: "text-amber-600", bg: "bg-amber-50/80",
+        icon: Brain,
+        title: "IA nas Redações",
+        desc: "Envie sua redação e receba uma correção estruturada por IA: competências da banca, pontos fortes e o que exatamente melhorar.",
+        accent: "#10B981",
+        bg: "from-emerald-950/50 to-emerald-900/30",
+        border: "border-emerald-500/20",
+        tag: "IA com propósito",
     },
     {
-        icon: Shield,
-        title: "7 Dias de Garantia",
-        desc: "Experimente sem risco. Se não ficar satisfeito, devolvemos 100% do seu investimento.",
-        color: "text-violet-600", bg: "bg-violet-50/80",
+        icon: Trophy,
+        title: "Ranking Nacional",
+        desc: "Compare seu desempenho com outros candidatos. Veja onde você está no ranking geral e por curso — e trace estratégia para subir.",
+        accent: "#8B5CF6",
+        bg: "from-violet-950/50 to-violet-900/30",
+        border: "border-violet-500/20",
+        tag: "Competição saudável",
     },
 ];
 
-const STEPS = [
+/* ─── Why AI section items ─── */
+const AI_POINTS = [
     {
-        num: "01",
-        title: "Escolha seu Concurso",
-        desc: "Selecione o cargo que deseja conquistar. O conteúdo é adaptado ao seu edital específico.",
+        icon: CheckCircle2,
+        title: "Não é chatbot genérico",
+        desc: "A IA foi treinada para entender os critérios específicos de cada banca. Ela sabe o que o Cespe quer e o que o FCC penaliza.",
     },
     {
-        num: "02",
-        title: "Estude com Método",
-        desc: "Questões, simulados e revisões organizados em trilhas inteligentes de aprendizado progressivo.",
+        icon: CheckCircle2,
+        title: "Feedback acionável",
+        desc: "Você recebe uma nota por competência, os trechos problemáticos destacados e sugestões concretas de melhoria — não frases vagas.",
     },
     {
-        num: "03",
-        title: "Monitore e Ajuste",
-        desc: "Acompanhe sua evolução em tempo real e corrija sua rota antes que seja tarde demais.",
-    },
-];
-
-const TESTIMONIALS = [
-    {
-        name: "Ana Carolina Ferreira",
-        role: "Aprovada — Polícia Federal",
-        text: "Em 6 meses de preparação passei de 58% para 87% nas simulações. O acompanhamento de desempenho foi o diferencial que me faltava.",
-        initials: "AC",
-        bg: "bg-indigo-100",
-        text_: "text-indigo-700",
-    },
-    {
-        name: "Ricardo Mendonça",
-        role: "Aprovado — TRT 3ª Região",
-        text: "Nunca pensei que uma plataforma de estudos pudesse ser tão séria e completa. A qualidade do banco de questões é superior ao que eu já usei.",
-        initials: "RM",
-        bg: "bg-emerald-100",
-        text_: "text-emerald-700",
-    },
-    {
-        name: "Juliana Carvalho",
-        role: "Aprovada — Receita Federal",
-        text: "A metodologia é sólida. Estudei por 8 meses usando a plataforma e cheguei na prova com uma confiança que nunca havia sentido antes.",
-        initials: "JC",
-        bg: "bg-amber-100",
-        text_: "text-amber-700",
+        icon: CheckCircle2,
+        title: "Mais rápido que esperar professor",
+        desc: "Resultado em segundos. Corrija, reescreva e submeta novamente quantas vezes quiser, no seu ritmo.",
     },
 ];
 
-/* ═══════════════════════════════════════════════ */
+/* ─── Courses ─── */
+
 export default function Hero() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
+    const [duelTick, setDuelTick] = useState(0);
 
     useEffect(() => {
         const api = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
@@ -157,122 +158,149 @@ export default function Hero() {
             .finally(() => setLoading(false));
     }, []);
 
+    // Cycle through "duel" scores in the mockup
+    useEffect(() => {
+        const t = setInterval(() => setDuelTick((n) => (n + 1) % 3), 3200);
+        return () => clearInterval(t);
+    }, []);
+
+    const duelScores = [
+        { you: 7, opp: 5 },
+        { you: 4, opp: 4 },
+        { you: 9, opp: 6 },
+    ];
+    const { you, opp } = duelScores[duelTick];
+
     return (
-        <div className="relative bg-white overflow-x-hidden font-sans selection:bg-indigo-100 selection:text-indigo-900">
+        <div className="relative bg-[#020617] overflow-x-hidden font-sans selection:bg-indigo-500/30 selection:text-indigo-100">
 
             {/* ══════════════════════════
-                HERO
+                HERO — dark, energetic
             ══════════════════════════ */}
-            <section className="relative min-h-screen flex items-center pt-20 pb-20 overflow-hidden">
+            <section className="relative min-h-screen flex items-center pt-24 pb-20 overflow-hidden">
 
-                {/* Background layers */}
+                {/* Layered dark background */}
                 <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
-                        backgroundImage: "linear-gradient(to right,#e2e8f0 1px,transparent 1px),linear-gradient(to bottom,#e2e8f0 1px,transparent 1px)",
-                        backgroundSize: "56px 56px",
-                        maskImage: "radial-gradient(ellipse 70% 60% at 50% 0%,#000 60%,transparent 100%)",
-                        opacity: 0.28,
+                        backgroundImage:
+                            "linear-gradient(to right,rgba(99,102,241,0.04) 1px,transparent 1px)," +
+                            "linear-gradient(to bottom,rgba(99,102,241,0.04) 1px,transparent 1px)",
+                        backgroundSize: "60px 60px",
                     }}
                 />
-                <div className="absolute -top-32 right-[-10%] w-[700px] h-[700px] rounded-full bg-indigo-50 blur-[130px] opacity-70 pointer-events-none" />
-                <div className="absolute top-1/2 -left-24 w-[400px] h-[400px] rounded-full bg-slate-100 blur-[100px] opacity-50 pointer-events-none" />
+                {/* Glow */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full opacity-20 blur-[120px] pointer-events-none"
+                    style={{ background: "radial-gradient(circle, #6366F1 0%, transparent 70%)" }} />
+                <div className="absolute top-32 right-0 w-[400px] h-[400px] rounded-full opacity-10 blur-[100px] pointer-events-none"
+                    style={{ background: "#F59E0B" }} />
+                <div className="absolute bottom-0 left-0 w-[400px] h-[300px] rounded-full opacity-10 blur-[100px] pointer-events-none"
+                    style={{ background: "#8B5CF6" }} />
 
                 <div className="relative container mx-auto px-6 z-10 max-w-7xl">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
-                        {/* Left — copy */}
+                        {/* ── Left: copy ── */}
                         <div>
-                            {/* Eyebrow */}
+                            {/* Badge */}
                             <motion.div
-                                initial={{ opacity: 0, y: 14 }}
+                                initial={{ opacity: 0, y: 12 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5 }}
-                                className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-700 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-8"
+                                className="inline-flex items-center gap-2 mb-8 px-4 py-1.5 rounded-full border text-xs font-bold uppercase tracking-widest"
+                                style={{
+                                    background: "rgba(99,102,241,0.12)",
+                                    borderColor: "rgba(99,102,241,0.3)",
+                                    color: "#A5B4FC",
+                                }}
                             >
-                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                                Plataforma #1 para Concursos
+                                <Sparkles size={12} />
+                                Acesso Antecipado — Seja dos Primeiros
                             </motion.div>
 
                             {/* Headline */}
                             <motion.h1
-                                initial={{ opacity: 0, y: 28 }}
+                                initial={{ opacity: 0, y: 32 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.75, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                                className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-slate-900 leading-[1.05] tracking-tight mb-8"
+                                transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                                className="text-5xl sm:text-6xl md:text-7xl font-extrabold leading-[1.05] tracking-tight mb-6 text-white"
                             >
-                                Sua aprovação,{" "}
-                                <span className="relative inline-block whitespace-nowrap">
-                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">
-                                        planejada.
-                                    </span>
-                                    {/* Decorative underline */}
-                                    <svg
-                                        className="absolute -bottom-1.5 left-0 w-full"
-                                        height="6"
-                                        viewBox="0 0 280 6"
-                                        fill="none"
-                                        preserveAspectRatio="none"
-                                        aria-hidden
-                                    >
-                                        <path
-                                            d="M2 4 Q70 1 140 4 Q210 7 278 4"
-                                            stroke="#818CF8"
-                                            strokeWidth="2"
-                                            fill="none"
-                                            strokeLinecap="round"
-                                            opacity="0.5"
-                                        />
-                                    </svg>
+                                Estude.{" "}
+                                <span
+                                    className="block"
+                                    style={{
+                                        backgroundImage: "linear-gradient(135deg, #818CF8 0%, #6366F1 40%, #A78BFA 100%)",
+                                        WebkitBackgroundClip: "text",
+                                        WebkitTextFillColor: "transparent",
+                                        backgroundClip: "text",
+                                    }}
+                                >
+                                    Compita.
                                 </span>
+                                Evolua.
                             </motion.h1>
 
                             {/* Sub */}
                             <motion.p
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.65, delay: 0.22, ease: "easeOut" }}
-                                className="text-lg md:text-xl text-slate-600 leading-relaxed font-medium max-w-lg mb-10"
+                                transition={{ duration: 0.65, delay: 0.22 }}
+                                className="text-lg md:text-xl leading-relaxed font-medium max-w-lg mb-10"
+                                style={{ color: "#94A3B8" }}
                             >
-                                A plataforma séria que transforma sua preparação para concursos em resultados reais. Método comprovado, conteúdo atualizado, análise inteligente.
+                                Uma plataforma nova que une preparação séria para concursos com a dinâmica de um jogo competitivo. XP, duelos, ranking e correção de redações por IA — onde a IA realmente faz diferença.
                             </motion.p>
 
                             {/* CTAs */}
                             <motion.div
-                                initial={{ opacity: 0, y: 20 }}
+                                initial={{ opacity: 0, y: 16 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.6, delay: 0.34, ease: "easeOut" }}
+                                transition={{ duration: 0.6, delay: 0.34 }}
                                 className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-10"
                             >
                                 <Link href="/register">
-                                    <button className="group flex items-center justify-center gap-2.5 px-8 h-14 rounded-2xl text-[15px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/35 hover:-translate-y-0.5 transition-all duration-200 w-full sm:w-auto">
-                                        Começar agora
-                                        <ArrowRight size={17} className="group-hover:translate-x-1 transition-transform duration-200" />
+                                    <button
+                                        className="group flex items-center justify-center gap-2.5 px-8 h-14 rounded-2xl text-[15px] font-bold text-white transition-all duration-200 hover:-translate-y-0.5 w-full sm:w-auto"
+                                        style={{
+                                            background: "linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)",
+                                            boxShadow: "0 8px 32px rgba(99,102,241,0.4)",
+                                        }}
+                                    >
+                                        Garantir meu acesso
+                                        <ArrowRight size={17} className="group-hover:translate-x-1 transition-transform" />
                                     </button>
                                 </Link>
                                 <Link href="/pricing">
-                                    <button className="flex items-center justify-center gap-2 px-8 h-14 rounded-2xl text-[15px] font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 shadow-sm hover:-translate-y-0.5 transition-all duration-200 w-full sm:w-auto">
+                                    <button
+                                        className="flex items-center justify-center gap-2 px-8 h-14 rounded-2xl text-[15px] font-bold transition-all duration-200 hover:-translate-y-0.5 w-full sm:w-auto"
+                                        style={{
+                                            background: "rgba(255,255,255,0.06)",
+                                            border: "1px solid rgba(255,255,255,0.12)",
+                                            color: "#CBD5E1",
+                                        }}
+                                    >
                                         Ver cursos e planos
                                     </button>
                                 </Link>
                             </motion.div>
 
-                            {/* Trust signals */}
+                            {/* Honest trust signals */}
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                transition={{ duration: 0.6, delay: 0.5 }}
-                                className="flex flex-wrap items-center gap-5 text-sm text-slate-500 font-medium"
+                                transition={{ delay: 0.55 }}
+                                className="flex flex-wrap items-center gap-5 text-sm font-medium"
+                                style={{ color: "#64748B" }}
                             >
                                 {[
-                                    { icon: CheckCircle2, text: "7 dias de garantia" },
-                                    { icon: Shield, text: "Pagamento seguro" },
-                                    { icon: Star, text: "4.9 / 5 estrelas" },
+                                    { icon: Shield, text: "7 dias de garantia" },
+                                    { icon: Zap, text: "Plataforma em crescimento" },
+                                    { icon: Star, text: "Metodologia inovadora" },
                                 ].map((item) => {
                                     const Icon = item.icon;
                                     return (
                                         <div key={item.text} className="flex items-center gap-1.5">
-                                            <Icon size={14} className="text-emerald-500 shrink-0" />
+                                            <Icon size={14} className="text-indigo-400 shrink-0" />
                                             {item.text}
                                         </div>
                                     );
@@ -280,110 +308,207 @@ export default function Hero() {
                             </motion.div>
                         </div>
 
-                        {/* Right — visual proof card */}
-                        <motion.div
-                            initial={{ opacity: 0, x: 40 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                            className="hidden lg:block"
-                        >
-                            <div
-                                className="relative rounded-[2.5rem] bg-white border border-slate-200/80 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.08),0_0_0_1px_rgba(255,255,255,0.5)] overflow-hidden"
+                        {/* ── Right: game mockup ── */}
+                        <div className="hidden lg:flex justify-center relative">
+                            {/* Floating badges */}
+                            <FloatingBadge icon={FlameIcon} label="🔥 12 dias de streak" color="#F59E0B" delay={1.1} className="-top-4 left-4" />
+                            <FloatingBadge icon={Award} label="Nova conquista!" color="#A78BFA" delay={1.3} className="-bottom-4 right-4" />
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 32 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                                className="relative w-full max-w-sm"
                                 style={{ animation: "float 7s ease-in-out infinite" }}
                             >
-                                {/* Header bar */}
-                                <div className="flex items-center gap-2 px-6 py-4 bg-slate-50/80 border-b border-slate-100">
-                                    <div className="flex gap-2">
-                                        {["bg-red-300", "bg-amber-300", "bg-emerald-300"].map((c) => (
-                                            <div key={c} className={`w-3 h-3 rounded-full ${c}`} />
-                                        ))}
-                                    </div>
-                                    <div className="flex-1 flex justify-center">
-                                        <div className="flex items-center gap-2 bg-white rounded-lg px-4 py-1.5 border border-slate-200/60 text-[11px] text-slate-400 font-medium">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-                                            bizu.academy.com.br/dashboard
+                                <div
+                                    className="rounded-[2rem] overflow-hidden border"
+                                    style={{
+                                        background: "rgba(15,23,42,0.85)",
+                                        backdropFilter: "blur(24px)",
+                                        borderColor: "rgba(99,102,241,0.25)",
+                                        boxShadow: "0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.1), inset 0 1px 0 rgba(255,255,255,0.05)",
+                                    }}
+                                >
+                                    {/* Header */}
+                                    <div
+                                        className="flex items-center justify-between px-5 py-4 border-b"
+                                        style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.2)" }}
+                                    >
+                                        <div className="flex items-center gap-2.5">
+                                            <div
+                                                className="w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm text-white"
+                                                style={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)" }}
+                                            >B!</div>
+                                            <span className="text-sm font-bold text-white/80">Bizu Academy</span>
                                         </div>
-                                    </div>
-                                </div>
-
-                                {/* Dashboard mockup */}
-                                <div className="p-7 space-y-5 bg-slate-50/30">
-                                    {/* Welcome */}
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <div className="text-base font-bold text-slate-800">Bom dia, Mariana ☀️</div>
-                                            <div className="text-xs text-slate-400 font-medium mt-0.5">Continue sua preparação de hoje</div>
-                                        </div>
-                                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 rounded-xl border border-amber-100">
-                                            <span className="text-base leading-none">🔥</span>
-                                            <span className="text-xs font-bold text-amber-700">21 dias</span>
+                                        <div className="flex items-center gap-1.5 bg-amber-500/15 border border-amber-500/25 px-3 py-1 rounded-full">
+                                            <Zap size={11} className="text-amber-400" />
+                                            <span className="text-xs font-bold text-amber-300">2.840 XP</span>
                                         </div>
                                     </div>
 
-                                    {/* Stats row */}
-                                    <div className="grid grid-cols-3 gap-3">
-                                        {[
-                                            { l: "Questões", v: "2.341", c: "text-indigo-600", bg: "bg-indigo-50" },
-                                            { l: "Acertos", v: "84%", c: "text-emerald-600", bg: "bg-emerald-50" },
-                                            { l: "Ranking", v: "#18", c: "text-amber-600", bg: "bg-amber-50" },
-                                        ].map((s) => (
-                                            <div key={s.l} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-                                                <div className={`text-xl font-extrabold ${s.c} mb-0.5`}>{s.v}</div>
-                                                <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">{s.l}</div>
+                                    <div className="p-5 space-y-4">
+                                        {/* Player profile */}
+                                        <div className="flex items-center gap-3">
+                                            <div
+                                                className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-sm shrink-0"
+                                                style={{ background: "linear-gradient(135deg,#6366F1,#8B5CF6)" }}
+                                            >
+                                                MF
                                             </div>
-                                        ))}
-                                    </div>
-
-                                    {/* Progress bars */}
-                                    <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-                                        <div className="text-[12px] font-bold text-slate-700 mb-4">Desempenho por Disciplina</div>
-                                        <div className="space-y-3.5">
-                                            {[
-                                                { n: "Língua Portuguesa", p: 91, c: "bg-emerald-400" },
-                                                { n: "Dir. Constitucional", p: 76, c: "bg-indigo-400" },
-                                                { n: "Raciocínio Lógico", p: 62, c: "bg-amber-400" },
-                                            ].map((s) => (
-                                                <div key={s.n}>
-                                                    <div className="flex justify-between text-[11px] font-semibold mb-1.5">
-                                                        <span className="text-slate-500">{s.n}</span>
-                                                        <span className="text-slate-700">{s.p}%</span>
-                                                    </div>
-                                                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                        <div className={`h-full ${s.c} rounded-full`} style={{ width: `${s.p}%` }} />
-                                                    </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-sm font-bold text-white">Mariana Fonseca</span>
+                                                    <span
+                                                        className="text-[10px] font-black px-2 py-0.5 rounded-full"
+                                                        style={{ background: "rgba(99,102,241,0.2)", color: "#A5B4FC" }}
+                                                    >
+                                                        Nível 7
+                                                    </span>
                                                 </div>
-                                            ))}
+                                                <XPBar value={2840} max={4000} color="#6366F1" />
+                                                <div className="flex justify-between text-[10px] font-medium mt-1" style={{ color: "#64748B" }}>
+                                                    <span>2.840 XP</span>
+                                                    <span>4.000 XP</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Next exam */}
-                                    <div className="flex items-center gap-4 bg-slate-900 rounded-2xl px-5 py-4 text-white">
-                                        <div className="w-10 h-10 rounded-xl bg-indigo-600/30 flex items-center justify-center shrink-0">
-                                            <FileText size={18} className="text-indigo-300" />
+                                        {/* Arena duel */}
+                                        <div
+                                            className="rounded-2xl p-4 border"
+                                            style={{
+                                                background: "rgba(99,102,241,0.08)",
+                                                borderColor: "rgba(99,102,241,0.2)",
+                                            }}
+                                        >
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <Swords size={13} className="text-indigo-400" />
+                                                <span className="text-xs font-bold uppercase tracking-widest text-indigo-400">Arena Ativa</span>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <div className="text-center">
+                                                    <div className="text-2xl font-black text-white">{you}</div>
+                                                    <div className="text-[10px] text-indigo-300 font-semibold">Você</div>
+                                                </div>
+                                                <div
+                                                    className="px-4 py-1.5 rounded-xl text-xs font-black"
+                                                    style={{ background: "rgba(99,102,241,0.2)", color: "#818CF8" }}
+                                                >
+                                                    VS
+                                                </div>
+                                                <div className="text-center">
+                                                    <div className="text-2xl font-black text-white/60">{opp}</div>
+                                                    <div className="text-[10px] text-slate-500 font-semibold">Rival</div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="text-[11px] text-slate-400 font-medium mb-0.5">Próximo Simulado</div>
-                                            <div className="text-sm font-bold truncate">Policial Federal #31</div>
+
+                                        {/* Badges row */}
+                                        <div>
+                                            <div className="text-[11px] font-bold uppercase tracking-wider mb-2.5" style={{ color: "#475569" }}>
+                                                Conquistas recentes
+                                            </div>
+                                            <div className="flex gap-2">
+                                                {[
+                                                    { color: "#F59E0B", icon: "🔥", label: "Sequência 10" },
+                                                    { color: "#10B981", icon: "🎯", label: "Sniper" },
+                                                    { color: "#6366F1", icon: "⚡", label: "Veloz" },
+                                                    { color: "#8B5CF6", icon: "🏆", label: "Top 3" },
+                                                ].map((b) => (
+                                                    <div
+                                                        key={b.label}
+                                                        title={b.label}
+                                                        className="w-10 h-10 rounded-xl flex items-center justify-center text-lg cursor-default"
+                                                        style={{ background: `${b.color}20`, border: `1px solid ${b.color}30` }}
+                                                    >
+                                                        {b.icon}
+                                                    </div>
+                                                ))}
+                                                <div
+                                                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                                                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+                                                >
+                                                    <Lock size={12} style={{ color: "#475569" }} />
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="text-[11px] font-bold text-indigo-300 shrink-0">Sáb 10h</div>
+
+                                        {/* Ranking */}
+                                        <div
+                                            className="flex items-center justify-between rounded-2xl px-4 py-3 border"
+                                            style={{ background: "rgba(245,158,11,0.07)", borderColor: "rgba(245,158,11,0.15)" }}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <Trophy size={14} className="text-amber-400" />
+                                                <span className="text-xs font-bold text-amber-300">Ranking Semanal</span>
+                                            </div>
+                                            <span className="text-sm font-black text-amber-400">#12</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </motion.div>
+                            </motion.div>
+                        </div>
                     </div>
                 </div>
             </section>
 
             {/* ══════════════════════════
-                STATS BAR
+                O QUE NOS DIFERENCIA
             ══════════════════════════ */}
-            <section className="border-y border-slate-100 bg-slate-50/60 py-12">
+            <section className="py-24 bg-white">
                 <div className="container mx-auto px-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto divide-x-0 md:divide-x divide-slate-200">
-                        <StatCounter value={28000} suffix="+" label="Alunos ativos" />
-                        <StatCounter value={50000} suffix="+" label="Questões no banco" />
-                        <StatCounter value={87} suffix="%" label="Taxa de aprovação" />
-                        <StatCounter value={200} suffix="+" label="Simulados realizados" />
+                    <FadeIn className="text-center mb-14">
+                        <span className="text-indigo-600 text-xs font-bold uppercase tracking-[0.2em] mb-3 inline-block">
+                            Nossa proposta
+                        </span>
+                        <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-5 tracking-tight">
+                            Estudar ficou{" "}
+                            <span
+                                className="text-transparent bg-clip-text"
+                                style={{ backgroundImage: "linear-gradient(135deg, #6366F1, #8B5CF6)" }}
+                            >
+                                diferente
+                            </span>
+                        </h2>
+                        <p className="text-slate-500 text-lg max-w-xl mx-auto leading-relaxed">
+                            Não somos mais uma plataforma de questões. Transformamos sua preparação em uma experiência competitiva e evolutiva — onde cada sessão de estudo importa de verdade.
+                        </p>
+                    </FadeIn>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-5xl mx-auto">
+                        {FEATURES.map((f, i) => {
+                            const Icon = f.icon;
+                            return (
+                                <FadeIn key={f.title} delay={i * 0.08}>
+                                    <div
+                                        className={`group relative rounded-3xl border p-8 overflow-hidden hover:-translate-y-1.5 transition-all duration-300 bg-gradient-to-br ${f.bg} ${f.border}`}
+                                        style={{ background: "#0F172A" }}
+                                    >
+                                        {/* accent glow */}
+                                        <div
+                                            className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-[60px] opacity-20 pointer-events-none transition-opacity duration-300 group-hover:opacity-35"
+                                            style={{ background: f.accent }}
+                                        />
+                                        <div
+                                            className="w-13 h-13 w-12 h-12 rounded-2xl flex items-center justify-center mb-5"
+                                            style={{ background: `${f.accent}20`, border: `1px solid ${f.accent}30` }}
+                                        >
+                                            <Icon size={22} style={{ color: f.accent }} />
+                                        </div>
+                                        <div
+                                            className="text-[10px] font-black uppercase tracking-widest mb-2 px-2.5 py-1 rounded-full inline-block"
+                                            style={{ background: `${f.accent}18`, color: f.accent }}
+                                        >
+                                            {f.tag}
+                                        </div>
+                                        <h3 className="text-xl font-bold text-white mb-3 mt-2">{f.title}</h3>
+                                        <p className="text-sm leading-relaxed" style={{ color: "#94A3B8" }}>{f.desc}</p>
+                                    </div>
+                                </FadeIn>
+                            );
+                        })}
                     </div>
                 </div>
             </section>
@@ -391,68 +516,67 @@ export default function Hero() {
             {/* ══════════════════════════
                 CURSOS (API)
             ══════════════════════════ */}
-            <section className="py-24 bg-white">
+            <section className="py-24 bg-slate-50">
                 <div className="container mx-auto px-6">
                     <FadeIn className="text-center mb-14">
                         <span className="text-indigo-600 text-xs font-bold uppercase tracking-[0.2em] mb-3 inline-block">
-                            Nossos Cursos
+                            Cursos disponíveis
                         </span>
-                        <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">
-                            Escolha sua jornada
+                        <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-5 tracking-tight">
+                            Escolha sua arena
                         </h2>
-                        <p className="text-slate-500 text-lg max-w-lg mx-auto leading-relaxed">
-                            Cada curso é desenvolvido com foco total no edital. Conteúdo atualizado e metodologia comprovada.
+                        <p className="text-slate-500 text-lg max-w-md mx-auto">
+                            Cada curso tem seu próprio ranking, trilha de questões e simulados. Escolha o seu e comece a competir.
                         </p>
                     </FadeIn>
 
                     {loading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
                             {[1, 2, 3].map((i) => (
-                                <div key={i} className="h-52 rounded-3xl bg-slate-100 animate-pulse" />
+                                <div key={i} className="h-52 rounded-3xl bg-slate-200 animate-pulse" />
                             ))}
                         </div>
                     ) : courses.length === 0 ? (
-                        <FadeIn className="text-center py-16 bg-slate-50 rounded-[2.5rem] max-w-lg mx-auto border border-dashed border-slate-200">
-                            <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center mx-auto mb-5">
-                                <BookOpen size={28} className="text-slate-400" />
+                        <FadeIn className="text-center py-16 max-w-lg mx-auto">
+                            <div className="w-16 h-16 rounded-3xl bg-indigo-50 flex items-center justify-center mx-auto mb-5">
+                                <BookOpen size={28} className="text-indigo-400" />
                             </div>
-                            <h3 className="text-lg font-bold text-slate-700 mb-2">Cursos em breve</h3>
-                            <p className="text-slate-500 text-sm">Estamos preparando algo incrível. Fique de olho!</p>
+                            <h3 className="text-lg font-bold text-slate-700 mb-2">Cursos chegando em breve</h3>
+                            <p className="text-slate-500 text-sm">Estamos montando as primeiras arenas. Crie sua conta para ser avisado.</p>
+                            <Link href="/register" className="inline-flex items-center gap-2 mt-5 px-6 py-2.5 rounded-2xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
+                                Criar conta <ArrowRight size={14} />
+                            </Link>
                         </FadeIn>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
                             {courses.map((course, i) => {
                                 const accent = course.themeColor || "#6366F1";
                                 return (
                                     <FadeIn key={course.id} delay={i * 0.07}>
                                         <Link href={`/pricing?courseId=${course.id}`} className="block h-full group">
-                                            <div className="relative h-full bg-white rounded-3xl border border-slate-100 p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 overflow-hidden">
-                                                {/* top accent strip */}
+                                            <div className="relative h-full bg-white rounded-3xl border border-slate-100 p-7 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 overflow-hidden">
+                                                {/* top accent */}
                                                 <div
-                                                    className="absolute top-0 left-8 right-8 h-[3px] rounded-b-full"
+                                                    className="absolute top-0 left-6 right-6 h-[3px] rounded-b-full"
                                                     style={{ background: accent, opacity: 0.7 }}
                                                 />
                                                 {/* icon */}
                                                 <div
-                                                    className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300"
-                                                    style={{ background: `${accent}18` }}
+                                                    className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-105 transition-transform duration-300"
+                                                    style={{ background: `${accent}15` }}
                                                 >
                                                     <GraduationCap size={26} style={{ color: accent }} />
                                                 </div>
-
-                                                <h3 className="text-xl font-bold text-slate-900 mb-3 leading-snug">{course.title}</h3>
+                                                <h3 className="text-xl font-bold text-slate-900 mb-2.5 leading-snug">{course.title}</h3>
                                                 {course.description && (
-                                                    <p className="text-sm text-slate-500 leading-relaxed mb-6 line-clamp-2">
-                                                        {course.description}
-                                                    </p>
+                                                    <p className="text-sm text-slate-500 leading-relaxed mb-5 line-clamp-2">{course.description}</p>
                                                 )}
-
                                                 <div
-                                                    className="flex items-center gap-1.5 text-sm font-bold mt-auto"
+                                                    className="flex items-center gap-1.5 text-sm font-bold"
                                                     style={{ color: accent }}
                                                 >
-                                                    Ver planos
-                                                    <ChevronRight size={15} className="group-hover:translate-x-1 transition-transform duration-200" />
+                                                    Entrar na arena
+                                                    <ChevronRight size={15} className="group-hover:translate-x-1 transition-transform" />
                                                 </div>
                                             </div>
                                         </Link>
@@ -465,75 +589,190 @@ export default function Hero() {
             </section>
 
             {/* ══════════════════════════
-                HOW IT WORKS
+                IA NAS REDAÇÕES — spotlight
             ══════════════════════════ */}
             <section className="py-24 bg-slate-900 relative overflow-hidden">
-                {/* Background grid */}
                 <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
-                        backgroundImage: "linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(to right,rgba(255,255,255,0.03) 1px,transparent 1px)",
+                        backgroundImage:
+                            "linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px)," +
+                            "linear-gradient(to right,rgba(255,255,255,0.025) 1px,transparent 1px)",
                         backgroundSize: "48px 48px",
                     }}
                 />
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[250px] bg-indigo-600/8 rounded-full blur-[120px] pointer-events-none" />
+                <div
+                    className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[140px] opacity-10 pointer-events-none"
+                    style={{ background: "#10B981" }}
+                />
 
-                <div className="relative container mx-auto px-6">
-                    <FadeIn className="text-center mb-16">
-                        <span className="text-indigo-400 text-xs font-bold uppercase tracking-[0.2em] mb-3 inline-block">
-                            Metodologia
-                        </span>
-                        <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
-                            Como funciona
-                        </h2>
-                        <p className="text-slate-400 text-lg max-w-md mx-auto">
-                            Três etapas simples, resultado extraordinário.
-                        </p>
-                    </FadeIn>
+                <div className="relative container mx-auto px-6 max-w-6xl">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-5xl mx-auto relative">
-                        {/* connector line */}
-                        <div className="hidden md:block absolute top-11 left-[19%] right-[19%] h-px bg-gradient-to-r from-transparent via-indigo-500/25 to-transparent pointer-events-none" />
+                        {/* Left: copy */}
+                        <FadeIn from="left">
+                            <div className="inline-flex items-center gap-2 mb-5 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest"
+                                style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)", color: "#6EE7B7" }}>
+                                <Brain size={12} />
+                                IA com propósito real
+                            </div>
+                            <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-6 tracking-tight leading-tight">
+                                Correção de redação<br />
+                                <span style={{ color: "#10B981" }}>que realmente ensina</span>
+                            </h2>
+                            <p className="text-lg leading-relaxed mb-8" style={{ color: "#94A3B8" }}>
+                                Muita plataforma usa IA como enfeite. A gente usou onde faz sentido: na correção de redações. Receba um feedback detalhado, por competência, sem esperar dias por um professor.
+                            </p>
 
-                        {STEPS.map((step, i) => (
-                            <FadeIn key={step.num} delay={i * 0.1} className="text-center">
-                                <div className="w-[88px] h-[88px] rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm flex items-center justify-center mx-auto mb-7">
-                                    <span className="text-4xl font-black text-indigo-400/50 tabular-nums">{step.num}</span>
+                            <div className="space-y-5">
+                                {AI_POINTS.map((point) => (
+                                    <div key={point.title} className="flex gap-4">
+                                        <div className="mt-0.5 shrink-0">
+                                            <CheckCircle2 size={18} className="text-emerald-400" />
+                                        </div>
+                                        <div>
+                                            <div className="text-white font-bold mb-1">{point.title}</div>
+                                            <div className="text-sm leading-relaxed" style={{ color: "#94A3B8" }}>{point.desc}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </FadeIn>
+
+                        {/* Right: mock correction card */}
+                        <FadeIn from="right" delay={0.1}>
+                            <div
+                                className="rounded-3xl border overflow-hidden"
+                                style={{
+                                    background: "rgba(15,23,42,0.8)",
+                                    borderColor: "rgba(16,185,129,0.2)",
+                                    backdropFilter: "blur(16px)",
+                                    boxShadow: "0 24px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(16,185,129,0.08)",
+                                }}
+                            >
+                                {/* Header */}
+                                <div
+                                    className="px-6 py-4 border-b flex items-center gap-2"
+                                    style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.25)" }}
+                                >
+                                    <Brain size={16} className="text-emerald-400" />
+                                    <span className="text-sm font-bold text-white/80">Resultado da Correção</span>
+                                    <div className="ml-auto px-2.5 py-1 rounded-full text-[10px] font-black"
+                                        style={{ background: "rgba(16,185,129,0.2)", color: "#6EE7B7" }}>
+                                        Concluído
+                                    </div>
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
-                                <p className="text-slate-400 text-[15px] leading-relaxed max-w-xs mx-auto">{step.desc}</p>
-                            </FadeIn>
-                        ))}
+
+                                <div className="p-6 space-y-5">
+                                    {/* Score */}
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-semibold" style={{ color: "#64748B" }}>Nota geral</span>
+                                        <span className="text-3xl font-black text-white">760<span className="text-lg text-emerald-400">/1000</span></span>
+                                    </div>
+
+                                    {/* Competências */}
+                                    {[
+                                        { label: "Competência I — Domínio da norma culta", score: 160, max: 200, color: "#10B981" },
+                                        { label: "Competência II — Compreensão do tema", score: 160, max: 200, color: "#6366F1" },
+                                        { label: "Competência III — Argumentação", score: 140, max: 200, color: "#F59E0B" },
+                                        { label: "Competência IV — Coesão textual", score: 160, max: 200, color: "#8B5CF6" },
+                                        { label: "Competência V — Proposta de intervenção", score: 140, max: 200, color: "#EC4899" },
+                                    ].map((c) => (
+                                        <div key={c.label}>
+                                            <div className="flex justify-between text-[11px] font-semibold mb-1.5" style={{ color: "#64748B" }}>
+                                                <span className="truncate pr-2">{c.label}</span>
+                                                <span className="shrink-0" style={{ color: c.color }}>{c.score}/{c.max}</span>
+                                            </div>
+                                            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                                                <motion.div
+                                                    className="h-full rounded-full"
+                                                    style={{ background: c.color }}
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${(c.score / c.max) * 100}%` }}
+                                                    transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {/* Feedback snippet */}
+                                    <div
+                                        className="rounded-2xl p-4 border text-sm leading-relaxed"
+                                        style={{
+                                            background: "rgba(16,185,129,0.06)",
+                                            borderColor: "rgba(16,185,129,0.15)",
+                                            color: "#94A3B8",
+                                        }}
+                                    >
+                                        <span className="text-emerald-400 font-bold">Ponto de melhoria: </span>
+                                        Sua proposta de intervenção menciona o agente, mas não especifica a ação nem o meio de execução. Adicione essas informações para atingir a nota máxima nessa competência.
+                                    </div>
+                                </div>
+                            </div>
+                        </FadeIn>
                     </div>
                 </div>
             </section>
 
             {/* ══════════════════════════
-                FEATURES
+                HOW IT WORKS
             ══════════════════════════ */}
             <section className="py-24 bg-white">
                 <div className="container mx-auto px-6">
                     <FadeIn className="text-center mb-14">
                         <span className="text-indigo-600 text-xs font-bold uppercase tracking-[0.2em] mb-3 inline-block">
-                            Por que o Bizu Academy
+                            Como funciona
                         </span>
-                        <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">
-                            Tudo que você precisa,<br className="hidden sm:block" /> em um só lugar
+                        <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-5 tracking-tight">
+                            Simples de entrar,<br className="hidden sm:block" /> difícil de parar
                         </h2>
                     </FadeIn>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
-                        {FEATURES.map((f, i) => {
-                            const Icon = f.icon;
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto relative">
+                        {/* connector */}
+                        <div className="hidden md:block absolute top-10 left-[22%] right-[22%] h-px pointer-events-none"
+                            style={{ background: "linear-gradient(to right,transparent,rgba(99,102,241,0.3),transparent)" }} />
+
+                        {[
+                            {
+                                num: "01",
+                                icon: GraduationCap,
+                                title: "Escolha seu concurso",
+                                desc: "Selecione o cargo que quer conquistar. Todo o conteúdo — questões, simulados e ranking — é do seu edital.",
+                                color: "#6366F1",
+                            },
+                            {
+                                num: "02",
+                                icon: Swords,
+                                title: "Estude competindo",
+                                desc: "Responda questões, entre na Arena de Duelos, ganhe XP e suba de nível. Estudar nunca foi tão motivador.",
+                                color: "#F59E0B",
+                            },
+                            {
+                                num: "03",
+                                icon: TrendingUp,
+                                title: "Monitore sua evolução",
+                                desc: "Acompanhe seu desempenho por disciplina, sua posição no ranking e o que ainda falta dominar.",
+                                color: "#10B981",
+                            },
+                        ].map((step, i) => {
+                            const Icon = step.icon;
                             return (
-                                <FadeIn key={f.title} delay={i * 0.07}>
-                                    <div className="group p-7 rounded-3xl border border-slate-100 bg-slate-50/60 hover:bg-white hover:shadow-lg hover:border-slate-200 hover:-translate-y-1 transition-all duration-300 h-full">
-                                        <div className={`w-12 h-12 rounded-2xl ${f.bg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                                            <Icon size={22} className={f.color} />
+                                <FadeIn key={step.num} delay={i * 0.1} className="text-center">
+                                    <div
+                                        className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 relative"
+                                        style={{ background: `${step.color}12`, border: `1px solid ${step.color}25` }}
+                                    >
+                                        <Icon size={30} style={{ color: step.color }} />
+                                        <div
+                                            className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black text-white"
+                                            style={{ background: step.color }}
+                                        >
+                                            {i + 1}
                                         </div>
-                                        <h3 className="text-[15px] font-bold text-slate-900 mb-2.5 leading-snug">{f.title}</h3>
-                                        <p className="text-sm text-slate-500 leading-relaxed">{f.desc}</p>
                                     </div>
+                                    <h3 className="text-xl font-bold text-slate-900 mb-3">{step.title}</h3>
+                                    <p className="text-slate-500 text-[15px] leading-relaxed max-w-xs mx-auto">{step.desc}</p>
                                 </FadeIn>
                             );
                         })}
@@ -542,99 +781,80 @@ export default function Hero() {
             </section>
 
             {/* ══════════════════════════
-                TESTIMONIALS
+                EARLY ACCESS CTA
             ══════════════════════════ */}
-            <section className="py-24 bg-slate-50">
-                <div className="container mx-auto px-6">
-                    <FadeIn className="text-center mb-14">
-                        <span className="text-indigo-600 text-xs font-bold uppercase tracking-[0.2em] mb-3 inline-block">
-                            Histórias de Aprovação
-                        </span>
-                        <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">
-                            Quem confiou,<br className="hidden sm:block" /> foi aprovado
-                        </h2>
-                        <p className="text-slate-500 text-lg max-w-md mx-auto">
-                            Resultados reais de candidatos que levaram a sério sua preparação.
-                        </p>
-                    </FadeIn>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                        {TESTIMONIALS.map((t, i) => (
-                            <FadeIn key={t.name} delay={i * 0.1}>
-                                <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
-                                    {/* Stars */}
-                                    <div className="flex gap-1 mb-5">
-                                        {[...Array(5)].map((_, si) => (
-                                            <Star key={si} size={13} className="fill-amber-400 text-amber-400" />
-                                        ))}
-                                    </div>
-
-                                    <blockquote className="text-slate-600 text-[15px] leading-relaxed flex-1 mb-7 font-medium">
-                                        "{t.text}"
-                                    </blockquote>
-
-                                    <div className="flex items-center gap-3.5 pt-5 border-t border-slate-100">
-                                        <div className={`w-11 h-11 rounded-full ${t.bg} ${t.text_} flex items-center justify-center text-sm font-black shrink-0`}>
-                                            {t.initials}
-                                        </div>
-                                        <div>
-                                            <div className="text-sm font-bold text-slate-900">{t.name}</div>
-                                            <div className="text-xs text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
-                                                <CheckCircle2 size={10} />
-                                                {t.role}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </FadeIn>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* ══════════════════════════
-                FINAL CTA
-            ══════════════════════════ */}
-            <section className="py-32 bg-white relative overflow-hidden">
+            <section className="py-32 relative overflow-hidden" style={{ background: "#020617" }}>
                 <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
-                        background: "radial-gradient(ellipse 80% 80% at 50% -10%, rgba(99,102,241,0.07) 0%, transparent 70%)",
+                        background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,0.15) 0%, transparent 70%)",
                     }}
                 />
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-slate-100/50 rounded-full blur-[80px] pointer-events-none" />
+                <div
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[700px] h-[200px] rounded-full blur-[100px] pointer-events-none opacity-20"
+                    style={{ background: "#6366F1" }}
+                />
 
                 <div className="relative container mx-auto px-6 text-center max-w-3xl">
                     <FadeIn>
-                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-indigo-600 mb-10 shadow-2xl shadow-indigo-500/30 rotate-3 hover:rotate-0 transition-transform duration-300 cursor-default">
-                            <GraduationCap size={36} className="text-white" />
+                        <div
+                            className="inline-flex items-center gap-2 mb-8 px-4 py-2 rounded-full text-sm font-bold"
+                            style={{
+                                background: "rgba(99,102,241,0.12)",
+                                border: "1px solid rgba(99,102,241,0.25)",
+                                color: "#A5B4FC",
+                            }}
+                        >
+                            <Sparkles size={14} />
+                            Somos novos — e isso é uma vantagem
                         </div>
 
-                        <h2 className="text-4xl md:text-6xl font-extrabold text-slate-900 mb-6 tracking-tight leading-tight">
-                            Sua aprovação está<br />
-                            <span className="text-indigo-600">mais perto do que você pensa</span>
+                        <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight leading-tight">
+                            Seja dos primeiros.<br />
+                            <span
+                                className="text-transparent bg-clip-text"
+                                style={{ backgroundImage: "linear-gradient(135deg, #818CF8, #A78BFA)" }}
+                            >
+                                Molde a plataforma.
+                            </span>
                         </h2>
 
-                        <p className="text-slate-500 text-lg md:text-xl mb-10 max-w-xl mx-auto leading-relaxed">
-                            Junte-se a mais de 28.000 candidatos que escolheram a preparação séria. Comece hoje, sem risco.
+                        <p className="text-lg md:text-xl mb-4 max-w-xl mx-auto leading-relaxed" style={{ color: "#94A3B8" }}>
+                            Estamos no começo — e isso significa que quem entra agora ajuda a definir o que essa plataforma vai se tornar. Acesso antecipado, preço de fundador e suporte direto com a equipe.
+                        </p>
+                        <p className="text-sm font-medium mb-12" style={{ color: "#475569" }}>
+                            Sem enrolação. Sem números inflados. Só uma plataforma honesta que quer ser a melhor.
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">
                             <Link href="/register">
-                                <button className="group flex items-center justify-center gap-2.5 px-10 h-[60px] rounded-2xl text-[16px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-500/25 hover:shadow-2xl hover:shadow-indigo-500/35 hover:-translate-y-1 transition-all duration-200 w-full sm:w-auto">
+                                <button
+                                    className="group flex items-center justify-center gap-2.5 px-10 h-[60px] rounded-2xl text-[16px] font-bold text-white transition-all duration-200 hover:-translate-y-0.5 w-full sm:w-auto"
+                                    style={{
+                                        background: "linear-gradient(135deg, #6366F1, #4F46E5)",
+                                        boxShadow: "0 12px 40px rgba(99,102,241,0.4)",
+                                    }}
+                                >
                                     Criar conta gratuita
-                                    <ArrowRight size={19} className="group-hover:translate-x-1 transition-transform duration-200" />
+                                    <ArrowRight size={19} className="group-hover:translate-x-1 transition-transform" />
                                 </button>
                             </Link>
                             <Link href="/pricing">
-                                <button className="flex items-center justify-center gap-2 px-10 h-[60px] rounded-2xl text-[16px] font-bold text-slate-700 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all duration-200 w-full sm:w-auto">
+                                <button
+                                    className="flex items-center justify-center gap-2 px-10 h-[60px] rounded-2xl text-[16px] font-bold transition-all duration-200 hover:-translate-y-0.5 w-full sm:w-auto"
+                                    style={{
+                                        background: "rgba(255,255,255,0.05)",
+                                        border: "1px solid rgba(255,255,255,0.1)",
+                                        color: "#CBD5E1",
+                                    }}
+                                >
                                     Ver planos e preços
                                 </button>
                             </Link>
                         </div>
 
-                        <p className="text-sm text-slate-400 font-medium">
-                            Sem cartão de crédito · 7 dias de garantia · Cancele quando quiser
+                        <p className="text-sm font-medium" style={{ color: "#334155" }}>
+                            7 dias de garantia incondicional · Sem cartão de crédito para testar · Cancele quando quiser
                         </p>
                     </FadeIn>
                 </div>
@@ -643,22 +863,25 @@ export default function Hero() {
             {/* ══════════════════════════
                 FOOTER
             ══════════════════════════ */}
-            <footer className="py-12 bg-white border-t border-slate-100">
+            <footer
+                className="py-12 border-t"
+                style={{ background: "#020617", borderColor: "rgba(255,255,255,0.06)" }}
+            >
                 <div className="container mx-auto px-6">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6 max-w-6xl mx-auto">
                         <div className="flex items-center gap-3">
-                            <BrandLogo size="sm" variant="dark" link={false} />
-                            <span className="text-slate-200">·</span>
-                            <span className="text-sm font-semibold text-slate-500">Academy</span>
+                            <BrandLogo size="sm" variant="light" link={false} />
+                            <span style={{ color: "#1E293B" }}>·</span>
+                            <span className="text-sm font-semibold" style={{ color: "#475569" }}>Academy</span>
                         </div>
-                        <p className="text-sm text-slate-400">
-                            © 2026 Bizu Academy · O padrão de excelência em concursos.
+                        <p className="text-sm" style={{ color: "#334155" }}>
+                            © 2026 Bizu Academy · Concursos com gamificação de verdade.
                         </p>
                         <div className="flex gap-6">
-                            <Link href="/termos" className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
+                            <Link href="/termos" className="text-sm font-medium transition-colors hover:text-white" style={{ color: "#475569" }}>
                                 Termos
                             </Link>
-                            <Link href="/privacidade" className="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
+                            <Link href="/privacidade" className="text-sm font-medium transition-colors hover:text-white" style={{ color: "#475569" }}>
                                 Privacidade
                             </Link>
                         </div>
@@ -666,11 +889,11 @@ export default function Hero() {
                 </div>
             </footer>
 
-            {/* Float animation for mockup card */}
+            {/* Float animation */}
             <style jsx global>{`
         @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50%       { transform: translateY(-12px); }
+          0%,100% { transform: translateY(0px); }
+          50%      { transform: translateY(-14px); }
         }
       `}</style>
         </div>
