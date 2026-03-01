@@ -98,17 +98,29 @@ export default function ActiveBuffsAura() {
                                     y: "-10vh",
                                     opacity: [0, 0.8, 0],
                                     scale: [0.5, 1, 0.5],
-                                    rotate: 360
                                 }}
                                 transition={{
-                                    duration: 3 + i,
+                                    duration: 4 + i,
                                     repeat: Infinity,
-                                    delay: i * 0.5,
-                                    ease: "easeInOut"
+                                    delay: i * 0.7,
+                                    ease: "linear"
                                 }}
                                 className="absolute pointer-events-none z-0"
                             >
-                                <Zap size={24 + i * 4} className="text-amber-400/30 blur-[2px] fill-current" />
+                                <div className="relative flex items-center">
+                                    <motion.div
+                                        animate={{
+                                            rotate: [0, 10, -10, 0],
+                                            scale: [1, 1.1, 1]
+                                        }}
+                                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                    >
+                                        <Zap size={20 + i * 4} className="text-amber-400/50 blur-[1px] fill-current" />
+                                    </motion.div>
+                                    <span className="text-amber-500/60 font-black ml-1 text-sm md:text-base drop-shadow-[0_0_8px_rgba(245,158,11,0.6)] select-none">
+                                        2x
+                                    </span>
+                                </div>
                             </motion.div>
                         ))}
                     </div>

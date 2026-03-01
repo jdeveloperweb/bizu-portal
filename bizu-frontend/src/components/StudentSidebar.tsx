@@ -235,8 +235,9 @@ export default function StudentSidebar() {
                                 </p>
                                 <div className="flex gap-1.5 items-center">
                                     {buffs.xpBoost && (
-                                        <div title="XP 2x Ativo" className="w-5 h-5 rounded-md bg-amber-100 flex items-center justify-center text-amber-600 border border-amber-200">
+                                        <div title="XP 2x Ativo" className="h-5 px-1.5 rounded-md bg-amber-100 flex items-center gap-0.5 justify-center text-amber-600 border border-amber-200">
                                             <Zap size={10} className="fill-current" />
+                                            <span className="text-[9px] font-black leading-none">2x</span>
                                         </div>
                                     )}
                                     {buffs.radar && (
