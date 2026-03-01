@@ -66,10 +66,10 @@ export default function RedacaoPage() {
             document.body.removeChild(div);
         };
 
-        if (textareaRef.current && uploadType === "TEXT") {
+        if (textareaRef.current) {
             updateLineCount();
         }
-    }, [content, uploadType]);
+    }, [content, uploadType, fileBase64]);
 
     useEffect(() => {
         if (selectedCourseId) {
