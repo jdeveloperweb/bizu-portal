@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, Loader2, LogIn, ArrowLeft, CheckCircle2, GraduationCap, Sparkles, BookOpen, Trophy, Target } from "lucide-react";
+import { Eye, EyeOff, Loader2, LogIn, ArrowLeft, GraduationCap } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
@@ -93,56 +93,53 @@ export default function LoginPage() {
                     background: "linear-gradient(to top,#020617,transparent)",
                 }} />
 
-                <div className="relative z-10 w-full max-w-sm px-4">
-                    {/* Brand mark */}
-                    <div className="flex items-center gap-3 mb-12">
-                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                            style={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)", boxShadow: "0 8px 24px rgba(99,102,241,0.35)" }}>
-                            <GraduationCap size={24} className="text-white" />
-                        </div>
-                        <div>
-                            <div className="text-xl font-black text-white leading-none"
-                                style={{ fontFamily: "var(--font-orbitron)", letterSpacing: "-0.02em" }}>AXON</div>
-                            <div className="text-[9px] font-bold tracking-[0.45em] uppercase mt-0.5" style={{ color: "#475569" }}>Academy</div>
+                <div className="relative z-10 w-full max-w-sm px-4 flex flex-col items-center text-center">
+                    {/* Icon mark — glowing */}
+                    <div className="relative mb-7">
+                        <div className="absolute inset-0 rounded-2xl animate-pulse"
+                            style={{ background: "rgba(99,102,241,0.2)", transform: "scale(1.5)", filter: "blur(12px)" }} />
+                        <div className="relative w-16 h-16 rounded-2xl flex items-center justify-center"
+                            style={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)", boxShadow: "0 0 44px rgba(99,102,241,0.45), 0 8px 24px rgba(99,102,241,0.3)" }}>
+                            <GraduationCap size={28} className="text-white" />
                         </div>
                     </div>
 
-                    <div className="inline-flex items-center gap-2 mb-6 px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest border"
-                        style={{ background: "rgba(99,102,241,0.1)", borderColor: "rgba(99,102,241,0.25)", color: "#A5B4FC" }}>
-                        <Sparkles size={11} />
-                        Acesso Antecipado
+                    {/* AXON wordmark */}
+                    <span
+                        className="font-black leading-none tracking-tight select-none"
+                        style={{
+                            fontFamily: "var(--font-orbitron)",
+                            fontSize: "clamp(60px,9vw,84px)",
+                            backgroundImage: "linear-gradient(135deg,#C7D2FE 0%,#818CF8 40%,#6366F1 100%)",
+                            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+                            filter: "drop-shadow(0 0 32px rgba(99,102,241,0.35))",
+                        }}
+                    >
+                        AXON
+                    </span>
+
+                    {/* Academy separator */}
+                    <div className="flex items-center gap-3 mt-3 mb-10">
+                        <div className="w-10 h-px" style={{ background: "linear-gradient(to right,transparent,rgba(255,255,255,0.12))" }} />
+                        <span className="text-[10px] font-bold tracking-[0.45em] uppercase" style={{ color: "#334155" }}>Academy</span>
+                        <div className="w-10 h-px" style={{ background: "linear-gradient(to left,transparent,rgba(255,255,255,0.12))" }} />
                     </div>
 
-                    <h2 className="text-4xl xl:text-5xl font-black text-white leading-[1.06] tracking-tight mb-5">
-                        A arena onde<br />
+                    {/* Thin indigo rule */}
+                    <div className="w-16 h-px mb-10" style={{ background: "linear-gradient(to right,transparent,rgba(99,102,241,0.5),transparent)" }} />
+
+                    {/* Headline */}
+                    <h2 className="text-2xl xl:text-[1.75rem] font-black text-white leading-[1.12] tracking-tight mb-4">
+                        A arena onde{" "}
                         <span style={{
                             backgroundImage: "linear-gradient(135deg,#818CF8 0%,#6366F1 45%,#A78BFA 100%)",
                             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
                         }}>vencedores surgem.</span>
                     </h2>
 
-                    <p className="text-base leading-relaxed font-medium mb-8" style={{ color: "#64748B" }}>
-                        Questões, duelos em tempo real, XP e correção de redações por IA. Tudo para você dominar o concurso.
+                    <p className="text-sm leading-relaxed font-medium" style={{ color: "#475569" }}>
+                        Questões, duelos em tempo real, XP e correção de redações por IA.
                     </p>
-
-                    <div className="space-y-3">
-                        {[
-                            { icon: CheckCircle2, text: "Arena de Duelos PvP", color: "#6366F1" },
-                            { icon: CheckCircle2, text: "XP, Níveis e Conquistas", color: "#F59E0B" },
-                            { icon: CheckCircle2, text: "Correção de Redação por IA", color: "#10B981" },
-                        ].map((item, i) => (
-                            <div key={i} className="flex items-center gap-3 p-4 rounded-2xl border transition-all hover:border-white/10 cursor-default"
-                                style={{ background: "rgba(255,255,255,0.025)", borderColor: "rgba(255,255,255,0.05)" }}>
-                                <item.icon size={16} style={{ color: item.color, flexShrink: 0 }} />
-                                <span className="text-[14px] font-bold" style={{ color: "#CBD5E1" }}>{item.text}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="absolute bottom-8 left-8 flex items-center gap-3 select-none" style={{ color: "#1E293B" }}>
-                    <Sparkles size={14} />
-                    <span className="text-[10px] font-bold tracking-widest uppercase">Powered by Axon AI</span>
                 </div>
             </div>
 

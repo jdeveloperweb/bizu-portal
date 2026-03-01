@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { Check, ChevronDown, Zap, Shield, Crown, Star, BookOpen, Anchor, Users, ChevronRight } from "lucide-react";
+import { Check, ChevronDown, Zap, Shield, Crown, Star, BookOpen, Users, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -124,27 +124,36 @@ function PricingContent() {
 
                     {/* Course Selection Tabs */}
                     {courses.length > 1 && (
-                        <div className="flex flex-wrap items-center justify-center gap-3 max-w-4xl mx-auto px-6">
-                            {courses.map(course => (
-                                <button
-                                    key={course.id}
-                                    onClick={() => setSelectedCourseId(course.id)}
-                                    className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all duration-200"
-                                    style={selectedCourseId === course.id ? {
-                                        background: "rgba(99,102,241,0.15)",
-                                        border: "1.5px solid rgba(99,102,241,0.5)",
-                                        color: "#A5B4FC",
-                                        boxShadow: "0 0 20px rgba(99,102,241,0.15)",
-                                    } : {
-                                        background: "rgba(255,255,255,0.04)",
-                                        border: "1px solid rgba(255,255,255,0.08)",
-                                        color: "#475569",
-                                    }}
-                                >
-                                    <Anchor size={14} style={{ color: selectedCourseId === course.id ? (course.themeColor || '#818CF8') : '#475569' }} />
-                                    {course.title}
-                                </button>
-                            ))}
+                        <div className="flex flex-wrap items-center justify-center gap-2.5 max-w-4xl mx-auto px-6">
+                            {courses.map(course => {
+                                const active = selectedCourseId === course.id;
+                                return (
+                                    <button
+                                        key={course.id}
+                                        onClick={() => setSelectedCourseId(course.id)}
+                                        className="relative px-6 py-2.5 rounded-2xl text-sm transition-all duration-200"
+                                        style={active ? {
+                                            background: "rgba(99,102,241,0.18)",
+                                            border: "1.5px solid rgba(99,102,241,0.55)",
+                                            color: "#E0E7FF",
+                                            fontWeight: 800,
+                                            boxShadow: "0 0 28px rgba(99,102,241,0.22), inset 0 1px 0 rgba(255,255,255,0.08)",
+                                            letterSpacing: "-0.01em",
+                                        } : {
+                                            background: "rgba(255,255,255,0.04)",
+                                            border: "1px solid rgba(255,255,255,0.07)",
+                                            color: "#64748B",
+                                            fontWeight: 600,
+                                        }}
+                                    >
+                                        {active && (
+                                            <span className="absolute inset-x-0 -bottom-px h-px mx-6"
+                                                style={{ background: "linear-gradient(to right,transparent,rgba(99,102,241,0.6),transparent)" }} />
+                                        )}
+                                        {course.title}
+                                    </button>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
