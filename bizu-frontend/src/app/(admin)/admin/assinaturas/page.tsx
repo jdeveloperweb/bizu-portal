@@ -103,17 +103,16 @@ export default function AdminSubscriptionsPage() {
                 </Button>
             </div>
 
-            <div className="rounded-[2rem] overflow-hidden border" style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.06)" }}>
-                <div className="p-6 border-b flex flex-col md:flex-row gap-4 justify-between items-center" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+            <div className="rounded-[2rem] overflow-hidden bg-white border border-slate-100">
+                <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center">
                     <div className="relative w-full md:w-96">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                         <input
                             type="text"
                             placeholder="Buscar por aluno, email ou plano..."
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
-                            className="w-full h-11 pl-11 pr-4 rounded-xl text-sm font-medium outline-none transition-all text-slate-200 placeholder:text-slate-600 focus:border-indigo-500"
-                            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}
+                            className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 text-sm font-medium outline-none transition-all border border-slate-100 text-slate-700 placeholder:text-slate-400 focus:border-indigo-500"
                         />
                     </div>
                 </div>
@@ -121,14 +120,14 @@ export default function AdminSubscriptionsPage() {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr style={{ background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                            <tr className="bg-slate-50 border-b border-slate-100">
                                 <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Aluno / Plano</th>
                                 <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
                                 <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Período / Renovação</th>
                                 <th className="px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Ações</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
+                        <tbody className="divide-y divide-slate-50">
                             {loading ? (
                                 <tr>
                                     <td colSpan={4} className="px-8 py-20 text-center">
@@ -136,14 +135,14 @@ export default function AdminSubscriptionsPage() {
                                     </td>
                                 </tr>
                             ) : filtered.map(s => (
-                                <tr key={s.id} className="hover:bg-white/[0.03] transition-colors" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
+                                <tr key={s.id} className="hover:bg-slate-50 transition-colors">
                                     <td className="px-8 py-5">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-indigo-400" style={{ background: "rgba(99,102,241,0.1)" }}>
+                                            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
                                                 <User size={18} />
                                             </div>
                                             <div>
-                                                <div className="text-sm font-black text-slate-200">{s.user?.name || 'Usuário não identificado'}</div>
+                                                <div className="text-sm font-black text-slate-800">{s.user?.name || 'Usuário não identificado'}</div>
                                                 <div className="text-[11px] font-bold text-indigo-600 uppercase tracking-tight">{s.plan?.name || 'Plano não identificado'}</div>
                                             </div>
                                         </div>

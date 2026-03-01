@@ -105,11 +105,11 @@ export default function AdminDashboardPage() {
             className="p-8 w-full"
         >
             <div className="mb-8">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-3 border" style={{ background: "rgba(99,102,241,0.1)", borderColor: "rgba(99,102,241,0.2)" }}>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-3">
                     <Zap size={12} />
                     Admin
                 </div>
-                <h1 className="text-3xl font-extrabold text-white tracking-tight mb-2">
+                <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
                     Painel Administrativo
                 </h1>
                 <p className="text-sm text-slate-500">
@@ -135,11 +135,11 @@ export default function AdminDashboardPage() {
                                 <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-md`}>
                                     <Icon size={18} className="text-white" />
                                 </div>
-                                <div className="text-[11px] font-bold px-2.5 py-1 text-slate-600 rounded-lg" style={{ background: "rgba(255,255,255,0.05)" }}>
+                                <div className="text-[11px] font-bold px-2.5 py-1 bg-slate-50 text-slate-400 rounded-lg">
                                     Total
                                 </div>
                             </div>
-                            <div className="text-2xl font-extrabold text-white mb-1 relative z-10">{stat.value}</div>
+                            <div className="text-2xl font-extrabold text-slate-900 mb-1 relative z-10">{stat.value}</div>
                             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider relative z-10">{stat.label}</div>
                         </motion.div>
                     );
@@ -155,7 +155,7 @@ export default function AdminDashboardPage() {
                     className="lg:col-span-2 card-elevated !rounded-xl p-6"
                 >
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-extrabold text-white flex items-center gap-2">
+                        <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
                             <Activity size={18} className="text-indigo-500" />
                             Atividade Recente
                         </h3>
@@ -172,14 +172,14 @@ export default function AdminDashboardPage() {
                                     initial={{ opacity: 0, y: 5 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.6 + (i * 0.05) }}
-                                    className="flex items-center justify-between p-3 rounded-2xl hover:bg-white/[0.04] transition-all border border-transparent hover:border-white/[0.06]"
+                                    className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm text-indigo-400" style={{ background: "rgba(99,102,241,0.1)" }}>
+                                        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center font-bold text-sm text-indigo-600">
                                             {activity.userName.substring(0, 2).toUpperCase()}
                                         </div>
                                         <div>
-                                            <div className="text-sm font-bold text-slate-200">{activity.userName}</div>
+                                            <div className="text-sm font-bold text-slate-800">{activity.userName}</div>
                                             <div className="text-[11px] text-slate-500">
                                                 {activity.status === 'SUCCEEDED' ? 'Pagamento Aprovado' : 'Tentativa de Pagamento'} - {new Date(activity.createdAt).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                                             </div>
@@ -238,7 +238,7 @@ export default function AdminDashboardPage() {
                         <p className="text-xs text-slate-500 font-medium leading-relaxed mb-4">
                             Tudo parecendo em ordem por aqui. Monitore o webhook do Stripe para atualizações em tempo real.
                         </p>
-                        <button className="w-full h-10 rounded-xl font-bold text-xs transition-colors text-amber-400 hover:text-amber-300" style={{ background: "rgba(245,158,11,0.08)" }}>
+                        <button className="w-full h-10 rounded-xl bg-amber-50 text-amber-700 hover:bg-amber-100 font-bold text-xs transition-colors">
                             Ver Logs do Sistema
                         </button>
                     </motion.div>

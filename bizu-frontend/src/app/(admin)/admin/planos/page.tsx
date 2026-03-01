@@ -196,7 +196,7 @@ export default function AdminPlanosPage() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {plans.map((plan) => (
-                        <div key={plan.id} className={`rounded-[2rem] border p-6 transition-all ${plan.highlight ? 'ring-1 ring-indigo-500/30' : ''}`} style={{ background: "rgba(255,255,255,0.03)", borderColor: plan.highlight ? "rgba(99,102,241,0.35)" : "rgba(255,255,255,0.07)" }}>
+                        <div key={plan.id} className={`rounded-[2rem] bg-white border p-6 transition-all ${plan.highlight ? 'ring-1 ring-indigo-500/30 border-indigo-200' : 'border-slate-100'}`}>
                             <div className="flex justify-between items-start mb-6">
                                 <div className={`p-3 rounded-2xl ${plan.highlight ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-400'}`}>
                                     <CreditCard size={24} />
@@ -213,7 +213,7 @@ export default function AdminPlanosPage() {
 
                             <div className="mb-6">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="text-lg font-bold text-slate-100">{plan.name}</h3>
+                                    <h3 className="text-lg font-bold text-slate-800">{plan.name}</h3>
                                     {plan.active ? (
                                         <CheckCircle2 size={14} className="text-emerald-500" />
                                     ) : (
@@ -234,7 +234,7 @@ export default function AdminPlanosPage() {
 
                             <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
                                 <div>
-                                    <span className="text-2xl font-black text-white">R$ {plan.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                    <span className="text-2xl font-black text-slate-900">R$ {plan.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                                     <span className="text-[10px] font-bold text-slate-400 uppercase ml-1">/ {plan.billingInterval}</span>
                                 </div>
                                 {plan.highlight && (
@@ -245,11 +245,11 @@ export default function AdminPlanosPage() {
                     ))}
 
                     {plans.length === 0 && (
-                        <div className="col-span-full py-20 rounded-[2rem] border border-dashed flex flex-col items-center justify-center text-center px-6" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
-                            <div className="w-16 h-16 rounded-full flex items-center justify-center text-slate-600 mb-4" style={{ background: "rgba(255,255,255,0.03)" }}>
+                        <div className="col-span-full py-20 rounded-[2rem] border border-dashed border-slate-200 flex flex-col items-center justify-center text-center px-6">
+                            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-4">
                                 <CreditCard size={32} />
                             </div>
-                            <h3 className="text-lg font-bold text-slate-200 mb-1">Nenhum plano ainda</h3>
+                            <h3 className="text-lg font-bold text-slate-600 mb-1">Nenhum plano ainda</h3>
                             <p className="text-sm text-slate-500 max-w-sm">Comece criando seu primeiro plano para que os alunos possam assinar a plataforma.</p>
                         </div>
                     )}
@@ -259,10 +259,10 @@ export default function AdminPlanosPage() {
             {/* Modal de Cadastro/Edição */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 border" style={{ background: "#0D1B2A", borderColor: "rgba(99,102,241,0.2)" }}>
-                        <div className="px-8 py-6 border-b flex items-center justify-between sticky top-0" style={{ background: "#0D1B2A", borderColor: "rgba(255,255,255,0.06)" }}>
+                    <div className="w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 bg-white border border-slate-100">
+                        <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white">
                             <div>
-                                <h2 className="text-xl font-bold text-white">{editingPlan ? "Editar Plano" : "Novo Plano"}</h2>
+                                <h2 className="text-xl font-bold text-slate-900">{editingPlan ? "Editar Plano" : "Novo Plano"}</h2>
                                 <p className="text-xs text-slate-500 font-medium">Configure os detalhes comerciais do plano.</p>
                             </div>
                             <button onClick={() => setIsModalOpen(false)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:bg-slate-100 transition-colors">
@@ -347,7 +347,7 @@ export default function AdminPlanosPage() {
                                 </label>
                             </div>
 
-                            <div className="flex gap-4 pt-4 sticky bottom-0" style={{ background: "#0D1B2A" }}>
+                            <div className="flex gap-4 pt-4 sticky bottom-0 bg-white">
                                 <Button type="submit" disabled={saving} className="flex-1 h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold gap-2 shadow-xl shadow-indigo-600/20">
                                     {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save size={18} />}
                                     {editingPlan ? "Atualizar Plano" : "Criar Plano"}
