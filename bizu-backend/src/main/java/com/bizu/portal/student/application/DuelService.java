@@ -48,11 +48,10 @@ public class DuelService {
             throw new RuntimeException("O oponente está focado em estudos e não pode aceitar duelos no momento.");
         }
 
-        // Validar se o oponente está online (última atividade em menos de 60 segundos)
-        // Como o status online é atualizado por Native Query, o objeto em cache pode estar antigo. 
-        // Vamos permitir a criação. O heartbeat roda a cada 10 seg e a Native Query segura a ponta.
-        // Tolerância aumentada ou verificação de cache bisseccionada: permitiremos a criação
-        // para não travar a fila de matchmaking, já que os inativos serão filtrados pela própria interação.
+        com.bizu.portal.student.domain.GamificationStats challengerStats = gamificationRepository.findById(challengerId).orElse(null);
+        if (challengerStats != null && challengerStats.getAbandonBlockedUntil() != null && challengerStats.getAbandonBlockedUntil().isAfter(OffsetDateTime.now())) {
+            throw new RuntimeException("Você está impossibilitado de iniciar novos duelos devido ao seu histórico de abandones.");
+        }
 
         Duel duel = Duel.builder()
                 .challenger(challenger)
@@ -75,6 +74,11 @@ public class DuelService {
         User user = userRepository.findById(userId).orElseThrow();
         if (user.isDuelFocusMode()) {
             throw new RuntimeException("Você está em modo focado e não pode entrar na fila de duelos.");
+        }
+
+        com.bizu.portal.student.domain.GamificationStats stats = gamificationRepository.findById(userId).orElse(null);
+        if (stats != null && stats.getAbandonBlockedUntil() != null && stats.getAbandonBlockedUntil().isAfter(OffsetDateTime.now())) {
+            throw new RuntimeException("Você está temporariamente impossibilitado de entrar em duelos devido ao excesso de abandones.");
         }
 
         List<Duel> activeDuels = duelRepository.findActiveDuelsByUserId(userId);
@@ -241,6 +245,17 @@ public class DuelService {
 
     @Transactional
     public Duel declineOrAbandonDuel(UUID duelId, UUID userId) {
+        return handleAbandon(duelId, userId, "Você abandonou o duelo!", 
+            "CUIDADO: Abandonar duelos prejudica sua experiência e de outros alunos. Você perdeu 100 XP.", false);
+    }
+
+    @Transactional
+    public void declineOrAbandonDuelBySystem(UUID duelId, UUID userId) {
+        handleAbandon(duelId, userId, "Abandono por Inatividade!", 
+            "O duelo foi encerrado porque você saiu ou parou de responder. Isso contou como abandono e poderá levar ao bloqueio prologado do recurso.", true);
+    }
+
+    private Duel handleAbandon(UUID duelId, UUID userId, String title, String message, boolean isSystem) {
         Duel duel = duelRepository.findById(duelId).orElseThrow();
         
         if ("IN_PROGRESS".equals(duel.getStatus())) {
@@ -252,26 +267,28 @@ public class DuelService {
             
             OffsetDateTime now = OffsetDateTime.now();
             
-            // 1. Verificar se está bloqueado
+            // 1. Verificar se está bloqueado (ignora para o sistema se já passou, mas aplica se estiver no meio do bloqueio)
             if (stats.getAbandonBlockedUntil() != null && stats.getAbandonBlockedUntil().isAfter(now)) {
-                throw new RuntimeException("Ação bloqueada! Você está impossibilitado de abandonar duelos por 1 semana devido ao excesso de abandones.");
-            }
-            
-            // 2. Incrementar contador diário
-            if (stats.getLastAbandonAt() == null || stats.getLastAbandonAt().toLocalDate().isBefore(now.toLocalDate())) {
-                stats.setDailyAbandonCount(1);
+                if (!isSystem) {
+                    throw new RuntimeException("Você está impossibilitado de abandonar duelos por 1 semana devido ao excesso de abandones. Jogue até o fim!");
+                }
             } else {
-                stats.setDailyAbandonCount(stats.getDailyAbandonCount() + 1);
+                // 2. Incrementar contador diário
+                if (stats.getLastAbandonAt() == null || stats.getLastAbandonAt().toLocalDate().isBefore(now.toLocalDate())) {
+                    stats.setDailyAbandonCount(1);
+                } else {
+                    stats.setDailyAbandonCount(stats.getDailyAbandonCount() + 1);
+                }
+                stats.setLastAbandonAt(now);
+                
+                // 3. Verificar limite de 3 abandones por dia
+                if (stats.getDailyAbandonCount() >= 3) {
+                    stats.setAbandonBlockedUntil(now.plusWeeks(1));
+                    notificationService.send(userId, "Recurso Bloqueado!", "Você abandonou 3 duelos hoje (manualmente ou por inatividade). O recurso de abandonar duelos está bloqueado por 1 semana.");
+                }
+                
+                gamificationRepository.save(stats);
             }
-            stats.setLastAbandonAt(now);
-            
-            // 3. Verificar limite de 3 abandones por dia
-            if (stats.getDailyAbandonCount() >= 3) {
-                stats.setAbandonBlockedUntil(now.plusWeeks(1));
-                notificationService.send(userId, "Recurso Bloqueado!", "Você abandonou 3 duelos hoje. O recurso de abandonar duelos está bloqueado por 1 semana.");
-            }
-            
-            gamificationRepository.save(stats);
 
             // Se estava em progresso e alguém saiu, o OUTRO vence
             User winner = duel.getChallenger().getId().equals(userId) 
@@ -279,7 +296,7 @@ public class DuelService {
                 : duel.getChallenger();
             
             finishDuel(duel, winner);
-            notificationService.send(userId, "Você abandonou o duelo!", "CUIDADO: Abandonar duelos prejudica sua experiência e de outros alunos. Você perdeu 100 XP.");
+            notificationService.send(userId, title, message);
             log.info("Duel {} abandoned by {}. Winner: {}", duelId, userId, winner.getId());
         } else {
             // Se ainda estava pendente (convite), apenas cancela

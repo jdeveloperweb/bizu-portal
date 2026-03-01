@@ -29,6 +29,9 @@ public interface DuelRepository extends JpaRepository<Duel, UUID> {
     @org.springframework.data.jpa.repository.Query("SELECT d FROM Duel d JOIN FETCH d.challenger JOIN FETCH d.opponent WHERE (d.challenger.id = :userId OR d.opponent.id = :userId) AND d.status = 'IN_PROGRESS' ORDER BY d.createdAt DESC")
     java.util.List<Duel> findActiveDuelsByUserId(@org.springframework.data.repository.query.Param("userId") java.util.UUID userId);
 
+    @Query("SELECT d FROM Duel d JOIN FETCH d.challenger JOIN FETCH d.opponent WHERE d.status = 'IN_PROGRESS' AND d.updatedAt < :timeout")
+    List<Duel> findInactiveInProgressDuels(@org.springframework.data.repository.query.Param("timeout") java.time.OffsetDateTime timeout);
+
     @Query(value = "WITH user_duels AS (" +
                    "  SELECT id, winner_id, completed_at FROM student.duels " +
                    "  WHERE (challenger_id = :userId OR opponent_id = :userId) AND status = 'COMPLETED' " +

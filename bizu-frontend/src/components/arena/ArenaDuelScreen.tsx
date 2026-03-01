@@ -239,7 +239,7 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                                 <p className="text-slate-500 text-center mb-6 leading-relaxed">
                                     Ao abandonar, você será considerado o <span className="font-bold text-red-500">perdedor</span> e perderá <span className="font-bold text-red-500">100 XP</span>.
                                     <br /><br />
-                                    <span className="text-sm italic">O abandono frequente prejudica a experiência competitiva e pode levar ao bloqueio temporário do recurso.</span>
+                                    <span className="text-sm italic">Cuidado: Fechar a janela ou ficar inativo também é considerado <span className="font-bold">abandono</span> e conta para o limite diário de 3 vezes, podendo levar ao bloqueio do recurso.</span>
                                 </p>
 
                                 <div className="space-y-3">
