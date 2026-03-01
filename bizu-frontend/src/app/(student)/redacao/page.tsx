@@ -194,10 +194,27 @@ export default function RedacaoPage() {
     };
 
     const getGradeColor = (grade: number) => {
-        if (grade >= 7) return "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
-        if (grade >= 5) return "text-amber-500 bg-amber-500/10 border-amber-500/20";
+        if (grade >= 700) return "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
+        if (grade >= 500) return "text-amber-500 bg-amber-500/10 border-amber-500/20";
         return "text-rose-500 bg-rose-500/10 border-rose-500/20";
     };
+
+    const CompetencyProgress = ({ title, score, colorClass }: { title: string, score: number, colorClass: string }) => (
+        <div className="space-y-2">
+            <div className="flex justify-between items-center text-sm">
+                <span className="font-medium text-slate-400">{title}</span>
+                <span className={`font-bold ${colorClass}`}>{score}/200</span>
+            </div>
+            <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(score / 200) * 100}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    className={`h-full rounded-full ${colorClass.replace('text-', 'bg-')}`}
+                />
+            </div>
+        </div>
+    );
 
     if (isFree) {
         return (
@@ -575,34 +592,70 @@ export default function RedacaoPage() {
                         </div>
 
                         <div className="space-y-6">
-                            <div className="bg-card border border-border rounded-3xl p-8 shadow-xl relative overflow-hidden">
-                                <div className="relative z-10">
-                                    <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground mb-6">Avaliação da IA</h3>
-                                    <div className="flex flex-col items-center gap-4 mb-8">
-                                        <div className={`text-6xl font-black flex flex-col items-center ${getGradeColor(selectedEssay.grade || 0)} p-8 rounded-full border-4 aspect-square justify-center shadow-inner`}>
-                                            {selectedEssay.grade?.toFixed(1)}
-                                            <span className="text-xs uppercase tracking-tighter opacity-50 mt-1 font-black">Nota Final</span>
+                            <div className="bg-[#0f172a] border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden text-white">
+                                <div className="relative z-10 flex flex-col gap-8">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+                                                <Sparkles size={18} />
+                                            </div>
+                                            <h3 className="font-bold text-lg">Resultado da Correção</h3>
                                         </div>
-                                        <div className="flex gap-1">
-                                            {[1, 2, 3, 4, 5].map((s) => (
-                                                <Star key={s} size={20} className={s <= Math.round((selectedEssay.grade || 0) / 2) ? "fill-primary text-primary" : "text-muted"} />
-                                            ))}
+                                        <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest">
+                                            Concluído
                                         </div>
                                     </div>
 
-                                    <div className="space-y-4">
-                                        <div className="flex items-center gap-3 text-sm font-bold p-3 rounded-xl bg-muted/50">
-                                            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center"><CheckCircle2 size={16} /></div>
-                                            <span>Estrutura Adequada</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 text-sm font-bold p-3 rounded-xl bg-muted/50">
-                                            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center"><Sparkles size={16} /></div>
-                                            <span>Análise Lexical OK</span>
+                                    <div>
+                                        <p className="text-slate-400 text-sm font-medium mb-1">Nota geral</p>
+                                        <div className="flex items-baseline gap-1">
+                                            <span className="text-6xl font-black text-white">{selectedEssay.grade || 0}</span>
+                                            <span className="text-2xl font-black text-emerald-500">/1000</span>
                                         </div>
                                     </div>
+
+                                    <div className="space-y-6">
+                                        <CompetencyProgress
+                                            title="Competência I — Domínio da norma culta"
+                                            score={selectedEssay.c1Score || 0}
+                                            colorClass="text-emerald-400"
+                                        />
+                                        <CompetencyProgress
+                                            title="Competência II — Compreensão do tema"
+                                            score={selectedEssay.c2Score || 0}
+                                            colorClass="text-indigo-400"
+                                        />
+                                        <CompetencyProgress
+                                            title="Competência III — Argumentação"
+                                            score={selectedEssay.c3Score || 0}
+                                            colorClass="text-amber-400"
+                                        />
+                                        <CompetencyProgress
+                                            title="Competência IV — Coesão textual"
+                                            score={selectedEssay.c4Score || 0}
+                                            colorClass="text-purple-400"
+                                        />
+                                        <CompetencyProgress
+                                            title="Competência V — Proposta de intervenção"
+                                            score={selectedEssay.c5Score || 0}
+                                            colorClass="text-pink-400"
+                                        />
+                                    </div>
+
+                                    {selectedEssay.improvementHint && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 relative"
+                                        >
+                                            <p className="text-sm leading-relaxed text-slate-300">
+                                                <span className="text-emerald-400 font-bold">Ponto de melhoria:</span> {selectedEssay.improvementHint}
+                                            </p>
+                                        </motion.div>
+                                    )}
                                 </div>
-                                <div className="absolute top-0 right-0 p-8 opacity-5">
-                                    <Star size={150} />
+                                <div className="absolute -right-20 -top-20 opacity-[0.03] rotate-12">
+                                    <Sparkles size={300} />
                                 </div>
                             </div>
                         </div>

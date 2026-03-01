@@ -45,6 +45,24 @@ public class Essay {
     @Column(columnDefinition = "TEXT")
     private String feedback;
 
+    @Column(name = "c1_score")
+    private Integer c1Score;
+
+    @Column(name = "c2_score")
+    private Integer c2Score;
+
+    @Column(name = "c3_score")
+    private Integer c3Score;
+
+    @Column(name = "c4_score")
+    private Integer c4Score;
+
+    @Column(name = "c5_score")
+    private Integer c5Score;
+
+    @Column(name = "improvement_hint", columnDefinition = "TEXT")
+    private String improvementHint;
+
     @Builder.Default
     private String status = "PENDING"; // PENDING, CORRECTED, FAILED
 

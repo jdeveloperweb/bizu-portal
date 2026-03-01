@@ -7,6 +7,8 @@ import com.bizu.portal.identity.domain.User;
 import com.bizu.portal.identity.infrastructure.UserRepository;
 import com.bizu.portal.student.domain.Essay;
 import com.bizu.portal.student.infrastructure.EssayRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,7 @@ public class EssayService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
     private final AiService aiService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public List<Essay> getStudentEssays(UUID studentId, UUID courseId) {
         if (courseId != null) {
@@ -61,11 +64,12 @@ public class EssayService {
     }
 
     private void correctEssay(Essay essay) {
-        String prompt = "Você é um professor avaliador rigoroso e justo de redações. " +
-                "Analise a redação enviada, corrija erros gramaticais, de coesão, coerência e estrutura. " +
-                "Ao final, dê uma nota de 0 a 10 com duas casas decimais. " +
-                "Formate seu feedback de forma clara para o aluno usando markdown. " +
-                "No final de tudo, inclua obrigatoriamente a tag [NOTA: X.XX] onde X.XX é a nota.";
+        String prompt = "Você é um professor avaliador rigoroso e justo de redações, especialista na correção do ENEM. " +
+                "Analise a redação enviada e forneça um feedback detalhado ao aluno em Markdown. " +
+                "Siga rigorosamente as 5 competências do ENEM (0 a 200 pontos cada): " +
+                "C1: Domínio da norma culta; C2: Compreensão do tema; C3: Organização e interpretação; C4: Coesão; C5: Intervenção. " +
+                "Ao final do feedback, inclua OBRIGATORIAMENTE um bloco JSON entre as tags [RESULTADO] e [/RESULTADO] exatamente com este formato: " +
+                "{\"c1\": 160, \"c2\": 160, \"c3\": 140, \"c4\": 160, \"c5\": 140, \"total\": 760, \"improvement\": \"Sua proposta de intervenção menciona o agente...\"}";
 
         String aiResponse;
         if (essay.getContent() != null && !essay.getContent().trim().isEmpty()) {
@@ -77,9 +81,36 @@ public class EssayService {
         }
 
         essay.setFeedback(aiResponse);
-        essay.setGrade(extractGrade(aiResponse));
+        parseAiResults(essay, aiResponse);
         essay.setStatus("CORRECTED");
         essayRepository.save(essay);
+    }
+
+    private void parseAiResults(Essay essay, String response) {
+        try {
+            Pattern pattern = Pattern.compile("\\[RESULTADO\\](.*?)\\[/RESULTADO\\]", Pattern.DOTALL);
+            Matcher matcher = pattern.matcher(response);
+            if (matcher.find()) {
+                String jsonStr = matcher.group(1).trim();
+                JsonNode node = objectMapper.readTree(jsonStr);
+                
+                essay.setC1Score(node.path("c1").asInt());
+                essay.setC2Score(node.path("c2").asInt());
+                essay.setC3Score(node.path("c3").asInt());
+                essay.setC4Score(node.path("c4").asInt());
+                essay.setC5Score(node.path("c5").asInt());
+                essay.setGrade(new BigDecimal(node.path("total").asInt()));
+                essay.setImprovementHint(node.path("improvement").asText());
+                
+                // Remove the JSON block from feedback for a cleaner display
+                essay.setFeedback(response.replace(matcher.group(0), "").trim());
+            } else {
+                // Fallback to old grade extraction if JSON not found
+                essay.setGrade(extractGrade(response));
+            }
+        } catch (Exception e) {
+            essay.setGrade(extractGrade(response));
+        }
     }
 
     private BigDecimal extractGrade(String feedback) {
