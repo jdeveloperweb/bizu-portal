@@ -210,7 +210,12 @@ function ArenaPageContent() {
             return;
         }
         try {
-            await DuelService.joinQueue(courseId);
+            const res = await DuelService.joinQueue(courseId);
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => null);
+                alert(errorData?.message || "Erro ao entrar na fila.");
+                return;
+            }
             setIsInQueue(true);
         } catch (err) {
             alert("Erro ao entrar na fila.");
@@ -235,6 +240,8 @@ function ArenaPageContent() {
             if (duel && duel.id) {
                 console.log("Duel created, entering screen:", duel.id);
                 setActiveDuelId(duel.id);
+            } else if (duel && duel.message) {
+                alert(duel.message);
             } else {
                 throw new Error("Invalid duel object received");
             }

@@ -45,12 +45,12 @@ public class DuelService {
                 .orElseThrow(() -> new RuntimeException("Opponent not found"));
 
         if (opponent.isDuelFocusMode()) {
-            throw new RuntimeException("O oponente está focado em estudos e não pode aceitar duelos no momento.");
+            throw new IllegalStateException("O oponente está focado em estudos e não pode aceitar duelos no momento.");
         }
 
         com.bizu.portal.student.domain.GamificationStats challengerStats = gamificationRepository.findById(challengerId).orElse(null);
         if (challengerStats != null && challengerStats.getAbandonBlockedUntil() != null && challengerStats.getAbandonBlockedUntil().isAfter(OffsetDateTime.now())) {
-            throw new RuntimeException("Você está impossibilitado de iniciar novos duelos devido ao seu histórico de abandones.");
+            throw new IllegalStateException("Você está impossibilitado de iniciar novos duelos devido ao seu histórico de abandones.");
         }
 
         Duel duel = Duel.builder()
@@ -73,17 +73,17 @@ public class DuelService {
     public void joinQueue(UUID userId, UUID courseId) {
         User user = userRepository.findById(userId).orElseThrow();
         if (user.isDuelFocusMode()) {
-            throw new RuntimeException("Você está em modo focado e não pode entrar na fila de duelos.");
+            throw new IllegalStateException("Você está em modo focado e não pode entrar na fila de duelos.");
         }
 
         com.bizu.portal.student.domain.GamificationStats stats = gamificationRepository.findById(userId).orElse(null);
         if (stats != null && stats.getAbandonBlockedUntil() != null && stats.getAbandonBlockedUntil().isAfter(OffsetDateTime.now())) {
-            throw new RuntimeException("Você está temporariamente impossibilitado de entrar em duelos devido ao excesso de abandones.");
+            throw new IllegalStateException("Você está temporariamente impossibilitado de entrar em duelos devido ao excesso de abandones.");
         }
 
         List<Duel> activeDuels = duelRepository.findActiveDuelsByUserId(userId);
         if (!activeDuels.isEmpty()) {
-            throw new RuntimeException("Você já está em um duelo ativo.");
+            throw new IllegalStateException("Você já está em um duelo ativo.");
         }
         
         matchQueues.computeIfAbsent(courseId, k -> new ConcurrentLinkedQueue<>())
