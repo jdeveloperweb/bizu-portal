@@ -1,0 +1,473 @@
+﻿commit 068973896f38aadca3d862fd911722c6ca89ff30
+Author: Jaime Vicente Jr <jdeveloperweb@yahoo.com.br>
+Date:   Sat Feb 28 20:16:41 2026 -0300
+
+    fix
+
+diff --git a/bizu-frontend/src/components/ActiveBuffsAura.tsx b/bizu-frontend/src/components/ActiveBuffsAura.tsx
+index 0137531..d8bf624 100644
+--- a/bizu-frontend/src/components/ActiveBuffsAura.tsx
++++ b/bizu-frontend/src/components/ActiveBuffsAura.tsx
+@@ -10,18 +10,26 @@ export default function ActiveBuffsAura() {
+         xpBoost: boolean;
+         radar: boolean;
+         eliteTitle: boolean;
+-    }>({ xpBoost: false, radar: false, eliteTitle: false });
++        xpEndsAt: Date | null;
++        radarEndsAt: Date | null;
++    }>({ xpBoost: false, radar: false, eliteTitle: false, xpEndsAt: null, radarEndsAt: null });
++
++    const [now, setNow] = useState(new Date());
+ 
+     const checkBuffs = async () => {
+         try {
+             const res = await apiFetch("/student/gamification/me");
+             if (res.ok) {
+                 const data = await res.json();
+-                const now = new Date();
++                const currentDate = new Date();
++                const xpEnd = data.xpBoostUntil ? new Date(data.xpBoostUntil) : null;
++                const radarEnd = data.radarMateriaUntil ? new Date(data.radarMateriaUntil) : null;
+                 setBuffs({
+-                    xpBoost: data.xpBoostUntil ? new Date(data.xpBoostUntil) > now : false,
+-                    radar: data.radarMateriaUntil ? new Date(data.radarMateriaUntil) > now : false,
+-                    eliteTitle: data.activeTitle === "Elite"
++                    xpBoost: xpEnd ? xpEnd > currentDate : false,
++                    radar: radarEnd ? radarEnd > currentDate : false,
++                    eliteTitle: data.activeTitle === "Elite",
++                    xpEndsAt: xpEnd,
++                    radarEndsAt: radarEnd
+                 });
+             }
+         } catch (e) {
+@@ -32,61 +40,87 @@ export default function ActiveBuffsAura() {
+     useEffect(() => {
+         checkBuffs();
+         window.addEventListener("buff-activated", checkBuffs);
+-        const interval = setInterval(checkBuffs, 30000);
++
++        // Verifica buffs no servidor a cada 30 segundos
++        const fetchInterval = setInterval(checkBuffs, 30000);
++
++        // Atualiza a hora local suavemente a cada segundo, para o efeito visual de perda de opacidade
++        const timeInterval = setInterval(() => setNow(new Date()), 1000);
++
+         return () => {
+             window.removeEventListener("buff-activated", checkBuffs);
+-            clearInterval(interval);
++            clearInterval(fetchInterval);
++            clearInterval(timeInterval);
+         };
+     }, []);
+ 
++    // Calcula a intensidade baseada na por├º├úo de tempo de dura├º├úo "padr├úo" do item de loja
++    const getIntensity = (endsAt: Date | null, maxDurationInHours: number) => {
++        if (!endsAt) return 0;
++        const timeLeftMs = endsAt.getTime() - now.getTime();
++        if (timeLeftMs <= 0) return 0;
++        const maxDurationMs = maxDurationInHours * 60 * 60 * 1000;
++        // Permite ficar 100% no come├ºo caso o usu├írio tenha um stack de v├írios boosts iguais, diminuindo s├│ quando atingir `maxDurationMs`
++        return Math.max(0, Math.min(1, timeLeftMs / maxDurationMs));
++    };
++
++    // XPBoost base is 2 Hours
++    const xpIntensity = buffs.xpBoost ? getIntensity(buffs.xpEndsAt, 2) : 0;
++    // Radar base is 24 Hours
++    const radarIntensity = buffs.radar ? getIntensity(buffs.radarEndsAt, 24) : 0;
++
+     if (!buffs.xpBoost && !buffs.radar && !buffs.eliteTitle) return null;
+ 
+     return (
+         <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden">
+             <AnimatePresence>
+                 {/* AMBER BORDER (XP BOOST) */}
+-                {buffs.xpBoost && (
+-                    <motion.div
+-                        initial={{ opacity: 0 }}
+-                        animate={{ opacity: [0.3, 0.6, 0.3] }}
+-                        exit={{ opacity: 0 }}
+-                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+-                        className="absolute inset-0 z-0 pointer-events-none"
+-                        style={{
+-                            boxShadow: "inset 0 0 40px rgba(245, 158, 11, 0.2), inset 0 0 4px rgba(245, 158, 11, 0.5)",
+-                            border: "3px solid rgba(245, 158, 11, 0.1)"
+-                        }}
+-                    />
++                {buffs.xpBoost && xpIntensity > 0 && (
++                    <div className="absolute inset-0 pointer-events-none transition-opacity duration-1000" style={{ opacity: xpIntensity }}>
++                        <motion.div
++                            initial={{ opacity: 0 }}
++                            animate={{ opacity: [0.5, 0.9, 0.5] }}
++                            exit={{ opacity: 0 }}
++                            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
++                            className="absolute inset-0 z-0 pointer-events-none"
++                            style={{
++                                boxShadow: `inset 0 0 80px rgba(245, 158, 11, 0.35), inset 0 0 10px rgba(245, 158, 11, 0.7)`,
++                                border: `4px solid rgba(245, 158, 11, 0.5)`
++                            }}
++                        />
++                    </div>
+                 )}
+ 
+-                {/* PURPLE BORDER (ELITE TITLE) */}
++                {/* PURPLE BORDER (ELITE TITLE) - Permanente, n├úo sofre decaimento */}
+                 {buffs.eliteTitle && (
+                     <motion.div
+                         initial={{ opacity: 0 }}
+-                        animate={{ opacity: [0.2, 0.5, 0.2] }}
++                        animate={{ opacity: [0.4, 0.8, 0.4] }}
+                         exit={{ opacity: 0 }}
+                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                         className="absolute inset-0 z-1 pointer-events-none"
+                         style={{
+-                            boxShadow: "inset 0 0 60px rgba(168, 85, 247, 0.15), inset 0 0 4px rgba(168, 85, 247, 0.4)",
+-                            border: buffs.xpBoost ? "none" : "3px solid rgba(168, 85, 247, 0.1)"
++                            boxShadow: "inset 0 0 100px rgba(168, 85, 247, 0.3), inset 0 0 10px rgba(168, 85, 247, 0.6)",
++                            border: buffs.xpBoost ? "none" : "4px solid rgba(168, 85, 247, 0.4)"
+                         }}
+                     />
+                 )}
+ 
+                 {/* EMERALD BORDER (RADAR) */}
+-                {buffs.radar && (
+-                    <motion.div
+-                        initial={{ opacity: 0 }}
+-                        animate={{ opacity: [0.2, 0.5, 0.2] }}
+-                        exit={{ opacity: 0 }}
+-                        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+-                        className="absolute inset-0 z-2 pointer-events-none"
+-                        style={{
+-                            boxShadow: "inset 0 0 30px rgba(16, 185, 129, 0.15), inset 0 0 4px rgba(16, 185, 129, 0.4)",
+-                            border: (buffs.xpBoost || buffs.eliteTitle) ? "none" : "3px solid rgba(16, 185, 129, 0.1)"
+-                        }}
+-                    />
++                {buffs.radar && radarIntensity > 0 && (
++                    <div className="absolute inset-0 pointer-events-none transition-opacity duration-1000" style={{ opacity: radarIntensity }}>
++                        <motion.div
++                            initial={{ opacity: 0 }}
++                            animate={{ opacity: [0.4, 0.8, 0.4] }}
++                            exit={{ opacity: 0 }}
++                            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
++                            className="absolute inset-0 z-2 pointer-events-none"
++                            style={{
++                                boxShadow: `inset 0 0 80px rgba(16, 185, 129, 0.3), inset 0 0 10px rgba(16, 185, 129, 0.6)`,
++                                border: (buffs.xpBoost || buffs.eliteTitle) ? "none" : `4px solid rgba(16, 185, 129, 0.4)`
++                            }}
++                        />
++                    </div>
+                 )}
+             </AnimatePresence>
+ 
+
+commit e0fb8f3a5f87ab7f5d78e9c1daa9528844e58a2d
+Author: Jaime Vicente Jr <jdeveloperweb@yahoo.com.br>
+Date:   Sat Feb 28 16:55:16 2026 -0300
+
+    fix
+
+diff --git a/bizu-frontend/src/components/ActiveBuffsAura.tsx b/bizu-frontend/src/components/ActiveBuffsAura.tsx
+index f10f2f6..0137531 100644
+--- a/bizu-frontend/src/components/ActiveBuffsAura.tsx
++++ b/bizu-frontend/src/components/ActiveBuffsAura.tsx
+@@ -44,81 +44,48 @@ export default function ActiveBuffsAura() {
+     return (
+         <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden">
+             <AnimatePresence>
+-                {/* GLOBAL ENERGY FLOOR (AXON AURA) */}
+-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_110%,_rgba(99,102,241,0.05),_transparent_70%)]" />
+-
+-                {/* ELITE TITLE AURA - PURPLE MAJESTY */}
+-                {buffs.eliteTitle && (
++                {/* AMBER BORDER (XP BOOST) */}
++                {buffs.xpBoost && (
+                     <motion.div
+-                        initial={{ opacity: 0, y: 50 }}
+-                        animate={{ opacity: 1, y: 0 }}
++                        initial={{ opacity: 0 }}
++                        animate={{ opacity: [0.3, 0.6, 0.3] }}
+                         exit={{ opacity: 0 }}
+-                        className="absolute inset-x-0 bottom-0 h-[40vh] bg-[radial-gradient(circle_at_50%_100%,_rgba(168,85,247,0.2),_transparent_70%)]"
++                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
++                        className="absolute inset-0 z-0 pointer-events-none"
++                        style={{
++                            boxShadow: "inset 0 0 40px rgba(245, 158, 11, 0.2), inset 0 0 4px rgba(245, 158, 11, 0.5)",
++                            border: "3px solid rgba(245, 158, 11, 0.1)"
++                        }}
+                     />
+                 )}
+ 
+-                {/* XP BOOST EFFECT - AMBER ENERGY */}
+-                {buffs.xpBoost && (
+-                    <>
+-                        {/* Intense Bottom Glow */}
+-                        <motion.div
+-                            initial={{ opacity: 0 }}
+-                            animate={{ opacity: [0.4, 0.7, 0.4] }}
+-                            transition={{ duration: 3, repeat: Infinity }}
+-                            className="absolute inset-x-0 bottom-0 h-[50vh] bg-[radial-gradient(circle_at_50%_100%,_rgba(245,158,11,0.25),_transparent_70%)]"
+-                        />
+-
+-                        {/* Energy Waves */}
+-                        {[...Array(3)].map((_, i) => (
+-                            <motion.div
+-                                key={`wave-${i}`}
+-                                initial={{ scaleY: 0, opacity: 0 }}
+-                                animate={{
+-                                    scaleY: [1, 1.2, 1],
+-                                    opacity: [0.1, 0.3, 0.1],
+-                                    y: [-20 * i, -40 * i, -20 * i]
+-                                }}
+-                                transition={{
+-                                    duration: 4 + i,
+-                                    repeat: Infinity,
+-                                    ease: "easeInOut"
+-                                }}
+-                                className="absolute inset-x-0 bottom-0 h-[20vh] bg-gradient-to-t from-amber-500/20 to-transparent blur-xl origin-bottom"
+-                            />
+-                        ))}
+-
+-                        {/* Rising Embers (Particles) */}
+-                        {[...Array(12)].map((_, i) => (
+-                            <motion.div
+-                                key={`xp-p-${i}`}
+-                                initial={{ y: "100vh", x: `${10 + (i * 8)}%`, opacity: 0, scale: 0 }}
+-                                animate={{
+-                                    y: ["100vh", "60vh", "40vh"],
+-                                    opacity: [0, 0.6, 0],
+-                                    scale: [0.5, 1.2, 0.2],
+-                                    x: [`${10 + (i * 8)}%`, `${10 + (i * 8) + (Math.sin(i) * 10)}%`]
+-                                }}
+-                                transition={{
+-                                    duration: 4 + (i % 3),
+-                                    repeat: Infinity,
+-                                    delay: i * 0.3,
+-                                    ease: "easeOut"
+-                                }}
+-                                className="absolute"
+-                            >
+-                                <div className="w-1.5 h-1.5 bg-amber-400 rounded-full blur-[1px] shadow-[0_0_10px_#f59e0b]" />
+-                            </motion.div>
+-                        ))}
+-                    </>
++                {/* PURPLE BORDER (ELITE TITLE) */}
++                {buffs.eliteTitle && (
++                    <motion.div
++                        initial={{ opacity: 0 }}
++                        animate={{ opacity: [0.2, 0.5, 0.2] }}
++                        exit={{ opacity: 0 }}
++                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
++                        className="absolute inset-0 z-1 pointer-events-none"
++                        style={{
++                            boxShadow: "inset 0 0 60px rgba(168, 85, 247, 0.15), inset 0 0 4px rgba(168, 85, 247, 0.4)",
++                            border: buffs.xpBoost ? "none" : "3px solid rgba(168, 85, 247, 0.1)"
++                        }}
++                    />
+                 )}
+ 
+-                {/* RADAR EFFECT - EMERALD PULSE */}
++                {/* EMERALD BORDER (RADAR) */}
+                 {buffs.radar && (
+                     <motion.div
+                         initial={{ opacity: 0 }}
+-                        animate={{ opacity: [0.3, 0.5, 0.3] }}
+-                        transition={{ duration: 2, repeat: Infinity }}
+-                        className="absolute inset-x-0 bottom-0 h-[40vh] bg-[radial-gradient(circle_at_50%_100%,_rgba(16,185,129,0.2),_transparent_70%)]"
++                        animate={{ opacity: [0.2, 0.5, 0.2] }}
++                        exit={{ opacity: 0 }}
++                        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
++                        className="absolute inset-0 z-2 pointer-events-none"
++                        style={{
++                            boxShadow: "inset 0 0 30px rgba(16, 185, 129, 0.15), inset 0 0 4px rgba(16, 185, 129, 0.4)",
++                            border: (buffs.xpBoost || buffs.eliteTitle) ? "none" : "3px solid rgba(16, 185, 129, 0.1)"
++                        }}
+                     />
+                 )}
+             </AnimatePresence>
+
+commit f83c786ef817f785fcf4dba8b8aadb703fbaef7a
+Author: Jaime Vicente Jr <jdeveloperweb@yahoo.com.br>
+Date:   Sat Feb 28 16:47:57 2026 -0300
+
+    fix
+
+diff --git a/bizu-frontend/src/components/ActiveBuffsAura.tsx b/bizu-frontend/src/components/ActiveBuffsAura.tsx
+index 8a717dd..f10f2f6 100644
+--- a/bizu-frontend/src/components/ActiveBuffsAura.tsx
++++ b/bizu-frontend/src/components/ActiveBuffsAura.tsx
+@@ -44,126 +44,85 @@ export default function ActiveBuffsAura() {
+     return (
+         <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden">
+             <AnimatePresence>
+-                {/* ELITE TITLE AURA - PURPLE RECOGNITION */}
++                {/* GLOBAL ENERGY FLOOR (AXON AURA) */}
++                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_110%,_rgba(99,102,241,0.05),_transparent_70%)]" />
++
++                {/* ELITE TITLE AURA - PURPLE MAJESTY */}
+                 {buffs.eliteTitle && (
+                     <motion.div
+-                        initial={{ opacity: 0 }}
+-                        animate={{ opacity: 1 }}
++                        initial={{ opacity: 0, y: 50 }}
++                        animate={{ opacity: 1, y: 0 }}
+                         exit={{ opacity: 0 }}
+-                        className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,_rgba(168,85,247,0.05),_transparent_60%)]"
++                        className="absolute inset-x-0 bottom-0 h-[40vh] bg-[radial-gradient(circle_at_50%_100%,_rgba(168,85,247,0.2),_transparent_70%)]"
+                     />
+                 )}
+ 
+-                {/* XP BOOST RPG EFFECT */}
++                {/* XP BOOST EFFECT - AMBER ENERGY */}
+                 {buffs.xpBoost && (
+                     <>
+-                        {/* Initial Burst Flash */}
++                        {/* Intense Bottom Glow */}
+                         <motion.div
+-                            initial={{ scale: 0.5, opacity: 0 }}
+-                            animate={{ scale: [0.5, 1.5, 1.2], opacity: [0, 0.5, 0] }}
+-                            transition={{ duration: 1.5, times: [0, 0.4, 1] }}
+-                            className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(245,158,11,0.3),_transparent_70%)]"
++                            initial={{ opacity: 0 }}
++                            animate={{ opacity: [0.4, 0.7, 0.4] }}
++                            transition={{ duration: 3, repeat: Infinity }}
++                            className="absolute inset-x-0 bottom-0 h-[50vh] bg-[radial-gradient(circle_at_50%_100%,_rgba(245,158,11,0.25),_transparent_70%)]"
+                         />
+ 
+-                        {/* Mana Rising (Particles) */}
+-                        {[...Array(6)].map((_, i) => (
++                        {/* Energy Waves */}
++                        {[...Array(3)].map((_, i) => (
+                             <motion.div
+-                                key={`xp-p-${i}`}
+-                                initial={{ y: "100vh", x: `${20 + i * 15}%`, opacity: 0, scale: 0 }}
++                                key={`wave-${i}`}
++                                initial={{ scaleY: 0, opacity: 0 }}
+                                 animate={{
+-                                    y: "-10vh",
+-                                    opacity: [0, 0.8, 0],
+-                                    scale: [0.5, 1, 0.5],
+-                                    rotate: 360
++                                    scaleY: [1, 1.2, 1],
++                                    opacity: [0.1, 0.3, 0.1],
++                                    y: [-20 * i, -40 * i, -20 * i]
+                                 }}
+                                 transition={{
+-                                    duration: 3 + i,
++                                    duration: 4 + i,
+                                     repeat: Infinity,
+-                                    delay: i * 0.5,
+                                     ease: "easeInOut"
+                                 }}
++                                className="absolute inset-x-0 bottom-0 h-[20vh] bg-gradient-to-t from-amber-500/20 to-transparent blur-xl origin-bottom"
++                            />
++                        ))}
++
++                        {/* Rising Embers (Particles) */}
++                        {[...Array(12)].map((_, i) => (
++                            <motion.div
++                                key={`xp-p-${i}`}
++                                initial={{ y: "100vh", x: `${10 + (i * 8)}%`, opacity: 0, scale: 0 }}
++                                animate={{
++                                    y: ["100vh", "60vh", "40vh"],
++                                    opacity: [0, 0.6, 0],
++                                    scale: [0.5, 1.2, 0.2],
++                                    x: [`${10 + (i * 8)}%`, `${10 + (i * 8) + (Math.sin(i) * 10)}%`]
++                                }}
++                                transition={{
++                                    duration: 4 + (i % 3),
++                                    repeat: Infinity,
++                                    delay: i * 0.3,
++                                    ease: "easeOut"
++                                }}
+                                 className="absolute"
+                             >
+-                                <Zap size={24 + i * 4} className="text-amber-400/30 blur-[2px] fill-current" />
++                                <div className="w-1.5 h-1.5 bg-amber-400 rounded-full blur-[1px] shadow-[0_0_10px_#f59e0b]" />
+                             </motion.div>
+                         ))}
+-
+-                        {/* Persistent Core Glow */}
+-                        <motion.div
+-                            initial={{ opacity: 0 }}
+-                            animate={{ opacity: 1 }}
+-                            exit={{ opacity: 0 }}
+-                            className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(245,158,11,0.12),_transparent_60%)] animate-pulse"
+-                        />
+                     </>
+                 )}
+ 
+-                {/* RADAR RPG EFFECT */}
++                {/* RADAR EFFECT - EMERALD PULSE */}
+                 {buffs.radar && (
+-                    <>
+-                        <motion.div
+-                            initial={{ scale: 2, opacity: 0 }}
+-                            animate={{ scale: 1, opacity: 1 }}
+-                            exit={{ opacity: 0 }}
+-                            className="absolute inset-0 border-[40px] border-emerald-500/10 rounded-full blur-3xl scale-150"
+-                        />
+-                        <motion.div
+-                            initial={{ opacity: 0 }}
+-                            animate={{ opacity: 1 }}
+-                            exit={{ opacity: 0 }}
+-                            className="absolute inset-0 bg-[radial-gradient(circle_at_50%_100%,_rgba(16,185,129,0.15),_transparent_60%)]"
+-                        />
+-                    </>
++                    <motion.div
++                        initial={{ opacity: 0 }}
++                        animate={{ opacity: [0.3, 0.5, 0.3] }}
++                        transition={{ duration: 2, repeat: Infinity }}
++                        className="absolute inset-x-0 bottom-0 h-[40vh] bg-[radial-gradient(circle_at_50%_100%,_rgba(16,185,129,0.2),_transparent_70%)]"
++                    />
+                 )}
+             </AnimatePresence>
+ 
+-            {/* Corner Indicators with Flare */}
+-            <div className="absolute top-4 right-4 flex flex-col gap-3 pointer-events-auto">
+-                <AnimatePresence>
+-                    {buffs.eliteTitle && (
+-                        <motion.div
+-                            initial={{ x: 100, opacity: 0 }}
+-                            animate={{ x: 0, opacity: 1 }}
+-                            exit={{ x: 100, opacity: 0 }}
+-                            className="relative"
+-                        >
+-                            <div className="absolute -inset-1 bg-purple-500 rounded-2xl blur-md opacity-30" />
+-                            <div className="relative bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-2xl shadow-2xl border border-white/20 flex items-center gap-3 text-xs font-black uppercase tracking-widest">
+-                                <Crown size={16} className="text-yellow-400 fill-current" />
+-                                <span>Status: Elite</span>
+-                            </div>
+-                        </motion.div>
+-                    )}
+-                    {buffs.xpBoost && (
+-                        <motion.div
+-                            initial={{ x: 100, scale: 0.5, filter: "brightness(2)" }}
+-                            animate={{ x: 0, scale: 1, filter: "brightness(1)" }}
+-                            exit={{ x: 100, opacity: 0 }}
+-                            className="relative"
+-                        >
+-                            <div className="absolute -inset-1 bg-amber-500 rounded-2xl blur-md animate-pulse opacity-50" />
+-                            <div className="relative bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-600 text-white px-6 py-3 rounded-2xl shadow-2xl border border-white/30 flex items-center gap-3 text-xs font-black uppercase tracking-widest">
+-                                <Zap size={16} className="fill-current animate-bounce text-yellow-200" />
+-                                <span className="drop-shadow-sm">Multiplicador 2x Ativo</span>
+-                            </div>
+-                        </motion.div>
+-                    )}
+-                    {buffs.radar && (
+-                        <motion.div
+-                            initial={{ x: 100, opacity: 0 }}
+-                            animate={{ x: 0, opacity: 1 }}
+-                            exit={{ x: 100, opacity: 0 }}
+-                            className="relative"
+-                        >
+-                            <div className="absolute -inset-1 bg-emerald-500 rounded-2xl blur-md opacity-30" />
+-                            <div className="relative bg-gradient-to-r from-emerald-500 to-teal-400 text-white px-6 py-3 rounded-2xl shadow-2xl border border-white/20 flex items-center gap-3 text-xs font-black uppercase tracking-widest">
+-                                <Target size={16} className="animate-spin-slow" />
+-                                <span>Radar Ativo</span>
+-                            </div>
+-                        </motion.div>
+-                    )}
+-                </AnimatePresence>
+-            </div>
+         </div>
+     );
+ }
