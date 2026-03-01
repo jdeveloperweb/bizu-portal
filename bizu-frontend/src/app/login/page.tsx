@@ -93,6 +93,14 @@ export default function LoginPage() {
                     background: "linear-gradient(to top,#020617,transparent)",
                 }} />
 
+                {/* AXON background watermark */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
+                    <span className="font-black text-white leading-none tracking-tight"
+                        style={{ fontFamily: "var(--font-orbitron)", fontSize: "clamp(160px,22vw,260px)", opacity: 0.022 }}>
+                        AXON
+                    </span>
+                </div>
+
                 <div className="relative z-10 w-full max-w-sm px-4 flex flex-col items-center text-center">
 
                     {/* AXON wordmark */}
