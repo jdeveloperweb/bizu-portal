@@ -21,11 +21,11 @@ public class PublicCourseController {
 
     @GetMapping
     public ResponseEntity<List<Course>> getAllCourses() {
-        return ResponseEntity.ok(courseService.findAll());
+        return ResponseEntity.ok(courseService.findAllPublic());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Course> getCourseById(@PathVariable UUID id) {
-        return ResponseEntity.ok(courseService.findById(id));
+        return ResponseEntity.ok(courseService.findPublicById(id));
     }
 }

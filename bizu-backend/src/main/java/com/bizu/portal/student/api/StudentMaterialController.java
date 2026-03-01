@@ -32,6 +32,7 @@ public class StudentMaterialController {
 
     private final com.bizu.portal.student.infrastructure.MaterialCompletionRepository completionRepository;
     private final com.bizu.portal.student.application.GamificationService gamificationService;
+    private final com.bizu.portal.student.application.CertificateService certificateService;
 
     @GetMapping
     public ResponseEntity<List<MaterialLibraryDTO>> getAllMaterials(@AuthenticationPrincipal Jwt jwt) {
@@ -85,6 +86,9 @@ public class StudentMaterialController {
         if (completed) {
             // Recompensa Fixa por material: 50 XP
             reward = gamificationService.addXp(userId, 50);
+            
+            // Disparar verificação de completude 100% de curso e emitir certificado
+            certificateService.checkAndIssueCertificate(userId, id);
         }
         
         return ResponseEntity.ok(reward);

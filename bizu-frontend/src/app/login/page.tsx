@@ -258,8 +258,13 @@ export default function LoginPage() {
 
                 <footer className="py-8 text-center relative z-10 px-6">
                     <p className="text-[12px] text-slate-400 font-bold tracking-tight">
-                        &copy; Bizu! Academy — Excelência Acadêmica
+                        &copy; Axon Academy — Excelência Acadêmica
                     </p>
+                    <div className="mt-3 flex items-center justify-center gap-4 text-[11px] font-semibold text-slate-400">
+                        <Link href="/termos" className="hover:text-indigo-500 transition-colors">Termos de Uso</Link>
+                        <span>•</span>
+                        <Link href="/privacidade" className="hover:text-indigo-500 transition-colors">Política de Privacidade</Link>
+                    </div>
                 </footer>
             </div>
             {/* Background Decorativo no form (opcional) */}

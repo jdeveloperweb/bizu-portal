@@ -18,10 +18,16 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final EntitlementService entitlementService;
 
-    public List<Course> findAll() {
+    public List<Course> findAllPublic() {
         List<Course> courses = courseRepository.findAll();
         courses.forEach(this::populateStudentsCount);
-        return courses;
+        return courses.stream().map(this::sanitizeForPublic).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Course findPublicById(UUID id) {
+        Course course = findById(id);
+        return sanitizeForPublic(course);
     }
 
     @Transactional(readOnly = true)
@@ -29,6 +35,30 @@ public class CourseService {
         Course course = courseRepository.findByIdWithModules(id)
             .orElseThrow(() -> new ResourceNotFoundException("Curso não encontrado"));
         populateStudentsCount(course);
+        return course;
+    }
+
+    private Course sanitizeForPublic(Course course) {
+        if (course == null) return null;
+
+        // Clone/Mock course para não afetar o cache do hibernate (opcional, mas recomendado)
+        // Sanitizar a resposta pública
+        if (course.getModules() != null) {
+            course.getModules().forEach(module -> {
+                // Remove as perguntas do conteúdo público
+                module.setQuestions(null);
+                
+                if (module.getMaterials() != null) {
+                    module.getMaterials().forEach(material -> {
+                        // Se não for gratuito, esconde o fileUrl (vídeo/pdf)
+                        if (!material.isFree()) {
+                            material.setFileUrl(null);
+                            // também pode esconder outros campos sensíveis se necessário
+                        }
+                    });
+                }
+            });
+        }
         return course;
     }
 
