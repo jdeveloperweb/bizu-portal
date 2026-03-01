@@ -249,6 +249,7 @@ public class DuelService {
                 : duel.getChallenger();
             
             finishDuel(duel, winner);
+            notificationService.send(userId, "Você abandonou o duelo!", "Como penalidade por abandonar, você perdeu 100 XP.");
             log.info("Duel {} abandoned by {}. Winner: {}", duelId, userId, winner.getId());
         } else {
             // Se ainda estava pendente (convite), apenas cancela

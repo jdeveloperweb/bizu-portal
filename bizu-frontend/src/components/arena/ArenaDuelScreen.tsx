@@ -89,10 +89,25 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                     leveledUp: false,
                     nextLevelProgress: 0
                 });
-            } else {
-                // Participou mas perdeu
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            } else if (duel.winner) {
+                // Participou mas perdeu (ou empatou se duel.winner for null, mas aqui tratamos derrota)
                 showReward({
-                    xpGained: 25,
+                    xpGained: -100,
+                    totalXp: 0,
+                    currentLevel: 0,
+                    previousLevel: 1,
+                    leveledUp: false,
+                    nextLevelProgress: 0
+                });
+            } else {
+                // Empate
+                showReward({
+                    xpGained: 50,
                     totalXp: 0,
                     currentLevel: 0,
                     previousLevel: 1,
