@@ -70,82 +70,84 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="h-[100dvh] flex font-sans selection:bg-indigo-100 selection:text-indigo-900 bg-white overflow-hidden relative">
+        <div className="h-[100dvh] flex font-sans selection:bg-indigo-100 selection:text-indigo-900 bg-[#F8FAFC] overflow-hidden relative">
 
-            {/* ── Left: Premium Hero Section ── */}
-            <div className="hidden lg:flex w-[42%] xl:w-[48%] relative overflow-hidden bg-[#0a0c10] items-center justify-center p-8">
+            {/* ── Left: dark branded panel ── */}
+            <div className="hidden lg:flex w-[42%] xl:w-[48%] relative overflow-hidden items-center justify-center p-8" style={{ background: "#020617" }}>
 
-                {/* Background Artwork */}
-                <div className="absolute inset-0 z-0">
-                    <img
-                        src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop"
-                        alt="Education"
-                        className="w-full h-full object-cover opacity-30 animate-ken-burns scale-110"
-                    />
-                    {/* Deep Overlays */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-[#0a0c10] via-[#0a0c10]/80 to-indigo-900/40"></div>
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(99,102,241,0.15),transparent_50%)]"></div>
-
-                    {/* Animated Glows */}
-                    <div className="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-indigo-500/10 rounded-full blur-[120px] animate-pulse" />
-                    <div className="absolute -bottom-[10%] -right-[10%] w-[50%] h-[50%] bg-violet-500/10 rounded-full blur-[100px]" />
+                {/* Aurora orbs */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    <div className="lp-orb lp-orb-1" />
+                    <div className="lp-orb lp-orb-2" />
+                    <div className="lp-orb lp-orb-3" />
                 </div>
 
-                {/* Grid Pattern Overlay */}
-                <div className="absolute inset-0 z-10 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+                {/* Grid overlay */}
+                <div className="absolute inset-0 z-0 pointer-events-none" style={{
+                    backgroundImage: "linear-gradient(rgba(99,102,241,0.04) 1px,transparent 1px),linear-gradient(to right,rgba(99,102,241,0.04) 1px,transparent 1px)",
+                    backgroundSize: "48px 48px",
+                }} />
 
-                <div className="relative z-20 w-full max-w-2xl px-12 animate-in fade-in slide-in-from-left-8 duration-700">
-                    <div className="mb-14 drop-shadow-2xl">
-                        <BrandLogo size="xl" variant="light" link={false} />
+                {/* Bottom vignette */}
+                <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" style={{
+                    background: "linear-gradient(to top,#020617,transparent)",
+                }} />
+
+                <div className="relative z-10 w-full max-w-sm px-4">
+                    {/* Brand mark */}
+                    <div className="flex items-center gap-3 mb-12">
+                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                            style={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)", boxShadow: "0 8px 24px rgba(99,102,241,0.35)" }}>
+                            <GraduationCap size={24} className="text-white" />
+                        </div>
+                        <div>
+                            <div className="text-xl font-black text-white leading-none"
+                                style={{ fontFamily: "var(--font-orbitron)", letterSpacing: "-0.02em" }}>AXON</div>
+                            <div className="text-[9px] font-bold tracking-[0.45em] uppercase mt-0.5" style={{ color: "#475569" }}>Academy</div>
+                        </div>
                     </div>
 
-                    <div className="space-y-8">
-                        <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/90 text-[13px] font-semibold tracking-wide backdrop-blur-md shadow-2xl">
-                            <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></div>
-                            PLATAFORMA DE EXCELÊNCIA
-                        </div>
+                    <div className="inline-flex items-center gap-2 mb-6 px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest border"
+                        style={{ background: "rgba(99,102,241,0.1)", borderColor: "rgba(99,102,241,0.25)", color: "#A5B4FC" }}>
+                        <Sparkles size={11} />
+                        Acesso Antecipado
+                    </div>
 
-                        <h2 className="text-5xl xl:text-6xl font-black text-white leading-[1.05] tracking-tight">
-                            Domine o seu <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-400 to-fuchsia-400">
-                                futuro acadêmico.
-                            </span>
-                        </h2>
+                    <h2 className="text-4xl xl:text-5xl font-black text-white leading-[1.06] tracking-tight mb-5">
+                        A arena onde<br />
+                        <span style={{
+                            backgroundImage: "linear-gradient(135deg,#818CF8 0%,#6366F1 45%,#A78BFA 100%)",
+                            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+                        }}>vencedores surgem.</span>
+                    </h2>
 
-                        <p className="text-slate-400 text-lg max-w-md leading-relaxed font-medium">
-                            Conecte-se à ferramenta que transforma esforço em resultados, desenhada para quem busca o topo.
-                        </p>
+                    <p className="text-base leading-relaxed font-medium mb-8" style={{ color: "#64748B" }}>
+                        Questões, duelos em tempo real, XP e correção de redações por IA. Tudo para você dominar o concurso.
+                    </p>
 
-                        <div className="grid grid-cols-1 gap-4 py-6">
-                            {[
-                                { text: "Análises de performance em tempo real", icon: Target, delay: "500ms" },
-                                { text: "Simulados otimizados por IA", icon: Trophy, delay: "600ms" },
-                                { text: "Ciclos de estudo personalizados", icon: BookOpen, delay: "700ms" },
-                            ].map((item, i) => (
-                                <div
-                                    key={i}
-                                    className="flex items-center gap-5 p-5 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl transition-all hover:bg-white/[0.06] hover:border-white/[0.15] hover:-translate-y-1 group group cursor-default"
-                                    style={{ animation: `slideIn 0.5s ease-out forwards ${item.delay}` }}
-                                >
-                                    <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center shrink-0 border border-indigo-500/20 group-hover:bg-indigo-500/20 group-hover:scale-110 transition-all">
-                                        <item.icon size={22} className="text-indigo-400" />
-                                    </div>
-                                    <span className="text-[15px] font-bold tracking-tight text-white/90">{item.text}</span>
-                                </div>
-                            ))}
-                        </div>
+                    <div className="space-y-3">
+                        {[
+                            { icon: CheckCircle2, text: "Arena de Duelos PvP", color: "#6366F1" },
+                            { icon: CheckCircle2, text: "XP, Níveis e Conquistas", color: "#F59E0B" },
+                            { icon: CheckCircle2, text: "Correção de Redação por IA", color: "#10B981" },
+                        ].map((item, i) => (
+                            <div key={i} className="flex items-center gap-3 p-4 rounded-2xl border transition-all hover:border-white/10 cursor-default"
+                                style={{ background: "rgba(255,255,255,0.025)", borderColor: "rgba(255,255,255,0.05)" }}>
+                                <item.icon size={16} style={{ color: item.color, flexShrink: 0 }} />
+                                <span className="text-[14px] font-bold" style={{ color: "#CBD5E1" }}>{item.text}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
-                {/* Visual Accent */}
-                <div className="absolute bottom-12 left-12 flex items-center gap-4 text-white/20 select-none animate-pulse">
-                    <Sparkles size={20} />
-                    <span className="text-xs font-bold tracking-widest uppercase">Powered by Bizu AI</span>
+                <div className="absolute bottom-8 left-8 flex items-center gap-3 select-none" style={{ color: "#1E293B" }}>
+                    <Sparkles size={14} />
+                    <span className="text-[10px] font-bold tracking-widest uppercase">Powered by Axon AI</span>
                 </div>
             </div>
 
-            {/* ── Right: Sophisticated Login Form ── */}
-            <div className={`flex-1 flex flex-col relative transition-all duration-500 overflow-y-auto ${isPWA ? 'bg-slate-50/50' : 'bg-white'}`}>
+            {/* ── Right: Login Form ── */}
+            <div className={`flex-1 flex flex-col relative transition-all duration-500 overflow-y-auto ${isPWA ? 'bg-slate-50' : 'bg-white'}`}>
 
                 {/* Background Decorativo exclusivo para PWA/Mobile */}
                 {isPWA && (
@@ -233,7 +235,8 @@ export default function LoginPage() {
                             </div>
 
                             <button type="submit" disabled={loading}
-                                className="group relative w-full h-14 rounded-2xl font-black text-[15px] text-white bg-indigo-600 hover:bg-slate-900 transition-all shadow-[0_10px_25px_-5px_rgba(79,70,229,0.3)] hover:shadow-[0_15px_30px_-10px_rgba(15,23,42,0.4)] hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 disabled:bg-slate-400 mt-4 overflow-hidden active:scale-[0.98]">
+                                className="group relative w-full h-14 rounded-2xl font-black text-[15px] text-white transition-all hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0 mt-4 overflow-hidden active:scale-[0.98]"
+                                style={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)", boxShadow: "0 8px 28px -4px rgba(99,102,241,0.45)" }}>
                                 {loading ? (
                                     <Loader2 className="w-5 h-5 animate-spin mx-auto" />
                                 ) : (
@@ -271,12 +274,29 @@ export default function LoginPage() {
             <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-slate-50/50 rounded-full blur-[100px] -mr-40 -mt-20 pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-indigo-50/30 rounded-full blur-[80px] -ml-20 -mb-20 pointer-events-none" />
 
-            {/* Custom Animations Inline to avoid CSS bloat */}
             <style jsx global>{`
-                @keyframes slideIn {
-                    from { opacity: 0; transform: translateX(-20px); }
-                    to { opacity: 1; transform: translateX(0); }
+                @keyframes lp-orb-1 {
+                    0%,100% { transform:translate(0,0) scale(1); opacity:.18; }
+                    50%     { transform:translate(40px,-30px) scale(1.12); opacity:.28; }
                 }
+                @keyframes lp-orb-2 {
+                    0%,100% { transform:translate(0,0) scale(1); opacity:.10; }
+                    50%     { transform:translate(-30px,40px) scale(1.18); opacity:.18; }
+                }
+                @keyframes lp-orb-3 {
+                    0%,100% { transform:translate(0,0) scale(1); opacity:.08; }
+                    50%     { transform:translate(20px,-40px) scale(1.1); opacity:.15; }
+                }
+                .lp-orb { position:absolute; border-radius:50%; filter:blur(100px); pointer-events:none; }
+                .lp-orb-1 { width:420px;height:380px; top:-80px; left:-60px;
+                    background:radial-gradient(circle,#6366F1 0%,transparent 70%);
+                    animation:lp-orb-1 12s ease-in-out infinite; }
+                .lp-orb-2 { width:340px;height:300px; bottom:-60px; right:-40px;
+                    background:radial-gradient(circle,#8B5CF6 0%,transparent 70%);
+                    animation:lp-orb-2 16s ease-in-out infinite; }
+                .lp-orb-3 { width:280px;height:260px; top:40%; left:40%;
+                    background:radial-gradient(circle,#F59E0B 0%,transparent 70%);
+                    animation:lp-orb-3 14s ease-in-out infinite; }
             `}</style>
         </div>
     );
