@@ -65,60 +65,70 @@ public class EssayService {
     }
 
     private void correctEssay(Essay essay) {
-        String prompt = "Você é um professor avaliador rigoroso e justo de redações, especialista na correção do ENEM. " +
-                "Analise a redação enviada e forneça um feedback detalhado ao aluno em Markdown. " +
-                "O TEMA DA REDAÇÃO É: \"" + (essay.getTopic() != null ? essay.getTopic() : "Não especificado") + "\". " +
-                "Siga rigorosamente as 5 competências do ENEM (0 a 200 pontos cada, totalizando de 0 a 1000). " +
-                "C1: Domínio da norma culta; C2: Compreensão do tema; C3: Organização e interpretação; C4: Coesão; C5: Intervenção. " +
-                "Analise cuidadosamente se o aluno abordou o tema proposto ou se houve fuga ao tema. " +
-                "Ao final do feedback, inclua OBRIGATORIAMENTE um bloco JSON entre as tags [RESULTADO] e [/RESULTADO]. " +
-                "IMPORTANTE: O JSON deve conter inteiros de 0 a 200 para competências e 0 a 1000 para o total. " +
-                "Formato: {\"c1\": 160, \"c2\": 160, \"c3\": 140, \"c4\": 160, \"c5\": 140, \"total\": 760, \"improvement\": \"...\"}";
-
-        String aiResponse;
-        if (essay.getContent() != null && !essay.getContent().trim().isEmpty()) {
-            aiResponse = aiService.analyze(prompt, essay.getContent());
-        } else if (("IMAGE".equals(essay.getType()) || "PDF".equals(essay.getType())) && essay.getAttachmentUrl() != null) {
-            aiResponse = aiService.analyzeWithImage(prompt, essay.getAttachmentUrl());
-        } else {
-            aiResponse = "Nenhum conteúdo enviado para correção.";
+        // ETAPA 1: Extração de Texto (OCR)
+        String paperContent = essay.getContent();
+        if (paperContent == null || paperContent.trim().isEmpty()) {
+            if (essay.getAttachmentUrl() != null) {
+                String ocrPrompt = "Aja como um motor de OCR de alta precisão. Transcreva o texto da imagem de redação abaixo. " +
+                        "Retorne APENAS o texto transcrito, sem comentários, sem introduções e sem saudações. " +
+                        "Mantenha as quebras de parágrafo originais.";
+                paperContent = aiService.analyzeWithImage(ocrPrompt, essay.getAttachmentUrl());
+                essay.setContent(paperContent);
+                essayRepository.save(essay);
+            }
         }
 
-        essay.setFeedback(aiResponse);
-        parseAiResults(essay, aiResponse);
+        if (paperContent == null || paperContent.trim().isEmpty()) {
+            essay.setFeedback("Não foi possível extrair o texto para correção.");
+            essay.setStatus("FAILED");
+            essayRepository.save(essay);
+            return;
+        }
+
+        // ETAPA 2: Análise Pedagógica (Markdown Puro)
+        String analysisPrompt = "Você é um professor corretor de redações especialista no ENEM. " +
+                "Sua tarefa é analisar o texto sobre o tema: \"" + essay.getTopic() + "\". " +
+                "REGRAS CRÍTICAS: " +
+                "1. Comece DIRETAMENTE com a análise. " +
+                "2. NÃO diga 'Certamente', 'Aqui está' ou qualquer saudação. " +
+                "3. Use Markdown para estrutura (Negrito, Listas). " +
+                "4. NÃO inclua notas numéricas aqui. " +
+                "5. NÃO inclua blocos de código JSON.";
+        
+        String feedbackMarkdown = aiService.analyze(analysisPrompt, paperContent);
+        essay.setFeedback(feedbackMarkdown);
+
+        // ETAPA 3: Métricas e Notas (JSON Puro)
+        String metricsPrompt = "Você é um avaliador técnico do ENEM. " +
+                "Gere as notas (0 a 200) para as 5 competências baseadas no texto e no tema: \"" + essay.getTopic() + "\". " +
+                "SAÍDA OBRIGATÓRIA: Retorne APENAS o objeto JSON puro. " +
+                "PROIBIDO: Não use blocos de código como ```json. Não escreva explicações. " +
+                "FORMATO: {\"c1\": 160, \"c2\": 160, \"c3\": 160, \"c4\": 160, \"c5\": 160, \"total\": 800, \"improvement\": \"Dica curta de ouro\"}";
+        
+        String metricsJson = aiService.analyze(metricsPrompt, paperContent);
+        parseAiMetrics(essay, metricsJson);
+
         essay.setStatus("CORRECTED");
         essayRepository.save(essay);
     }
 
-    private void parseAiResults(Essay essay, String response) {
+    private void parseAiMetrics(Essay essay, String jsonResponse) {
         try {
-            Pattern pattern = Pattern.compile("\\[RESULTADO\\](.*?)\\[/RESULTADO\\]", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-            Matcher matcher = pattern.matcher(response);
-            if (matcher.find()) {
-                String jsonStr = matcher.group(1).trim();
-                
-                // Remover possíveis blocos de código markdown que a IA possa ter inserido
-                jsonStr = jsonStr.replaceAll("```json", "").replaceAll("```", "").trim();
-                
-                JsonNode node = objectMapper.readTree(jsonStr);
-                
-                essay.setC1Score(node.path("c1").asInt());
-                essay.setC2Score(node.path("c2").asInt());
-                essay.setC3Score(node.path("c3").asInt());
-                essay.setC4Score(node.path("c4").asInt());
-                essay.setC5Score(node.path("c5").asInt());
-                essay.setGrade(new BigDecimal(node.path("total").asInt()));
-                essay.setImprovementHint(node.path("improvement").asText());
-                
-                // Remove o JSON do feedback final para o aluno não ver o "código"
-                String cleanFeedback = response.replace(matcher.group(0), "").trim();
-                essay.setFeedback(cleanFeedback);
-            } else {
-                essay.setGrade(extractGrade(response));
-            }
+            // Limpa qualquer lixo que a IA possa ter mandado além do JSON
+            String cleanJson = jsonResponse.substring(jsonResponse.indexOf("{"), jsonResponse.lastIndexOf("}") + 1);
+            JsonNode node = objectMapper.readTree(cleanJson);
+            
+            essay.setC1Score(node.path("c1").asInt());
+            essay.setC2Score(node.path("c2").asInt());
+            essay.setC3Score(node.path("c3").asInt());
+            essay.setC4Score(node.path("c4").asInt());
+            essay.setC5Score(node.path("c5").asInt());
+            essay.setGrade(new BigDecimal(node.path("total").asInt()));
+            essay.setImprovementHint(node.path("improvement").asText());
         } catch (Exception e) {
-            System.err.println("Erro ao parsear resultado da redação: " + e.getMessage());
-            essay.setGrade(extractGrade(response));
+            System.err.println("Erro ao parsear métricas: " + e.getMessage());
+            // Fallback para nota zero se o JSON falhar
+            essay.setGrade(BigDecimal.ZERO);
         }
     }
 
