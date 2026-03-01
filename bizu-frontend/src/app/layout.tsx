@@ -96,6 +96,7 @@ import { GamificationProvider } from "@/components/gamification/GamificationProv
 import { InstallPWA } from "@/components/pwa/InstallPWA";
 import PWASplashScreen from "@/components/pwa/PWASplashScreen";
 import { CustomDialogProvider } from "@/components/CustomDialogProvider";
+import { DuelProvider } from "@/contexts/DuelContext";
 
 export default function RootLayout({
   children,
