@@ -36,8 +36,11 @@ public class DeviceValidationFilter extends OncePerRequestFilter {
             UUID userId = userService.resolveUserId(jwtAuth.getToken());
             String fingerprint = request.getHeader(DEVICE_HEADER);
 
-            // Se for endpoint de registro de dispositivo, não validamos o fingerprint ainda
-            if (request.getRequestURI().equals("/api/v1/devices/register")) {
+            // Se for endpoint de registro ou verificação de dispositivo, não validamos o fingerprint ainda
+            String path = request.getRequestURI();
+            if (path.endsWith("/devices/register") || 
+                path.endsWith("/devices/send-code") || 
+                path.endsWith("/devices/verify-and-register")) {
                 filterChain.doFilter(request, response);
                 return;
             }

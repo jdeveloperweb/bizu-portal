@@ -75,12 +75,12 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
             const body = await clone.json();
 
             // Handle device mismatch
+            // Handle device mismatch — AuthProvider should handle this now.
+            // Automatic redirect was causing infinite loops.
             if (body.error === "DEVICE_MISMATCH") {
-                if (typeof window !== "undefined") {
-                    localStorage.removeItem("device_fingerprint");
-                    Cookies.remove("token");
-                    window.location.href = "/login?error=device_mismatch";
-                }
+                console.warn("Device mismatch detected by apiFetch. Letting AuthProvider handle it.");
+                // dispatch a global event or something if needed, but avoid direct window.location here
+                // unless we are sure it won't loop.
             }
 
             // Handle entitlement denied — dispatch event for PaywallGate

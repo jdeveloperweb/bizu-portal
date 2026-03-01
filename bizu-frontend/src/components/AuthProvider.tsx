@@ -53,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [entitlements, setEntitlements] = useState<any[]>([]);
     const [selectedCourseId, setSelectedCourseIdState] = useState<string | undefined>(undefined);
     const [refreshing, setRefreshing] = useState(false);
+    const [isDeviceAuthorized, setIsDeviceAuthorized] = useState(false);
     const [deviceLimitData, setDeviceLimitData] = useState<{
         maskedEmail: string;
         maskedPhone: string;
@@ -120,11 +121,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
             } else if (res.ok) {
                 setDeviceLimitData(null);
+                setIsDeviceAuthorized(true);
                 return true;
             }
+            setIsDeviceAuthorized(false);
             return false;
         } catch (err) {
             console.error("Failed to register device", err);
+            setIsDeviceAuthorized(false);
             return false;
         }
     }, []);
@@ -426,16 +430,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return (
         <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register, sendVerificationCode, selectedCourseId, setSelectedCourseId, refreshUserProfile, subscription, entitlements, isPremium, isFree, isAdmin }}>
-            {children}
+            {/* Se estiver autenticado mas o dispositivo ainda não foi autorizado (limite atingido ou validação em curso),
+                não renderizamos as "children" protegidas para evitar logs/loops de erros 403. */}
+            {(authenticated && !isDeviceAuthorized && !loading) ? (
+                <div className="fixed inset-0 bg-slate-50 z-50 flex items-center justify-center p-6">
+                    <div className="flex flex-col items-center gap-6 text-center">
+                        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                        <div className="space-y-2">
+                            <p className="font-bold text-slate-700">Autenticando seu dispositivo...</p>
+                            <p className="text-sm text-slate-500 max-w-[280px]">Isso garante que apenas você tenha acesso à sua conta.</p>
+                        </div>
+                        <button
+                            onClick={logout}
+                            className="mt-4 text-xs font-bold text-slate-400 hover:text-indigo-600 underline underline-offset-4 transition-colors"
+                        >
+                            Cancelar e Sair
+                        </button>
+                    </div>
+                </div>
+            ) : children}
+
             {deviceLimitData && (
                 <DeviceLimitModal
                     {...deviceLimitData}
                     onSuccess={() => {
                         setDeviceLimitData(null);
+                        setIsDeviceAuthorized(true);
                         refreshUserProfile();
                     }}
                     onCancel={() => {
                         setDeviceLimitData(null);
+                        setIsDeviceAuthorized(false);
                         logout();
                     }}
                 />
