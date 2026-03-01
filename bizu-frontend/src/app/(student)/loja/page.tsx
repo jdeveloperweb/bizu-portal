@@ -31,6 +31,13 @@ export default function AxonStorePage() {
     const [isBuying, setIsBuying] = useState<string | null>(null);
     const [isRechargeModalOpen, setIsRechargeModalOpen] = useState(false);
     const [isGeneratingCheckout, setIsGeneratingCheckout] = useState(false);
+    const [selectedPackId, setSelectedPackId] = useState("2");
+
+    const AXON_PACKS = [
+        { id: "1", code: "AXON_PACK_1000", name: "Iniciante", amount: 1000, price: 9.90, badge: "", icon: Zap, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-400" },
+        { id: "2", code: "AXON_PACK_3000", name: "Custo-Benefício", amount: 3000, price: 24.90, badge: "Mais Popular", icon: Star, color: "text-amber-500", bg: "bg-amber-50", border: "border-amber-400" },
+        { id: "3", code: "AXON_PACK_10000", name: "Ostentação", amount: 10000, price: 69.90, badge: "Melhor Valor", icon: Crown, color: "text-purple-600", bg: "bg-purple-50", border: "border-purple-400" },
+    ];
 
     const storeItems: StoreItem[] = [
         {
@@ -336,23 +343,53 @@ export default function AxonStorePage() {
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-sm bg-white rounded-[32px] shadow-2xl overflow-hidden border border-slate-200 p-6 md:p-8 flex flex-col items-center text-center"
+                            className="relative w-full max-w-3xl bg-white rounded-[32px] shadow-2xl overflow-hidden border border-slate-200 p-6 md:p-10 flex flex-col items-center text-center max-h-[90vh] overflow-y-auto custom-scrollbar"
                         >
                             <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-6 shadow-sm">
                                 <CreditCard size={32} />
                             </div>
 
-                            <h3 className="text-2xl font-black text-slate-900 mb-2">Recarregar Axons</h3>
-                            <p className="text-sm font-medium text-slate-500 mb-8 leading-relaxed">
-                                Você está prestes a adquirir <strong className="text-indigo-600">1000 Axons</strong>.<br />
-                                O valor do investimento é de R$ 9,90.
+                            <h3 className="text-3xl font-black text-slate-900 mb-2">Recarregar Axons</h3>
+                            <p className="text-sm font-medium text-slate-500 mb-8 leading-relaxed max-w-md">
+                                Escolha o pacote de Axons que mais combina com seu objetivo. Invista na sua evolução e conquiste mais do que os adversários.
                             </p>
 
-                            <div className="flex flex-col gap-3 w-full">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full mb-10">
+                                {AXON_PACKS.map(pack => (
+                                    <div
+                                        key={pack.id}
+                                        onClick={() => setSelectedPackId(pack.id)}
+                                        className={`relative cursor-pointer rounded-2xl border-2 p-6 flex flex-col items-center text-center transition-all ${selectedPackId === pack.id
+                                                ? `${pack.border} bg-white shadow-2xl scale-105 z-10 ring-4 ring-indigo-50/50`
+                                                : "border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-300 opacity-90 hover:opacity-100"
+                                            }`}
+                                    >
+                                        {pack.badge && (
+                                            <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white whitespace-nowrap ${pack.id === "2" ? "bg-amber-500 shadow-md shadow-amber-200" : "bg-purple-600 shadow-md shadow-purple-200"
+                                                }`}>
+                                                {pack.badge}
+                                            </div>
+                                        )}
+
+                                        <div className={`w-14 h-14 rounded-full mb-4 flex items-center justify-center ${pack.bg} ${pack.color}`}>
+                                            <pack.icon size={28} />
+                                        </div>
+
+                                        <h4 className="text-sm font-bold text-slate-700 mb-1">{pack.name}</h4>
+                                        <div className="text-3xl font-black text-slate-900 mb-2">{pack.amount.toLocaleString('pt-BR')} <span className="text-[10px] text-slate-500 font-medium">Axons</span></div>
+                                        <div className={`text-sm font-black w-full py-2.5 rounded-xl mt-auto ${selectedPackId === pack.id ? pack.bg + " " + pack.color : "bg-slate-200 text-slate-600"
+                                            }`}>
+                                            R$ {pack.price.toFixed(2).replace(".", ",")}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-lg">
                                 <button
-                                    onClick={() => handleBuyAxonPack("AXON_PACK_1000")}
+                                    onClick={() => handleBuyAxonPack(AXON_PACKS.find(p => p.id === selectedPackId)?.code || "AXON_PACK_1000")}
                                     disabled={isGeneratingCheckout}
-                                    className="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 disabled:opacity-50"
+                                    className="flex-1 py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 disabled:opacity-50"
                                 >
                                     {isGeneratingCheckout ? (
                                         <>
@@ -369,7 +406,7 @@ export default function AxonStorePage() {
                                 <button
                                     onClick={() => setIsRechargeModalOpen(false)}
                                     disabled={isGeneratingCheckout}
-                                    className="w-full py-4 bg-slate-50 text-slate-900 font-bold rounded-2xl hover:bg-slate-100 transition-all disabled:opacity-50"
+                                    className="px-8 py-4 bg-slate-50 text-slate-900 font-bold rounded-2xl hover:bg-slate-100 transition-all border border-slate-200 disabled:opacity-50"
                                 >
                                     Cancelar
                                 </button>
