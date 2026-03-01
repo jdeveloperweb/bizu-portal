@@ -3,7 +3,7 @@
     "name": "AXON Academy",
     "short_name": "AXON",
     "description": "Plataforma de Excelência para Concursos",
-    "start_url": "/",
+    "start_url": "/?source=pwa",
     "display": "standalone",
     "orientation": "portrait",
     "background_color": "#0f172a",

@@ -20,7 +20,7 @@ export default function PWASplashScreen() {
     useEffect(() => {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches
             || (window.navigator as any).standalone
-            || document.referrer.includes('android-app://');
+            || window.location.search.includes('source=pwa');
 
         if (isStandalone && pathname === "/" && !authLoading && !hasRedirected.current) {
             hasRedirected.current = true;
