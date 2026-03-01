@@ -10,16 +10,15 @@ interface XPInfoModalProps {
 
 export default function XPInfoModal({ isOpen, onClose }: XPInfoModalProps) {
     const rules = [
-        { icon: Target, label: "Questões do Quiz", xp: "+10 XP", desc: "Por cada questão respondida corretamente nos treinos diários." },
-        { icon: BookOpen, label: "Simulados Oficiais", xp: "Até 100 XP", desc: "XP base (50) + bônus por desempenho ao finalizar um simulado completo." },
-        { icon: BookOpen, label: "Quizzes de Módulos", xp: "Até 40 XP", desc: "XP base (20) + bônus por desempenho ao finalizar um quiz de aula." },
-        { icon: Swords, label: "Arena PVP (Vitória)", xp: "+100 XP", desc: "Vença um duelo contra outro aluno na Arena." },
+        { icon: Target, label: "Questões do Quiz", xp: "+10 / -10 XP", desc: "Acerto concede +10 XP. Erro agora penaliza em -10 XP no treino diário." },
+        { icon: BookOpen, label: "Simulados Oficiais", xp: "-10 XP / erro", desc: "XP base (50) + bônus de acertos. Cuidado: cada erro subtrai 10 XP do total." },
+        { icon: BookOpen, label: "Quizzes de Módulos", xp: "-10 XP / erro", desc: "XP base (20) + bônus de acertos. Errar custa 10 XP por questão." },
+        { icon: Swords, label: "Arena PVP (Vitória)", xp: "+100 XP", desc: "Vença um duelo e domine o ranking da Arena." },
+        { icon: Swords, label: "Arena PVP (Derrota)", xp: "-100 XP", desc: "A derrota na Arena é implacável: você perde 100 XP." },
         { icon: Swords, label: "Arena PVP (Empate)", xp: "+50 XP", desc: "Ambos ganham XP em caso de empate técnico." },
-        { icon: Swords, label: "Arena PVP (Derrota)", xp: "+25 XP & Axons", desc: "Mesmo perdendo, você ganha XP e Axons pela participação." },
-        { icon: Clock, label: "Sessão Pomodoro", xp: "1 XP & Axon / min", desc: "Ganhe recompensas proporcionais ao tempo de foco cronometrado." },
-        { icon: Target, label: "Completar Tarefa", xp: "+25 XP & Axons", desc: "Mantenha sua agenda em dia e ganhe bônus por cada tarefa concluída." },
-        { icon: Trophy, label: "Conquistas (Badges)", xp: "50-500 XP", desc: "Ganhe bônus massivos ao desbloquear insignias raras." },
-        { icon: Flame, label: "Ofensiva (Streak)", xp: "Bônus Diário", desc: "Mantenha sua sequência de estudos para ganhar mais XP." },
+        { icon: Flame, label: "Ofensiva (Streak)", xp: "-100 XP", desc: "Mantenha sua sequência diária! Perder a ofensiva resulta em -100 XP." },
+        { icon: Clock, label: "Sessão Pomodoro", xp: "1 XP / min", desc: "Foco compensa! Ganhe XP proporcional ao tempo de estudo cronometrado." },
+        { icon: Trophy, label: "Conquistas (Badges)", xp: "50-500 XP", desc: "Ganhe bônus massivos ao desbloquear insignias raras de elite." },
     ];
 
     return (

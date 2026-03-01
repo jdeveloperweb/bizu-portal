@@ -31,6 +31,8 @@ public class AttemptService {
 
         if (isCorrect) {
             gamificationService.addXp(user.getId(), 10); // 10 XP per correct question
+        } else {
+            gamificationService.addXp(user.getId(), -10); // 10 XP penalty for wrong question
         }
 
         return attemptRepository.save(attempt);

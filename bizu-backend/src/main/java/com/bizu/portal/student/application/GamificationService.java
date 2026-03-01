@@ -269,6 +269,9 @@ public class GamificationService {
                     } else {
                         // Quebrou a sequência
                         stats.setCurrentStreak(1);
+                        // Penalidade por quebrar a streak
+                        addXp(stats.getUserId(), -100);
+                        log.info("Usuário {} quebrou a streak e perdeu 100 XP.", stats.getUserId());
                     }
                 }
                 

@@ -312,7 +312,7 @@ public class DuelService {
             UUID loserId = duel.getChallenger().getId().equals(winner.getId()) 
                 ? duel.getOpponent().getId() 
                 : duel.getChallenger().getId();
-            gamificationService.addXp(loserId, -50);
+            gamificationService.addXp(loserId, -100);
         } else {
             // Empate
             gamificationService.addXp(duel.getChallenger().getId(), 50);

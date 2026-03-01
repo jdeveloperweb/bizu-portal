@@ -219,7 +219,7 @@ public class ActivityService {
         
         int penaltyPerError = switch (attempt.getActivityType()) {
             case OFFICIAL_EXAM -> 10;
-            case MODULE_QUIZ -> 5;
+            case MODULE_QUIZ -> 10;
         };
 
         int errors = attempt.getTotalQuestions() - attempt.getCorrectAnswers();
