@@ -86,37 +86,68 @@ function PricingContent() {
         <div className="min-h-screen bg-white">
             <Navbar />
 
-            {/* Header */}
-            <div className="bg-[#F8FAFF] pt-28 pb-16 text-center border-b border-slate-100">
-                <span className="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[#6366F1] mb-4 pill-primary px-4 py-1.5 rounded-full">
-                    Investimento
-                </span>
-                <h1 className="text-4xl font-extrabold text-slate-900 mb-4">
-                    Planos & Preços
-                </h1>
-                <p className="text-slate-500 text-base max-w-xl mx-auto mb-10">
-                    Escolha o plano ideal para o seu objetivo. Todos incluem{" "}
-                    <strong className="text-slate-700">7 dias de garantia incondicional</strong>.
-                </p>
+            {/* Header — dark, alinhado com o tema */}
+            <div className="relative pt-28 pb-16 text-center overflow-hidden" style={{ background: "#020617" }}>
+                {/* Aurora sutil */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] rounded-full blur-[120px] opacity-15"
+                        style={{ background: "radial-gradient(circle,#6366F1 0%,transparent 70%)" }} />
+                    <div className="absolute top-1/2 right-0 w-[300px] h-[300px] rounded-full blur-[100px] opacity-8"
+                        style={{ background: "#8B5CF6" }} />
+                </div>
+                {/* Grid */}
+                <div className="absolute inset-0 pointer-events-none" style={{
+                    backgroundImage: "linear-gradient(rgba(99,102,241,0.04) 1px,transparent 1px),linear-gradient(to right,rgba(99,102,241,0.04) 1px,transparent 1px)",
+                    backgroundSize: "48px 48px",
+                }} />
 
-                {/* Course Selection Tabs */}
-                {courses.length > 1 && (
-                    <div className="flex flex-wrap items-center justify-center gap-3 max-w-4xl mx-auto px-6">
-                        {courses.map(course => (
-                            <button
-                                key={course.id}
-                                onClick={() => setSelectedCourseId(course.id)}
-                                className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold transition-all ${selectedCourseId === course.id
-                                    ? "bg-white border-2 border-primary text-primary shadow-lg"
-                                    : "bg-white border border-slate-200 text-slate-500 hover:border-primary/50"
-                                    }`}
-                            >
-                                <Anchor size={16} style={{ color: selectedCourseId === course.id ? course.themeColor : '#94a3b8' }} />
-                                {course.title}
-                            </button>
-                        ))}
+                <div className="relative z-10">
+                    {/* Brand mark pequeno */}
+                    <div className="flex items-center justify-center gap-2.5 mb-6">
+                        <span className="text-sm font-black text-white/80" style={{ fontFamily: "var(--font-orbitron)", letterSpacing: "-0.01em" }}>AXON</span>
+                        <div className="w-px h-4 rounded-full bg-white/15" />
+                        <span className="text-[10px] font-bold tracking-[0.35em] uppercase text-white/30">Academy</span>
                     </div>
-                )}
+
+                    <div className="inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest border"
+                        style={{ background: "rgba(99,102,241,0.1)", borderColor: "rgba(99,102,241,0.25)", color: "#A5B4FC" }}>
+                        Escolha seu plano
+                    </div>
+
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
+                        Planos & Preços
+                    </h1>
+                    <p className="text-base max-w-xl mx-auto mb-10 leading-relaxed" style={{ color: "#64748B" }}>
+                        Escolha o plano ideal para o seu objetivo. Todos incluem{" "}
+                        <strong style={{ color: "#94A3B8" }}>7 dias de garantia incondicional</strong>.
+                    </p>
+
+                    {/* Course Selection Tabs */}
+                    {courses.length > 1 && (
+                        <div className="flex flex-wrap items-center justify-center gap-3 max-w-4xl mx-auto px-6">
+                            {courses.map(course => (
+                                <button
+                                    key={course.id}
+                                    onClick={() => setSelectedCourseId(course.id)}
+                                    className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all duration-200"
+                                    style={selectedCourseId === course.id ? {
+                                        background: "rgba(99,102,241,0.15)",
+                                        border: "1.5px solid rgba(99,102,241,0.5)",
+                                        color: "#A5B4FC",
+                                        boxShadow: "0 0 20px rgba(99,102,241,0.15)",
+                                    } : {
+                                        background: "rgba(255,255,255,0.04)",
+                                        border: "1px solid rgba(255,255,255,0.08)",
+                                        color: "#475569",
+                                    }}
+                                >
+                                    <Anchor size={14} style={{ color: selectedCourseId === course.id ? (course.themeColor || '#818CF8') : '#475569' }} />
+                                    {course.title}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className="container mx-auto px-6 py-16">
