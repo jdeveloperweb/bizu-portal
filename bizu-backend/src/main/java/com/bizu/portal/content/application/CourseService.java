@@ -24,6 +24,12 @@ public class CourseService {
         return courses.stream().map(this::sanitizeForPublic).toList();
     }
 
+    public List<Course> findAll() {
+        List<Course> courses = courseRepository.findAll();
+        courses.forEach(this::populateStudentsCount);
+        return courses;
+    }
+
     @Transactional(readOnly = true)
     public Course findPublicById(UUID id) {
         Course course = findById(id);

@@ -109,7 +109,7 @@ public class CertificateService {
                 Map.of(
                     "name", user.getName(),
                     "courseName", course.getTitle(),
-                    "duration", course.getDurationMinutes() != null ? (course.getDurationMinutes() / 60) + " horas" : "Tempo indeterminado"
+                    "duration", course.getDurationMinutes() > 0 ? (course.getDurationMinutes() / 60) + " horas" : "Tempo indeterminado"
                 )
             );
             
