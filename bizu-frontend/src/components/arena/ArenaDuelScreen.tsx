@@ -214,17 +214,30 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
     return (
         <div className={`fixed inset-0 z-[10000] bg-slate-900 flex items-center justify-center ${isMaximized ? "p-0" : "sm:p-4"}`}>
             <div className={`w-full bg-white overflow-hidden shadow-2xl relative flex flex-col h-full ${isMaximized ? "sm:h-screen sm:rounded-none" : "max-w-4xl sm:rounded-3xl sm:h-[90vh]"}`}>
-                {/* Close Button */}
+                {/* Abandon/Close Button Area */}
                 <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-[100]">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={onClose}
-                        className="bg-white/80 backdrop-blur-sm border border-white/40 shadow-sm text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all h-8 w-8 sm:h-10 sm:w-10"
-                        title="Fechar e voltar"
-                    >
-                        <XCircle size={20} className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </Button>
+                    {(duel.status === "IN_PROGRESS" || duel.status === "PENDING") ? (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleCancel}
+                            className={`bg-white/80 backdrop-blur-sm border border-white/40 shadow-sm text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all h-8 sm:h-auto px-2 sm:px-3 font-bold gap-1.5 ${stats?.abandonBlockedUntil && new Date(stats.abandonBlockedUntil) > new Date() ? "opacity-50 cursor-not-allowed" : ""}`}
+                            title={stats?.abandonBlockedUntil && new Date(stats.abandonBlockedUntil) > new Date() ? "Pena de bloqueio ativa" : "Abandonar Duelo"}
+                        >
+                            <XCircle size={18} className="w-4 h-4 sm:w-5 sm:h-5" />
+                            <span className="text-[10px] sm:text-xs">Abandonar Duelo</span>
+                        </Button>
+                    ) : (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={onClose}
+                            className="bg-white/80 backdrop-blur-sm border border-white/40 shadow-sm text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all h-8 w-8 sm:h-10 sm:w-10"
+                            title="Fechar e voltar"
+                        >
+                            <XCircle size={20} className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </Button>
+                    )}
                 </div>
 
                 {/* Header / Scoreboard */}
@@ -447,22 +460,12 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                             </Button>
                         </div>
                     </div>
-                    {duel.status === "IN_PROGRESS" && (
+                    {duel.status === "IN_PROGRESS" && stats && (
                         <div className="flex items-center gap-4 ml-auto md:ml-0">
-                            {stats && (
-                                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-bold ${stats.dailyAbandonCount >= 2 ? "bg-red-50 text-red-600 border-red-100 animate-pulse" : "bg-slate-100 text-slate-500 border-slate-200"}`}>
-                                    <XCircle size={12} />
-                                    {stats.dailyAbandonCount}/3 abandonos hoje
-                                </div>
-                            )}
-                            <button
-                                onClick={handleCancel}
-                                className={`text-xs font-black flex items-center gap-1 transition-colors ${stats?.abandonBlockedUntil && new Date(stats.abandonBlockedUntil) > new Date() ? "text-slate-400 cursor-not-allowed" : "text-red-500 hover:text-red-600"}`}
-                                title={stats?.abandonBlockedUntil && new Date(stats.abandonBlockedUntil) > new Date() ? "Pena de bloqueio ativa" : "Abandonar"}
-                            >
-                                <XCircle size={14} /> <span className="hidden sm:inline">Abandonar Duelo</span>
-                                <span className="sm:hidden">Sair</span>
-                            </button>
+                            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-bold ${stats.dailyAbandonCount >= 2 ? "bg-red-50 text-red-600 border-red-100 animate-pulse" : "bg-slate-100 text-slate-500 border-slate-200"}`}>
+                                <XCircle size={12} />
+                                {stats.dailyAbandonCount}/3 abandonos hoje
+                            </div>
                         </div>
                     )}
                 </div>
