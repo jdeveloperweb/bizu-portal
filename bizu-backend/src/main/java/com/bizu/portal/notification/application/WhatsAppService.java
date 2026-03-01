@@ -49,13 +49,20 @@ public class WhatsAppService {
             }
 
             Map<String, Object> body = new HashMap<>();
+            // Formato mais resiliente para Evolution API
             body.put("number", rawPhone);
+            
+            Map<String, String> textObj = new HashMap<>();
+            textObj.put("text", message);
+            body.put("textMessage", textObj);
+            
+            // Fallback para versões simples
             body.put("text", message);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
             try {
-                org.springframework.http.ResponseEntity<Map> response = restTemplate.postForEntity(endpoint, request, Map.class);
+                org.springframework.http.ResponseEntity<String> response = restTemplate.postForEntity(endpoint, request, String.class);
                 log.info("[WHATSAPP] Resposta da Evolution API para {}: {} - {}", 
                     rawPhone, response.getStatusCode(), response.getBody());
             } catch (org.springframework.web.client.HttpClientErrorException e) {

@@ -198,8 +198,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!token) return;
 
         // Register device first to ensure backend has it before we make other calls
+        // For Admins, we don't block anything, but we still register the device for record keeping
         const registered = await registerDevice();
-        if (!registered) return;
+        if (!registered && !isAdmin) return;
 
         const res = await apiFetch("/users/me");
 
@@ -430,25 +431,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return (
         <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register, sendVerificationCode, selectedCourseId, setSelectedCourseId, refreshUserProfile, subscription, entitlements, isPremium, isFree, isAdmin }}>
-            {/* Se estiver autenticado mas o dispositivo ainda não foi autorizado (limite atingido ou validação em curso),
-                não renderizamos as "children" protegidas para evitar logs/loops de erros 403. */}
-            {(authenticated && !isDeviceAuthorized && !loading) ? (
-                <div className="fixed inset-0 bg-slate-50 z-50 flex items-center justify-center p-6">
-                    <div className="flex flex-col items-center gap-6 text-center">
-                        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                        <div className="space-y-2">
-                            <p className="font-bold text-slate-700">Autenticando seu dispositivo...</p>
-                            <p className="text-sm text-slate-500 max-w-[280px]">Isso garante que apenas você tenha acesso à sua conta.</p>
-                        </div>
-                        <button
-                            onClick={logout}
-                            className="mt-4 text-xs font-bold text-slate-400 hover:text-indigo-600 underline underline-offset-4 transition-colors"
-                        >
-                            Cancelar e Sair
-                        </button>
-                    </div>
-                </div>
-            ) : children}
+            {/* Renderizamos as children imediatamente se autenticado.
+                O registro do dispositivo ocorre em background. Se houver limite atingido,
+                o modal aparecerá sobre o app. */}
+            {children}
 
             {deviceLimitData && (
                 <DeviceLimitModal

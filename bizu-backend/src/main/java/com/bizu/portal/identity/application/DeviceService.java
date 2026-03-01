@@ -37,9 +37,15 @@ public class DeviceService {
         List<Device> userDevices = deviceRepository.findAllByUser(user);
         
         if (userDevices.size() >= MAX_DEVICES_PER_USER) {
-            String maskedEmail = maskEmail(user.getEmail());
-            String maskedPhone = maskPhone(user.getPhone());
-            throw new DeviceLimitReachedException(maskedEmail, maskedPhone);
+            // ADMINs podem ter múltiplos dispositivos sem limite
+            boolean isAdmin = user.getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("ADMIN")) ||
+                             (user.getEmail() != null && user.getEmail().toLowerCase().contains("admin"));
+            
+            if (!isAdmin) {
+                String maskedEmail = maskEmail(user.getEmail());
+                String maskedPhone = maskPhone(user.getPhone());
+                throw new DeviceLimitReachedException(maskedEmail, maskedPhone);
+            }
         }
 
         return Device.builder()
