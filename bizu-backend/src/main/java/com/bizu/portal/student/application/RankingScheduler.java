@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.PageRequest;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -78,7 +79,7 @@ public class RankingScheduler {
         
         for (com.bizu.portal.content.domain.Course course : courses) {
             log.info("Processando ranking para o curso: {}", course.getTitle());
-            List<Object[]> ranking = duelRepository.getWeeklyRanking(course.getId());
+            List<Object[]> ranking = duelRepository.getWeeklyRanking(course.getId(), PageRequest.of(0, 10)).getContent();
             
             for (int i = 0; i < ranking.size(); i++) {
                 Object[] r = ranking.get(i);

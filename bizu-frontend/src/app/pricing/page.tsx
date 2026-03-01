@@ -163,7 +163,7 @@ function PricingContent() {
                         <p className="text-slate-500">Ainda não cadastramos planos para este curso. Volte em breve!</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-16">
                         {filteredPlans.map((plan) => {
                             const Icon = getPlanIcon(plan);
                             const colors = getPlanColors(plan);
@@ -178,15 +178,26 @@ function PricingContent() {
                             return (
                                 <div
                                     key={plan.id}
-                                    className={`relative rounded-[32px] overflow-hidden transition-all duration-300 flex flex-col group ${plan.highlight
-                                        ? `shadow-2xl shadow-indigo-500/20 ring-4 ring-indigo-500 scale-105 z-10 bg-white`
-                                        : `border-2 border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-300 hover:shadow-xl hover:-translate-y-2 opacity-95 hover:opacity-100`
+                                    className={`relative rounded-3xl overflow-hidden transition-all duration-300 flex flex-col group ${plan.highlight
+                                        ? "z-10 scale-105"
+                                        : "hover:-translate-y-2"
                                         }`}
+                                    style={plan.highlight ? {
+                                        background: "#09101E",
+                                        border: "1.5px solid rgba(99,102,241,0.4)",
+                                        boxShadow: "0 24px 60px rgba(99,102,241,0.2), 0 0 0 1px rgba(99,102,241,0.1)",
+                                    } : {
+                                        background: "#F8FAFC",
+                                        border: "1px solid #E2E8F0",
+                                        boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+                                    }}
                                 >
                                     {plan.badge && (
                                         <div
-                                            className="py-2.5 text-center text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-sm flex items-center justify-center gap-2"
-                                            style={plan.highlight ? { background: "linear-gradient(135deg, #F59E0B, #D97706)" } : { background: "linear-gradient(135deg, #6366F1, #4F46E5)" }}
+                                            className="py-2.5 text-center text-[10px] font-black uppercase tracking-[0.2em] text-white flex items-center justify-center gap-2"
+                                            style={plan.highlight
+                                                ? { background: "linear-gradient(135deg,#6366F1,#4F46E5)" }
+                                                : { background: "linear-gradient(135deg,#F59E0B,#D97706)" }}
                                         >
                                             ⭐ {plan.badge}
                                         </div>
@@ -194,27 +205,27 @@ function PricingContent() {
 
                                     <div className={`p-8 ${plan.badge ? "pt-6" : ""} flex flex-col h-full`}>
                                         <div
-                                            className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform"
+                                            className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
                                             style={{ background: colors.bg }}
                                         >
-                                            <Icon size={32} style={{ color: colors.icon }} />
+                                            <Icon size={28} style={{ color: colors.icon }} />
                                         </div>
 
-                                        <h3 className="text-xl font-black text-slate-900 mb-1">{plan.name}</h3>
-                                        <p className="text-sm text-slate-500 mb-6 leading-relaxed min-h-[48px] font-medium">
+                                        <h3 className={`text-xl font-black mb-1 ${plan.highlight ? "text-white" : "text-slate-900"}`}>{plan.name}</h3>
+                                        <p className={`text-sm mb-6 leading-relaxed min-h-[48px] font-medium ${plan.highlight ? "text-slate-400" : "text-slate-500"}`}>
                                             {plan.description || "Acesso completo ao conteúdo do curso."}
                                         </p>
 
                                         <div className="flex items-baseline gap-1 mb-4">
                                             {plan.free ? (
-                                                <span className="text-5xl font-black text-slate-900 tracking-tight">Grátis</span>
+                                                <span className={`text-5xl font-black tracking-tight ${plan.highlight ? "text-white" : "text-slate-900"}`}>Grátis</span>
                                             ) : (
                                                 <>
-                                                    <span className="text-sm text-slate-400 font-bold">R$</span>
-                                                    <span className="text-5xl font-black text-slate-900 tracking-tight">
+                                                    <span className={`text-sm font-bold ${plan.highlight ? "text-slate-400" : "text-slate-400"}`}>R$</span>
+                                                    <span className={`text-5xl font-black tracking-tight ${plan.highlight ? "text-white" : "text-slate-900"}`}>
                                                         {plan.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                     </span>
-                                                    <span className="text-sm text-slate-400 font-bold capitalize ml-1">
+                                                    <span className={`text-sm font-bold capitalize ml-1 ${plan.highlight ? "text-slate-400" : "text-slate-400"}`}>
                                                         {plan.billingInterval === 'MONTHLY' ? '/mês' :
                                                             plan.billingInterval === 'YEARLY' ? '/ano' :
                                                                 ' (único)'}
@@ -223,41 +234,44 @@ function PricingContent() {
                                             )}
                                         </div>
 
-                                        <div className="space-y-4 my-8 flex-1">
+                                        <div className="space-y-3.5 my-7 flex-1">
                                             {features.length > 0 ? features.map((f: string) => (
                                                 <div key={f} className="flex items-start gap-3">
-                                                    <div className="mt-1 w-5 h-5 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 border border-emerald-100">
-                                                        <Check size={12} className="text-emerald-500" />
+                                                    <div className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                                                        style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.2)" }}>
+                                                        <Check size={11} className="text-emerald-500" />
                                                     </div>
-                                                    <span className="text-[15px] text-slate-600 font-medium leading-tight">{f}</span>
+                                                    <span className={`text-[14px] font-medium leading-snug ${plan.highlight ? "text-slate-300" : "text-slate-600"}`}>{f}</span>
                                                 </div>
                                             )) : (
                                                 <>
-                                                    <div className="flex items-start gap-3">
-                                                        <div className="mt-1 w-5 h-5 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 border border-emerald-100">
-                                                            <Check size={12} className="text-emerald-500" />
+                                                    {["Acesso ilimitado ao curso", "Simulados e questões", "Arena de Duelos", "XP e Conquistas"].map((f) => (
+                                                        <div key={f} className="flex items-start gap-3">
+                                                            <div className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                                                                style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.2)" }}>
+                                                                <Check size={11} className="text-emerald-500" />
+                                                            </div>
+                                                            <span className={`text-[14px] font-medium leading-snug ${plan.highlight ? "text-slate-300" : "text-slate-600"}`}>{f}</span>
                                                         </div>
-                                                        <span className="text-[15px] text-slate-600 font-medium leading-tight">Acesso ilimitado ao curso</span>
-                                                    </div>
-                                                    <div className="flex items-start gap-3">
-                                                        <div className="mt-1 w-5 h-5 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 border border-emerald-100">
-                                                            <Check size={12} className="text-emerald-500" />
-                                                        </div>
-                                                        <span className="text-[15px] text-slate-600 font-medium leading-tight">Simulados e questões</span>
-                                                    </div>
+                                                    ))}
                                                 </>
                                             )}
                                         </div>
 
                                         <Link href={`/register?plan=${plan.id}&course=${selectedCourseId}`} className="block mt-auto w-full">
                                             <button
-                                                className={`w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all duration-300 ${plan.highlight
-                                                    ? "bg-indigo-600 text-white hover:bg-indigo-700 hover:scale-105 shadow-xl shadow-indigo-200"
-                                                    : "bg-slate-100 text-slate-700 hover:bg-slate-900 hover:text-white hover:shadow-lg"
-                                                    }`}
+                                                className="w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                                                style={plan.highlight ? {
+                                                    background: "linear-gradient(135deg,#6366F1,#4F46E5)",
+                                                    color: "#fff",
+                                                    boxShadow: "0 8px 24px rgba(99,102,241,0.4)",
+                                                } : {
+                                                    background: "#0F172A",
+                                                    color: "#fff",
+                                                }}
                                             >
                                                 {plan.free ? "Começar Agora" : "Assinar Agora"}
-                                                <ChevronRight size={18} />
+                                                <ChevronRight size={17} />
                                             </button>
                                         </Link>
                                     </div>
@@ -269,30 +283,43 @@ function PricingContent() {
 
                 {/* FAQ */}
                 <div className="max-w-3xl mx-auto mt-20">
-                    <h2 className="text-3xl font-black text-slate-900 text-center mb-10">Dúvidas Frequentes</h2>
-                    <div className="space-y-4">
+                    <div className="text-center mb-10">
+                        <span className="text-indigo-600 text-xs font-bold uppercase tracking-[0.2em] mb-3 inline-block">FAQ</span>
+                        <h2 className="text-3xl font-black text-slate-900">Dúvidas Frequentes</h2>
+                    </div>
+                    <div className="space-y-3">
                         {faqs.map((faq, i) => (
                             <div
                                 key={i}
-                                className={`rounded-3xl overflow-hidden border transition-all duration-300 ${expandedFaq === i ? "border-[#C7D2FE] bg-[#F8FAFF] shadow-lg shadow-indigo-500/5" : "border-slate-100 bg-white"
-                                    }`}
+                                className="rounded-2xl overflow-hidden border transition-all duration-300"
+                                style={expandedFaq === i ? {
+                                    borderColor: "rgba(99,102,241,0.25)",
+                                    background: "#F8FAFF",
+                                    boxShadow: "0 4px 20px rgba(99,102,241,0.06)",
+                                } : {
+                                    borderColor: "#E2E8F0",
+                                    background: "#fff",
+                                }}
                             >
                                 <button
-                                    className="w-full flex items-center justify-between px-8 py-6 text-left"
+                                    className="w-full flex items-center justify-between px-7 py-5 text-left"
                                     onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
                                 >
-                                    <span className="font-bold text-slate-800 text-base">{faq.q}</span>
+                                    <span className="font-bold text-slate-800 text-[15px] pr-4">{faq.q}</span>
                                     <ChevronDown
-                                        size={20}
-                                        className="text-[#6366F1] shrink-0 transition-transform duration-500"
-                                        style={{ transform: expandedFaq === i ? "rotate(180deg)" : "rotate(0deg)" }}
+                                        size={18}
+                                        className="shrink-0 transition-transform duration-300"
+                                        style={{
+                                            color: expandedFaq === i ? "#6366F1" : "#94A3B8",
+                                            transform: expandedFaq === i ? "rotate(180deg)" : "rotate(0deg)",
+                                        }}
                                     />
                                 </button>
                                 <div
-                                    className="overflow-hidden transition-all duration-500 ease-in-out"
-                                    style={{ maxHeight: expandedFaq === i ? "160px" : "0px" }}
+                                    className="overflow-hidden transition-all duration-400 ease-in-out"
+                                    style={{ maxHeight: expandedFaq === i ? "200px" : "0px" }}
                                 >
-                                    <p className="px-8 pb-8 text-base text-slate-500 leading-relaxed font-medium">
+                                    <p className="px-7 pb-6 text-[15px] text-slate-500 leading-relaxed font-medium">
                                         {faq.a}
                                     </p>
                                 </div>
