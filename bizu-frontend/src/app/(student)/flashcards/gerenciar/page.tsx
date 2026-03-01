@@ -41,7 +41,7 @@ function GerenciarContent() {
                 // Fetch deck info (using the decks list endpoint for now or a specific one)
                 const [decksRes, cardsRes] = await Promise.all([
                     apiFetch("/student/flashcards/decks"),
-                    apiFetch(`/student/flashcards/decks/${deckId}/cards`)
+                    apiFetch(`/student/flashcards/decks/${deckId}/all-cards`)
                 ]);
 
                 if (decksRes.ok && cardsRes.ok) {

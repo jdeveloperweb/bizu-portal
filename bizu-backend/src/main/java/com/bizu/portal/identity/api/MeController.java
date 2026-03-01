@@ -113,4 +113,15 @@ public class MeController {
         }
         return ResponseEntity.badRequest().body("Código inválido ou expirado");
     }
+
+    @PostMapping("/me/duel-focus")
+    public ResponseEntity<User> toggleDuelFocus(@AuthenticationPrincipal Jwt jwt, @RequestParam boolean enabled) {
+        String email = jwt.getClaim("email");
+        return userRepository.findByEmail(email)
+            .map(user -> {
+                user.setDuelFocusMode(enabled);
+                return ResponseEntity.ok(userRepository.save(user));
+            })
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 }

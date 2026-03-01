@@ -37,6 +37,7 @@ interface AuthUser {
         roles: string[];
     };
     metadata?: Record<string, unknown>;
+    duelFocusMode?: boolean;
     [key: string]: any;
 }
 

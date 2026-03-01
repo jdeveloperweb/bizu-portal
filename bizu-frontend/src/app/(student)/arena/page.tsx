@@ -33,7 +33,7 @@ interface OnlineUser {
     level: number;
     xp: number;
     winRate: number;
-    status: "online" | "em_duelo";
+    status: "online" | "em_duelo" | "focado";
 }
 
 interface RankingUser {
@@ -54,7 +54,7 @@ export default function ArenaPage() {
 }
 
 function ArenaPageContent() {
-    const { user, isFree } = useAuth();
+    const { user, isFree, refreshUserProfile } = useAuth();
     const { pendingDuels, acceptDuel, declineDuel } = useDuels();
     const [activeTab, setActiveTab] = useState<ArenaTab>("online");
     const [selectedSubject, setSelectedSubject] = useState("Aleatorio");
@@ -327,6 +327,22 @@ function ArenaPageContent() {
                     <p className="text-[12px] md:text-sm text-slate-500">Duelos de conhecimento em tempo real.</p>
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                        onClick={async () => {
+                            const newState = !user?.duelFocusMode;
+                            try {
+                                await apiFetch(`/users/me/duel-focus?enabled=${newState}`, { method: 'POST' });
+                                refreshUserProfile();
+                            } catch (error) {
+                                console.error("Failed to toggle focus mode:", error);
+                            }
+                        }}
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full font-bold transition-all border ${user?.duelFocusMode ? "bg-amber-500 border-amber-500 text-white shadow-md hover:bg-amber-600" : "text-amber-600 bg-amber-50 border-amber-100 hover:bg-amber-100"}`}
+                        title={user?.duelFocusMode ? "Modo Focado Ativo (Duelos bloqueados)" : "Ativar Modo Focado (Não receber duelos)"}
+                    >
+                        <Shield size={13} className={user?.duelFocusMode ? "animate-pulse" : ""} />
+                        <span className="text-[10px] md:text-[11px]">{user?.duelFocusMode ? "Modo Focado" : "Focar"}</span>
+                    </button>
                     <div className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-[10px] md:text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
                         <Trophy size={13} /> {myStats.wins}V / {myStats.losses}D
                     </div>
@@ -484,6 +500,9 @@ function ArenaPageContent() {
                                         {user.status === "em_duelo" && (
                                             <span className="text-[8px] md:text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">Em duelo</span>
                                         )}
+                                        {user.status === "focado" && (
+                                            <span className="text-[8px] md:text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">Focado</span>
+                                        )}
                                     </div>
                                     <div className="text-[9px] md:text-[10px] text-slate-400 flex items-center gap-1.5 md:gap-2">
                                         <span className="flex items-center gap-0.5 whitespace-nowrap"><Zap size={9} className="text-amber-500" /> Lv.{user.level}</span>
@@ -492,9 +511,9 @@ function ArenaPageContent() {
                                         <span className="flex items-center gap-0.5 whitespace-nowrap"><Target size={9} /> {user.winRate}%</span>
                                     </div>
                                     <button
-                                        disabled={user.status === "em_duelo" || user.id === currentUserId}
+                                        disabled={user.status === "em_duelo" || user.status === "focado" || user.id === currentUserId}
                                         onClick={() => handleChallenge(user.id)}
-                                        className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[10px] md:text-[11px] font-bold flex items-center justify-center gap-1 transition-all flex-shrink-0 ${user.status === "em_duelo" || user.id === currentUserId
+                                        className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl text-[10px] md:text-[11px] font-bold flex items-center justify-center gap-1 transition-all flex-shrink-0 ${user.status === "em_duelo" || user.status === "focado" || user.id === currentUserId
                                             ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                                             : "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm hover:shadow-md active:scale-95"
                                             }`}>

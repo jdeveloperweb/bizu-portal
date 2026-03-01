@@ -24,7 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import MaterialViewerModal from "@/components/MaterialViewerModal";
 import XPInfoModal from "@/components/gamification/XPInfoModal";
 import { BadgeInsignia } from "@/components/gamification/BadgeInsignia";
-import { HelpCircle, Info } from "lucide-react";
+import { HelpCircle, Info, Shield } from "lucide-react";
 
 const quickActions = [
     { icon: Target, label: "Quiz", desc: "Questões personalizadas", href: "/questoes/treino" },
@@ -34,7 +34,7 @@ const quickActions = [
 ];
 
 export default function DashboardPage() {
-    const { user, isAdmin } = useAuth();
+    const { user, isAdmin, refreshUserProfile } = useAuth();
     const router = useRouter();
     const { isGracePeriod } = useCourse();
     const {
@@ -151,7 +151,7 @@ export default function DashboardPage() {
     return (
         <div className="p-6 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto min-h-screen font-sans bg-slate-50/30">
             {/* Header Area */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10 bg-white/40 p-6 md:p-8 rounded-[40px] border border-slate-200/50 shadow-sm backdrop-blur-sm">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 md:mb-10 bg-white/40 p-5 md:p-8 rounded-3xl md:rounded-[40px] border border-slate-200/50 shadow-sm backdrop-blur-sm">
                 <div className="flex-1">
                     {isLoading ? (
                         <div className="space-y-3">
@@ -160,7 +160,7 @@ export default function DashboardPage() {
                         </div>
                     ) : (
                         <div className="space-y-1">
-                            <h1 className="text-3xl font-light text-foreground tracking-tight">
+                            <h1 className="text-2xl md:text-3xl font-light text-foreground tracking-tight">
                                 Bom dia, <span className="font-semibold text-indigo-600">{userName}</span>
                             </h1>
                             <p className="text-sm text-muted-foreground font-medium tracking-wide">
@@ -190,7 +190,7 @@ export default function DashboardPage() {
                     )}
                 </div>
 
-                <div className="flex items-center gap-3 bg-white/80 p-2 md:p-2.5 rounded-[24px] shadow-sm border border-slate-100 flex-wrap md:flex-nowrap">
+                <div className="flex items-center gap-2 md:gap-3 bg-white/80 p-1.5 md:p-2.5 rounded-2xl md:rounded-[24px] shadow-sm border border-slate-100 flex-wrap md:flex-nowrap w-full md:w-auto justify-center md:justify-start">
                     {/* Inline Pomodoro Timer */}
                     <AnimatePresence>
                         {isOpen && !isFloating && (
@@ -202,11 +202,11 @@ export default function DashboardPage() {
                             >
                                 <div className="flex items-center gap-3 pr-4 pl-2 border-r border-slate-100 mr-1">
                                     <div className={cn(
-                                        "w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-sm transition-colors duration-500",
+                                        "w-8 h-8 md:w-9 md:h-9 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-sm transition-colors duration-500",
                                         sessionType === 'focus' ? "bg-indigo-600" :
                                             sessionType === 'shortBreak' ? "bg-emerald-500" : "bg-orange-500"
                                     )}>
-                                        {sessionType === 'focus' ? <Brain size={18} /> : <Coffee size={18} />}
+                                        {sessionType === 'focus' ? <Brain size={16} className="md:size-[18px]" /> : <Coffee size={16} className="md:size-[18px]" />}
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="text-15px font-black text-slate-900 tabular-nums leading-none">
@@ -220,26 +220,25 @@ export default function DashboardPage() {
                                             Ciclo {completedCycles % 4 + 1}/4
                                         </span>
                                     </div>
-                                    <div className="flex items-center gap-1 ml-1">
+                                    <div className="flex items-center gap-0.5 md:gap-1 ml-0.5 md:ml-1">
                                         <button
                                             onClick={(e) => { e.stopPropagation(); toggleTimer(); }}
-                                            className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-600 transition-colors"
+                                            className="w-7 h-7 md:w-8 md:h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-600 transition-colors"
                                         >
-                                            {isRunning ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}
+                                            {isRunning ? <Pause size={12} className="md:size-[14px]" /> : <Play size={12} className="ml-0.5 md:size-[14px]" />}
                                         </button>
                                         <button
                                             onClick={(e) => { e.stopPropagation(); skipSession(); }}
-                                            className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors"
+                                            className="w-7 h-7 md:w-8 md:h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors"
                                         >
-                                            <SkipForward size={14} />
+                                            <SkipForward size={12} className="md:size-[14px]" />
                                         </button>
-                                        {/* Detach toggle */}
                                         <button
                                             onClick={(e) => { e.stopPropagation(); setIsFloating(true); }}
-                                            className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors"
+                                            className="w-7 h-7 md:w-8 md:h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors"
                                             title="Tornar Flutuante"
                                         >
-                                            <Maximize2 size={14} />
+                                            <Maximize2 size={12} className="md:size-[14px]" />
                                         </button>
                                     </div>
                                 </div>
@@ -251,27 +250,27 @@ export default function DashboardPage() {
                     <button
                         onClick={() => setIsOpen(!isOpen)}
                         className={cn(
-                            "w-11 h-11 rounded-2xl flex items-center justify-center transition-all relative border group",
+                            "w-10 h-10 md:w-11 md:h-11 rounded-xl md:rounded-2xl flex items-center justify-center transition-all relative border group",
                             isOpen
                                 ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100 hover:bg-indigo-700"
                                 : "bg-white border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/50"
                         )}
                         title={isOpen ? "Desativar Pomodoro" : "Ativar Pomodoro"}
                     >
-                        <Timer size={20} className={cn("transition-transform", isOpen && "animate-pulse")} />
-                        {isOpen && <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white animate-bounce" />}
+                        <Timer size={18} className={cn("md:size-5 transition-transform", isOpen && "animate-pulse")} />
+                        {isOpen && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 md:w-3 md:h-3 bg-emerald-500 rounded-full border-2 border-white animate-bounce" />}
                     </button>
 
                     <div className="hidden md:block h-8 w-[1px] bg-slate-100 mx-1" />
 
-                    <div className="flex items-center gap-2.5 text-sm font-bold text-orange-600 bg-orange-50/50 border border-orange-100 px-4 py-2.5 rounded-2xl">
+                    <div className="flex items-center gap-1.5 md:gap-2.5 text-xs md:text-sm font-bold text-orange-600 bg-orange-50/50 border border-orange-100 px-3 py-2 md:px-4 md:py-2.5 rounded-xl md:rounded-2xl">
                         <Flame size={16} />
                         {isLoading ? <Skeleton className="h-4 w-4" /> : <span>{streak} <span className="text-[10px] uppercase tracking-wider opacity-70 border-l border-orange-200 ml-1 pl-1">DIAS</span></span>}
                     </div>
 
                     <div
                         onClick={() => setIsXPModalOpen(true)}
-                        className="flex items-center gap-2.5 text-sm font-bold text-indigo-600 bg-indigo-50/50 border border-indigo-100 px-4 py-2.5 rounded-2xl cursor-pointer hover:bg-indigo-100/70 transition-all hover:scale-105 group"
+                        className="flex items-center gap-1.5 md:gap-2.5 text-xs md:text-sm font-bold text-indigo-600 bg-indigo-50/50 border border-indigo-100 px-3 py-2 md:px-4 md:py-2.5 rounded-xl md:rounded-2xl cursor-pointer hover:bg-indigo-100/70 transition-all hover:scale-105 group"
                         title="Ver ganhos de XP e Axons"
                     >
                         <Trophy size={16} />
@@ -280,7 +279,7 @@ export default function DashboardPage() {
 
                     <Link
                         href="/loja"
-                        className="flex items-center gap-2.5 text-sm font-bold text-violet-600 bg-violet-50/50 border border-violet-100 px-4 py-2.5 rounded-2xl cursor-pointer hover:bg-violet-100/70 transition-all hover:scale-105 group"
+                        className="flex items-center gap-1.5 md:gap-2.5 text-xs md:text-sm font-bold text-violet-600 bg-violet-50/50 border border-violet-100 px-3 py-2 md:px-4 md:py-2.5 rounded-xl md:rounded-2xl cursor-pointer hover:bg-violet-100/70 transition-all hover:scale-105 group"
                     >
                         <Brain size={16} />
                         {isLoading ? <Skeleton className="h-4 w-12" /> : <span>{totalAxons} <span className="text-[10px] uppercase tracking-wider opacity-70 border-l border-violet-200 ml-1 pl-1">AXONS</span></span>}
@@ -288,9 +287,33 @@ export default function DashboardPage() {
 
                     <div className="hidden md:block h-8 w-[1px] bg-slate-100 mx-1" />
 
-                    <button className="w-11 h-11 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all relative shadow-sm group">
-                        <Bell size={20} className="group-hover:rotate-12 transition-transform" />
-                        <span className="absolute top-3.5 right-3.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white shadow-sm" />
+                    <div className="hidden md:block h-8 w-[1px] bg-slate-100 mx-1" />
+
+                    <button
+                        onClick={async () => {
+                            const newState = !user?.duelFocusMode;
+                            try {
+                                await apiFetch(`/users/me/duel-focus?enabled=${newState}`, { method: 'POST' });
+                                refreshUserProfile();
+                            } catch (error) {
+                                console.error("Failed to toggle focus mode:", error);
+                            }
+                        }}
+                        className={cn(
+                            "w-10 h-10 md:w-11 md:h-11 rounded-xl md:rounded-2xl flex items-center justify-center transition-all relative border group",
+                            user?.duelFocusMode
+                                ? "bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-100 hover:bg-amber-600"
+                                : "bg-white border-slate-200 text-slate-400 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50/50"
+                        )}
+                        title={user?.duelFocusMode ? "Modo Focado Ativo (Duelos bloqueados)" : "Ativar Modo Focado (Não receber duelos)"}
+                    >
+                        <Shield size={18} className={cn("md:size-5 transition-all", user?.duelFocusMode && "scale-110")} />
+                        {user?.duelFocusMode && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 md:w-3 md:h-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />}
+                    </button>
+
+                    <button className="w-10 h-10 md:w-11 md:h-11 rounded-xl md:rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all relative shadow-sm group">
+                        <Bell size={18} className="md:size-5 group-hover:rotate-12 transition-transform" />
+                        <span className="absolute top-3 right-3 md:top-3.5 md:right-3.5 w-2 md:w-2.5 h-2 md:h-2.5 bg-rose-500 rounded-full border-2 border-white shadow-sm" />
                     </button>
                 </div>
             </div>

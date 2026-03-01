@@ -69,6 +69,10 @@ public class User implements Persistable<UUID> {
     @Column(columnDefinition = "jsonb")
     private Map<String, Object> metadata;
 
+    @Column(name = "duel_focus_mode")
+    @Builder.Default
+    private boolean duelFocusMode = false;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_roles",

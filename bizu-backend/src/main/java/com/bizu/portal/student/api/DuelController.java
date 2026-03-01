@@ -55,7 +55,8 @@ public class DuelController {
                 COALESCE(
                     (SELECT 'em_duelo' FROM student.duels d 
                      WHERE (d.challenger_id = u.id OR d.opponent_id = u.id) 
-                     AND d.status = 'IN_PROGRESS' LIMIT 1), 'online'
+                     AND d.status = 'IN_PROGRESS' LIMIT 1),
+                    CASE WHEN u.duel_focus_mode THEN 'focado' ELSE 'online' END
                 ) as "status"
             FROM identity.users u
             LEFT JOIN student.gamification_stats g ON u.id = g.user_id

@@ -99,6 +99,12 @@ public class StudentFlashcardService {
         }).orElse(List.of());
     }
 
+    public List<Flashcard> getAllCards(UUID deckId) {
+        return deckRepository.findById(deckId)
+            .map(FlashcardDeck::getCards)
+            .orElse(List.of());
+    }
+
     @Transactional
     public void recordResult(UUID flashcardId, UUID userId, String rating) {
         var progress = progressRepository.findByUserIdAndFlashcardId(userId, flashcardId)

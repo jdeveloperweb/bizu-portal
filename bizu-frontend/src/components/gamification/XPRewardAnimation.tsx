@@ -22,10 +22,18 @@ export default function XPRewardAnimation({ amount, show, onComplete }: XPReward
                 colors: ['#6366F1', '#818CF8', '#A5B4FC'], // Cores do Bizu
                 zIndex: 200
             });
+
+            // Auto-complete após a animação
+            const timer = setTimeout(() => {
+                onComplete();
+            }, 3000);
+
+            return () => clearTimeout(timer);
         }
-    }, [show, amount]);
+    }, [show, amount, onComplete]);
+
     return (
-        <AnimatePresence onExitComplete={onComplete}>
+        <AnimatePresence>
             {show && (
                 <div className="fixed inset-0 z-[150] pointer-events-none flex items-center justify-center">
                     <motion.div

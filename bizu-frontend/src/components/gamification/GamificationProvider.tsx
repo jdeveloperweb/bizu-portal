@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import LevelUpOverlay from "./LevelUpOverlay";
 import XPRewardAnimation from "./XPRewardAnimation";
 // We removed setGlobalOverlayShown dependency to allow duels to show properly.
@@ -22,45 +22,75 @@ interface GamificationContextType {
 const GamificationContext = createContext<GamificationContextType | undefined>(undefined);
 
 export function GamificationProvider({ children }: { children: React.ReactNode }) {
-    const [reward, setReward] = useState<Reward | null>(null);
+    const [rewardQueue, setRewardQueue] = useState<Reward[]>([]);
+    const [currentReward, setCurrentReward] = useState<Reward | null>(null);
     const [showXP, setShowXP] = useState(false);
     const [showLevelUp, setShowLevelUp] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const showReward = useCallback((newReward: Reward) => {
-        setReward(newReward);
+        setRewardQueue(prev => [...prev, newReward]);
+    }, []);
 
-        if (newReward.xpGained > 0) {
-            setShowXP(true);
-        }
+    // Processar a fila de recompensas
+    useEffect(() => {
+        if (!isProcessing && rewardQueue.length > 0) {
+            setIsProcessing(true);
+            const nextReward = rewardQueue[0];
+            setRewardQueue(prev => prev.slice(1));
 
-        if (newReward.leveledUp) {
-            // Delay Level Up overlay slightly to let XP animation breathe
-            setTimeout(() => {
-                setShowLevelUp(true);
-                // Level up is arguably part of the same transaction as XP
-            }, 1500);
+            // Iniciar exibição
+            setCurrentReward(nextReward);
+
+            if (nextReward.xpGained > 0) {
+                setShowXP(true);
+            }
+
+            if (nextReward.leveledUp) {
+                setTimeout(() => {
+                    setShowLevelUp(true);
+                }, 1500);
+            } else if (nextReward.xpGained > 0) {
+                // Se não subir de nível, liberar para o próximo após a animação de XP (3s)
+                setTimeout(() => {
+                    setShowXP(false);
+                    // Pequeno delay extra para a transição
+                    setTimeout(() => setIsProcessing(false), 500);
+                }, 3500);
+            } else {
+                // Caso não tenha XP nem LevelUp (improvável mas por segurança)
+                setIsProcessing(false);
+            }
         }
+    }, [rewardQueue, isProcessing]);
+
+    const handleLevelUpClose = useCallback(() => {
+        setShowLevelUp(false);
+        setShowXP(false);
+        // Liberar processamento após fechar o overlay de level up
+        setTimeout(() => setIsProcessing(false), 500);
+    }, []);
+
+    const handleXPComplete = useCallback(() => {
+        // Agora controlado principalmente pelo useEffect do timer no próprio componente
+        // mas mantemos o callback para compatibilidade de prop
     }, []);
 
     return (
         <GamificationContext.Provider value={{ showReward }}>
             {children}
 
-            {reward && (
+            {currentReward && (
                 <>
                     <XPRewardAnimation
-                        amount={reward.xpGained}
+                        amount={currentReward.xpGained}
                         show={showXP}
-                        onComplete={() => {
-                            setShowXP(false);
-                        }}
+                        onComplete={handleXPComplete}
                     />
                     <LevelUpOverlay
-                        level={reward.currentLevel}
+                        level={currentReward.currentLevel}
                         show={showLevelUp}
-                        onClose={() => {
-                            setShowLevelUp(false);
-                        }}
+                        onClose={handleLevelUpClose}
                     />
                 </>
             )}

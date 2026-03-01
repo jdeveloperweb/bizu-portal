@@ -39,7 +39,10 @@ export default function LevelUpOverlay({ level, show, onClose }: LevelUpOverlayP
     return (
         <AnimatePresence>
             {show && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/80 backdrop-blur-xl">
+                <div
+                    className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/80 backdrop-blur-xl cursor-pointer"
+                    onClick={onClose}
+                >
                     <motion.div
                         initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
                         animate={{ opacity: 1, scale: 1, rotate: 0 }}

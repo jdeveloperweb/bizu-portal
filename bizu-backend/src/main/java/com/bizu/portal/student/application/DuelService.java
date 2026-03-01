@@ -43,6 +43,10 @@ public class DuelService {
         User opponent = userRepository.findById(opponentId)
                 .orElseThrow(() -> new RuntimeException("Opponent not found"));
 
+        if (opponent.isDuelFocusMode()) {
+            throw new RuntimeException("O oponente está focado em estudos e não pode aceitar duelos no momento.");
+        }
+
         // Validar se o oponente está online (última atividade em menos de 60 segundos)
         // Como o status online é atualizado por Native Query, o objeto em cache pode estar antigo. 
         // Vamos permitir a criação. O heartbeat roda a cada 10 seg e a Native Query segura a ponta.
@@ -67,6 +71,11 @@ public class DuelService {
 
     @Transactional
     public void joinQueue(UUID userId, UUID courseId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        if (user.isDuelFocusMode()) {
+            throw new RuntimeException("Você está em modo focado e não pode entrar na fila de duelos.");
+        }
+
         List<Duel> activeDuels = duelRepository.findActiveDuelsByUserId(userId);
         if (!activeDuels.isEmpty()) {
             throw new RuntimeException("Você já está em um duelo ativo.");
@@ -95,6 +104,18 @@ public class DuelService {
             
             if (p1 != null && p2 != null) {
                 if (p1.equals(p2)) { 
+                    queue.add(p1);
+                    continue;
+                }
+                
+                User u1 = userRepository.findById(p1).orElse(null);
+                User u2 = userRepository.findById(p2).orElse(null);
+                
+                if (u1 == null || u1.isDuelFocusMode()) {
+                    if (u2 != null) queue.add(p2);
+                    continue;
+                }
+                if (u2 == null || u2.isDuelFocusMode()) {
                     queue.add(p1);
                     continue;
                 }

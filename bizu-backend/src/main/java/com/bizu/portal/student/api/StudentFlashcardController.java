@@ -61,6 +61,11 @@ public class StudentFlashcardController {
         return ResponseEntity.ok(studentFlashcardService.getCardsToStudy(id, userId));
     }
 
+    @GetMapping("/decks/{id}/all-cards")
+    public ResponseEntity<List<Flashcard>> getAllCards(@PathVariable UUID id) {
+        return ResponseEntity.ok(studentFlashcardService.getAllCards(id));
+    }
+
     @PostMapping("/cards/{id}/result")
     public ResponseEntity<Void> recordCardResult(@PathVariable UUID id, @RequestParam String rating, @AuthenticationPrincipal Jwt jwt) {
         UUID userId = resolveUserId(jwt);
