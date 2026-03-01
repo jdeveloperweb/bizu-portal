@@ -29,6 +29,8 @@ export default function AxonStorePage() {
     const [inventory, setInventory] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isBuying, setIsBuying] = useState<string | null>(null);
+    const [isRechargeModalOpen, setIsRechargeModalOpen] = useState(false);
+    const [isGeneratingCheckout, setIsGeneratingCheckout] = useState(false);
 
     const storeItems: StoreItem[] = [
         {
@@ -141,29 +143,25 @@ export default function AxonStorePage() {
     };
 
     const handleBuyAxonPack = async (packCode: string) => {
-        toast.promise(
-            (async () => {
-                const res = await apiFetch("/student/store/checkout", {
-                    method: "POST",
-                    body: JSON.stringify({ packCode })
-                });
+        setIsGeneratingCheckout(true);
+        try {
+            const res = await apiFetch("/student/store/checkout", {
+                method: "POST",
+                body: JSON.stringify({ packCode })
+            });
 
-                if (!res.ok) throw new Error(await res.text());
+            if (!res.ok) throw new Error(await res.text());
 
-                const data = await res.json();
-                if (data.url) {
-                    window.location.href = data.url;
-                } else {
-                    throw new Error("URL de checkout não gerada");
-                }
-                return "Redirecionando...";
-            })(),
-            {
-                loading: "Gerando checkout seguro...",
-                success: (m) => m,
-                error: (e) => e.message || "Erro ao iniciar compra"
+            const data = await res.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error("URL de checkout não gerada");
             }
-        );
+        } catch (error: any) {
+            toast.error(error.message || "Erro ao iniciar compra");
+            setIsGeneratingCheckout(false);
+        }
     };
 
     const axons = gamification?.axons || 0;
@@ -193,7 +191,7 @@ export default function AxonStorePage() {
                     </div>
 
                     <button
-                        onClick={() => handleBuyAxonPack("AXON_PACK_1000")}
+                        onClick={() => setIsRechargeModalOpen(true)}
                         className="flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-2xl text-xs font-black hover:bg-slate-800 transition-all hover:scale-105"
                     >
                         <CreditCard size={14} /> Recarregar
@@ -322,6 +320,64 @@ export default function AxonStorePage() {
                     </div>
                 </div>
             </div>
+            {/* Modal de Recarga */}
+            <AnimatePresence>
+                {isRechargeModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => !isGeneratingCheckout && setIsRechargeModalOpen(false)}
+                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                        />
+
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-sm bg-white rounded-[32px] shadow-2xl overflow-hidden border border-slate-200 p-6 md:p-8 flex flex-col items-center text-center"
+                        >
+                            <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-6 shadow-sm">
+                                <CreditCard size={32} />
+                            </div>
+
+                            <h3 className="text-2xl font-black text-slate-900 mb-2">Recarregar Axons</h3>
+                            <p className="text-sm font-medium text-slate-500 mb-8 leading-relaxed">
+                                Você está prestes a adquirir <strong className="text-indigo-600">1000 Axons</strong>.<br />
+                                O valor do investimento é de R$ 9,90.
+                            </p>
+
+                            <div className="flex flex-col gap-3 w-full">
+                                <button
+                                    onClick={() => handleBuyAxonPack("AXON_PACK_1000")}
+                                    disabled={isGeneratingCheckout}
+                                    className="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 disabled:opacity-50"
+                                >
+                                    {isGeneratingCheckout ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            Gerando Checkout...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Zap size={18} />
+                                            Prosseguir para Pagamento
+                                        </>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setIsRechargeModalOpen(false)}
+                                    disabled={isGeneratingCheckout}
+                                    className="w-full py-4 bg-slate-50 text-slate-900 font-bold rounded-2xl hover:bg-slate-100 transition-all disabled:opacity-50"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
