@@ -52,6 +52,7 @@ public class EssayService {
                 .content(request.getContent())
                 .attachmentUrl(request.getAttachmentUrl())
                 .type(request.getType())
+                .topic(request.getTopic())
                 .status("PENDING")
                 .build();
 
@@ -66,8 +67,10 @@ public class EssayService {
     private void correctEssay(Essay essay) {
         String prompt = "Você é um professor avaliador rigoroso e justo de redações, especialista na correção do ENEM. " +
                 "Analise a redação enviada e forneça um feedback detalhado ao aluno em Markdown. " +
+                "O TEMA DA REDAÇÃO É: \"" + (essay.getTopic() != null ? essay.getTopic() : "Não especificado") + "\". " +
                 "Siga rigorosamente as 5 competências do ENEM (0 a 200 pontos cada): " +
                 "C1: Domínio da norma culta; C2: Compreensão do tema; C3: Organização e interpretação; C4: Coesão; C5: Intervenção. " +
+                "Analise cuidadosamente se o aluno abordou o tema proposto ou se houve fuga ao tema. " +
                 "Ao final do feedback, inclua OBRIGATORIAMENTE um bloco JSON entre as tags [RESULTADO] e [/RESULTADO] exatamente com este formato: " +
                 "{\"c1\": 160, \"c2\": 160, \"c3\": 140, \"c4\": 160, \"c5\": 140, \"total\": 760, \"improvement\": \"Sua proposta de intervenção menciona o agente...\"}";
 

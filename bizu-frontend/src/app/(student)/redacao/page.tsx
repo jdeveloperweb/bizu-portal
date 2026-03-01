@@ -27,6 +27,7 @@ export default function RedacaoPage() {
     const [selectedEssay, setSelectedEssay] = useState<any>(null);
 
     const [title, setTitle] = useState("");
+    const [topic, setTopic] = useState("");
     const [content, setContent] = useState("");
     const [uploadType, setUploadType] = useState<"TEXT" | "IMAGE" | "PDF">("TEXT");
     const [fileBase64, setFileBase64] = useState<string | null>(null);
@@ -171,6 +172,7 @@ export default function RedacaoPage() {
                 body: JSON.stringify({
                     courseId: selectedCourseId,
                     title,
+                    topic,
                     content: uploadType === "TEXT" ? content : "",
                     attachmentUrl: uploadType !== "TEXT" ? fileBase64 : "",
                     type: uploadType
@@ -183,6 +185,7 @@ export default function RedacaoPage() {
                 setSelectedEssay(newEssay);
                 setView("details");
                 setTitle("");
+                setTopic("");
                 setContent("");
                 setFileBase64(null);
             }
@@ -326,15 +329,27 @@ export default function RedacaoPage() {
                         className="max-w-4xl mx-auto"
                     >
                         <form onSubmit={handleSubmit} className="bg-card border border-border rounded-3xl p-8 shadow-2xl space-y-8">
-                            <div className="space-y-2">
-                                <label className="text-sm font-black uppercase tracking-widest text-muted-foreground">Título da Redação</label>
-                                <input
-                                    required
-                                    value={title}
-                                    onChange={e => setTitle(e.target.value)}
-                                    placeholder="Ex: Os desafios da educação no Brasil"
-                                    className="w-full h-14 px-6 rounded-2xl bg-muted/50 border-none text-lg font-bold focus:ring-2 focus:ring-primary transition-all"
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-black uppercase tracking-widest text-muted-foreground">Título da Redação</label>
+                                    <input
+                                        required
+                                        value={title}
+                                        onChange={e => setTitle(e.target.value)}
+                                        placeholder="Ex: Minha Redação"
+                                        className="w-full h-14 px-6 rounded-2xl bg-muted/50 border-none text-lg font-bold focus:ring-2 focus:ring-primary transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-black uppercase tracking-widest text-muted-foreground">Tema Proposto</label>
+                                    <input
+                                        required
+                                        value={topic}
+                                        onChange={e => setTopic(e.target.value)}
+                                        placeholder="Ex: Os desafios da educação no Brasil"
+                                        className="w-full h-14 px-6 rounded-2xl bg-muted/50 border-none text-lg font-bold focus:ring-2 focus:ring-primary transition-all"
+                                    />
+                                </div>
                             </div>
 
                             <div className="flex p-1 rounded-2xl bg-muted/50 w-fit">
@@ -521,9 +536,14 @@ export default function RedacaoPage() {
                                         </div>
                                         <div>
                                             <h2 className="text-2xl font-black">{selectedEssay.title}</h2>
-                                            <p className="text-sm text-muted-foreground font-medium">
-                                                {format(new Date(selectedEssay.createdAt), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                                            </p>
+                                            <div className="flex flex-col gap-1">
+                                                <p className="text-sm text-primary font-bold">
+                                                    Tema: {selectedEssay.topic}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground font-medium">
+                                                    {format(new Date(selectedEssay.createdAt), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                     <Button

@@ -10,4 +10,5 @@ public class SubmitEssayRequest {
     private String content;
     private String attachmentUrl;
     private String type; // TEXT, IMAGE, PDF
+    private String topic;
 }

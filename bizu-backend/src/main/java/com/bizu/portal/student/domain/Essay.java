@@ -63,6 +63,9 @@ public class Essay {
     @Column(name = "improvement_hint", columnDefinition = "TEXT")
     private String improvementHint;
 
+    @Column(columnDefinition = "TEXT")
+    private String topic;
+
     @Builder.Default
     private String status = "PENDING"; // PENDING, CORRECTED, FAILED
 
