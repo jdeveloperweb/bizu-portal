@@ -74,7 +74,7 @@ export default function ActiveBuffsAura() {
     return (
         <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden">
             <AnimatePresence>
-                {/* AMBER BORDER (XP BOOST) */}
+                {/* AMBER BORDER E RAIOS (XP BOOST) */}
                 {buffs.xpBoost && xpIntensity > 0 && (
                     <div className="absolute inset-0 pointer-events-none transition-opacity duration-1000" style={{ opacity: xpIntensity }}>
                         <motion.div
@@ -88,6 +88,29 @@ export default function ActiveBuffsAura() {
                                 border: `4px solid rgba(245, 158, 11, 0.5)`
                             }}
                         />
+
+                        {/* Raios subindo (Particles) */}
+                        {[...Array(6)].map((_, i) => (
+                            <motion.div
+                                key={`xp-p-${i}`}
+                                initial={{ y: "100vh", x: `${20 + i * 15}%`, opacity: 0, scale: 0 }}
+                                animate={{
+                                    y: "-10vh",
+                                    opacity: [0, 0.8, 0],
+                                    scale: [0.5, 1, 0.5],
+                                    rotate: 360
+                                }}
+                                transition={{
+                                    duration: 3 + i,
+                                    repeat: Infinity,
+                                    delay: i * 0.5,
+                                    ease: "easeInOut"
+                                }}
+                                className="absolute pointer-events-none z-0"
+                            >
+                                <Zap size={24 + i * 4} className="text-amber-400/30 blur-[2px] fill-current" />
+                            </motion.div>
+                        ))}
                     </div>
                 )}
 
