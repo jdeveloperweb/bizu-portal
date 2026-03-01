@@ -218,7 +218,7 @@ export default function AdminUsuariosPage() {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="bg-slate-50/50 border-b border-slate-100">
+                            <tr style={{ background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
                                 <th className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Aluno</th>
                                 <th className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Plano / Curso</th>
                                 <th className="px-8 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Cadastro</th>
@@ -253,7 +253,7 @@ export default function AdminUsuariosPage() {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, scale: 0.95 }}
-                                        className="hover:bg-slate-50/50 transition-colors group relative"
+                                        className="hover:bg-white/[0.03] transition-colors group relative"
                                     >
                                         <td className="px-8 py-5">
                                             <div className="flex items-center gap-4">
@@ -261,7 +261,7 @@ export default function AdminUsuariosPage() {
                                                     {user?.name ? user.name.substring(0, 2).toUpperCase() : 'NA'}
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold text-slate-900 leading-tight mb-0.5">{user.name || 'Sem Nome'}</div>
+                                                    <div className="font-bold text-slate-200 leading-tight mb-0.5">{user.name || 'Sem Nome'}</div>
                                                     <div className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
                                                         <Mail className="w-3 h-3" />
                                                         {user.email || 'Sem e-mail'}
@@ -366,14 +366,15 @@ export default function AdminUsuariosPage() {
                             initial={{ scale: 0.95, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            className="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl border border-slate-100"
+                            className="w-full max-w-md rounded-3xl p-8 shadow-2xl border"
+                            style={{ background: "#0D1B2A", borderColor: "rgba(99,102,241,0.2)" }}
                         >
                             <div className="flex items-center gap-4 mb-8">
                                 <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                                     <Users className="w-6 h-6 text-primary" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-black text-slate-900 leading-tight">Editar Usuário</h2>
+                                    <h2 className="text-xl font-black text-white leading-tight">Editar Usuário</h2>
                                     <p className="text-sm font-medium text-slate-400">ID: {editingUser.id.substring(0, 8)}...</p>
                                 </div>
                             </div>

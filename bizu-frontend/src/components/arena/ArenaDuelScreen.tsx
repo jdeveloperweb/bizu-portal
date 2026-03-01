@@ -80,21 +80,6 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
         fetchStats();
     }, []);
 
-    useEffect(() => {
-        if (!duel || duel.status !== "IN_PROGRESS") return;
-
-        const timer = setInterval(() => {
-            setTimeLeft((prev) => {
-                if (prev <= 1) {
-                    clearInterval(timer);
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, [duel?.currentRound, duel?.status]);
 
     useEffect(() => {
         if (duel?.status === "COMPLETED") {
@@ -141,6 +126,27 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
     const isChallenger = duel?.challenger?.id === currentUserId;
     const myAnswer = isChallenger ? currentRoundQuestion?.challengerAnswerIndex : currentRoundQuestion?.opponentAnswerIndex;
     const opponentAnswer = isChallenger ? currentRoundQuestion?.opponentAnswerIndex : currentRoundQuestion?.challengerAnswerIndex;
+
+    useEffect(() => {
+        if (!duel || duel.status !== "IN_PROGRESS") return;
+
+        const timer = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timer);
+                    // Automatic timeout if no answer selected
+                    if (selectedAnswer === null && (myAnswer === undefined || myAnswer === null)) {
+                        handleAnswer(-1);
+                        toast.error("Tempo esgotado!");
+                    }
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [duel?.currentRound, duel?.status, selectedAnswer, myAnswer]);
 
     const handleAnswer = async (index: number) => {
         if (selectedAnswer !== null || (myAnswer !== undefined && myAnswer !== null)) return;
@@ -321,7 +327,7 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                             >
                                 <div className="mb-6 flex items-center justify-center gap-4">
                                     <div className="flex items-center gap-2 text-indigo-600 font-bold text-sm">
-                                        <Timer size={18} /> {timeLeft}s
+                                        <Timer size={18} /> {timeLeft > 0 ? `${timeLeft}s` : "Tempo Esgotado!"}
                                     </div>
                                     <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${currentRoundQuestion.difficulty === 'EASY' ? 'bg-emerald-50 text-emerald-600' :
                                         currentRoundQuestion.difficulty === 'MEDIUM' ? 'bg-amber-50 text-amber-600' :
@@ -339,22 +345,37 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                                 <div className="grid grid-cols-1 gap-3">
                                     {Object.entries(currentRoundQuestion.question.options).map(([key, option], idx) => {
                                         const isSelected = selectedAnswer === idx || (myAnswer !== undefined && myAnswer !== null && myAnswer === idx);
-                                        const isWaitingOpponent = (myAnswer !== undefined && myAnswer !== null) && (opponentAnswer === undefined || opponentAnswer === null);
+                                        const isWaitingOpponent = (selectedAnswer !== null || (myAnswer !== undefined && myAnswer !== null)) && (opponentAnswer === undefined || opponentAnswer === null);
+                                        const isCorrect = key === currentRoundQuestion.question.correctOption;
+                                        const hasAnswered = selectedAnswer !== null || (myAnswer !== undefined && myAnswer !== null);
+
+                                        let styleClasses = "border-slate-100 hover:border-indigo-200 hover:bg-slate-50";
+                                        let iconClasses = "bg-white text-slate-400 border-slate-200";
+
+                                        if (hasAnswered) {
+                                            if (isCorrect) {
+                                                styleClasses = "border-emerald-500 bg-emerald-50 shadow-md";
+                                                iconClasses = "bg-emerald-500 text-white border-emerald-500";
+                                            } else if (isSelected) {
+                                                styleClasses = "border-red-500 bg-red-50 shadow-md";
+                                                iconClasses = "bg-red-500 text-white border-red-500";
+                                            }
+                                        } else if (isSelected) {
+                                            styleClasses = "border-indigo-500 bg-indigo-50 shadow-md";
+                                            iconClasses = "bg-indigo-500 text-white border-indigo-500";
+                                        }
 
                                         return (
                                             <motion.button
                                                 key={key}
-                                                whileHover={{ scale: 1.01 }}
-                                                whileTap={{ scale: 0.99 }}
+                                                whileHover={!hasAnswered ? { scale: 1.01 } : {}}
+                                                whileTap={!hasAnswered ? { scale: 0.99 } : {}}
                                                 onClick={() => handleAnswer(idx)}
-                                                disabled={myAnswer !== undefined && myAnswer !== null}
-                                                className={`p-4 rounded-2xl border-2 text-left transition-all relative ${isSelected ? "border-indigo-500 bg-indigo-50 shadow-md" :
-                                                    "border-slate-100 hover:border-indigo-200 hover:bg-slate-50"
-                                                    }`}
+                                                disabled={hasAnswered}
+                                                className={`p-4 rounded-2xl border-2 text-left transition-all relative ${styleClasses}`}
                                             >
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center font-bold border shrink-0 ${isSelected ? "bg-indigo-500 text-white border-indigo-500" : "bg-white text-slate-400 border-slate-200"
-                                                        }`}>
+                                                    <div className={`w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center font-bold border shrink-0 ${iconClasses}`}>
                                                         {String.fromCharCode(65 + idx)}
                                                     </div>
                                                     <div
@@ -362,7 +383,7 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                                                         dangerouslySetInnerHTML={{ __html: option }}
                                                     />
                                                 </div>
-                                                {isWaitingOpponent && isSelected && (
+                                                {isWaitingOpponent && (isSelected || (selectedAnswer === -1 && idx === 0)) && (
                                                     <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 text-[10px] font-bold text-indigo-500 italic">
                                                         <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" /> Aguardando oponente...
                                                     </div>
