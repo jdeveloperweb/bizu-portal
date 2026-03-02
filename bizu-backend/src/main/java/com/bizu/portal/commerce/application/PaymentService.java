@@ -135,6 +135,26 @@ public class PaymentService {
         User user = userRepository.findById(userId).orElseThrow();
         Plan plan = planRepository.findById(planId).orElseThrow();
 
+        // Axon Pack Fulfillment - Processar primeiro e retornar cedo
+        // para não desativar outros planos nem criar Subscription record.
+        String planCode = plan.getCode();
+        if (planCode != null && planCode.startsWith("AXON_PACK_")) {
+            log.info("Processando compra de pacote de Axons: {} para usuário {}", planCode, user.getEmail());
+            try {
+                int amount = Integer.parseInt(planCode.replace("AXON_PACK_", ""));
+                axonStoreService.addAxons(userId, amount);
+                notificationService.send(userId, "🧠 Axons Recebidos!", 
+                    "Seu pacote de " + amount + " Axons foi creditado com sucesso em sua conta.");
+                
+                // Marca o pagamento correspondente se encontrado (NSU ou UUID)
+                // O status do Payment já costuma ser atualizado pelo webhook antes ou vai ser pelo processInfinitePay.
+                
+            } catch (Exception e) {
+                log.error("Erro ao creditar Axons para plano {}: {}", planCode, e.getMessage());
+            }
+            return; // RETORNA cedo para pacotes de moedas
+        }
+
         log.info("Ativando plano {} para usuário {}", plan.getName(), user.getEmail());
 
         java.util.List<Subscription> existingSubs = subscriptionRepository.findAllByUserId(userId);
@@ -192,21 +212,6 @@ public class PaymentService {
 
         if (plan.isGroup()) {
             subscriptionGroupService.createGroup(user, plan);
-        }
-
-        // Axon Pack Fulfillment
-        String planCode = plan.getCode();
-        if (planCode != null && planCode.startsWith("AXON_PACK_")) {
-            try {
-                int amount = Integer.parseInt(planCode.replace("AXON_PACK_", ""));
-                // Directly add to user balance
-                axonStoreService.addAxons(userId, amount);
-                
-                notificationService.send(userId, "🧠 Axons Recebidos!", 
-                    "Seu pacote de " + amount + " Axons foi creditado com sucesso em sua conta.");
-            } catch (Exception e) {
-                log.error("Erro ao creditar Axons para plano {}: {}", planCode, e.getMessage());
-            }
         }
 
         // Logic to update user metadata or role to ACTIVE_SUBSCRIBER

@@ -12,4 +12,5 @@ public interface PlanRepository extends JpaRepository<Plan, UUID> {
     List<Plan> findAllByActiveTrueOrderBySortOrder();
     List<Plan> findAllByCourseIdOrderBySortOrder(UUID courseId);
     java.util.Optional<Plan> findByCode(String code);
+    List<Plan> findByCodeStartingWithAndActiveTrueOrderBySortOrderAsc(String prefix);
 }

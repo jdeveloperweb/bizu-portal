@@ -46,7 +46,12 @@ public class InfinitePayPaymentProvider implements PaymentProvider {
             String orderNsu = "BZ-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
             payload.put("order_nsu", orderNsu); 
             payload.put("items", List.of(item));
-            payload.put("redirect_url", "https://bizu.mjolnix.com.br/checkout?status=success&plan=" + plan.getId());
+            String redirectUrl = "https://bizu.mjolnix.com.br/checkout?status=success&plan=" + plan.getId();
+            if (plan.getCode() != null && plan.getCode().startsWith("AXON_PACK_")) {
+                redirectUrl = "https://bizu.mjolnix.com.br/loja?status=success&pack=" + plan.getId();
+            }
+            
+            payload.put("redirect_url", redirectUrl);
             payload.put("webhook_url", "https://bizu.mjolnix.com.br/api/v1/public/webhooks/infinitepay");
 
             // Opcional: Dados do cliente

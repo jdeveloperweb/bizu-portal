@@ -11,6 +11,8 @@ import { useAuth } from "@/components/AuthProvider";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 interface StoreItem {
     id: string;
@@ -23,7 +25,8 @@ interface StoreItem {
     category: "consumable" | "permanent" | "status";
 }
 
-export default function AxonStorePage() {
+function AxonStoreContent() {
+    const searchParams = useSearchParams();
     const { user } = useAuth();
     const [gamification, setGamification] = useState<any>(null);
     const [inventory, setInventory] = useState<any[]>([]);
@@ -31,13 +34,9 @@ export default function AxonStorePage() {
     const [isBuying, setIsBuying] = useState<string | null>(null);
     const [isRechargeModalOpen, setIsRechargeModalOpen] = useState(false);
     const [isGeneratingCheckout, setIsGeneratingCheckout] = useState(false);
-    const [selectedPackId, setSelectedPackId] = useState("2");
-
-    const AXON_PACKS = [
-        { id: "1", code: "AXON_PACK_1000", name: "Iniciante", amount: 1000, price: 9.90, badge: "", icon: Zap, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-400" },
-        { id: "2", code: "AXON_PACK_3000", name: "Custo-Benefício", amount: 3000, price: 24.90, badge: "Mais Popular", icon: Star, color: "text-amber-500", bg: "bg-amber-50", border: "border-amber-400" },
-        { id: "3", code: "AXON_PACK_10000", name: "Ostentação", amount: 10000, price: 69.90, badge: "Melhor Valor", icon: Crown, color: "text-purple-600", bg: "bg-purple-50", border: "border-purple-400" },
-    ];
+    const [axonPacks, setAxonPacks] = useState<any[]>([]);
+    const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
+    const [successShown, setSuccessShown] = useState(false);
 
     const storeItems: StoreItem[] = [
         {
@@ -85,13 +84,31 @@ export default function AxonStorePage() {
     const fetchStoreData = async () => {
         setIsLoading(true);
         try {
-            const [gamRes, invRes] = await Promise.all([
+            const [gamRes, invRes, packsRes] = await Promise.all([
                 apiFetch("/student/gamification/me"),
-                apiFetch("/student/store/inventory")
+                apiFetch("/student/store/inventory"),
+                apiFetch("/student/store/packs")
             ]);
 
             if (gamRes.ok) setGamification(await gamRes.json());
             if (invRes.ok) setInventory(await invRes.json());
+            if (packsRes.ok) {
+                const packs = await packsRes.json();
+                const mappedPacks = packs.map((p: any) => {
+                    const amountStr = p.code.replace("AXON_PACK_", "");
+                    const amount = parseInt(amountStr) || 0;
+
+                    let config = { icon: Zap, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-400" };
+                    if (amount >= 10000) config = { icon: Crown, color: "text-purple-600", bg: "bg-purple-50", border: "border-purple-400" };
+                    else if (amount >= 3000) config = { icon: Star, color: "text-amber-500", bg: "bg-amber-50", border: "border-amber-400" };
+
+                    return { ...p, amount, ...config };
+                });
+                setAxonPacks(mappedPacks);
+                if (mappedPacks.length > 0 && !selectedPackId) {
+                    setSelectedPackId(mappedPacks.find((p: any) => p.code === "AXON_PACK_3000")?.id || mappedPacks[0].id);
+                }
+            }
         } catch (error) {
             console.error("Store fetch error:", error);
         } finally {
@@ -101,7 +118,26 @@ export default function AxonStorePage() {
 
     useEffect(() => {
         fetchStoreData();
-    }, []);
+
+        // Handle success redirect from payment provider
+        const status = searchParams.get("status");
+        if (status === "success" && !successShown) {
+            const packParam = searchParams.get("pack");
+            const pack = axonPacks.find(p => p.id === packParam);
+
+            // If pack not found yet but we have packParam, it might still be loading packs
+            // If we have packs and didn't find it, or if we don't need a specific name
+            if (packParam && axonPacks.length === 0) return;
+
+            const message = pack
+                ? `${pack.name} adquirido com sucesso! Seus Axons foram creditados.`
+                : "Recarga realizada com sucesso! Seus Axons foram creditados.";
+
+            toast.success(message);
+            setSuccessShown(true);
+            fetchStoreData();
+        }
+    }, [searchParams, axonPacks, successShown]);
 
     const handleBuy = async (item: StoreItem) => {
         if (!gamification || gamification.axons < item.price) {
@@ -355,17 +391,17 @@ export default function AxonStorePage() {
                             </p>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full mb-10">
-                                {AXON_PACKS.map(pack => (
+                                {axonPacks.map(pack => (
                                     <div
                                         key={pack.id}
                                         onClick={() => setSelectedPackId(pack.id)}
                                         className={`relative cursor-pointer rounded-2xl border-2 p-6 flex flex-col items-center text-center transition-all ${selectedPackId === pack.id
-                                                ? `${pack.border} bg-white shadow-2xl scale-105 z-10 ring-4 ring-indigo-50/50`
-                                                : "border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-300 opacity-90 hover:opacity-100"
+                                            ? `${pack.border} bg-white shadow-2xl scale-105 z-10 ring-4 ring-indigo-50/50`
+                                            : "border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-300 opacity-90 hover:opacity-100"
                                             }`}
                                     >
                                         {pack.badge && (
-                                            <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white whitespace-nowrap ${pack.id === "2" ? "bg-amber-500 shadow-md shadow-amber-200" : "bg-purple-600 shadow-md shadow-purple-200"
+                                            <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-white whitespace-nowrap ${pack.code === "AXON_PACK_3000" ? "bg-amber-500 shadow-md shadow-amber-200" : "bg-purple-600 shadow-md shadow-purple-200"
                                                 }`}>
                                                 {pack.badge}
                                             </div>
@@ -387,7 +423,7 @@ export default function AxonStorePage() {
 
                             <div className="flex flex-col sm:flex-row gap-3 w-full max-w-lg">
                                 <button
-                                    onClick={() => handleBuyAxonPack(AXON_PACKS.find(p => p.id === selectedPackId)?.code || "AXON_PACK_1000")}
+                                    onClick={() => handleBuyAxonPack(axonPacks.find(p => p.id === selectedPackId)?.code || "AXON_PACK_1000")}
                                     disabled={isGeneratingCheckout}
                                     className="flex-1 py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 disabled:opacity-50"
                                 >
@@ -416,5 +452,13 @@ export default function AxonStorePage() {
                 )}
             </AnimatePresence>
         </div>
+    );
+}
+
+export default function AxonStorePage() {
+    return (
+        <Suspense fallback={<div className="p-10 flex justify-center"><Skeleton className="w-full h-96 rounded-3xl" /></div>}>
+            <AxonStoreContent />
+        </Suspense>
     );
 }

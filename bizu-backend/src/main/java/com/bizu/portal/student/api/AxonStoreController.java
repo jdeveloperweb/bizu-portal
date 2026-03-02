@@ -24,6 +24,11 @@ public class AxonStoreController {
     private final com.bizu.portal.commerce.infrastructure.PlanRepository planRepository;
     private final com.bizu.portal.identity.infrastructure.UserRepository userRepository;
 
+    @GetMapping("/packs")
+    public ResponseEntity<List<com.bizu.portal.commerce.domain.Plan>> getPacks() {
+        return ResponseEntity.ok(planRepository.findByCodeStartingWithAndActiveTrueOrderBySortOrderAsc("AXON_PACK_"));
+    }
+
     @GetMapping("/inventory")
     public ResponseEntity<List<Inventory>> getInventory(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = userService.resolveUserId(jwt);
