@@ -51,7 +51,7 @@ const CourseCtx = createContext<CourseContextType | undefined>(undefined);
 // ------------------------------------------------------------------
 // Provider
 // ------------------------------------------------------------------
-export function CourseProvider({ children }: { children: React.ReactNode }) {
+export function CourseProvider({ children }: { children: React.ReactNode }): React.ReactElement {
     const { authenticated, user, selectedCourseId, setSelectedCourseId, refreshUserProfile } = useAuth();
     const [entitlements, setEntitlements] = useState<CourseEntitlement[]>([]);
     const [gamification, setGamification] = useState<GamificationState>(defaultGamification);
@@ -106,7 +106,7 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
         } finally {
             setLoading(false);
         }
-    }, [authenticated]);
+    }, [authenticated, user]);
 
     useEffect(() => {
         loadEntitlements();
@@ -200,10 +200,10 @@ export function CourseProvider({ children }: { children: React.ReactNode }) {
 
     // Auto-select first active course if current selection is invalid/expired
     useEffect(() => {
-        if (!loading && activeCourseId && !hasEntitlement && entitlements.length > 0) {
+        if (!loading && !hasEntitlement && entitlements.length > 0) {
             const firstActive = entitlements.find(e => (e as any).active);
             if (firstActive && firstActive.courseId !== activeCourseId) {
-                console.log("Auto-switching course because current is invalid/expired");
+                console.log("Auto-switching course because current is invalid/expired or none selected");
                 selectCourse(firstActive.courseId);
             }
         }

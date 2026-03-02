@@ -80,13 +80,20 @@ export default function DashboardPage() {
                 if (gamificationRes.ok) setGamification(await gamificationRes.json());
                 if (badgesRes.ok) setBadges(await badgesRes.json());
                 if (rankingRes.ok) setRanking(await rankingRes.json());
-                if (coursesRes.ok) setCourses(await coursesRes.json());
+
+                let fetchedCourses = [];
+                if (coursesRes.ok) {
+                    fetchedCourses = await coursesRes.json();
+                    setCourses(fetchedCourses);
+                }
+
                 if (materialsRes.ok) setRecentMaterials(await materialsRes.json());
+
                 if (subscriptionRes.ok) {
                     const data = await subscriptionRes.json();
                     setSubscription(data);
-                } else if (subscriptionRes.status === 404 && !isAdmin) {
-                    // Se não tem assinatura e não é admin, manda pro checkout
+                } else if (subscriptionRes.status === 404 && !isAdmin && fetchedCourses.length === 0) {
+                    // Só manda pro checkout se realmente não tiver assinatura NEM cursos ativos
                     router.push("/checkout");
                 }
             } catch (error) {
