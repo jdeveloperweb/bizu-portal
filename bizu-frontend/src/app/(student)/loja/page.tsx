@@ -118,7 +118,9 @@ function AxonStoreContent() {
 
     useEffect(() => {
         fetchStoreData();
+    }, []);
 
+    useEffect(() => {
         // Handle success redirect from payment provider
         const status = searchParams.get("status");
         if (status === "success" && !successShown) {
@@ -126,7 +128,6 @@ function AxonStoreContent() {
             const pack = axonPacks.find(p => p.id === packParam);
 
             // If pack not found yet but we have packParam, it might still be loading packs
-            // If we have packs and didn't find it, or if we don't need a specific name
             if (packParam && axonPacks.length === 0) return;
 
             const message = pack
