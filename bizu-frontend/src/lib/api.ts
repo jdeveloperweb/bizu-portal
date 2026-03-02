@@ -34,7 +34,7 @@ export function getOrCreateFingerprint(): string {
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     const token = Cookies.get("token");
     const selectedCourseId = getStoredSelectedCourseId();
-    const isPublicEndpoint = endpoint.includes("/public/") || endpoint.includes("/branding/active");
+    const isPublicEndpoint = (endpoint.includes("/public/") && !endpoint.includes("/courses")) || endpoint.includes("/branding/active");
 
     const deviceFingerprint = getOrCreateFingerprint();
 

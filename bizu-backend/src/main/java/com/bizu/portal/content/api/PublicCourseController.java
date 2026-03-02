@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,7 +27,10 @@ public class PublicCourseController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Course> getCourseById(@PathVariable UUID id) {
+    public ResponseEntity<Course> getCourseById(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        if (jwt != null) {
+            return ResponseEntity.ok(courseService.findById(id));
+        }
         return ResponseEntity.ok(courseService.findPublicById(id));
     }
 }

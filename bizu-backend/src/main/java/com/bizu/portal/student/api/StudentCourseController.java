@@ -58,6 +58,13 @@ public class StudentCourseController {
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Course> getCourseById(@PathVariable UUID id) {
+        return courseRepository.findByIdWithModules(id)
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/me")
     public ResponseEntity<List<Map<String, Object>>> getMyCourses(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = userService.resolveUserId(jwt);
