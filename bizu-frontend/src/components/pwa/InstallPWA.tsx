@@ -110,7 +110,7 @@ export function InstallPWA() {
                 </div>
                 <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-black text-slate-900 leading-tight">
-                        {isDesktop ? "Instale o AXON no PC!" : "Instale o App AXON!"}
+                        {isDesktop ? "Instale o MJOLNIX no PC!" : "Instale o App MJOLNIX!"}
                     </h4>
                     <p className="text-xs text-slate-500 mt-0.5 leading-snug">
                         Acesso rápido e direto sem abrir o navegador.
@@ -139,7 +139,7 @@ export function InstallPWA() {
                         No Chrome, clique no ícone{" "}
                         <span className="font-bold text-indigo-600">⊕</span>{" "}
                         na barra de endereços ou em{" "}
-                        <span className="font-bold text-indigo-600">Menu (⋮) → Instalar AXON</span>.
+                        <span className="font-bold text-indigo-600">Menu (⋮) → Instalar MJOLNIX</span>.
                     </div>
                 ) : (
                     <Button

@@ -120,17 +120,17 @@ export default function RegisterPage() {
                 }} />
                 <div className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" style={{ background: "linear-gradient(to top,#020617,transparent)" }} />
 
-                {/* AXON background watermark */}
+                {/* MJOLNIX background watermark */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
                     <span className="font-black text-white leading-none tracking-tight"
                         style={{ fontFamily: "var(--font-orbitron)", fontSize: "clamp(160px,22vw,260px)", opacity: 0.022 }}>
-                        AXON
+                        MJOLNIX
                     </span>
                 </div>
 
                 <div className="relative z-10 w-full max-w-sm px-4 flex flex-col items-center text-center">
 
-                    {/* AXON wordmark */}
+                    {/* MJOLNIX wordmark */}
                     <span
                         className="font-black leading-none tracking-tight select-none"
                         style={{
@@ -141,7 +141,7 @@ export default function RegisterPage() {
                             filter: "drop-shadow(0 0 32px rgba(99,102,241,0.35))",
                         }}
                     >
-                        AXON
+                        MJOLNIX
                     </span>
 
                     {/* Academy separator */}
@@ -333,7 +333,7 @@ export default function RegisterPage() {
 
                 <footer className="py-8 text-center relative z-10 px-6">
                     <p className="text-[12px] text-slate-400 font-bold tracking-tight">
-                        &copy; Axon Academy — Excelência Acadêmica
+                        &copy; Mjolnix Academy — Excelência Acadêmica
                     </p>
                     <div className="mt-3 flex items-center justify-center gap-4 text-[11px] font-semibold text-slate-400">
                         <Link href="/termos" className="hover:text-indigo-500 transition-colors">Termos de Uso</Link>

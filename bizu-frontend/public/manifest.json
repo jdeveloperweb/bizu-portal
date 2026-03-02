@@ -1,7 +1,7 @@
 {
     "id": "/",
-    "name": "AXON Academy",
-    "short_name": "AXON",
+    "name": "MJOLNIX Academy",
+    "short_name": "MJOLNIX",
     "description": "Plataforma de Excelência para Concursos",
     "start_url": "/?source=pwa",
     "display": "standalone",

@@ -105,7 +105,7 @@ export default function AxonStorePage() {
 
     const handleBuy = async (item: StoreItem) => {
         if (!gamification || gamification.axons < item.price) {
-            toast.error("Axons insuficientes! Estude mais para ganhar.");
+            toast.error("Mjolnix insuficientes! Estude mais para ganhar.");
             return;
         }
 
@@ -179,9 +179,9 @@ export default function AxonStorePage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12">
                 <div>
                     <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                        <ShoppingCart className="text-indigo-600" /> Axon Store
+                        <ShoppingCart className="text-indigo-600" /> Mjolnix Store
                     </h1>
-                    <p className="text-slate-500 font-medium mt-1">Invista seus Axons em capacidades e status.</p>
+                    <p className="text-slate-500 font-medium mt-1">Invista seus Mjolnix em capacidades e status.</p>
                 </div>
 
                 <div className="flex items-center gap-4 bg-white p-3 md:p-4 rounded-[32px] shadow-sm border border-slate-100">
@@ -193,7 +193,7 @@ export default function AxonStorePage() {
                             <span className="text-2xl font-black text-slate-900 tabular-nums leading-none">
                                 {isLoading ? <Skeleton className="h-6 w-12" /> : axons}
                             </span>
-                            <span className="text-[10px] font-black text-slate-400 tracking-widest uppercase">Meus Axons</span>
+                            <span className="text-[10px] font-black text-slate-400 tracking-widest uppercase">Meus Mjolnix</span>
                         </div>
                     </div>
 
@@ -225,7 +225,7 @@ export default function AxonStorePage() {
                             disabled={isBuying === "2"}
                             className="bg-white text-slate-950 px-10 py-5 rounded-2xl font-black flex items-center gap-3 hover:scale-105 transition-all shadow-xl hover:bg-indigo-50 disabled:opacity-50"
                         >
-                            {isBuying === "2" ? "Negociando..." : <>Adquirir por 500 Axons <ArrowUpRight size={18} /></>}
+                            {isBuying === "2" ? "Negociando..." : <>Adquirir por 500 Mjolnix <ArrowUpRight size={18} /></>}
                         </button>
                     </div>
                     <div className="hidden md:flex justify-center">
@@ -289,7 +289,7 @@ export default function AxonStorePage() {
                                     className="w-full py-4 bg-slate-50 border border-slate-200 text-slate-900 font-bold rounded-2xl hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
                                 >
                                     <Brain size={14} className="group-hover:animate-bounce" />
-                                    {isBuying === item.id ? "Comprando..." : `${item.price} Axons`}
+                                    {isBuying === item.id ? "Comprando..." : `${item.price} Mjolnix`}
                                 </button>
                             )}
                         </motion.div>
@@ -349,9 +349,9 @@ export default function AxonStorePage() {
                                 <CreditCard size={32} />
                             </div>
 
-                            <h3 className="text-3xl font-black text-slate-900 mb-2">Recarregar Axons</h3>
+                            <h3 className="text-3xl font-black text-slate-900 mb-2">Recarregar Mjolnix</h3>
                             <p className="text-sm font-medium text-slate-500 mb-8 leading-relaxed max-w-md">
-                                Escolha o pacote de Axons que mais combina com seu objetivo. Invista na sua evolução e conquiste mais do que os adversários.
+                                Escolha o pacote de Mjolnix que mais combina com seu objetivo. Invista na sua evolução e conquiste mais do que os adversários.
                             </p>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full mb-10">
@@ -376,7 +376,7 @@ export default function AxonStorePage() {
                                         </div>
 
                                         <h4 className="text-sm font-bold text-slate-700 mb-1">{pack.name}</h4>
-                                        <div className="text-3xl font-black text-slate-900 mb-2">{pack.amount.toLocaleString('pt-BR')} <span className="text-[10px] text-slate-500 font-medium">Axons</span></div>
+                                        <div className="text-3xl font-black text-slate-900 mb-2">{pack.amount.toLocaleString('pt-BR')} <span className="text-[10px] text-slate-500 font-medium">Mjolnix</span></div>
                                         <div className={`text-sm font-black w-full py-2.5 rounded-xl mt-auto ${selectedPackId === pack.id ? pack.bg + " " + pack.color : "bg-slate-200 text-slate-600"
                                             }`}>
                                             R$ {pack.price.toFixed(2).replace(".", ",")}

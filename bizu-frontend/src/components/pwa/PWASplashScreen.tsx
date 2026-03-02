@@ -18,21 +18,20 @@ export default function PWASplashScreen() {
 
     // Efeito para Redirecionamento PWA
     useEffect(() => {
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-            || (window.navigator as any).standalone === true;
-
-        // Verifica se foi aberto via PWA (manifest define start_url como "/?source=pwa")
+        // O manifest define start_url como "/?source=pwa".
+        // Esse parâmetro é a única fonte de verdade para detectar abertura via PWA.
+        // Evitamos display-mode:standalone pois pode ter falsos positivos em alguns browsers.
         const urlParams = new URLSearchParams(window.location.search);
         const isPWASource = urlParams.get('source') === 'pwa';
 
-        // Persiste a sessão PWA para navegações internas que não têm ?source=pwa
-        if (isStandalone && isPWASource) {
+        // Persiste a sessão PWA para navegações internas (sem ?source=pwa na URL)
+        if (isPWASource) {
             sessionStorage.setItem('pwa_session', 'true');
         }
         const isPWASession = sessionStorage.getItem('pwa_session') === 'true';
 
-        // Só redireciona se estiver claramente em modo PWA
-        const isPWA = isStandalone && (isPWASource || isPWASession);
+        // Só redireciona se aberto como PWA (via manifest) ou dentro de sessão PWA ativa
+        const isPWA = isPWASource || isPWASession;
 
         if (isPWA && pathname === "/" && !authLoading && !hasRedirected.current) {
             hasRedirected.current = true;
@@ -99,7 +98,7 @@ export default function PWASplashScreen() {
                 {/* Brand */}
                 <div className="splash-brand flex flex-col items-center gap-3">
 
-                    {/* AXON wordmark */}
+                    {/* MJOLNIX wordmark */}
                     <span
                         className="text-[56px] sm:text-[68px] font-black leading-none tracking-tight"
                         style={{
@@ -111,7 +110,7 @@ export default function PWASplashScreen() {
                             filter: "drop-shadow(0 0 28px rgba(99,102,241,0.3))",
                         }}
                     >
-                        AXON
+                        MJOLNIX
                     </span>
 
                     {/* Separator + Academy */}

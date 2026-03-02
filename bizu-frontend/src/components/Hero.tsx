@@ -196,7 +196,7 @@ export default function Hero() {
                                     className="text-2xl sm:text-3xl font-black tracking-tight text-white"
                                     style={{ fontFamily: "var(--font-orbitron)", letterSpacing: "-0.02em" }}
                                 >
-                                    AXON
+                                    MJOLNIX
                                 </span>
                                 <div className="w-px h-7 rounded-full" style={{ background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.3), transparent)" }} />
                                 <span className="text-[11px] font-bold tracking-[0.45em] uppercase text-white/40">
@@ -381,7 +381,7 @@ export default function Hero() {
                                             </div>
                                             <span className="text-sm font-bold text-white/70"
                                                 style={{ fontFamily: "var(--font-orbitron)", fontSize: 11, letterSpacing: "0.05em" }}>
-                                                AXON
+                                                MJOLNIX
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full border"
@@ -738,7 +738,7 @@ export default function Hero() {
             </section>
 
             {/* ══════════════════════════════════
-                EARLY ACCESS CTA  (AXON em destaque)
+                EARLY ACCESS CTA  (MJOLNIX em destaque)
             ══════════════════════════════════ */}
             <section className="py-32 relative overflow-hidden" style={{ background: "#020617" }}>
                 {/* Aurora */}
@@ -747,11 +747,11 @@ export default function Hero() {
                         style={{ background: "radial-gradient(ellipse,#6366F1 0%,transparent 70%)" }} />
                 </div>
 
-                {/* AXON watermark */}
+                {/* MJOLNIX watermark */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
                     <span className="text-[180px] sm:text-[240px] md:text-[320px] font-black text-white/[0.018] leading-none tracking-tight"
                         style={{ fontFamily: "var(--font-orbitron)" }}>
-                        AXON
+                        MJOLNIX
                     </span>
                 </div>
 
@@ -769,7 +769,7 @@ export default function Hero() {
                             <div className="text-left">
                                 <div className="text-2xl font-black text-white leading-none"
                                     style={{ fontFamily: "var(--font-orbitron)", letterSpacing: "-0.02em" }}>
-                                    AXON
+                                    MJOLNIX
                                 </div>
                                 <div className="text-[10px] font-bold tracking-[0.4em] uppercase mt-0.5" style={{ color: "#475569" }}>
                                     Academy
@@ -792,7 +792,7 @@ export default function Hero() {
                         </h2>
 
                         <p className="text-lg md:text-xl mb-4 max-w-xl mx-auto leading-relaxed" style={{ color: "#94A3B8" }}>
-                            Estamos no começo — e quem entra agora ajuda a definir o que o AXON Academy vai se tornar. Acesso antecipado, preço de fundador e contato direto com a equipe.
+                            Estamos no começo — e quem entra agora ajuda a definir o que o MJOLNIX Academy vai se tornar. Acesso antecipado, preço de fundador e contato direto com a equipe.
                         </p>
                         <p className="text-sm font-medium mb-12" style={{ color: "#334155" }}>
                             Sem enrolação. Sem números inflados. Só uma plataforma honesta que quer ser a melhor.
@@ -836,7 +836,7 @@ export default function Hero() {
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6 max-w-6xl mx-auto">
                         <BrandLogo size="sm" variant="light" link={false} />
                         <p className="text-sm" style={{ color: "#1E293B" }}>
-                            © 2026 Axon Academy · Concursos com gamificação de verdade.
+                            © 2026 Mjolnix Academy · Concursos com gamificação de verdade.
                         </p>
                         <div className="flex gap-6">
                             {[{ href: "/termos", label: "Termos" }, { href: "/privacidade", label: "Privacidade" }].map((l) => (
