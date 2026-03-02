@@ -195,52 +195,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const token = Cookies.get("token");
         if (!token) return;
 
-        // For Admins, we register but don't block.
-        // For others, if limit reached, registerDevice sets modal data and returns false.
-        const registered = await registerDevice();
-        const adminRoles = ['ADMIN', 'MASTER'];
-        const isUserAdmin = user?.roles?.some((r: any) => adminRoles.includes(r.name)) ||
-            user?.realm_access?.roles?.some((r: string) => adminRoles.includes(r)) ||
-            user?.role === 'ADMIN';
+        // 1. Fetch user profile FIRST to know roles/permissions
+        const res = await apiFetch("/users/me");
 
-        if (!registered && !isUserAdmin) {
-            console.log("Device not authorized, stopping profile refresh for non-admin");
+        if (!res.ok) {
+            console.error("AuthProvider: Failed to fetch user profile", res.status);
             return;
         }
 
-        const res = await apiFetch("/users/me");
+        const me = await res.json();
+        setUser(me);
+        applySelectedCourseId(me);
 
+        // 2. Check device authorization AFTER we know who the user is
+        if (!isDeviceAuthorized) {
+            const registered = await registerDevice();
 
-        if (res.ok) {
-            const me = await res.json();
-            setUser(me);
-            applySelectedCourseId(me);
+            const adminRoles = ['ADMIN', 'MASTER', 'DEV', 'COORDINATOR'];
+            const isUserAdmin = me.roles?.some((r: any) => adminRoles.includes(r.name)) ||
+                me.realm_access?.roles?.some((r: string) => adminRoles.includes(r)) ||
+                me.role === 'ADMIN';
 
-            // Fetch subscription and entitlements
-            try {
-                const subRes = await apiFetch("/subscriptions/me");
-                if (subRes.ok) {
-                    const subData = await subRes.json();
-                    setSubscription(subData);
-                } else {
-                    setSubscription(null);
-                }
+            if (!registered && !isUserAdmin) {
+                console.log("Device not authorized, stopping full refresh for non-admin");
+                return;
+            }
 
-                const entRes = await apiFetch("/student/entitlements/me");
-                if (entRes.ok) {
-                    const entData = await entRes.json();
-                    console.log("AuthProvider: fetched entitlements", entData.length);
-                    setEntitlements(entData);
-                }
-            } catch (err) {
-                console.error("Failed to fetch subscription or entitlements in AuthProvider", err);
+            setIsDeviceAuthorized(true);
+        }
+
+        // Fetch subscription and entitlements
+        try {
+            const subRes = await apiFetch("/subscriptions/me");
+            if (subRes.ok) {
+                const subData = await subRes.json();
+                setSubscription(subData);
+            } else {
                 setSubscription(null);
             }
-        } else if (res.status === 409) {
-            // Mismatch handled by registerDevice usually, but just in case
-            console.warn("User profile fetch returned 409 (Device Mismatch)");
+
+            const entRes = await apiFetch("/student/entitlements/me");
+            if (entRes.ok) {
+                const entData = await entRes.json();
+                console.log("AuthProvider: fetched entitlements", entData.length);
+                setEntitlements(entData);
+            }
+        } catch (err) {
+            console.error("Failed to fetch subscription or entitlements in AuthProvider", err);
+            setSubscription(null);
         }
-    }, []);
+    }, [isDeviceAuthorized, registerDevice]);
 
     useEffect(() => {
         if (!keycloak) return;
