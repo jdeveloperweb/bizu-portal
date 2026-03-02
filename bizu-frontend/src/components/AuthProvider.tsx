@@ -4,7 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import keycloak from "@/lib/auth";
 import Cookies from "js-cookie";
 import { normalizeSelectedCourseId } from "@/lib/course-selection";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getOrCreateFingerprint } from "@/lib/api";
 import { DeviceLimitModal } from "./ui/DeviceLimitModal";
 
 interface AuthContextType {
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (typeof window === "undefined") return false;
         if (deviceLimitData) return false;
 
-        let fingerprint = localStorage.getItem("device_fingerprint") || "";
+        const fingerprint = getOrCreateFingerprint();
 
         const userAgent = window.navigator.userAgent;
         let os = "Unknown OS";
@@ -373,7 +373,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         Cookies.remove("refresh_token");
         if (typeof window !== "undefined") {
             window.localStorage.removeItem("selectedCourseId");
-            window.localStorage.removeItem("device_fingerprint");
         }
         keycloak?.logout({ redirectUri: window.location.origin });
     };

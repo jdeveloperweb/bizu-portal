@@ -9,38 +9,34 @@ export interface ApiErrorBody {
     message: string;
 }
 
+export function getOrCreateFingerprint(): string {
+    if (typeof window === "undefined") return "";
+
+    let fingerprint = localStorage.getItem("device_fingerprint") || "";
+    if (fingerprint === "null" || fingerprint === "undefined") fingerprint = "";
+
+    const isLegacyUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(fingerprint);
+
+    if (!fingerprint || isLegacyUUID) {
+        const screenRes = `${window.screen.width}x${window.screen.height}`;
+        const platform = (navigator as any).userAgentData?.platform ?? "unknown";
+        const timezone = Intl ? new Intl.DateTimeFormat().resolvedOptions().timeZone : "unknown";
+        const hardwareConcurrency = window.navigator.hardwareConcurrency || "unknown";
+        const rawFingerprint = `${screenRes}|${platform}|${timezone}|${hardwareConcurrency}`;
+        const salt = crypto.randomUUID().substring(0, 8);
+        fingerprint = `hw_${btoa(rawFingerprint).substring(0, 32)}_${salt}`;
+        localStorage.setItem("device_fingerprint", fingerprint);
+    }
+
+    return fingerprint;
+}
+
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     const token = Cookies.get("token");
     const selectedCourseId = getStoredSelectedCourseId();
     const isPublicEndpoint = endpoint.includes("/public/") || endpoint.includes("/branding/active");
 
-    let deviceFingerprint = "";
-    if (typeof window !== "undefined") {
-        deviceFingerprint = localStorage.getItem("device_fingerprint") || "";
-
-        // Se for "null" como string (erro comum de persistência), limpamos
-        if (deviceFingerprint === "null" || deviceFingerprint === "undefined") {
-            deviceFingerprint = "";
-        }
-
-        const isLegacyUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(deviceFingerprint);
-
-        if (!deviceFingerprint || isLegacyUUID) {
-            const screenRes = `${window.screen.width}x${window.screen.height}`;
-            const platform = window.navigator.platform;
-            const timezone = Intl ? new Intl.DateTimeFormat().resolvedOptions().timeZone : "unknown";
-            const hardwareConcurrency = window.navigator.hardwareConcurrency || "unknown";
-
-            const rawFingerprint = `${screenRes}|${platform}|${timezone}|${hardwareConcurrency}`;
-
-            // Geramos o salt apenas uma vez
-            const salt = crypto.randomUUID().substring(0, 8);
-            deviceFingerprint = `hw_${btoa(rawFingerprint).substring(0, 32)}_${salt}`;
-
-            console.log("apiFetch: Generated NEW stable fingerprint:", deviceFingerprint);
-            localStorage.setItem("device_fingerprint", deviceFingerprint);
-        }
-    }
+    const deviceFingerprint = getOrCreateFingerprint();
 
     const headers: Record<string, string> = {
         ...(token && !isPublicEndpoint ? { Authorization: `Bearer ${token}` } : {}),
