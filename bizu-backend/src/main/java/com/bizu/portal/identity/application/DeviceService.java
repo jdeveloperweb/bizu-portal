@@ -55,7 +55,7 @@ public class DeviceService {
                     .orElseThrow(() -> {
                         String maskedEmail = maskEmail(user.getEmail());
                         String maskedPhone = maskPhone(user.getPhone());
-                        return new DeviceLimitReachedException(maskedEmail, maskedPhone);
+                        return new DeviceLimitReachedException(maskedEmail, maskedPhone, !userDevices.isEmpty());
                     });
             }
         }

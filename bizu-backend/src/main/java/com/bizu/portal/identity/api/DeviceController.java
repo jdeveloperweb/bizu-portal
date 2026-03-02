@@ -104,10 +104,11 @@ public class DeviceController {
 
     @ExceptionHandler(DeviceLimitReachedException.class)
     public ResponseEntity<?> handleDeviceLimit(DeviceLimitReachedException ex) {
-        Map<String, String> body = new HashMap<>();
+        Map<String, Object> body = new HashMap<>();
         body.put("error", "DEVICE_LIMIT_REACHED");
         body.put("maskedEmail", ex.getMaskedEmail() != null ? ex.getMaskedEmail() : "");
         body.put("maskedPhone", ex.getMaskedPhone() != null ? ex.getMaskedPhone() : "");
+        body.put("hasExistingDevice", ex.isHasExistingDevice());
         return ResponseEntity.status(409).body(body);
     }
 

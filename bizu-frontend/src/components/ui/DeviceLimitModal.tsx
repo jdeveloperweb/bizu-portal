@@ -7,6 +7,7 @@ import { apiFetch } from "@/lib/api";
 interface DeviceLimitModalProps {
     maskedEmail: string;
     maskedPhone: string;
+    hasExistingDevice: boolean;
     fingerprint: string;
     os: string;
     browser: string;
@@ -17,6 +18,7 @@ interface DeviceLimitModalProps {
 export function DeviceLimitModal({
     maskedEmail,
     maskedPhone,
+    hasExistingDevice,
     fingerprint,
     os,
     browser,
@@ -90,9 +92,13 @@ export function DeviceLimitModal({
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
                         </div>
-                        <h2 className="text-2xl font-bold text-white mb-2">Limite de Dispositivos</h2>
+                        <h2 className="text-2xl font-bold text-white mb-2">
+                            {hasExistingDevice ? "Limite de Dispositivos" : "Verificação de Identidade"}
+                        </h2>
                         <p className="text-gray-400 text-sm">
-                            Você já está conectado em outro dispositivo. Para entrar aqui, você precisa desconectar o outro aparelho enviando um código de segurança.
+                            {hasExistingDevice
+                                ? "Você já está conectado em outro dispositivo. Para entrar aqui, você precisa desconectar o outro aparelho enviando um código de segurança."
+                                : "Para proteger sua conta, precisamos confirmar sua identidade antes de liberar o acesso neste dispositivo. Escolha como deseja receber o código de verificação."}
                         </p>
                     </div>
 
@@ -171,7 +177,7 @@ export function DeviceLimitModal({
                                 disabled={loading || code.length < 6}
                                 className="w-full py-4 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-700 disabled:text-gray-500 text-black font-bold rounded-xl transition-all shadow-lg active:scale-95"
                             >
-                                {loading ? "Validando..." : "Confirmar e Desconectar Outros"}
+                                {loading ? "Validando..." : hasExistingDevice ? "Confirmar e Desconectar Outros" : "Confirmar e Liberar Acesso"}
                             </button>
 
                             <button
@@ -189,7 +195,7 @@ export function DeviceLimitModal({
                         disabled={loading}
                         className="mt-6 w-full py-3 text-gray-500 hover:text-gray-300 text-sm font-medium border-t border-[#2d2f31] pt-6"
                     >
-                        Cancelar login
+                        {hasExistingDevice ? "Cancelar login" : "Cancelar"}
                     </button>
                 </div>
             </div>

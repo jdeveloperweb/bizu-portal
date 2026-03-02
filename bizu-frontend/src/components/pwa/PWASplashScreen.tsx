@@ -21,7 +21,20 @@ export default function PWASplashScreen() {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches
             || (window.navigator as any).standalone === true;
 
-        if (isStandalone && pathname === "/" && !authLoading && !hasRedirected.current) {
+        // Verifica se foi aberto via PWA (manifest define start_url como "/?source=pwa")
+        const urlParams = new URLSearchParams(window.location.search);
+        const isPWASource = urlParams.get('source') === 'pwa';
+
+        // Persiste a sessão PWA para navegações internas que não têm ?source=pwa
+        if (isStandalone && isPWASource) {
+            sessionStorage.setItem('pwa_session', 'true');
+        }
+        const isPWASession = sessionStorage.getItem('pwa_session') === 'true';
+
+        // Só redireciona se estiver claramente em modo PWA
+        const isPWA = isStandalone && (isPWASource || isPWASession);
+
+        if (isPWA && pathname === "/" && !authLoading && !hasRedirected.current) {
             hasRedirected.current = true;
             // Redireciona para /login (que por sua vez redireciona para o dash se já logado)
             router.replace("/login");

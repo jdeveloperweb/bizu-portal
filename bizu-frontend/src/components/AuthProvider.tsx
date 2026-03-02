@@ -57,6 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [deviceLimitData, setDeviceLimitData] = useState<{
         maskedEmail: string;
         maskedPhone: string;
+        hasExistingDevice: boolean;
         fingerprint: string;
         os: string;
         browser: string;
@@ -113,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     setDeviceLimitData({
                         maskedEmail: data.maskedEmail,
                         maskedPhone: data.maskedPhone,
+                        hasExistingDevice: data.hasExistingDevice ?? true,
                         fingerprint,
                         os,
                         browser
