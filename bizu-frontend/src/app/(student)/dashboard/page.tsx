@@ -289,7 +289,7 @@ export default function DashboardPage() {
                         className="flex items-center gap-1.5 md:gap-2.5 text-xs md:text-sm font-bold text-violet-600 bg-violet-50/50 border border-violet-100 px-3 py-2 md:px-4 md:py-2.5 rounded-xl md:rounded-2xl cursor-pointer hover:bg-violet-100/70 transition-all hover:scale-105 group"
                     >
                         <Brain size={16} />
-                        {isLoading ? <Skeleton className="h-4 w-12" /> : <span>{totalAxons} <span className="text-[10px] uppercase tracking-wider opacity-70 border-l border-violet-200 ml-1 pl-1">MJOLNIX</span></span>}
+                        {isLoading ? <Skeleton className="h-4 w-12" /> : <span>{totalAxons} <span className="text-[10px] uppercase tracking-wider opacity-70 border-l border-violet-200 ml-1 pl-1">AXONS</span></span>}
                     </Link>
 
                     <div className="hidden md:block h-8 w-[1px] bg-slate-100 mx-1" />

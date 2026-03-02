@@ -98,7 +98,7 @@ export default function PWASplashScreen() {
                 {/* Brand */}
                 <div className="splash-brand flex flex-col items-center gap-3">
 
-                    {/* MJOLNIX wordmark */}
+                    {/* AXON wordmark */}
                     <span
                         className="text-[56px] sm:text-[68px] font-black leading-none tracking-tight"
                         style={{
@@ -110,7 +110,7 @@ export default function PWASplashScreen() {
                             filter: "drop-shadow(0 0 28px rgba(99,102,241,0.3))",
                         }}
                     >
-                        MJOLNIX
+                        AXON
                     </span>
 
                     {/* Separator + Academy */}

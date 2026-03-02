@@ -45,7 +45,7 @@ export default function BrandLogo({ size = "md", variant = "dark", link = true, 
                         : {}),
                 }}
             >
-                {collapsed ? "MJ" : "Mjolnix"}
+                {collapsed ? "AX" : "Axon"}
             </span>
             {!collapsed && (
                 <span

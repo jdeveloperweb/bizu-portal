@@ -8,7 +8,7 @@ export default function PrivacyPage() {
                 <section className="space-y-4">
                     <h2 className="text-2xl font-bold text-foreground">1. Informações que Coletamos</h2>
                     <p>
-                        Quando você se cadastra na <strong>Mjolnix Academy</strong>, nós coletamos informações pessoais como seu nome,
+                        Quando você se cadastra na <strong>Axon Academy</strong>, nós coletamos informações pessoais como seu nome,
                         e-mail e histórico de pagamento. Durante o uso, também coletamos dados de progresso (aulas assistidas,
                         desempenho em simulados e notas de estudo) para personalizar sua experiência de aprendizado.
                     </p>

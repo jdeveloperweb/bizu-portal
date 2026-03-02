@@ -8,7 +8,7 @@ export default function TermsPage() {
                 <section className="space-y-4">
                     <h2 className="text-2xl font-bold text-foreground">1. Aceitação dos Termos</h2>
                     <p>
-                        Ao acessar e usar a <strong>Mjolnix Academy</strong>, você concorda em cumprir e ficar vinculado aos seguintes Termos de Uso.
+                        Ao acessar e usar a <strong>Axon Academy</strong>, você concorda em cumprir e ficar vinculado aos seguintes Termos de Uso.
                         Se você não concordar com qualquer parte destes termos, você não deve usar nossos serviços.
                     </p>
                 </section>
@@ -33,8 +33,8 @@ export default function TermsPage() {
                 <section className="space-y-4">
                     <h2 className="text-2xl font-bold text-foreground">4. Propriedade Intelectual</h2>
                     <p>
-                        Todo o conteúdo presente na Mjolnix Academy, incluindo, mas não se limitando a, textos, gráficos, logotipos,
-                        ícones, imagens, clipes de áudio e software, é propriedade exclusiva da Mjolnix Academy ou de seus fornecedores
+                        Todo o conteúdo presente na Axon Academy, incluindo, mas não se limitando a, textos, gráficos, logotipos,
+                        ícones, imagens, clipes de áudio e software, é propriedade exclusiva da Axon Academy ou de seus fornecedores
                         de conteúdo, sendo protegido pelas leis de direitos autorais internacionais e do Brasil.
                     </p>
                 </section>

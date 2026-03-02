@@ -93,17 +93,17 @@ export default function LoginPage() {
                     background: "linear-gradient(to top,#020617,transparent)",
                 }} />
 
-                {/* MJOLNIX background watermark */}
+                {/* AXON background watermark */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
                     <span className="font-black text-white leading-none tracking-tight"
                         style={{ fontFamily: "var(--font-orbitron)", fontSize: "clamp(160px,22vw,260px)", opacity: 0.022 }}>
-                        MJOLNIX
+                        AXON
                     </span>
                 </div>
 
                 <div className="relative z-10 w-full max-w-sm px-4 flex flex-col items-center text-center">
 
-                    {/* MJOLNIX wordmark */}
+                    {/* AXON wordmark */}
                     <span
                         className="font-black leading-none tracking-tight select-none"
                         style={{
@@ -114,7 +114,7 @@ export default function LoginPage() {
                             filter: "drop-shadow(0 0 32px rgba(99,102,241,0.35))",
                         }}
                     >
-                        MJOLNIX
+                        AXON
                     </span>
 
                     {/* Academy separator */}
@@ -257,7 +257,7 @@ export default function LoginPage() {
 
                 <footer className="py-8 text-center relative z-10 px-6">
                     <p className="text-[12px] text-slate-400 font-bold tracking-tight">
-                        &copy; Mjolnix Academy — Excelência Acadêmica
+                        &copy; Axon Academy — Excelência Acadêmica
                     </p>
                     <div className="mt-3 flex items-center justify-center gap-4 text-[11px] font-semibold text-slate-400">
                         <Link href="/termos" className="hover:text-indigo-500 transition-colors">Termos de Uso</Link>

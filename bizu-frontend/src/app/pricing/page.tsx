@@ -104,7 +104,7 @@ function PricingContent() {
                 <div className="relative z-10">
                     {/* Brand mark pequeno */}
                     <div className="flex items-center justify-center gap-2.5 mb-6">
-                        <span className="text-sm font-black text-white/80" style={{ fontFamily: "var(--font-orbitron)", letterSpacing: "-0.01em" }}>MJOLNIX</span>
+                        <span className="text-sm font-black text-white/80" style={{ fontFamily: "var(--font-orbitron)", letterSpacing: "-0.01em" }}>AXON</span>
                         <div className="w-px h-4 rounded-full bg-white/15" />
                         <span className="text-[10px] font-bold tracking-[0.35em] uppercase text-white/30">Academy</span>
                     </div>

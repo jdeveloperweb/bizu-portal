@@ -54,7 +54,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Mjolnix Portal — Plataforma #1 para Concursos",
+  title: "Axon Portal — Plataforma #1 para Concursos",
   description:
     "A plataforma definitiva para concurseiros de elite. Simulados com IA, banco de 50k+ questoes e trilhas personalizadas.",
   manifest: "/manifest.json",
@@ -66,7 +66,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Mjolnix Academy",
+    title: "Axon Academy",
     startupImage: [
       {
         url: "/icons/icon-512x512.png",

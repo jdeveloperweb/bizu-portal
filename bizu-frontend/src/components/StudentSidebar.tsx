@@ -27,7 +27,7 @@ const studyNav = [
     { href: "/pomodoro", icon: Timer, label: "Pomodoro" },
     { href: "/flashcards", icon: Layers, label: "Flashcards" },
     { href: "/arena", icon: Swords, label: "Arena PVP" },
-    { href: "/loja", icon: Brain, label: "Mjolnix Store" },
+    { href: "/loja", icon: Brain, label: "Axon Store" },
 ];
 
 const planNav = [

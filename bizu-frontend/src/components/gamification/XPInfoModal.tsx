@@ -52,7 +52,7 @@ export default function XPInfoModal({ isOpen, onClose }: XPInfoModalProps) {
                                     </button>
                                 </div>
                                 <h2 className="text-2xl font-black italic tracking-tight">Manual do Estudante Elite</h2>
-                                <p className="text-indigo-100/80 text-sm font-medium">Saiba como ganhar XP, Mjolnix e subir de patente.</p>
+                                <p className="text-indigo-100/80 text-sm font-medium">Saiba como ganhar XP, Axons e subir de patente.</p>
                             </div>
                         </div>
 
