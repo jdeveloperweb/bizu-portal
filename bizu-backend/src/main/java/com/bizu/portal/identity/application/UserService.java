@@ -151,7 +151,7 @@ public class UserService {
         String name = jwt.getClaimAsString("name");
         if (name == null) name = jwt.getClaimAsString("preferred_username");
         if (name == null) name = email;
-        
+
         String sub = jwt.getSubject();
         java.util.UUID subjectId;
         try {
@@ -159,7 +159,7 @@ public class UserService {
         } catch (Exception e) {
             subjectId = java.util.UUID.nameUUIDFromBytes(email.getBytes());
         }
-        
+
         // Extract roles from JWT
         Set<String> roles = new java.util.HashSet<>();
         Map<String, Object> realmAccess = jwt.getClaim("realm_access");
@@ -167,8 +167,19 @@ public class UserService {
             java.util.List<String> keycloakRoles = (java.util.List<String>) realmAccess.get("roles");
             roles.addAll(keycloakRoles);
         }
-        
-        return syncUser(subjectId, email, name, roles);
+
+        final java.util.UUID finalSubjectId = subjectId;
+        final String finalEmail = email;
+        try {
+            return syncUser(subjectId, email, name, roles);
+        } catch (Exception e) {
+            // Race condition: múltiplos requests paralelos tentando sincronizar o mesmo usuário.
+            // syncUser é REQUIRES_NEW, então sua transação já foi revertida de forma isolada.
+            // Capturando aqui evitamos que a exceção marque a transação externa como rollback-only.
+            return userRepository.findById(finalSubjectId)
+                .orElseGet(() -> userRepository.findByEmail(finalEmail)
+                    .orElseThrow(() -> new RuntimeException("Falha ao resolver usuário: " + finalEmail, e)));
+        }
     }
 
     @Transactional
