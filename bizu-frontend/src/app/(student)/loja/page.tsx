@@ -37,6 +37,8 @@ function AxonStoreContent() {
     const [axonPacks, setAxonPacks] = useState<any[]>([]);
     const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
     const [successShown, setSuccessShown] = useState(false);
+    const [isWaitingPayment, setIsWaitingPayment] = useState(false);
+    const [initialAxons, setInitialAxons] = useState<number | null>(null);
 
     const storeItems: StoreItem[] = [
         {
@@ -124,21 +126,48 @@ function AxonStoreContent() {
         // Handle success redirect from payment provider
         const status = searchParams.get("status");
         if (status === "success" && !successShown) {
-            const packParam = searchParams.get("pack");
-            const pack = axonPacks.find(p => p.id === packParam);
-
-            // If pack not found yet but we have packParam, it might still be loading packs
-            if (packParam && axonPacks.length === 0) return;
-
-            const message = pack
-                ? `${pack.name} adquirido com sucesso! Seus Axons foram creditados.`
-                : "Recarga realizada com sucesso! Seus Axons foram creditados.";
-
-            toast.success(message);
+            setIsWaitingPayment(true);
+            toast.info("Pagamento confirmado! Aguardando o processamento dos seus Axons...", {
+                duration: 5000,
+            });
             setSuccessShown(true);
-            fetchStoreData();
         }
-    }, [searchParams, axonPacks, successShown]);
+    }, [searchParams, successShown]);
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+
+        if (isWaitingPayment) {
+            // Poll for axon increase
+            interval = setInterval(async () => {
+                const res = await apiFetch("/student/gamification/me");
+                if (res.ok) {
+                    const data = await res.json();
+                    const currentAxons = data.axons || 0;
+
+                    if (initialAxons !== null && currentAxons > initialAxons) {
+                        setGamification(data);
+                        setIsWaitingPayment(false);
+                        toast.success("Axons creditados com sucesso! Sua carteira foi atualizada.", {
+                            duration: 6000,
+                            icon: "🚀"
+                        });
+                        clearInterval(interval);
+                    }
+                }
+            }, 3000);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [isWaitingPayment, initialAxons]);
+
+    useEffect(() => {
+        if (gamification?.axons !== undefined && initialAxons === null) {
+            setInitialAxons(gamification.axons);
+        }
+    }, [gamification]);
 
     const handleBuy = async (item: StoreItem) => {
         if (!gamification || gamification.axons < item.price) {
@@ -227,8 +256,17 @@ function AxonStoreContent() {
                             <Brain size={20} />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-2xl font-black text-slate-900 tabular-nums leading-none">
+                            <span className="text-2xl font-black text-slate-900 tabular-nums leading-none flex items-center gap-2">
                                 {isLoading ? <Skeleton className="h-6 w-12" /> : axons}
+                                {isWaitingPayment && (
+                                    <motion.span
+                                        animate={{ opacity: [1, 0.4, 1] }}
+                                        transition={{ duration: 1.5, repeat: Infinity }}
+                                        className="text-xs text-indigo-500 font-bold"
+                                    >
+                                        (Processando...)
+                                    </motion.span>
+                                )}
                             </span>
                             <span className="text-[10px] font-black text-slate-400 tracking-widest uppercase">Meus Axons</span>
                         </div>
