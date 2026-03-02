@@ -60,16 +60,18 @@ export default function StudentSidebar() {
     const [rankingPosition, setRankingPosition] = useState<number | null>(null);
     const [buffs, setBuffs] = useState<{ xpBoost: boolean; radar: boolean; elite: boolean }>({ xpBoost: false, radar: false, elite: false });
     const [onlineCount, setOnlineCount] = useState<number>(0);
+    const [pendingFlashcardsCount, setPendingFlashcardsCount] = useState(0);
 
     const fetchSidebarData = useCallback(async () => {
         if (!authenticated || isFree) return;
         try {
-            const [friendsRes, tasksRes, rankingRes, gamRes, onlineRes] = await Promise.all([
+            const [friendsRes, tasksRes, rankingRes, gamRes, onlineRes, flashcardsRes] = await Promise.all([
                 apiFetch("/friends/pending").catch(() => null),
                 apiFetch("/student/tasks").catch(() => null),
                 apiFetch("/student/ranking/me").catch(() => null),
                 apiFetch("/student/gamification/me").catch(() => null),
-                apiFetch(`/duelos/online/count${selectedCourseId ? `?courseId=${selectedCourseId}` : ''}`).catch(() => null)
+                apiFetch(`/duelos/online/count${selectedCourseId ? `?courseId=${selectedCourseId}` : ''}`).catch(() => null),
+                apiFetch("/student/flashcards/summary").catch(() => null)
             ]);
 
             if (friendsRes && friendsRes.ok) {
@@ -98,6 +100,10 @@ export default function StudentSidebar() {
                 const data = await onlineRes.json();
                 setOnlineCount(data.count || 0);
             }
+            if (flashcardsRes && flashcardsRes.ok) {
+                const data = await flashcardsRes.json();
+                setPendingFlashcardsCount(data.totalDue || 0);
+            }
         } catch (err) {
             console.error("Failed to fetch sidebar data", err);
         }
@@ -119,7 +125,7 @@ export default function StudentSidebar() {
         };
     }, [fetchSidebarData]);
 
-    const Item = ({ href, icon: Icon, label, badge, customBadge }: { href: string; icon: typeof LayoutDashboard; label: string; badge?: number; customBadge?: React.ReactNode }) => {
+    const Item = ({ href, icon: Icon, label, badge, badgeVariant = "rose", customBadge }: { href: string; icon: typeof LayoutDashboard; label: string; badge?: number; badgeVariant?: "rose" | "amber"; customBadge?: React.ReactNode }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
         const isPremiumRoute = ["/pomodoro", "/simulados", "/flashcards", "/arena", "/redacao", "/desempenho", "/ranking", "/conquistas", "/amigos"].some(r => href.startsWith(r));
         const showLock = isFree && isPremiumRoute;
@@ -164,14 +170,17 @@ export default function StudentSidebar() {
                 <div className="relative">
                     <Icon size={16} className={hasArenaInvite ? "text-rose-500 animate-pulse" : active ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground opacity-70 group-hover:opacity-100"} />
                     {isCollapsed && badge && badge > 0 && (
-                        <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-rose-500 text-white text-[8px] flex items-center justify-center rounded-full border border-white font-bold">
+                        <div className={`absolute -top-1.5 -right-1.5 w-3.5 h-3.5 ${badgeVariant === "amber" ? "bg-amber-500" : "bg-rose-500"} text-white text-[8px] flex items-center justify-center rounded-full border border-white font-bold`}
+                            title={badgeVariant === "amber" ? `${badge} cartas para revisar` : undefined}>
                             {badge > 9 ? '9+' : badge}
                         </div>
                     )}
                 </div>
                 {!isCollapsed && displayLabel}
                 {!isCollapsed && (typeof badge === 'number' && badge > 0) && (
-                    <span className="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                    <span
+                        className={`${badgeVariant === "amber" ? "bg-amber-500" : "bg-rose-500"} text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center`}
+                        title={badgeVariant === "amber" ? `${badge} cartas para revisar` : undefined}>
                         {badge}
                     </span>
                 )}
@@ -282,7 +291,8 @@ export default function StudentSidebar() {
                             <Item
                                 key={i.href}
                                 {...i}
-                                badge={i.label === "Arena PVP" ? pendingDuels.length : undefined}
+                                badge={i.label === "Arena PVP" ? pendingDuels.length : i.label === "Flashcards" ? pendingFlashcardsCount || undefined : undefined}
+                                badgeVariant={i.label === "Flashcards" ? "amber" : "rose"}
                                 customBadge={
                                     i.label === "Arena PVP" && (!pendingDuels || pendingDuels.length === 0) && onlineCount > 0 ? (
                                         <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded text-[10px] font-bold text-emerald-600 dark:text-emerald-400" title={`${onlineCount} online`}>
