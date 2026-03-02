@@ -11,7 +11,9 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import com.bizu.portal.identity.application.DeviceLimitReachedException;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -102,11 +104,11 @@ public class DeviceController {
 
     @ExceptionHandler(DeviceLimitReachedException.class)
     public ResponseEntity<?> handleDeviceLimit(DeviceLimitReachedException ex) {
-        return ResponseEntity.status(409).body(java.util.Map.of(
-            "error", "DEVICE_LIMIT_REACHED",
-            "maskedEmail", ex.getMaskedEmail(),
-            "maskedPhone", ex.getMaskedPhone()
-        ));
+        Map<String, String> body = new HashMap<>();
+        body.put("error", "DEVICE_LIMIT_REACHED");
+        body.put("maskedEmail", ex.getMaskedEmail() != null ? ex.getMaskedEmail() : "");
+        body.put("maskedPhone", ex.getMaskedPhone() != null ? ex.getMaskedPhone() : "");
+        return ResponseEntity.status(409).body(body);
     }
 
     @DeleteMapping("/{deviceId}")

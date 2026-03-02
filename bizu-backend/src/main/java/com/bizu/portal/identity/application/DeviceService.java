@@ -35,7 +35,7 @@ public class DeviceService {
 
     private Device createNewDevice(User user, String fingerprint, String os, String browser, String ip, String userAgent) {
         List<Device> userDevices = deviceRepository.findAllByUser(user);
-        
+
         if (userDevices.size() >= MAX_DEVICES_PER_USER) {
             // ADMINs podem ter múltiplos dispositivos sem limite
             // Melhoramos a checagem de ADMIN para ser mais resiliente, incluindo papéis de TI/Master
@@ -45,11 +45,18 @@ public class DeviceService {
                                                r.getName().equalsIgnoreCase("DEV") ||
                                                r.getName().equalsIgnoreCase("COORDINATOR")) ||
                              (user.getEmail() != null && user.getEmail().toLowerCase().contains("admin"));
-            
+
             if (!isAdmin) {
-                String maskedEmail = maskEmail(user.getEmail());
-                String maskedPhone = maskPhone(user.getPhone());
-                throw new DeviceLimitReachedException(maskedEmail, maskedPhone);
+                // Verifica race condition: outro request paralelo pode ter registrado o mesmo fingerprint
+                // antes deste chegar aqui. Se for o mesmo dispositivo, retorna o existente.
+                return userDevices.stream()
+                    .filter(d -> d.getDeviceFingerprint().equals(fingerprint))
+                    .findFirst()
+                    .orElseThrow(() -> {
+                        String maskedEmail = maskEmail(user.getEmail());
+                        String maskedPhone = maskPhone(user.getPhone());
+                        return new DeviceLimitReachedException(maskedEmail, maskedPhone);
+                    });
             }
         }
 
