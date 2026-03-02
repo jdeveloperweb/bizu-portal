@@ -195,56 +195,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const token = Cookies.get("token");
         if (!token) return;
 
-        // 1. Fetch user profile FIRST to know roles/permissions
+        // Tenta registrar dispositivo mas não espera o resultado para carregar o perfil
+        const registeredPromise = registerDevice();
+
         const res = await apiFetch("/users/me");
+        if (res.ok) {
+            const me = await res.json();
+            setUser(me);
+            applySelectedCourseId(me);
 
-        if (!res.ok) {
-            console.error("AuthProvider: Failed to fetch user profile", res.status);
-            return;
-        }
-
-        const me = await res.json();
-        setUser(me);
-        applySelectedCourseId(me);
-
-        // 2. Check device authorization AFTER we know who the user is
-        if (!isDeviceAuthorized) {
-            const registered = await registerDevice();
-
+            const registered = await registeredPromise;
             const adminRoles = ['ADMIN', 'MASTER', 'DEV', 'COORDINATOR'];
             const isUserAdmin = me.roles?.some((r: any) => adminRoles.includes(r.name)) ||
                 me.realm_access?.roles?.some((r: string) => adminRoles.includes(r)) ||
                 me.role === 'ADMIN';
 
             if (!registered && !isUserAdmin) {
-                console.log("Device not authorized, stopping full refresh for non-admin");
+                console.warn("Dispositivo não autorizado, bloqueando carga de dados sensíveis");
                 return;
             }
 
-            setIsDeviceAuthorized(true);
-        }
+            try {
+                const [subRes, entRes] = await Promise.all([
+                    apiFetch("/subscriptions/me"),
+                    apiFetch("/student/entitlements/me")
+                ]);
 
-        // Fetch subscription and entitlements
-        try {
-            const subRes = await apiFetch("/subscriptions/me");
-            if (subRes.ok) {
-                const subData = await subRes.json();
-                setSubscription(subData);
-            } else {
-                setSubscription(null);
+                if (subRes.ok) setSubscription(await subRes.json());
+                if (entRes.ok) setEntitlements(await entRes.json());
+            } catch (err) {
+                console.error("Falha ao carregar assinaturas/direitos", err);
             }
-
-            const entRes = await apiFetch("/student/entitlements/me");
-            if (entRes.ok) {
-                const entData = await entRes.json();
-                console.log("AuthProvider: fetched entitlements", entData.length);
-                setEntitlements(entData);
-            }
-        } catch (err) {
-            console.error("Failed to fetch subscription or entitlements in AuthProvider", err);
-            setSubscription(null);
         }
-    }, [isDeviceAuthorized, registerDevice]);
+    }, [registerDevice]);
 
     useEffect(() => {
         if (!keycloak) return;
