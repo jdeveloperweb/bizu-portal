@@ -190,11 +190,15 @@ export default function CoursePlayerPage() {
 
     const materials = module?.materials || [];
     const normalizedFileType = currentMaterial.fileType?.trim().toUpperCase();
-    const isVideo = normalizedFileType === "VIDEO";
-    const isArticle = normalizedFileType === "ARTICLE";
-    const isPdf = normalizedFileType === "PDF" || currentMaterial.fileUrl?.toLowerCase().includes(".pdf");
+    const materialUrl = currentMaterial.fileUrl?.toLowerCase() || "";
+    const embedVideoUrl = getVideoEmbedUrl(currentMaterial.fileUrl);
+
+    // Resilient detection
+    const isVideo = normalizedFileType === "VIDEO" || !!embedVideoUrl || materialUrl.match(/\.(mp4|webm|mov|m4v)$/);
+    const isPdf = normalizedFileType === "PDF" || materialUrl.includes(".pdf");
+    const isArticle = normalizedFileType === "ARTICLE" || (!isVideo && !isPdf && (currentMaterial.content || currentMaterial.description));
+
     const hasDownloadUrl = Boolean(currentMaterial.fileUrl?.trim());
-    const embedVideoUrl = isVideo ? getVideoEmbedUrl(currentMaterial.fileUrl) : null;
 
     return (
         <div className="w-full px-4 lg:px-8 py-6 lg:py-8">
@@ -399,7 +403,9 @@ export default function CoursePlayerPage() {
                                             {materialId === item.id && <div className="w-2 h-2 rounded-full bg-white animate-pulse" />}
                                         </div>
                                         <div className="font-bold flex items-center gap-2">
-                                            {item.fileType === 'VIDEO' ? <Play className="w-3 h-3 fill-current" /> : <FileText className="w-3 h-3" />}
+                                            {(item.fileType === 'VIDEO' || getVideoEmbedUrl(item.fileUrl) || item.fileUrl?.toLowerCase().match(/\.(mp4|webm|mov|m4v)$/))
+                                                ? <Play className="w-3 h-3 fill-current" />
+                                                : <FileText className="w-3 h-3" />}
                                             <span className="truncate">{item.title}</span>
                                         </div>
                                     </div>

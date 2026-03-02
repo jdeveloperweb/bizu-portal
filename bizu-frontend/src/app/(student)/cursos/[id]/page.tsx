@@ -294,7 +294,7 @@ export default function CourseDetailsPage() {
                                                             {completedMaterials.includes(material.id) ? (
                                                                 <CheckCircle2 className="w-5 h-5" />
                                                             ) : (
-                                                                material.fileType === 'VIDEO' ? <Play className="w-5 h-5 fill-current" /> : <FileText className="w-5 h-5" />
+                                                                (material.fileType === 'VIDEO' || (material.fileUrl && (material.fileUrl.includes('youtube.com') || material.fileUrl.includes('vimeo.com') || material.fileUrl.includes('youtu.be') || material.fileUrl.match(/\.(mp4|webm|mov|m4v)$/i)))) ? <Play className="w-5 h-5 fill-current" /> : <FileText className="w-5 h-5" />
                                                             )}
                                                         </div>
                                                         <div className="flex-1 min-w-0">

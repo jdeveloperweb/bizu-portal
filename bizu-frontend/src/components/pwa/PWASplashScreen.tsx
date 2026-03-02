@@ -19,8 +19,7 @@ export default function PWASplashScreen() {
     // Efeito para Redirecionamento PWA
     useEffect(() => {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-            || (window.navigator as any).standalone
-            || window.location.search.includes('source=pwa');
+            || (window.navigator as any).standalone === true;
 
         if (isStandalone && pathname === "/" && !authLoading && !hasRedirected.current) {
             hasRedirected.current = true;
