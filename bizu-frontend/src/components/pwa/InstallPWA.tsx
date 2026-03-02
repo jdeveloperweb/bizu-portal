@@ -58,10 +58,7 @@ export function InstallPWA() {
 
         // Provide a delayed iOS prompt if not standalone
         if (isIosDevice && !isStandaloneMode) {
-            const hasSeenPrompt = localStorage.getItem("pwa_ios_prompt_dismissed");
-            if (!hasSeenPrompt) {
-                setTimeout(() => setShowInstallPrompt(true), 3000);
-            }
+            setTimeout(() => setShowInstallPrompt(true), 3000);
         }
 
         return () => {
@@ -82,9 +79,6 @@ export function InstallPWA() {
 
     const dismissPrompt = () => {
         setShowInstallPrompt(false);
-        if (isIOS) {
-            localStorage.setItem("pwa_ios_prompt_dismissed", "true");
-        }
     };
 
     if (isStandalone || !showInstallPrompt) {
