@@ -71,6 +71,9 @@ public class SystemSettings {
     @Column(name = "preferred_payment_gateway")
     private String preferredPaymentGateway;
 
+    @Column(name = "unique_phone_enforced")
+    private Boolean uniquePhoneEnforced;
+
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 

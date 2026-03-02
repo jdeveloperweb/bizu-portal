@@ -8,7 +8,8 @@ import {
     Video,
     Server,
     Loader2,
-    AlertTriangle
+    AlertTriangle,
+    ToggleRight
 } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
 import { useState, useEffect } from "react";
@@ -41,7 +42,8 @@ export default function AdminConfiguracoesPage() {
         sessionTimeout: 120,
         maintenanceMode: false,
         infinitePayHandle: "",
-        preferredPaymentGateway: "MERCADO_PAGO"
+        preferredPaymentGateway: "MERCADO_PAGO",
+        uniquePhoneEnforced: false
     });
 
     const tabs = [
@@ -49,6 +51,7 @@ export default function AdminConfiguracoesPage() {
         { id: "email", label: "Servidor de E-mail (SMTP)", icon: Mail },
         { id: "video", label: "Hospedagem de Vídeos", icon: Video },
         { id: "sistema", label: "Gerais do Sistema", icon: Server },
+        { id: "funcionalidades", label: "Funcionalidades", icon: ToggleRight },
     ];
 
     useEffect(() => {
@@ -464,6 +467,33 @@ export default function AdminConfiguracoesPage() {
                                         >
                                             Zerar Plataforma
                                         </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === "funcionalidades" && (
+                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div>
+                                    <h3 className="text-xl font-bold text-foreground mb-1.5">Funcionalidades</h3>
+                                    <p className="text-muted-foreground text-sm">Habilite ou desabilite comportamentos específicos da plataforma.</p>
+                                </div>
+
+                                <div className="space-y-4 p-6 rounded-2xl bg-muted/30 border border-border">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div>
+                                            <h4 className="font-bold text-foreground text-sm">Telefone único por conta</h4>
+                                            <p className="text-xs text-muted-foreground mt-0.5">Impede que um mesmo número de telefone seja usado em mais de um cadastro.</p>
+                                        </div>
+                                        <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={settings.uniquePhoneEnforced}
+                                                onChange={e => updateSetting("uniquePhoneEnforced", e.target.checked)}
+                                            />
+                                            <div className="w-12 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                        </label>
                                     </div>
                                 </div>
                             </div>

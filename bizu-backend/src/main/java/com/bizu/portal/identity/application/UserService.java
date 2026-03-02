@@ -1,5 +1,6 @@
 package com.bizu.portal.identity.application;
 
+import com.bizu.portal.admin.infrastructure.SystemSettingsRepository;
 import com.bizu.portal.identity.domain.User;
 import com.bizu.portal.identity.domain.Role;
 import com.bizu.portal.identity.infrastructure.KeycloakService;
@@ -22,6 +23,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final KeycloakService keycloakService;
+    private final SystemSettingsRepository systemSettingsRepository;
 
     public java.util.Optional<User> findById(java.util.UUID id) {
         return userRepository.findById(id);
@@ -31,6 +33,16 @@ public class UserService {
     public User registerUser(String name, String email, String password, String phone) {
         if (userRepository.findByEmail(email).isPresent()) {
             throw new RuntimeException("Este e-mail já está cadastrado.");
+        }
+
+        boolean uniquePhoneEnforced = systemSettingsRepository.findById("SINGLETON")
+                .map(s -> Boolean.TRUE.equals(s.getUniquePhoneEnforced()))
+                .orElse(false);
+
+        if (uniquePhoneEnforced && phone != null && !phone.isBlank()) {
+            if (userRepository.findByPhone(phone).isPresent()) {
+                throw new RuntimeException("Este número de telefone já está cadastrado.");
+            }
         }
         
         // Primeiro cria no Keycloak

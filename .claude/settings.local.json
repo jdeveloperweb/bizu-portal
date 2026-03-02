@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la /c/Users/Jaime.Vicente/bizu-portal/bizu-portal/bizu-frontend/src/app/\\\\\\(admin\\\\\\)/admin/)",
+      "Bash(find \"/c/Users/Jaime.Vicente/bizu-portal/bizu-portal/bizu-frontend/src/app/\\(admin\\)/admin/configuracoes\" -type f)"
+    ]
+  }
+}
