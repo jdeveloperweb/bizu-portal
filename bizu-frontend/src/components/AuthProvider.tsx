@@ -436,9 +436,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 <DeviceLimitModal
                     {...deviceLimitData}
                     onSuccess={() => {
-                        setDeviceLimitData(null);
-                        setIsDeviceAuthorized(true);
-                        refreshUserProfile();
+                        window.location.reload();
                     }}
                     onCancel={() => {
                         setDeviceLimitData(null);
