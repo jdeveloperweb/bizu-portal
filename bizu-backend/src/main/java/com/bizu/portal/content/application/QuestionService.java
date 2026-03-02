@@ -76,6 +76,11 @@ public class QuestionService {
     }
 
     @Transactional
+    public void deleteAllByModule(UUID moduleId) {
+        questionRepository.deleteByModule_Id(moduleId);
+    }
+
+    @Transactional
     public Question save(Question question) {
         return questionRepository.save(question);
     }

@@ -21,7 +21,8 @@ import {
     Circle,
     MoreVertical,
     BookOpen,
-    HelpCircle
+    HelpCircle,
+    Eraser
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -201,6 +202,20 @@ export default function CourseEditorPage() {
             if (res.ok) fetchCourse();
         } catch (error) {
             toast.error("Erro ao deletar conteúdo");
+        }
+    };
+
+    const handleDeleteModuleQuestions = async (moduleId: string, moduleTitle: string) => {
+        if (!confirm(`Tem certeza que deseja apagar TODAS as questões do módulo "${moduleTitle}"? Esta ação é irreversível.`)) return;
+        try {
+            const res = await apiFetch(`/admin/questions/module/${moduleId}`, { method: "DELETE" });
+            if (res.ok) {
+                toast.success("Todas as questões do módulo foram removidas.");
+            } else {
+                toast.error("Erro ao apagar questões do módulo.");
+            }
+        } catch (error) {
+            toast.error("Erro ao apagar questões do módulo.");
         }
     };
 
@@ -426,6 +441,13 @@ export default function CourseEditorPage() {
                                                     className="p-2 hover:bg-slate-100 rounded-xl transition-all"
                                                 >
                                                     <Pencil className="w-4 h-4 text-slate-400" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteModuleQuestions(mod.id, mod.title)}
+                                                    title="Apagar todas as questões deste módulo"
+                                                    className="p-2 hover:bg-orange-50 rounded-xl transition-all"
+                                                >
+                                                    <Eraser className="w-4 h-4 text-orange-300 hover:text-orange-500" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteModule(mod.id)}

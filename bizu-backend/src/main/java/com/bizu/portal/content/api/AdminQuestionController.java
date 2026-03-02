@@ -89,4 +89,10 @@ public class AdminQuestionController {
         questionService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/module/{moduleId}")
+    public ResponseEntity<Void> deleteAllByModule(@PathVariable UUID moduleId) {
+        questionService.deleteAllByModule(moduleId);
+        return ResponseEntity.noContent().build();
+    }
 }
