@@ -44,7 +44,7 @@ export default function CourseDetailsPage() {
         const fetchCourse = async () => {
             setIsLoading(true);
             try {
-                const res = await apiFetch(`/public/courses/${courseId}`);
+                const res = await apiFetch(`/student/courses/${courseId}`);
                 if (res.ok) {
                     const data = await res.json();
                     setCourse(data);

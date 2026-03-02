@@ -60,9 +60,16 @@ export const getVideoEmbedUrl = (rawUrl?: string | null): string | null => {
     }
 
     try {
-        const url = new URL(rawUrl.trim());
+        let urlStr = rawUrl.trim();
+        // Garantir protocolo para não quebrar o construtor URL
+        if (!urlStr.startsWith("http://") && !urlStr.startsWith("https://")) {
+            urlStr = "https://" + urlStr;
+        }
+
+        const url = new URL(urlStr);
         return getYoutubeEmbedUrl(url) || getVimeoEmbedUrl(url);
-    } catch {
+    } catch (e) {
+        console.warn("Erro ao processar URL de vídeo:", rawUrl, e);
         return null;
     }
 };

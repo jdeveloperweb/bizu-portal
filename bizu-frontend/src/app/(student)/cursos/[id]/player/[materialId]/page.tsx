@@ -38,7 +38,7 @@ export default function CoursePlayerPage() {
         const fetchContent = async () => {
             setIsLoading(true);
             try {
-                const courseRes = await apiFetch(`/public/courses/${courseId}`);
+                const courseRes = await apiFetch(`/student/courses/${courseId}`);
                 if (courseRes.ok) {
                     const courseData = await courseRes.json();
                     setCourse(courseData);
