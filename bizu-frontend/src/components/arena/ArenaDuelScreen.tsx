@@ -187,6 +187,18 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
         }
     };
 
+    const handleCancelPending = async () => {
+        if (await confirm("Deseja cancelar o convite de duelo? O oponente não foi notificado ainda.", { title: "Cancelar Convite?", confirmLabel: "Sim, cancelar", cancelLabel: "Aguardar" })) {
+            try {
+                await DuelService.declineDuel(duelId);
+                onClose();
+            } catch (err) {
+                console.error("Failed to cancel pending duel", err);
+                onClose();
+            }
+        }
+    };
+
     useEffect(() => {
         const handleFullscreenChange = () => {
             setIsFullscreen(!!document.fullscreenElement);
@@ -222,18 +234,18 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
             <div className={`w-full bg-white overflow-hidden shadow-2xl relative flex flex-col h-full ${isMaximized ? "sm:h-screen sm:rounded-none" : "max-w-4xl sm:rounded-3xl sm:h-[90vh]"}`}>
                 {/* Abandon/Close Button Area */}
                 <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-[100]">
-                    {(duel.status === "IN_PROGRESS" || duel.status === "PENDING") ? (
+                    {duel.status === "IN_PROGRESS" ? (
                         <Button
                             variant="ghost"
                             size="sm"
                             onClick={handleCancel}
-                            className={`bg-white/80 backdrop-blur-sm border border-white/40 shadow-sm text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all h-8 sm:h-auto px-2 sm:px-3 font-bold gap-1.5 ${stats?.abandonBlockedUntil && new Date(stats.abandonBlockedUntil) > new Date() ? "opacity-50 cursor-not-allowed" : ""}`}
+                            className={`bg-white/80 backdrop-blur-sm border border-red-100 shadow-sm text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all h-8 sm:h-auto px-2 sm:px-3 font-bold gap-1.5 ${stats?.abandonBlockedUntil && new Date(stats.abandonBlockedUntil) > new Date() ? "opacity-50 cursor-not-allowed" : ""}`}
                             title={stats?.abandonBlockedUntil && new Date(stats.abandonBlockedUntil) > new Date() ? "Pena de bloqueio ativa" : "Abandonar Duelo"}
                         >
                             <XCircle size={18} className="w-4 h-4 sm:w-5 sm:h-5" />
                             <span className="text-[10px] sm:text-xs">Abandonar Duelo</span>
                         </Button>
-                    ) : (
+                    ) : duel.status !== "PENDING" ? (
                         <Button
                             variant="ghost"
                             size="icon"
@@ -243,7 +255,7 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                         >
                             <XCircle size={20} className="w-4 h-4 sm:w-5 sm:h-5" />
                         </Button>
-                    )}
+                    ) : null}
                 </div>
 
                 {/* Header / Scoreboard */}
@@ -442,6 +454,14 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                                 <p className="font-bold">
                                     {duel.status === "PENDING" ? "Aguardando oponente aceitar..." : "Sincronizando duelo..."}
                                 </p>
+                                {duel.status === "PENDING" && (
+                                    <button
+                                        onClick={handleCancelPending}
+                                        className="mt-2 px-6 py-2 rounded-xl border border-slate-200 text-slate-500 hover:text-red-500 hover:border-red-200 hover:bg-red-50 text-sm font-medium transition-all"
+                                    >
+                                        Cancelar convite
+                                    </button>
+                                )}
                             </div>
                         )}
                     </AnimatePresence>

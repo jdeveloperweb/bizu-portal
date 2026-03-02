@@ -49,24 +49,35 @@ export function DuelProvider({ children }: { children: React.ReactNode }) {
         }
     }, [authenticated, refreshDuels]);
 
-    // WebSocket listener for real-time duels
-    useChallengeNotifications(user?.id || user?.sub || null, (newDuel: Duel) => {
-        if (!newDuel || newDuel.id === lastNotifiedDuelId.current) return;
+    // WebSocket listener for real-time duels.
+    // Usa apenas user?.id (não user?.sub) para evitar dupla subscrição:
+    // no primeiro carregamento, user passa por dois estados:
+    //   1. keycloak.tokenParsed → tem "sub" mas não tem "id"
+    //   2. /users/me → tem "id" (valor definitivo)
+    // Aguardando user?.id, garantimos uma única subscrição com o ID correto.
+    useChallengeNotifications(
+        user?.id || null,
+        (newDuel: Duel) => {
+            if (!newDuel || newDuel.id === lastNotifiedDuelId.current) return;
 
-        lastNotifiedDuelId.current = newDuel.id;
+            lastNotifiedDuelId.current = newDuel.id;
 
-        setPendingDuels(prev => {
-            if (prev.some(d => d.id === newDuel.id)) return prev;
-            return [newDuel, ...prev];
-        });
+            setPendingDuels(prev => {
+                if (prev.some(d => d.id === newDuel.id)) return prev;
+                return [newDuel, ...prev];
+            });
 
-        // Always show overlay for a REAL new notification via WS
-        setShowOverlay(true);
-        setHasNewDuelSinceLastRefresh(true);
+            // Always show overlay for a REAL new notification via WS
+            setShowOverlay(true);
+            setHasNewDuelSinceLastRefresh(true);
 
-        // Dispatch custom event for sound or other side effects if needed
-        window.dispatchEvent(new CustomEvent('duel:received', { detail: newDuel }));
-    });
+            // Dispatch custom event for sound or other side effects if needed
+            window.dispatchEvent(new CustomEvent('duel:received', { detail: newDuel }));
+        },
+        // Ao conectar o WS, busca duelos pendentes via REST para capturar qualquer
+        // desafio enviado durante a janela de autenticação/conexão
+        refreshDuels
+    );
 
     const acceptDuel = async (duelId: string) => {
         try {

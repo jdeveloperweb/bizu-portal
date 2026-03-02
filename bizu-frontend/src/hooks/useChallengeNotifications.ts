@@ -14,13 +14,18 @@ const getWsUrl = () => {
 
 const WS_URL = getWsUrl();
 
-export function useChallengeNotifications(userId: string | null, onChallengeReceived: (duel: any) => void) {
+export function useChallengeNotifications(userId: string | null, onChallengeReceived: (duel: any) => void, onWsConnect?: () => void) {
     const stompClientRef = useRef<Client | null>(null);
     const onChallengeReceivedRef = useRef(onChallengeReceived);
+    const onWsConnectRef = useRef(onWsConnect);
 
     useEffect(() => {
         onChallengeReceivedRef.current = onChallengeReceived;
     }, [onChallengeReceived]);
+
+    useEffect(() => {
+        onWsConnectRef.current = onWsConnect;
+    }, [onWsConnect]);
 
     useEffect(() => {
         if (!userId || userId === "" || userId === "null" || userId === "undefined") {
@@ -50,6 +55,9 @@ export function useChallengeNotifications(userId: string | null, onChallengeRece
                         console.error("Error parsing challenge message", err);
                     }
                 });
+                // Ao conectar, busca duelos pendentes via REST para não perder
+                // notificações enviadas durante o setup da conexão WebSocket
+                onWsConnectRef.current?.();
             },
             onStompError: (frame) => {
                 console.error('STOMP Error in challenge notifications:', frame.headers['message'], frame.body);
