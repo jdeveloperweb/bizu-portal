@@ -77,10 +77,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const registerDevice = useCallback(async () => {
         if (typeof window === "undefined") return false;
+        if (deviceLimitData) return false;
 
         let fingerprint = localStorage.getItem("device_fingerprint") || "";
-        // Note: fingerprint will be automatically generated in apiFetch if missing.
-        // But we read it here to ensure it's up to date if already exists.
 
         const userAgent = window.navigator.userAgent;
         let os = "Unknown OS";
@@ -110,6 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (res.status === 409) {
                 const data = await res.json();
                 if (data.error === "DEVICE_LIMIT_REACHED") {
+                    console.log("AuthProvider: Device limit reached, showing modal");
                     setDeviceLimitData({
                         maskedEmail: data.maskedEmail,
                         maskedPhone: data.maskedPhone,
@@ -124,14 +124,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setIsDeviceAuthorized(true);
                 return true;
             }
-            setIsDeviceAuthorized(false);
             return false;
         } catch (err) {
             console.error("Failed to register device", err);
-            setIsDeviceAuthorized(false);
             return false;
         }
-    }, []);
+    }, [deviceLimitData]);
 
     const refreshToken = useCallback(async () => {
         if (typeof window === "undefined" || refreshing) return false;
@@ -197,10 +195,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const token = Cookies.get("token");
         if (!token) return;
 
-        // Register device first to ensure backend has it before we make other calls
-        // For Admins, we don't block anything, but we still register the device for record keeping
+        // For Admins, we register but don't block.
+        // For others, if limit reached, registerDevice sets modal data and returns false.
         const registered = await registerDevice();
-        if (!registered && !isAdmin) return;
+        const adminRoles = ['ADMIN', 'MASTER'];
+        const isUserAdmin = user?.roles?.some((r: any) => adminRoles.includes(r.name)) ||
+            user?.realm_access?.roles?.some((r: string) => adminRoles.includes(r)) ||
+            user?.role === 'ADMIN';
+
+        if (!registered && !isUserAdmin) {
+            console.log("Device not authorized, stopping profile refresh for non-admin");
+            return;
+        }
 
         const res = await apiFetch("/users/me");
 
@@ -223,12 +229,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const entRes = await apiFetch("/student/entitlements/me");
                 if (entRes.ok) {
                     const entData = await entRes.json();
+                    console.log("AuthProvider: fetched entitlements", entData.length);
                     setEntitlements(entData);
                 }
             } catch (err) {
                 console.error("Failed to fetch subscription or entitlements in AuthProvider", err);
                 setSubscription(null);
             }
+        } else if (res.status === 409) {
+            // Mismatch handled by registerDevice usually, but just in case
+            console.warn("User profile fetch returned 409 (Device Mismatch)");
         }
     }, []);
 

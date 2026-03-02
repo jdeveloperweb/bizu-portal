@@ -57,12 +57,13 @@ export function CourseProvider({ children }: { children: React.ReactNode }): Rea
     const [gamification, setGamification] = useState<GamificationState>(defaultGamification);
     const [loading, setLoading] = useState(true);
     const eventSourceRef = useRef<EventSource | null>(null);
+    const selectingRef = useRef<string | null>(null);
 
     const activeCourseId = selectedCourseId ?? null;
 
     // Derived: does user have entitlement for selected course?
     const currentEntitlement = entitlements.find(
-        (e) => e.courseId === activeCourseId && e.active
+        (e) => e.courseId?.trim() === activeCourseId?.trim() && e.active
     );
 
     const hasEntitlement = !!currentEntitlement;
@@ -200,14 +201,30 @@ export function CourseProvider({ children }: { children: React.ReactNode }): Rea
 
     // Auto-select first active course if current selection is invalid/expired
     useEffect(() => {
-        if (!loading && !hasEntitlement && entitlements.length > 0) {
-            const firstActive = entitlements.find(e => (e as any).active);
+        if (!loading && !hasEntitlement && entitlements.length > 0 && authenticated) {
+            const firstActive = entitlements.find(e => e.active);
             if (firstActive && firstActive.courseId !== activeCourseId) {
-                console.log("Auto-switching course because current is invalid/expired or none selected");
-                selectCourse(firstActive.courseId);
+                if (selectingRef.current === firstActive.courseId) return;
+
+                console.log("CourseContext: Auto-selecting course", firstActive.courseId);
+                selectingRef.current = firstActive.courseId;
+                selectCourse(firstActive.courseId).finally(() => {
+                    selectingRef.current = null;
+                });
             }
         }
-    }, [loading, activeCourseId, hasEntitlement, entitlements, selectCourse]);
+    }, [loading, activeCourseId, hasEntitlement, entitlements, selectCourse, authenticated]);
+
+    // Debugging logs for entitlement issues
+    useEffect(() => {
+        if (!loading && activeCourseId && !hasEntitlement && entitlements.length > 0) {
+            console.warn("CourseContext: User has course selected but NO ACTIVE entitlement matched.", {
+                activeCourseId,
+                totalEntitlements: entitlements.length,
+                availableCourseIds: entitlements.map(e => e.courseId)
+            });
+        }
+    }, [loading, activeCourseId, hasEntitlement, entitlements]);
 
     return (
         <CourseCtx.Provider
