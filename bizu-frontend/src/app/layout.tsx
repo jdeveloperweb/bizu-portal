@@ -87,7 +87,6 @@ export const metadata: Metadata = {
 import { AuthProvider } from "@/components/AuthProvider";
 import { NotificationProvider } from "@/components/NotificationProvider";
 import BrandingLoader from "@/components/BrandingLoader";
-import CourseSelectionGate from "@/components/CourseSelectionGate";
 import PaywallGate from "@/components/PaywallGate";
 import { AppearanceProvider } from "@/components/AppearanceProvider";
 import { CourseProvider } from "@/contexts/CourseContext";
@@ -114,16 +113,14 @@ export default function RootLayout({
                 <PWASplashScreen />
                 <NotificationProvider>
                   <CustomDialogProvider>
-                    <CourseSelectionGate>
-                      <PaywallGate>
-                        <GamificationProvider>
-                          <DuelProvider>
-                            {children}
-                            <InstallPWA />
-                          </DuelProvider>
-                        </GamificationProvider>
-                      </PaywallGate>
-                    </CourseSelectionGate>
+                    <PaywallGate>
+                      <GamificationProvider>
+                        <DuelProvider>
+                          {children}
+                          <InstallPWA />
+                        </DuelProvider>
+                      </GamificationProvider>
+                    </PaywallGate>
                   </CustomDialogProvider>
                 </NotificationProvider>
               </AppearanceProvider>
