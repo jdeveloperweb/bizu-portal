@@ -57,9 +57,17 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     if (response.status === 401) {
         if (typeof window !== "undefined") {
             const path = window.location.pathname.toLowerCase();
-            const isAuthPage = path === "/login" || path === "/register" || path.startsWith("/forgot-password");
+            // Páginas públicas que não exigem autenticação — nunca redirecionar para /login aqui
+            const isPublicPage =
+                path === "/" ||
+                path === "/login" ||
+                path === "/register" ||
+                path === "/pricing" ||
+                path.startsWith("/forgot-password") ||
+                path.startsWith("/termos") ||
+                path.startsWith("/privacidade");
 
-            if (!isAuthPage && !isPublicEndpoint) {
+            if (!isPublicPage && !isPublicEndpoint) {
                 window.location.href = "/login";
             }
         }
