@@ -1,121 +1,119 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Download, X, Smartphone } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Download, X, Smartphone, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// Extend Window interface for the experimental beforeinstallprompt event
 interface BeforeInstallPromptEvent extends Event {
     readonly platforms: string[];
-    readonly userChoice: Promise<{
-        outcome: "accepted" | "dismissed";
-        platform: string;
-    }>;
+    readonly userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
     prompt(): Promise<void>;
 }
 
 const DISMISS_KEY = "pwa-install-dismissed-at";
 const DISMISS_COOLDOWN_DAYS = 7;
+const SHOW_DELAY_MS = 4000;
 
 function wasDismissedRecently(): boolean {
     try {
         const ts = localStorage.getItem(DISMISS_KEY);
         if (!ts) return false;
-        const diff = Date.now() - parseInt(ts, 10);
-        return diff < DISMISS_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
+        return Date.now() - parseInt(ts, 10) < DISMISS_COOLDOWN_DAYS * 86400000;
     } catch {
         return false;
     }
 }
 
+type Platform = "android" | "ios" | "desktop" | "unknown";
+
+function detectPlatform(): Platform {
+    const ua = navigator.userAgent.toLowerCase();
+    if (/iphone|ipad|ipod/.test(ua)) return "ios";
+    if (/android/.test(ua)) return "android";
+    if (window.matchMedia("(pointer: coarse)").matches) return "android"; // generic touch
+    return "desktop";
+}
+
 export function InstallPWA() {
     const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-    const [isIOS, setIsIOS] = useState(false);
-    const [isStandalone, setIsStandalone] = useState(false);
+    const [platform, setPlatform] = useState<Platform>("unknown");
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         // Register Service Worker
-        if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-            window.addEventListener("load", function () {
-                navigator.serviceWorker
-                    .register("/sw.js")
-                    .then(
-                        function (registration) {
-                            console.log("Service Worker registration successful with scope: ", registration.scope);
-                        },
-                        function (err) {
-                            console.log("Service Worker registration failed: ", err);
-                        }
-                    );
-            });
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("/sw.js").catch(() => {});
         }
 
-        // Detect iOS
-        const userAgent = window.navigator.userAgent.toLowerCase();
-        const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
-        setIsIOS(isIosDevice);
-
-        // Detect if already installed/standalone
-        const isStandaloneMode = window.matchMedia("(display-mode: standalone)").matches ||
+        const isStandalone =
+            window.matchMedia("(display-mode: standalone)").matches ||
             (window.navigator as any).standalone === true;
-        setIsStandalone(isStandaloneMode);
 
-        // Don't show if already installed or dismissed recently
-        if (isStandaloneMode || wasDismissedRecently()) return;
+        // Already running as installed PWA — never show
+        if (isStandalone) return;
 
-        // Handle standard beforeinstallprompt (Android/Desktop Chrome)
+        if (wasDismissedRecently()) return;
+
+        const detectedPlatform = detectPlatform();
+        setPlatform(detectedPlatform);
+
+        // Capture the native install prompt when Chrome/Edge fires it
         const handleBeforeInstallPrompt = (e: Event) => {
             e.preventDefault();
             setDeferredPrompt(e as BeforeInstallPromptEvent);
-            // Small delay so the page settles first
-            setTimeout(() => setShowInstallPrompt(true), 2500);
         };
-
         window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
-        // iOS: show manual instructions after a short delay
-        if (isIosDevice && !isStandaloneMode) {
-            setTimeout(() => setShowInstallPrompt(true), 3000);
-        }
+        // Show our custom banner after a delay regardless of whether
+        // beforeinstallprompt fired — Chrome can suppress it for weeks
+        timerRef.current = setTimeout(() => {
+            setShowInstallPrompt(true);
+        }, SHOW_DELAY_MS);
 
         return () => {
             window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+            if (timerRef.current) clearTimeout(timerRef.current);
         };
     }, []);
 
     const installApp = async () => {
         if (deferredPrompt) {
-            deferredPrompt.prompt();
+            await deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
             if (outcome === "accepted") {
                 setDeferredPrompt(null);
                 setShowInstallPrompt(false);
             }
         }
+        // For iOS / fallback: banner stays visible showing instructions
     };
 
     const dismissPrompt = () => {
-        try {
-            localStorage.setItem(DISMISS_KEY, String(Date.now()));
-        } catch { /* ignore */ }
+        try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch { /* ignore */ }
         setShowInstallPrompt(false);
     };
 
-    if (isStandalone || !showInstallPrompt) {
-        return null;
-    }
+    if (!showInstallPrompt) return null;
+
+    const isIOS = platform === "ios";
+    const isDesktop = platform === "desktop";
+    const hasNativePrompt = !!deferredPrompt;
 
     return (
         <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-[360px] bg-white border border-slate-200 rounded-2xl p-4 shadow-2xl z-[200] animate-in slide-in-from-bottom-5 duration-500">
+            {/* Header */}
             <div className="flex items-start gap-3">
-                <div className="h-12 w-12 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center text-white shrink-0 shadow-lg">
-                    <Smartphone className="h-6 w-6" />
+                <div className="h-12 w-12 rounded-xl flex items-center justify-center text-white shrink-0 shadow-lg"
+                    style={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)" }}>
+                    {isDesktop ? <Monitor className="h-6 w-6" /> : <Smartphone className="h-6 w-6" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-black text-slate-900 leading-tight">Instale o App AXON!</h4>
+                    <h4 className="text-sm font-black text-slate-900 leading-tight">
+                        {isDesktop ? "Instale o AXON no PC!" : "Instale o App AXON!"}
+                    </h4>
                     <p className="text-xs text-slate-500 mt-0.5 leading-snug">
-                        Acesso rápido, notificações e modo offline direto na sua tela inicial.
+                        Acesso rápido e direto sem abrir o navegador.
                     </p>
                 </div>
                 <button
@@ -127,15 +125,26 @@ export function InstallPWA() {
                 </button>
             </div>
 
+            {/* Action */}
             <div className="mt-4">
-                {isIOS && !deferredPrompt ? (
-                    <div className="bg-slate-50 rounded-xl p-3 text-xs text-slate-600 leading-relaxed">
-                        Toque em <span className="font-bold text-indigo-600">Compartilhar</span> na barra do Safari e escolha <span className="font-bold text-indigo-600">"Adicionar à Tela Inicial"</span>.
+                {isIOS && !hasNativePrompt ? (
+                    <div className="bg-indigo-50 rounded-xl p-3 text-xs text-slate-700 leading-relaxed">
+                        No Safari, toque em{" "}
+                        <span className="font-bold text-indigo-600">Compartilhar</span>{" "}
+                        e escolha{" "}
+                        <span className="font-bold text-indigo-600">"Adicionar à Tela Inicial"</span>.
+                    </div>
+                ) : isDesktop && !hasNativePrompt ? (
+                    <div className="bg-indigo-50 rounded-xl p-3 text-xs text-slate-700 leading-relaxed">
+                        No Chrome, clique no ícone{" "}
+                        <span className="font-bold text-indigo-600">⊕</span>{" "}
+                        na barra de endereços ou em{" "}
+                        <span className="font-bold text-indigo-600">Menu (⋮) → Instalar AXON</span>.
                     </div>
                 ) : (
                     <Button
                         onClick={installApp}
-                        className="w-full font-black text-[13px] h-11 rounded-xl"
+                        className="w-full font-black text-[13px] h-11 rounded-xl text-white"
                         style={{ background: "linear-gradient(135deg,#6366F1,#4F46E5)", boxShadow: "0 4px 14px -2px rgba(99,102,241,0.5)" }}
                     >
                         <Download className="h-4 w-4 mr-2" />
