@@ -38,7 +38,12 @@ public class DeviceService {
         
         if (userDevices.size() >= MAX_DEVICES_PER_USER) {
             // ADMINs podem ter múltiplos dispositivos sem limite
-            boolean isAdmin = user.getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("ADMIN")) ||
+            // Melhoramos a checagem de ADMIN para ser mais resiliente, incluindo papéis de TI/Master
+            boolean isAdmin = user.getRoles().stream()
+                                .anyMatch(r -> r.getName().equalsIgnoreCase("ADMIN") ||
+                                               r.getName().equalsIgnoreCase("MASTER") ||
+                                               r.getName().equalsIgnoreCase("DEV") ||
+                                               r.getName().equalsIgnoreCase("COORDINATOR")) ||
                              (user.getEmail() != null && user.getEmail().toLowerCase().contains("admin"));
             
             if (!isAdmin) {
@@ -83,7 +88,7 @@ public class DeviceService {
         }
         
         // Register the new one
-        return Device.builder()
+        Device newDevice = Device.builder()
             .user(user)
             .deviceFingerprint(fingerprint)
             .osInfo(os)
@@ -92,6 +97,8 @@ public class DeviceService {
             .lastIp(ip)
             .isTrusted(true)
             .build();
+            
+        return deviceRepository.save(newDevice);
     }
 
     public List<Device> findByUserId(UUID userId) {
