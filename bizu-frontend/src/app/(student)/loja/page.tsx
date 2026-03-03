@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     Zap, Brain, Shield, Clock, Target,
     ChevronRight, ShoppingCart, Star, Crown,
-    Sparkles, ArrowUpRight, TrendingUp, Info, CreditCard
+    Sparkles, ArrowUpRight, TrendingUp, Info, CreditCard, AlertCircle, X
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
@@ -39,6 +39,11 @@ function AxonStoreContent() {
     const [successShown, setSuccessShown] = useState(false);
     const [isWaitingPayment, setIsWaitingPayment] = useState(false);
     const [initialAxons, setInitialAxons] = useState<number | null>(null);
+    const [pollCount, setPollCount] = useState(0);
+    const [paymentTimedOut, setPaymentTimedOut] = useState(false);
+
+    const PAYMENT_STORAGE_KEY = "axonsPaymentPending";
+    const MAX_POLLS = 200; // ~10 minutos
 
     const storeItems: StoreItem[] = [
         {
@@ -122,35 +127,80 @@ function AxonStoreContent() {
         fetchStoreData();
     }, []);
 
+    // Restaura estado de pagamento pendente do localStorage ao montar
     useEffect(() => {
-        // Handle success redirect from payment provider
+        const stored = localStorage.getItem(PAYMENT_STORAGE_KEY);
+        if (stored) {
+            try {
+                const { timestamp, initialAxons: storedInitial } = JSON.parse(stored);
+                const thirtyMinutes = 30 * 60 * 1000;
+                if (Date.now() - timestamp < thirtyMinutes) {
+                    setIsWaitingPayment(true);
+                    if (storedInitial !== null) {
+                        setInitialAxons(storedInitial);
+                    }
+                } else {
+                    localStorage.removeItem(PAYMENT_STORAGE_KEY);
+                }
+            } catch {
+                localStorage.removeItem(PAYMENT_STORAGE_KEY);
+            }
+        }
+    }, []);
+
+    // Detecta retorno da InfinitePay via ?status=success
+    useEffect(() => {
         const status = searchParams.get("status");
         if (status === "success" && !successShown) {
             setIsWaitingPayment(true);
-            toast.info("Pagamento confirmado! Aguardando o processamento dos seus Axons...", {
-                duration: 5000,
-            });
             setSuccessShown(true);
+            toast.info("Pagamento confirmado! Aguardando crédito dos seus Axons...", { duration: 5000 });
         }
     }, [searchParams, successShown]);
 
+    // Quando gamification carrega: captura valor inicial de axons e persiste no localStorage
+    useEffect(() => {
+        if (gamification?.axons !== undefined && initialAxons === null) {
+            const current = gamification.axons as number;
+            setInitialAxons(current);
+            if (isWaitingPayment) {
+                localStorage.setItem(PAYMENT_STORAGE_KEY, JSON.stringify({
+                    timestamp: Date.now(),
+                    initialAxons: current,
+                }));
+            }
+        }
+    }, [gamification, isWaitingPayment]);
+
+    // Polling: verifica crédito de Axons a cada 3s
     useEffect(() => {
         let interval: NodeJS.Timeout;
 
         if (isWaitingPayment) {
-            // Poll for axon increase
             interval = setInterval(async () => {
+                setPollCount(prev => {
+                    if (prev >= MAX_POLLS) {
+                        clearInterval(interval);
+                        setIsWaitingPayment(false);
+                        setPaymentTimedOut(true);
+                        localStorage.removeItem(PAYMENT_STORAGE_KEY);
+                        return prev;
+                    }
+                    return prev + 1;
+                });
+
                 const res = await apiFetch("/student/gamification/me");
                 if (res.ok) {
                     const data = await res.json();
                     const currentAxons = data.axons || 0;
-
                     if (initialAxons !== null && currentAxons > initialAxons) {
                         setGamification(data);
                         setIsWaitingPayment(false);
+                        setPaymentTimedOut(false);
+                        localStorage.removeItem(PAYMENT_STORAGE_KEY);
                         toast.success("Axons creditados com sucesso! Sua carteira foi atualizada.", {
                             duration: 6000,
-                            icon: "🚀"
+                            icon: "🚀",
                         });
                         clearInterval(interval);
                     }
@@ -162,12 +212,6 @@ function AxonStoreContent() {
             if (interval) clearInterval(interval);
         };
     }, [isWaitingPayment, initialAxons]);
-
-    useEffect(() => {
-        if (gamification?.axons !== undefined && initialAxons === null) {
-            setInitialAxons(gamification.axons);
-        }
-    }, [gamification]);
 
     const handleBuy = async (item: StoreItem) => {
         if (!gamification || gamification.axons < item.price) {
@@ -241,6 +285,76 @@ function AxonStoreContent() {
 
     return (
         <div className="p-6 md:p-10 max-w-[1400px] mx-auto min-h-screen">
+
+            {/* Banner: aguardando crédito de Axons */}
+            <AnimatePresence>
+                {(isWaitingPayment || paymentTimedOut) && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -16, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -16, scale: 0.98 }}
+                        transition={{ type: "spring", stiffness: 280, damping: 28 }}
+                        className={`mb-8 rounded-[24px] p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 shadow-xl ${
+                            paymentTimedOut
+                                ? "bg-gradient-to-r from-red-600 to-rose-600 shadow-red-200"
+                                : "bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-700 shadow-indigo-200"
+                        }`}
+                    >
+                        {/* Ícone animado */}
+                        <div className="relative flex-shrink-0">
+                            {paymentTimedOut ? (
+                                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                                    <AlertCircle size={24} className="text-white" />
+                                </div>
+                            ) : (
+                                <div className="relative w-12 h-12">
+                                    <div className="absolute inset-0 rounded-full border-4 border-white/20 border-t-white animate-spin" />
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <Zap size={18} className="text-white" />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Texto */}
+                        <div className="flex-1 min-w-0">
+                            <p className="font-black text-white text-base sm:text-lg leading-tight">
+                                {paymentTimedOut
+                                    ? "Tempo de espera excedido"
+                                    : "Processando seu pagamento..."}
+                            </p>
+                            <p className="text-white/80 text-xs sm:text-sm mt-0.5 leading-relaxed">
+                                {paymentTimedOut
+                                    ? "Seus Axons podem demorar um pouco mais. Recarregue a página em alguns minutos ou entre em contato com o suporte."
+                                    : "Seus Axons chegam em instantes. Pode navegar normalmente — eles serão creditados mesmo assim!"}
+                            </p>
+                        </div>
+
+                        {/* Indicador de pulso ou botão fechar */}
+                        {isWaitingPayment ? (
+                            <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
+                                {[0, 1, 2].map(i => (
+                                    <motion.div
+                                        key={i}
+                                        className="w-2 h-2 rounded-full bg-white/60"
+                                        animate={{ scale: [1, 1.6, 1], opacity: [0.5, 1, 0.5] }}
+                                        transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.22 }}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => setPaymentTimedOut(false)}
+                                className="flex-shrink-0 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                                aria-label="Fechar"
+                            >
+                                <X size={14} className="text-white" />
+                            </button>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Header / Wallet */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12">
                 <div>
@@ -256,17 +370,8 @@ function AxonStoreContent() {
                             <Brain size={20} />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-2xl font-black text-slate-900 tabular-nums leading-none flex items-center gap-2">
+                            <span className="text-2xl font-black text-slate-900 tabular-nums leading-none">
                                 {isLoading ? <Skeleton className="h-6 w-12" /> : axons}
-                                {isWaitingPayment && (
-                                    <motion.span
-                                        animate={{ opacity: [1, 0.4, 1] }}
-                                        transition={{ duration: 1.5, repeat: Infinity }}
-                                        className="text-xs text-indigo-500 font-bold"
-                                    >
-                                        (Processando...)
-                                    </motion.span>
-                                )}
                             </span>
                             <span className="text-[10px] font-black text-slate-400 tracking-widest uppercase">Meus Axons</span>
                         </div>
