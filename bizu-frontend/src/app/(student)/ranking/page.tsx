@@ -227,50 +227,35 @@ export default function RankingStudentPage() {
 
             <div className="p-4 lg:p-8 w-full max-w-[1600px] mx-auto">
 
-                {/* ── HERO BANNER ── */}
-                <div className="relative rounded-2xl overflow-hidden mb-5 bg-gradient-to-br from-indigo-600 to-violet-700 p-6 lg:p-8">
-                    {/* Decorative circles */}
-                    <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
-                    <div className="absolute top-4 right-16 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
-
-                    <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-                        <div>
-                            <div className="flex items-center gap-2 mb-2">
-                                <Trophy size={13} className="text-amber-300" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-200">Competição</span>
-                            </div>
-                            <h1 className="text-3xl font-extrabold text-white tracking-tight leading-none mb-1">Ranking</h1>
-                            <p className="text-sm text-indigo-200/80">Acompanhe sua posição e suba no leaderboard</p>
+                {/* ── HEADER ── */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="pill pill-primary text-[10px] font-bold uppercase tracking-[0.15em]">Competição</span>
                         </div>
-
-                        {myRank && (
-                            <div className="flex items-center gap-3 bg-white/10 border border-white/15 rounded-2xl px-5 py-3.5">
-                                <div>
-                                    <div className="text-[9px] text-indigo-200/70 font-black uppercase tracking-widest mb-0.5">Sua posição</div>
-                                    <div className="text-4xl font-black text-white leading-none tabular-nums">
-                                        <span className="text-indigo-300 text-2xl">#</span>{myRank.rank > 0 ? myRank.rank : "–"}
-                                    </div>
-                                    {!!myRank.delta && (
-                                        <div className={`text-[10px] font-bold flex items-center gap-0.5 mt-1 ${myRank.delta > 0 ? "text-emerald-300" : "text-red-300"}`}>
-                                            {myRank.delta > 0 ? <ArrowUp size={9} /> : <ArrowDown size={9} />}
-                                            {Math.abs(myRank.delta ?? 0)} posições
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="w-px h-10 bg-white/15" />
-                                <div className="flex flex-col gap-1.5">
-                                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-white/70 bg-white/10 border border-white/10 px-2.5 py-1.5 rounded-xl">
-                                        <Zap size={10} className="text-indigo-300" />
-                                        {(myRank.xp || 0).toLocaleString()} XP
-                                    </div>
-                                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-white/70 bg-white/10 border border-white/10 px-2.5 py-1.5 rounded-xl">
-                                        <Flame size={10} className="text-amber-300" />
-                                        {myRank.streak}d streak
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-0.5">Ranking</h1>
+                        <p className="text-sm text-slate-500">Acompanhe sua posição e suba no leaderboard</p>
                     </div>
+
+                    {myRank && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full">
+                                <Trophy size={12} /> #{myRank.rank > 0 ? myRank.rank : "–"}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-violet-600 bg-violet-50 border border-violet-100 px-3 py-1.5 rounded-full">
+                                <Zap size={12} /> {(myRank.xp || 0).toLocaleString()} XP
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-full">
+                                <Flame size={12} /> {myRank.streak}d streak
+                            </div>
+                            {!!myRank.delta && (
+                                <div className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full ${myRank.delta > 0 ? "text-emerald-600 bg-emerald-50 border border-emerald-100" : "text-red-500 bg-red-50 border border-red-100"}`}>
+                                    {myRank.delta > 0 ? <ArrowUp size={11} /> : <ArrowDown size={11} />}
+                                    {Math.abs(myRank.delta ?? 0)} posições
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* ── TABS ── */}
