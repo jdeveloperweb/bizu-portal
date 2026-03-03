@@ -17,14 +17,22 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
     java.util.List<Subscription> findAllByUserIdInAndStatusIn(java.util.Collection<UUID> userIds, java.util.List<String> statuses);
 
 
-    @EntityGraph(attributePaths = {"user", "plan"})
-    org.springframework.data.domain.Page<Subscription> findAll(org.springframework.data.domain.Pageable pageable);
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    void deleteAllByStatus(String status);
 
     @EntityGraph(attributePaths = {"user", "plan"})
-    @org.springframework.data.jpa.repository.Query("SELECT s FROM Subscription s WHERE LOWER(s.user.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(s.user.email) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(s.plan.name) LIKE LOWER(CONCAT('%', :search, '%'))")
-    org.springframework.data.domain.Page<Subscription> searchAll(String search, org.springframework.data.domain.Pageable pageable);
+    org.springframework.data.domain.Page<Subscription> findAllByStatus(String status, org.springframework.data.domain.Pageable pageable);
 
+    @EntityGraph(attributePaths = {"user", "plan"})
+    @org.springframework.data.jpa.repository.Query("SELECT s FROM Subscription s WHERE (LOWER(s.user.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(s.user.email) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(s.plan.name) LIKE LOWER(CONCAT('%', :search, '%'))) AND (:status IS NULL OR s.status = :status)")
+    org.springframework.data.domain.Page<Subscription> searchAll(String search, String status, org.springframework.data.domain.Pageable pageable);
+
+    @EntityGraph(attributePaths = {"user", "plan"})
+    @org.springframework.data.jpa.repository.Query("SELECT s FROM Subscription s WHERE (:status IS NULL OR s.status = :status)")
+    org.springframework.data.domain.Page<Subscription> findAllWithFilters(@org.springframework.data.repository.query.Param("status") String status, org.springframework.data.domain.Pageable pageable);
 
     @EntityGraph(attributePaths = {"plan", "plan.course"})
     java.util.Optional<Subscription> findFirstByUserIdAndStatusInOrderByCreatedAtDesc(UUID userId, java.util.List<String> statuses);
+
 }
