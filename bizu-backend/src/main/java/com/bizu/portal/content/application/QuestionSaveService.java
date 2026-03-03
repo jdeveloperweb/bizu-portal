@@ -63,7 +63,7 @@ public class QuestionSaveService {
                             .resolution(qNode.path("resolution").asText())
                             .difficulty(difficulty)
                             .topic(qNode.path("topic").asText(""))
-                            .subject(qNode.path("subject").asText(subject))
+                            .subject(qNode.path("subject").asText(""))
                             .questionType("MULTIPLE_CHOICE")
                             .category(category)
                             .module(moduleRef)
