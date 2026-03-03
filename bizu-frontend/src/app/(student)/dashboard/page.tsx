@@ -7,7 +7,8 @@ import {
     BarChart3, Zap, ChevronRight, Bell, Rocket,
     PlayCircle, CheckCircle2, Timer, CheckSquare,
     StickyNote, Brain, Star, Crown, MoreHorizontal,
-    Search, FileText, PartyPopper, Coffee, SkipForward, Play, Pause, Maximize2, Pin, PinOff
+    Search, FileText, PartyPopper, Coffee, SkipForward, Play, Pause, Maximize2, Pin, PinOff,
+    AlertTriangle, RefreshCw
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,6 +34,20 @@ const quickActions = [
     { icon: Timer, label: "Foco", desc: "Sessões de estudo", href: "/pomodoro" },
 ];
 
+// Static color maps — defined at module level to avoid re-allocation on every render
+const statColorMap: Record<string, { iconBg: string; iconBorder: string; iconText: string }> = {
+    indigo:  { iconBg: "bg-indigo-50",  iconBorder: "border-indigo-100",  iconText: "text-indigo-600"  },
+    rose:    { iconBg: "bg-rose-50",    iconBorder: "border-rose-100",    iconText: "text-rose-600"    },
+    amber:   { iconBg: "bg-amber-50",   iconBorder: "border-amber-100",   iconText: "text-amber-600"   },
+    emerald: { iconBg: "bg-emerald-50", iconBorder: "border-emerald-100", iconText: "text-emerald-600" },
+};
+const actionColorMap: Record<string, { bg: string; hoverBg: string; text: string }> = {
+    indigo:  { bg: "bg-indigo-50",  hoverBg: "group-hover:bg-indigo-600",  text: "text-indigo-600"  },
+    rose:    { bg: "bg-rose-50",    hoverBg: "group-hover:bg-rose-600",    text: "text-rose-600"    },
+    emerald: { bg: "bg-emerald-50", hoverBg: "group-hover:bg-emerald-600", text: "text-emerald-600" },
+    amber:   { bg: "bg-amber-50",   hoverBg: "group-hover:bg-amber-600",   text: "text-amber-600"   },
+};
+
 export default function DashboardPage() {
     const { user, isAdmin, refreshUserProfile } = useAuth();
     const router = useRouter();
@@ -50,6 +65,8 @@ export default function DashboardPage() {
     const [courses, setCourses] = useState<any[]>([]);
     const [subscription, setSubscription] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [dashError, setDashError] = useState(false);
+    const [retryCount, setRetryCount] = useState(0);
 
     // Modal state
     const [selectedMaterial, setSelectedMaterial] = useState<any>(null);
@@ -64,6 +81,7 @@ export default function DashboardPage() {
 
     useEffect(() => {
         const fetchDashboardData = async () => {
+            setDashError(false);
             setIsLoading(true);
             try {
                 const [statsRes, gamificationRes, badgesRes, rankingRes, coursesRes, materialsRes, subscriptionRes] = await Promise.all([
@@ -98,12 +116,13 @@ export default function DashboardPage() {
                 }
             } catch (error) {
                 console.error("Dashboard fetch error:", error);
+                setDashError(true);
             } finally {
                 setIsLoading(false);
             }
         };
         fetchDashboardData();
-    }, []);
+    }, [retryCount]);
 
     useEffect(() => {
         if (courses.length > 0 && courses[0]?.progress === 100) {
@@ -154,6 +173,29 @@ export default function DashboardPage() {
     }
 
     const mainCourse = courses[0]; // Define mainCourse here
+
+    // ── Error state ─────────────────────────────────────────────────────────
+    if (dashError) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh] p-8">
+                <div className="text-center max-w-sm">
+                    <div className="w-16 h-16 rounded-[28px] bg-red-50 border border-red-100 flex items-center justify-center mx-auto mb-6">
+                        <AlertTriangle className="w-8 h-8 text-red-400" />
+                    </div>
+                    <h2 className="text-xl font-black text-slate-900 mb-2">Erro ao carregar</h2>
+                    <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+                        Não foi possível carregar seus dados. Verifique sua conexão e tente novamente.
+                    </p>
+                    <button
+                        onClick={() => setRetryCount(c => c + 1)}
+                        className="inline-flex items-center gap-2 btn-primary"
+                    >
+                        <RefreshCw size={15} /> Tentar novamente
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 md:p-8 lg:p-10 w-full max-w-[1600px] mx-auto min-h-screen font-sans bg-slate-50/30">
@@ -286,13 +328,11 @@ export default function DashboardPage() {
 
                     <Link
                         href="/loja"
-                        className="flex items-center gap-1.5 md:gap-2.5 text-xs md:text-sm font-bold text-violet-600 bg-violet-50/50 border border-violet-100 px-3 py-2 md:px-4 md:py-2.5 rounded-xl md:rounded-2xl cursor-pointer hover:bg-violet-100/70 transition-all hover:scale-105 group"
+                        className="hidden sm:flex items-center gap-1.5 md:gap-2.5 text-xs md:text-sm font-bold text-violet-600 bg-violet-50/50 border border-violet-100 px-3 py-2 md:px-4 md:py-2.5 rounded-xl md:rounded-2xl cursor-pointer hover:bg-violet-100/70 transition-all hover:scale-105 group"
                     >
                         <Brain size={16} />
                         {isLoading ? <Skeleton className="h-4 w-12" /> : <span>{totalAxons} <span className="text-[10px] uppercase tracking-wider opacity-70 border-l border-violet-200 ml-1 pl-1">AXONS</span></span>}
                     </Link>
-
-                    <div className="hidden md:block h-8 w-[1px] bg-slate-100 mx-1" />
 
                     <div className="hidden md:block h-8 w-[1px] bg-slate-100 mx-1" />
 
@@ -307,7 +347,7 @@ export default function DashboardPage() {
                             }
                         }}
                         className={cn(
-                            "w-10 h-10 md:w-11 md:h-11 rounded-xl md:rounded-2xl flex items-center justify-center transition-all relative border group",
+                            "hidden sm:flex w-10 h-10 md:w-11 md:h-11 rounded-xl md:rounded-2xl items-center justify-center transition-all relative border group",
                             user?.duelFocusMode
                                 ? "bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-100 hover:bg-amber-600"
                                 : "bg-white border-slate-200 text-slate-400 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50/50"
@@ -341,8 +381,8 @@ export default function DashboardPage() {
                     { label: "Posição Ranking", val: ranking?.position ? `#${ranking.position}` : "-", icon: Trophy, color: "emerald" },
                 ].map((s) => (
                     <div key={s.label} className="bg-card p-5 md:p-6 rounded-3xl border border-border shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 group">
-                        <div className={`w-12 h-12 rounded-2xl bg-${s.color}-50 flex items-center justify-center border border-${s.color}-100 group-hover:scale-110 transition-transform`}>
-                            <s.icon size={22} className={`text-${s.color}-600`} />
+                        <div className={`w-12 h-12 rounded-2xl ${statColorMap[s.color]?.iconBg} flex items-center justify-center border ${statColorMap[s.color]?.iconBorder} group-hover:scale-110 transition-transform`}>
+                            <s.icon size={22} className={statColorMap[s.color]?.iconText} />
                         </div>
                         <div>
                             {isLoading ? (
@@ -435,8 +475,8 @@ export default function DashboardPage() {
                             ].map((a: any) => (
                                 <Link key={a.label} href={a.href}
                                     className="group bg-card border border-border rounded-3xl p-6 flex flex-col items-center text-center transition-all hover:shadow-lg hover:-translate-y-1">
-                                    <div className={`w-14 h-14 rounded-2xl bg-${a.color}-50 group-hover:bg-${a.color}-600 flex items-center justify-center mb-4 transition-all duration-300`}>
-                                        <a.icon size={24} className={`text-${a.color}-600 group-hover:text-white transition-colors`} />
+                                    <div className={`w-14 h-14 rounded-2xl ${actionColorMap[a.color]?.bg} ${actionColorMap[a.color]?.hoverBg} flex items-center justify-center mb-4 transition-all duration-300`}>
+                                        <a.icon size={24} className={`${actionColorMap[a.color]?.text} group-hover:text-white transition-colors`} />
                                     </div>
                                     <div className="text-sm font-black text-foreground mb-1">{a.label}</div>
                                     <div className="text-[11px] font-medium text-muted-foreground">{a.desc}</div>

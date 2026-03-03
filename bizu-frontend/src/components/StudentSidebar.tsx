@@ -48,6 +48,8 @@ const bottomNav = [
     { href: "/perfil", icon: User, label: "Meu Perfil" },
 ];
 
+const allNavItems = [...studyNav, ...planNav, ...trackNav, ...bottomNav];
+
 export default function StudentSidebar() {
     const pathname = usePathname();
     const { logout, user, subscription, entitlements, selectedCourseId, isFree, authenticated } = useAuth();
@@ -61,6 +63,8 @@ export default function StudentSidebar() {
     const [buffs, setBuffs] = useState<{ xpBoost: boolean; radar: boolean; elite: boolean }>({ xpBoost: false, radar: false, elite: false });
     const [onlineCount, setOnlineCount] = useState<number>(0);
     const [pendingFlashcardsCount, setPendingFlashcardsCount] = useState(0);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
 
     const fetchSidebarData = useCallback(async () => {
         if (!authenticated || isFree) return;
@@ -130,6 +134,22 @@ export default function StudentSidebar() {
         setIsMoreOpen(false);
     }, [pathname]);
 
+    // Command palette keyboard shortcut
+    useEffect(() => {
+        const handleKey = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+                e.preventDefault();
+                setIsSearchOpen(o => !o);
+            }
+            if (e.key === "Escape") {
+                setIsSearchOpen(false);
+                setSearchQuery("");
+            }
+        };
+        window.addEventListener("keydown", handleKey);
+        return () => window.removeEventListener("keydown", handleKey);
+    }, []);
+
     const Item = ({ href, icon: Icon, label, badge, badgeVariant = "rose", customBadge }: { href: string; icon: typeof LayoutDashboard; label: string; badge?: number; badgeVariant?: "rose" | "amber"; customBadge?: React.ReactNode }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
         const isPremiumRoute = ["/pomodoro", "/simulados", "/flashcards", "/arena", "/redacao", "/desempenho", "/ranking", "/conquistas", "/amigos"].some(r => href.startsWith(r));
@@ -195,6 +215,10 @@ export default function StudentSidebar() {
             </Link>
         );
     };
+
+    const paletteItems = allNavItems.filter(i =>
+        searchQuery.trim() === "" || i.label.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     // Mobile bottom nav tabs
     const mobileNavTabs = [
@@ -331,10 +355,13 @@ export default function StudentSidebar() {
 
                         {/* Search */}
                         <div className="px-3 py-2.5 border-b border-border shrink-0">
-                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted border border-border text-muted-foreground text-[13px]">
+                            <button
+                                onClick={() => { setIsSearchOpen(true); setIsMoreOpen(false); }}
+                                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-muted border border-border text-muted-foreground text-[13px] hover:border-indigo-300 transition-colors"
+                            >
                                 <Search size={14} />
                                 <span>Buscar...</span>
-                            </div>
+                            </button>
                         </div>
 
                         {/* Nav content */}
@@ -497,11 +524,15 @@ export default function StudentSidebar() {
                 </div>
 
                 <div className="px-3 py-2.5">
-                    <div className={`flex items-center ${isCollapsed ? 'justify-center px-0 py-2' : 'gap-2 px-3 py-1.5'} rounded-lg bg-muted border border-border text-muted-foreground text-[11px] cursor-pointer hover:border-border transition-colors`} title={isCollapsed ? "Buscar..." : undefined}>
+                    <button
+                        onClick={() => setIsSearchOpen(true)}
+                        className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0 py-2' : 'gap-2 px-3 py-1.5'} rounded-lg bg-muted border border-border text-muted-foreground text-[11px] hover:border-indigo-300 transition-colors`}
+                        title={isCollapsed ? "Buscar..." : undefined}
+                    >
                         <Search size={13} />
                         {!isCollapsed && <span>Buscar...</span>}
                         {!isCollapsed && <span className="ml-auto bg-card border border-border px-1.5 py-0.5 rounded text-[9px] font-mono">&#8984;K</span>}
-                    </div>
+                    </button>
                 </div>
 
                 <nav className="flex-1 px-2.5 overflow-y-auto overflow-x-hidden">
@@ -598,6 +629,50 @@ export default function StudentSidebar() {
                     </button>
                 </div>
             </aside>
+
+            {/* ── Command Palette ─────────────────────────────────────────── */}
+            {isSearchOpen && (
+                <div
+                    className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200] flex items-start justify-center pt-[15vh]"
+                    onClick={() => { setIsSearchOpen(false); setSearchQuery(""); }}
+                >
+                    <div
+                        className="palette-in w-full max-w-lg mx-4 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border">
+                            <Search size={16} className="text-muted-foreground flex-shrink-0" />
+                            <input
+                                autoFocus
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Buscar páginas..."
+                                className="flex-1 bg-transparent text-[14px] outline-none text-foreground placeholder:text-muted-foreground"
+                            />
+                            <kbd className="text-[10px] font-mono text-muted-foreground bg-muted border border-border px-1.5 py-0.5 rounded">ESC</kbd>
+                        </div>
+                        <div className="max-h-80 overflow-y-auto py-2">
+                            {paletteItems.map(item => {
+                                const PIcon = item.icon;
+                                return (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        onClick={() => { setIsSearchOpen(false); setSearchQuery(""); }}
+                                        className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted transition-colors group"
+                                    >
+                                        <PIcon size={15} className="text-muted-foreground group-hover:text-foreground flex-shrink-0" />
+                                        <span className="text-[13px] text-foreground">{item.label}</span>
+                                    </Link>
+                                );
+                            })}
+                            {paletteItems.length === 0 && (
+                                <p className="text-center text-[13px] text-muted-foreground py-8">Nenhum resultado</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

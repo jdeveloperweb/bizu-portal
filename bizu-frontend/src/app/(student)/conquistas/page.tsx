@@ -6,12 +6,13 @@ import {
     Trophy, Star, Flame, Target, Zap, Sparkles,
     Crown, Sunrise, Play, Shield, Swords,
     CheckCircle2, BookOpen, Clock, TrendingUp,
-    Layers, Brain, Award, Loader2,
+    Layers, Brain, Award,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 import { BadgeInsignia } from "@/components/gamification/BadgeInsignia";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type BadgeCategory = "todas" | "consistencia" | "performance" | "social" | "especial";
 
@@ -110,6 +111,18 @@ export default function ConquistasPage() {
         fetchData();
     }, []);
 
+    useEffect(() => {
+        if (loading) return;
+        const earned = badges.filter(b => b.earned).length;
+        if (earned === 0) return;
+        const key = "conquistas-confetti-fired";
+        if (sessionStorage.getItem(key)) return;
+        sessionStorage.setItem(key, "1");
+        import("canvas-confetti").then(({ default: confetti }) => {
+            confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors: ["#6366f1", "#8b5cf6", "#f59e0b"] });
+        });
+    }, [loading, badges]);
+
     const filteredBadges = activeCategory === "todas" ? badges : badges.filter(b => b.category === activeCategory);
     const earnedCount = badges.filter(b => b.earned).length;
     const badgeXP = badges.filter(b => b.earned).reduce((a, b) => a + (b.xp || 0), 0);
@@ -118,8 +131,15 @@ export default function ConquistasPage() {
 
     if (loading) {
         return (
-            <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto flex items-center justify-center min-h-[400px]">
-                <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+            <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto space-y-6">
+                <Skeleton className="h-20 w-full rounded-2xl" />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
+                </div>
+                <Skeleton className="h-10 w-64 rounded-xl" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {Array.from({ length: 9 }).map((_, i) => <Skeleton key={i} className="h-40 rounded-2xl" />)}
+                </div>
             </div>
         );
     }

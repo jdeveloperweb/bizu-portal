@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 import StudentSidebar from "@/components/StudentSidebar";
 import FloatingPomodoro from "@/components/pomodoro/FloatingPomodoro";
 import ChallengeOverlay from "@/components/arena/ChallengeOverlay";
@@ -32,7 +33,18 @@ export default function StudentLayout({
         <div className="flex min-h-screen bg-background text-foreground">
             <StudentSidebar />
             <main className="flex-1 overflow-y-auto pt-[calc(3.5rem+env(safe-area-inset-top))] pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pt-0 md:pb-0 w-full min-w-0">
-                {children}
+                <AnimatePresence mode="wait" initial={false}>
+                    <motion.div
+                        key={pathname}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.18, ease: "easeOut" }}
+                        className="h-full"
+                    >
+                        {children}
+                    </motion.div>
+                </AnimatePresence>
             </main>
             <FloatingPomodoro />
             <ChallengeOverlay />

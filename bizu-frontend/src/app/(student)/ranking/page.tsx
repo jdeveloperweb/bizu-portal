@@ -210,21 +210,6 @@ export default function RankingStudentPage() {
 
     return (
         <>
-            <style>{`
-                @keyframes crown-bob {
-                    0%, 100% { transform: translateY(0px) rotate(-3deg); }
-                    50%       { transform: translateY(-5px) rotate(3deg); }
-                }
-                .crown-bob { animation: crown-bob 2.8s ease-in-out infinite; }
-                @keyframes row-slide {
-                    from { opacity: 0; transform: translateX(-6px); }
-                    to   { opacity: 1; transform: translateX(0); }
-                }
-                .row-slide { animation: row-slide 0.2s ease both; }
-                .xp-fill { transition: opacity 0.25s; opacity: 0.04; }
-                .rank-row:hover .xp-fill { opacity: 0.09; }
-            `}</style>
-
             <div className="p-4 lg:p-8 w-full max-w-[1600px] mx-auto">
 
                 {/* ── HEADER ── */}
