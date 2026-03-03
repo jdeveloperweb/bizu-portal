@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sem conexão — AXON Academy</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100dvh;
+            background: #0f172a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            color: #f8fafc;
+            text-align: center;
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            opacity: 0.15;
+        }
+        .orb-1 { width: 400px; height: 400px; background: #6366f1; top: -100px; right: -100px; }
+        .orb-2 { width: 300px; height: 300px; background: #8b5cf6; bottom: -80px; left: -80px; }
+
+        .card {
+            position: relative;
+            z-index: 1;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .icon-wrap {
+            width: 80px;
+            height: 80px;
+            border-radius: 24px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 28px;
+        }
+
+        .icon-wrap svg {
+            width: 36px;
+            height: 36px;
+            stroke: #818cf8;
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .brand {
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: #6366f1;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 900;
+            color: #f8fafc;
+            margin-bottom: 12px;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            font-size: 14px;
+            color: #94a3b8;
+            line-height: 1.6;
+            font-weight: 500;
+            margin-bottom: 32px;
+        }
+
+        button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            font-size: 13px;
+            font-weight: 900;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+            box-shadow: 0 8px 24px -4px rgba(99, 102, 241, 0.4);
+        }
+        button:hover { transform: scale(1.03); }
+        button:active { transform: scale(0.98); opacity: 0.9; }
+
+        .tip {
+            margin-top: 28px;
+            padding: 14px 20px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="card">
+        <div class="icon-wrap">
+            <svg viewBox="0 0 24 24">
+                <path d="M8.56 2.9A7 7 0 0 1 19 9v1h.5A4.5 4.5 0 1 1 15 19H5A5 5 0 0 1 4.1 9.1" />
+                <line x1="12" y1="12" x2="12" y2="18" />
+                <line x1="9" y1="15" x2="15" y2="15" />
+            </svg>
+        </div>
+
+        <div class="brand">AXON Academy</div>
+
+        <h1>Você está offline</h1>
+        <p>
+            Parece que sua conexão foi perdida. Verifique seu Wi‑Fi ou dados móveis e tente novamente.
+        </p>
+
+        <button onclick="window.location.reload()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+                <path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+            </svg>
+            Tentar Novamente
+        </button>
+
+        <div class="tip">
+            Dica: instale o app AXON na sua tela inicial para acesso mais rápido quando a conexão voltar.
+        </div>
+    </div>
+</body>
+</html>

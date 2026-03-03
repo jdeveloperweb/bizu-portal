@@ -264,7 +264,14 @@ export default function StudentSidebar() {
                         {isMoreOpen && (
                             <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-indigo-600 rounded-b-full" />
                         )}
-                        <Menu size={20} strokeWidth={1.75} />
+                        <div className="relative">
+                            <Menu size={20} strokeWidth={1.75} />
+                            {(pendingFriendsCount + pendingTasksCount + pendingFlashcardsCount) > 0 && (
+                                <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-rose-500 text-white text-[8px] flex items-center justify-center rounded-full font-bold border-2 border-card">
+                                    {(pendingFriendsCount + pendingTasksCount + pendingFlashcardsCount) > 9 ? '9+' : pendingFriendsCount + pendingTasksCount + pendingFlashcardsCount}
+                                </span>
+                            )}
+                        </div>
                         <span className="text-[10px] font-medium leading-none">Mais</span>
                     </button>
                 </div>

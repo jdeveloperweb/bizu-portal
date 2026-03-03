@@ -101,7 +101,7 @@ export function InstallPWA() {
     const hasNativePrompt = !!deferredPrompt;
 
     return (
-        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-[360px] bg-white border border-slate-200 rounded-2xl p-4 shadow-2xl z-[200] animate-in slide-in-from-bottom-5 duration-500">
+        <div className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom)+12px)] left-4 right-4 md:bottom-6 md:left-auto md:right-6 md:w-[360px] bg-white border border-slate-200 rounded-2xl p-4 shadow-2xl z-[200] animate-in slide-in-from-bottom-5 duration-500">
             {/* Header */}
             <div className="flex items-start gap-3">
                 <div className="h-12 w-12 rounded-xl flex items-center justify-center text-white shrink-0 shadow-lg"

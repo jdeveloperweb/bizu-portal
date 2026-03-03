@@ -177,22 +177,22 @@ export default function SimuladoProvaPage() {
             )}
 
             {/* Floating Focus Controls - Unified style with labels */}
-            <div className="fixed top-4 right-4 z-[100] flex items-center gap-2 p-1.5 rounded-2xl bg-white/60 backdrop-blur-xl border border-white/40 shadow-2xl">
+            <div className="fixed top-4 right-4 z-[100] flex items-center gap-1 sm:gap-2 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl bg-white/60 backdrop-blur-xl border border-white/40 shadow-2xl">
                 <Button
                     variant="ghost"
                     size="sm"
-                    className={`rounded-xl px-4 py-6 flex flex-col items-center gap-1 transition-all ${isFocusMode ? "bg-primary text-primary-foreground shadow-lg h-auto" : "text-slate-600 hover:bg-white/80 h-auto"}`}
+                    className={`rounded-lg sm:rounded-xl px-2 sm:px-4 py-2 sm:py-6 flex flex-col items-center gap-1 transition-all ${isFocusMode ? "bg-primary text-primary-foreground shadow-lg h-auto" : "text-slate-600 hover:bg-white/80 h-auto"}`}
                     onClick={() => setIsFocusMode(!isFocusMode)}
                     title={isFocusMode ? "Sair do Modo Foco" : "Entrar no Modo Foco"}
                 >
-                    {isFocusMode ? <Target size={18} /> : <Maximize size={18} />}
-                    <span className="text-[9px] font-black uppercase tracking-widest">{isFocusMode ? "Normal" : "Foco"}</span>
+                    {isFocusMode ? <Target size={16} className="sm:w-[18px] sm:h-[18px]" /> : <Maximize size={16} className="sm:w-[18px] sm:h-[18px]" />}
+                    <span className="hidden sm:block text-[9px] font-black uppercase tracking-widest">{isFocusMode ? "Normal" : "Foco"}</span>
                 </Button>
 
                 <Button
                     variant="ghost"
                     size="sm"
-                    className={`rounded-xl px-4 py-6 flex flex-col items-center gap-1 transition-all ${isFullscreen ? "bg-slate-900 text-white shadow-lg h-auto" : "text-slate-600 hover:bg-white/80 h-auto"}`}
+                    className={`hidden sm:flex rounded-xl px-4 py-6 flex-col items-center gap-1 transition-all ${isFullscreen ? "bg-slate-900 text-white shadow-lg h-auto" : "text-slate-600 hover:bg-white/80 h-auto"}`}
                     onClick={requestFullscreen}
                     title={isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
                 >

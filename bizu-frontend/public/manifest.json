@@ -2,28 +2,68 @@
     "id": "/",
     "name": "AXON Academy",
     "short_name": "AXON",
-    "description": "Plataforma de Excelência para Concursos",
+    "description": "Plataforma de Excelência para Concursos — Estude, Compita, Evolua.",
     "start_url": "/?source=pwa",
     "display": "standalone",
     "orientation": "portrait",
     "background_color": "#0f172a",
     "theme_color": "#6366f1",
-    "categories": [
-        "education",
-        "productivity"
-    ],
+    "categories": ["education", "productivity"],
+    "lang": "pt-BR",
     "icons": [
         {
             "src": "/icons/icon-192x192.png",
             "sizes": "192x192",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
         },
         {
             "src": "/icons/icon-512x512.png",
             "sizes": "512x512",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Dashboard",
+            "short_name": "Início",
+            "description": "Ir para o painel principal",
+            "url": "/dashboard?source=pwa",
+            "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "Fazer Quiz",
+            "short_name": "Quiz",
+            "description": "Iniciar uma sessão de questões",
+            "url": "/questoes/treino?source=pwa",
+            "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "Arena PvP",
+            "short_name": "Arena",
+            "description": "Desafiar outros estudantes",
+            "url": "/arena?source=pwa",
+            "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "Axon Store",
+            "short_name": "Loja",
+            "description": "Comprar itens com Axons",
+            "url": "/loja?source=pwa",
+            "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
         }
     ]
 }

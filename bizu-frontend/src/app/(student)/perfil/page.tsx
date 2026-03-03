@@ -94,6 +94,9 @@ export default function ProfilePage() {
     const [nickname, setNickname] = useState("");
     const [phone, setPhone] = useState("");
     const [isUploading, setIsUploading] = useState(false);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
+    const [confirmingDeviceId, setConfirmingDeviceId] = useState<string | null>(null);
 
     // Verification states
     const [isVerifyingPhone, setIsVerifyingPhone] = useState(false);
@@ -222,25 +225,23 @@ export default function ProfilePage() {
         }
     };
 
-    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files?.[0]) return;
+        const file = e.target.files[0];
+        setPendingAvatarFile(file);
+        setAvatarPreview(URL.createObjectURL(file));
+        // Reset input so the same file can be re-selected if cancelled
+        e.target.value = "";
+    };
 
+    const confirmAvatarUpload = async () => {
+        if (!pendingAvatarFile) return;
         setIsUploading(true);
-        const originalFile = e.target.files[0];
-
         try {
-            // Compress image to max 400x400 for avatars, 80% quality
-            const compressedBlob = await compressImage(originalFile, 400, 400, 0.8);
-
+            const compressedBlob = await compressImage(pendingAvatarFile, 400, 400, 0.8);
             const formData = new FormData();
-            formData.append("file", compressedBlob, originalFile.name.replace(/\.[^/.]+$/, "") + ".jpg");
-
-            // No need to set Content-Type, browser will do it with boundary
-            const res = await apiFetch("/users/me/avatar", {
-                method: "POST",
-                body: formData
-            });
-
+            formData.append("file", compressedBlob, pendingAvatarFile.name.replace(/\.[^/.]+$/, "") + ".jpg");
+            const res = await apiFetch("/users/me/avatar", { method: "POST", body: formData });
             if (res.ok) {
                 await refreshUserProfile();
                 toast.success("Foto de perfil atualizada!");
@@ -252,7 +253,15 @@ export default function ProfilePage() {
             toast.error("Erro ao enviar foto");
         } finally {
             setIsUploading(false);
+            setAvatarPreview(null);
+            setPendingAvatarFile(null);
         }
+    };
+
+    const cancelAvatarPreview = () => {
+        if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+        setAvatarPreview(null);
+        setPendingAvatarFile(null);
     };
 
     const removeDevice = async (id: string) => {
@@ -260,6 +269,7 @@ export default function ProfilePage() {
             const res = await apiFetch(`/devices/${id}`, { method: "DELETE" });
             if (res.ok) {
                 setDevices(devices.filter(d => d.id !== id));
+                setConfirmingDeviceId(null);
                 toast.success("Dispositivo removido");
             }
         } catch {
@@ -333,6 +343,8 @@ export default function ProfilePage() {
                                 <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-[32px] overflow-hidden bg-slate-100 border-4 border-white shadow-xl flex items-center justify-center ring-1 ring-slate-100 transition-transform group-hover:scale-[1.02]">
                                     {isLoading ? (
                                         <Skeleton className="w-full h-full" />
+                                    ) : avatarPreview ? (
+                                        <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
                                     ) : user?.avatarUrl ? (
                                         <img
                                             src={getAvatarUrl(user.avatarUrl as string)}
@@ -352,38 +364,70 @@ export default function ProfilePage() {
                                             <Loader2 className="w-8 h-8 text-white animate-spin" />
                                         </div>
                                     )}
+                                    {avatarPreview && !isUploading && (
+                                        <div className="absolute inset-0 bg-slate-900/30 flex items-center justify-center">
+                                            <span className="text-[10px] font-black text-white bg-indigo-600 px-2 py-1 rounded-lg">Preview</span>
+                                        </div>
+                                    )}
                                 </div>
-                                <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-white shadow-lg rounded-xl border border-slate-100 flex items-center justify-center cursor-pointer hover:bg-slate-50 transition-all active:scale-90 overflow-hidden">
-                                    <input
-                                        type="file"
-                                        className="hidden"
-                                        accept="image/*"
-                                        onChange={handleAvatarUpload}
-                                        disabled={isUploading}
-                                    />
-                                    <Smartphone className="w-5 h-5 text-slate-500" />
-                                </label>
+                                {!avatarPreview && (
+                                    <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-white shadow-lg rounded-xl border border-slate-100 flex items-center justify-center cursor-pointer hover:bg-slate-50 transition-all active:scale-90 overflow-hidden">
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept="image/*"
+                                            onChange={handleAvatarUpload}
+                                            disabled={isUploading}
+                                        />
+                                        <Smartphone className="w-5 h-5 text-slate-500" />
+                                    </label>
+                                )}
                             </div>
 
                             <div className="flex-1 text-center sm:text-left">
                                 <h4 className="text-lg font-bold text-slate-900 mb-1">Sua Foto de Perfil</h4>
                                 <p className="text-sm text-slate-500 mb-4 max-w-sm">
-                                    Esta foto será visível para seus amigos e em rankings. Use uma imagem quadrada para melhor visualização.
+                                    {avatarPreview
+                                        ? "Confirme para salvar a nova foto ou cancele para manter a atual."
+                                        : "Esta foto será visível para seus amigos e em rankings. Use uma imagem quadrada para melhor visualização."}
                                 </p>
                                 <div className="flex flex-wrap justify-center sm:justify-start gap-3">
-                                    <Button
-                                        variant="outline"
-                                        className="h-9 px-4 rounded-xl text-xs font-bold border-slate-200"
-                                        onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement)?.click()}
-                                    >
-                                        Alterar Foto
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        className="h-9 px-4 rounded-xl text-xs font-bold text-slate-400 hover:text-danger hover:bg-danger/5"
-                                    >
-                                        Remover
-                                    </Button>
+                                    {avatarPreview ? (
+                                        <>
+                                            <Button
+                                                onClick={confirmAvatarUpload}
+                                                disabled={isUploading}
+                                                className="h-9 px-4 rounded-xl text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700"
+                                            >
+                                                {isUploading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
+                                                Confirmar Foto
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                onClick={cancelAvatarPreview}
+                                                disabled={isUploading}
+                                                className="h-9 px-4 rounded-xl text-xs font-bold text-slate-400 hover:text-slate-700"
+                                            >
+                                                Cancelar
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Button
+                                                variant="outline"
+                                                className="h-9 px-4 rounded-xl text-xs font-bold border-slate-200"
+                                                onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement)?.click()}
+                                            >
+                                                Alterar Foto
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                className="h-9 px-4 rounded-xl text-xs font-bold text-slate-400 hover:text-danger hover:bg-danger/5"
+                                            >
+                                                Remover
+                                            </Button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -582,14 +626,14 @@ export default function ProfilePage() {
                             ) : (
                                 devices.map((device) => (
                                     <div key={device.id} className="flex items-center justify-between p-6 rounded-[28px] border border-slate-100 hover:border-emerald-100 hover:bg-emerald-50/30 transition-all group">
-                                        <div className="flex items-center gap-5">
-                                            <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center border border-slate-100 group-hover:border-emerald-100 transition-all shadow-sm">
+                                        <div className="flex items-center gap-5 flex-1 min-w-0">
+                                            <div className="w-14 h-14 shrink-0 rounded-2xl bg-white flex items-center justify-center border border-slate-100 group-hover:border-emerald-100 transition-all shadow-sm">
                                                 {device.osInfo && device.osInfo.toLowerCase().includes("mobile") ? <Smartphone className="w-6 h-6 text-slate-600" /> : <Monitor className="w-6 h-6 text-slate-600" />}
                                             </div>
-                                            <div>
+                                            <div className="min-w-0">
                                                 <div className="font-bold text-slate-900 text-lg flex items-center gap-2">
                                                     {device.lastIp || "Desconhecido"}
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                                                 </div>
                                                 <div className="text-xs font-medium text-slate-500 flex flex-col gap-0.5">
                                                     <span className="truncate max-w-[240px] sm:max-w-md">{device.browserInfo || "Navegador desconhecido"} {device.osInfo ? `(${device.osInfo})` : ""}</span>
@@ -597,13 +641,33 @@ export default function ProfilePage() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <Button
-                                            variant="ghost"
-                                            className="text-danger font-black hover:bg-danger/5 rounded-xl h-10 px-4 transition-all opacity-0 group-hover:opacity-100"
-                                            onClick={() => removeDevice(device.id)}
-                                        >
-                                            Remover
-                                        </Button>
+                                        <div className="shrink-0 ml-4">
+                                            {confirmingDeviceId === device.id ? (
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        className="h-9 px-3 rounded-xl text-xs font-bold text-slate-400 hover:bg-slate-100"
+                                                        onClick={() => setConfirmingDeviceId(null)}
+                                                    >
+                                                        Cancelar
+                                                    </Button>
+                                                    <Button
+                                                        className="h-9 px-3 rounded-xl text-xs font-black bg-red-600 text-white hover:bg-red-700"
+                                                        onClick={() => removeDevice(device.id)}
+                                                    >
+                                                        Confirmar
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <Button
+                                                    variant="ghost"
+                                                    className="text-danger font-black hover:bg-danger/5 rounded-xl h-10 px-4 transition-all opacity-0 group-hover:opacity-100"
+                                                    onClick={() => setConfirmingDeviceId(device.id)}
+                                                >
+                                                    Remover
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
                                 ))
                             )}

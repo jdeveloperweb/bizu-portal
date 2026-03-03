@@ -215,7 +215,15 @@ function AxonStoreContent() {
 
     const handleBuy = async (item: StoreItem) => {
         if (!gamification || gamification.axons < item.price) {
-            toast.error("Axons insuficientes! Estude mais para ganhar.");
+            const deficit = item.price - (gamification?.axons || 0);
+            toast.error(`Faltam ${deficit} Axons para comprar ${item.name}`, {
+                description: "Recarregue sua carteira ou ganhe mais XP estudando.",
+                action: {
+                    label: "Recarregar",
+                    onClick: () => setIsRechargeModalOpen(true),
+                },
+                duration: 6000,
+            });
             return;
         }
 
@@ -507,10 +515,10 @@ function AxonStoreContent() {
                     </div>
                 </div>
             </div>
-            {/* Modal de Recarga */}
+            {/* Modal de Recarga — bottom sheet no mobile, modal centrado no desktop */}
             <AnimatePresence>
                 {isRechargeModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center md:p-4">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -520,11 +528,14 @@ function AxonStoreContent() {
                         />
 
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-3xl bg-white rounded-[32px] shadow-2xl overflow-hidden border border-slate-200 p-6 md:p-10 flex flex-col items-center text-center max-h-[90vh] overflow-y-auto custom-scrollbar"
+                            initial={{ opacity: 0, y: "100%" }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: "100%" }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            className="relative w-full md:max-w-3xl bg-white md:rounded-[32px] rounded-t-[32px] shadow-2xl overflow-hidden border border-slate-200 p-6 md:p-10 flex flex-col items-center text-center max-h-[92dvh] overflow-y-auto custom-scrollbar pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
                         >
+                            {/* Drag handle — só mobile */}
+                            <div className="md:hidden w-9 h-1 bg-slate-200 rounded-full mb-4 shrink-0" />
                             <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-6 shadow-sm">
                                 <CreditCard size={32} />
                             </div>
