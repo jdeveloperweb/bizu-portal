@@ -23,10 +23,10 @@ interface Props {
     onStart: (count: number, category: "QUIZ" | "SIMULADO") => void;
 }
 
-const COUNT_OPTIONS = [10, 20, 30, 50];
+const PER_CHUNK_OPTIONS = [5, 10, 15, 20];
 
 export default function GenerateQuestionsModal({ material, module, onClose, onStart }: Props) {
-    const [count, setCount] = useState(20);
+    const [count, setCount] = useState(10);
     const [category, setCategory] = useState<"QUIZ" | "SIMULADO">("QUIZ");
 
     return (
@@ -123,24 +123,35 @@ export default function GenerateQuestionsModal({ material, module, onClose, onSt
 
                     {/* Count selector */}
                     <div className="space-y-3">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">
-                            Quantidade de Questões
-                        </label>
+                        <div className="ml-1">
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-400">
+                                Questões por Bloco de Conteúdo
+                            </label>
+                            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+                                Cada bloco do artigo gera este número de questões · 3 fáceis · {count <= 5 ? 1 : count - 2 * Math.round(count * 0.30)} médias · 3 difíceis
+                            </p>
+                        </div>
                         <div className="flex gap-2">
-                            {COUNT_OPTIONS.map((n) => (
-                                <button
-                                    key={n}
-                                    onClick={() => setCount(n)}
-                                    className={cn(
-                                        "flex-1 h-12 rounded-xl font-black text-sm transition-all border-2",
-                                        count === n
-                                            ? "border-violet-500 bg-violet-50 text-violet-700"
-                                            : "border-slate-200 text-slate-500 hover:border-slate-300"
-                                    )}
-                                >
-                                    {n}
-                                </button>
-                            ))}
+                            {PER_CHUNK_OPTIONS.map((n) => {
+                                const easy = Math.round(n * 0.30);
+                                const hard = Math.round(n * 0.30);
+                                const medium = n - easy - hard;
+                                return (
+                                    <button
+                                        key={n}
+                                        onClick={() => setCount(n)}
+                                        className={cn(
+                                            "flex-1 py-3 rounded-xl font-black text-sm transition-all border-2 flex flex-col items-center gap-0.5",
+                                            count === n
+                                                ? "border-violet-500 bg-violet-50 text-violet-700"
+                                                : "border-slate-200 text-slate-500 hover:border-slate-300"
+                                        )}
+                                    >
+                                        <span className="text-lg">{n}</span>
+                                        <span className="text-[9px] font-semibold opacity-70">{easy}F·{medium}M·{hard}D</span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -158,7 +169,7 @@ export default function GenerateQuestionsModal({ material, module, onClose, onSt
                             className="flex-1 h-12 rounded-xl font-black bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-lg shadow-violet-200 gap-2"
                         >
                             <Sparkles className="w-4 h-4" />
-                            Gerar {count} Questões
+                            Iniciar Geração
                         </Button>
                     </div>
                 </div>

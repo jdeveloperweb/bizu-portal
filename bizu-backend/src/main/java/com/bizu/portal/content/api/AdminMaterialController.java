@@ -58,7 +58,7 @@ public class AdminMaterialController {
     @GetMapping(value = "/{materialId}/generate-questions", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter generateQuestions(
             @PathVariable UUID materialId,
-            @RequestParam int count,
+            @RequestParam int perChunk,
             @RequestParam String category,
             @RequestParam UUID moduleId,
             @RequestParam(required = false, defaultValue = "Módulo") String moduleName,
@@ -73,10 +73,10 @@ public class AdminMaterialController {
         String content = material.getContent();
         String title = material.getTitle();
 
-        SseEmitter emitter = new SseEmitter(300_000L); // 5-minute timeout
+        SseEmitter emitter = new SseEmitter(600_000L); // 10-minute timeout for large articles
 
         CompletableFuture.runAsync(() ->
-                questionGenerationService.generate(content, title, moduleId, moduleName, count, category, emitter));
+                questionGenerationService.generate(content, title, moduleId, moduleName, perChunk, category, emitter));
 
         return emitter;
     }

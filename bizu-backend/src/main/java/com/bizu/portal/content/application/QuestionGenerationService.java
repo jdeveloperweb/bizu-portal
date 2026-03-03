@@ -24,7 +24,7 @@ public class QuestionGenerationService {
             String materialTitle,
             UUID moduleId,
             String moduleName,
-            int count,
+            int perChunk,
             String category,
             SseEmitter emitter
     ) {
@@ -37,24 +37,18 @@ public class QuestionGenerationService {
                 return;
             }
 
-            // Only process as many chunks as needed — never more than the requested count
-            int chunksNeeded = Math.min(chunks.size(), count);
-            List<String> activeChunks = chunks.subList(0, chunksNeeded);
-
-            int questionsPerChunk = count / chunksNeeded;
-            int remainder = count % chunksNeeded;
+            int totalChunks = chunks.size();
 
             sendEvent(emitter, "start",
-                    String.format("{\"totalChunks\":%d,\"targetQuestions\":%d,\"materialTitle\":\"%s\"}",
-                            chunksNeeded, count, escapeJson(materialTitle)));
+                    String.format("{\"totalChunks\":%d,\"perChunk\":%d,\"materialTitle\":\"%s\"}",
+                            totalChunks, perChunk, escapeJson(materialTitle)));
 
             int totalGenerated = 0;
 
-            for (int i = 0; i < activeChunks.size(); i++) {
-                int questionsForChunk = questionsPerChunk + (i < remainder ? 1 : 0);
-                String chunk = activeChunks.get(i);
+            for (int i = 0; i < chunks.size(); i++) {
+                String chunk = chunks.get(i);
 
-                String prompt = buildPrompt(moduleName, i + 1, chunksNeeded, category, questionsForChunk);
+                String prompt = buildPrompt(moduleName, i + 1, totalChunks, category, perChunk);
                 String aiResponse = aiService.analyze(prompt, chunk);
 
                 List<Question> saved = questionSaveService.parseAndSave(aiResponse, moduleId, category, moduleName);
@@ -62,7 +56,7 @@ public class QuestionGenerationService {
 
                 sendEvent(emitter, "progress",
                         String.format("{\"chunk\":%d,\"totalChunks\":%d,\"questionsGenerated\":%d}",
-                                i + 1, chunksNeeded, totalGenerated));
+                                i + 1, totalChunks, totalGenerated));
             }
 
             sendEvent(emitter, "complete",
@@ -119,6 +113,10 @@ public class QuestionGenerationService {
     // ── Prompt Builder ────────────────────────────────────────────────────────
 
     private String buildPrompt(String moduleName, int chunkNum, int totalChunks, String category, int count) {
+        int easy = (int) Math.round(count * 0.30);
+        int hard = (int) Math.round(count * 0.30);
+        int medium = count - easy - hard;
+
         String typeInstruction = "SIMULADO".equals(category)
                 ? "TIPO SIMULADO: Cada questão DEVE iniciar com uma narrativa situacional usando um personagem militar "
                   + "fictício (exemplos: 'O Soldado Carlos estava em patrulha quando...', "
@@ -132,12 +130,12 @@ public class QuestionGenerationService {
                 + "- Módulo: \"" + moduleName + "\"\n"
                 + "- Trecho: " + chunkNum + " de " + totalChunks + "\n\n"
                 + typeInstruction + "\n\n"
-                + "DISTRIBUIÇÃO OBRIGATÓRIA DE DIFICULDADE:\n"
-                + "- EASY (~30%): recall direto do texto\n"
-                + "- MEDIUM (~50%): aplicação e compreensão do conteúdo\n"
-                + "- HARD (~20%): análise, síntese ou situações excepcionais\n\n"
+                + "DISTRIBUIÇÃO OBRIGATÓRIA DE DIFICULDADE (siga exatamente):\n"
+                + "- " + easy + " questão(ões) com difficulty=\"EASY\" — recall direto do texto\n"
+                + "- " + medium + " questão(ões) com difficulty=\"MEDIUM\" — aplicação e compreensão\n"
+                + "- " + hard + " questão(ões) com difficulty=\"HARD\" — análise, síntese ou situações excepcionais\n\n"
                 + "REGRAS:\n"
-                + "- Gere EXATAMENTE " + count + " questão(ões)\n"
+                + "- Gere EXATAMENTE " + count + " questão(ões) neste trecho\n"
                 + "- 4 alternativas por questão: A, B, C, D\n"
                 + "- Baseie-se EXCLUSIVAMENTE no conteúdo fornecido abaixo\n"
                 + "- Responda SOMENTE em JSON válido, sem texto extra, sem blocos markdown\n\n"

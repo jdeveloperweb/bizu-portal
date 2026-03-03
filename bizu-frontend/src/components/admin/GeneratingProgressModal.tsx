@@ -41,7 +41,7 @@ export default function GeneratingProgressModal({
         const run = async () => {
             try {
                 const params = new URLSearchParams({
-                    count: count.toString(),
+                    perChunk: count.toString(),
                     category,
                     moduleId,
                     moduleName,
@@ -95,6 +95,7 @@ export default function GeneratingProgressModal({
                             const parsed = JSON.parse(data);
                             if (eventType === "start") {
                                 setTotalChunks(parsed.totalChunks ?? 1);
+                                // perChunk available as parsed.perChunk if needed
                             } else if (eventType === "progress") {
                                 setCurrentChunk(parsed.chunk ?? 0);
                                 setQuestionsGenerated(parsed.questionsGenerated ?? 0);
