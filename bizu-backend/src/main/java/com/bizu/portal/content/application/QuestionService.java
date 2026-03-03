@@ -65,6 +65,10 @@ public class QuestionService {
         return questionRepository.findDistinctBancasByCategory(category);
     }
 
+    public java.util.List<String> getTopics(String category) {
+        return questionRepository.findDistinctTopicsByCategory(category);
+    }
+
     public Question findById(UUID id) {
         return questionRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Questão não encontrada"));

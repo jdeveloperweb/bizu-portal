@@ -15,7 +15,10 @@ import {
     ArrowUpRight,
     TrendingUp,
     FileText,
-    Dumbbell
+    Dumbbell,
+    AlertTriangle,
+    X,
+    Loader2
 } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
 import { useState, useEffect } from "react";
@@ -28,6 +31,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "../../../../components/ui/dropdown-menu";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { apiFetch } from "@/lib/api";
 
@@ -38,6 +42,14 @@ export default function AdminQuestoesPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [stats, setStats] = useState({ total: 0, easy: 0, medium: 0, hard: 0 });
+
+    // Bulk Delete Modal States
+    const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+    const [bulkDeleteType, setBulkDeleteType] = useState<"topic" | "subject">("topic");
+    const [bulkDeleteItems, setBulkDeleteItems] = useState<string[]>([]);
+    const [selectedBulkItem, setSelectedBulkItem] = useState("");
+    const [confirmInput, setConfirmInput] = useState("");
+    const [isFetchingItems, setIsFetchingItems] = useState(false);
 
     const fetchStats = async () => {
         try {
@@ -84,39 +96,45 @@ export default function AdminQuestoesPage() {
         }
     };
 
-    const handleBulkDeleteByTopic = async () => {
-        const topic = prompt("Digite o nome EXATO do ASSUNTO que deseja apagar TODAS as questões:");
-        if (!topic) return;
-
-        if (!confirm(`CUIDADO: Isso apagará TODAS as questões vinculadas ao assunto "${topic}". Deseja continuar?`)) return;
+    const openBulkDeleteModal = async (type: "topic" | "subject") => {
+        setBulkDeleteType(type);
+        setIsBulkDeleteModalOpen(true);
+        setSelectedBulkItem("");
+        setConfirmInput("");
+        setIsFetchingItems(true);
 
         try {
-            const res = await apiFetch(`/admin/questions/topic?topic=${encodeURIComponent(topic)}`, { method: "DELETE" });
+            const endpoint = type === "topic" ? "topics" : "subjects";
+            const res = await apiFetch(`/admin/questions/${endpoint}?category=${activeTab}`);
             if (res.ok) {
-                fetchQuestions();
-                fetchStats();
-                alert("Todas as questões do assunto foram apagadas.");
+                const data = await res.json();
+                setBulkDeleteItems(data.filter((i: string) => i && i.trim() !== "") || []);
             }
         } catch (error) {
-            console.error("Failed to delete questions by topic", error);
+            console.error("Failed to fetch items", error);
+        } finally {
+            setIsFetchingItems(false);
         }
     };
 
-    const handleBulkDeleteBySubject = async () => {
-        const subject = prompt("Digite o nome EXATO da MATÉRIA (Disciplina) que deseja apagar TODAS as questões:");
-        if (!subject) return;
-
-        if (!confirm(`CUIDADO: Isso apagará TODAS as questões vinculadas à matéria "${subject}". Deseja continuar?`)) return;
+    const handleExecuteBulkDelete = async () => {
+        if (confirmInput.toLowerCase() !== "confirmar") {
+            alert("Por favor, digite 'confirmar' para prosseguir.");
+            return;
+        }
 
         try {
-            const res = await apiFetch(`/admin/questions/subject?subject=${encodeURIComponent(subject)}`, { method: "DELETE" });
+            const endpoint = bulkDeleteType === "topic" ? "topic" : "subject";
+            const param = bulkDeleteType === "topic" ? "topic" : "subject";
+            const res = await apiFetch(`/admin/questions/${endpoint}?${param}=${encodeURIComponent(selectedBulkItem)}`, { method: "DELETE" });
             if (res.ok) {
                 fetchQuestions();
                 fetchStats();
-                alert("Todas as questões da matéria foram apagadas.");
+                setIsBulkDeleteModalOpen(false);
+                alert("Exclusão em massa realizada com sucesso!");
             }
         } catch (error) {
-            console.error("Failed to delete questions by subject", error);
+            console.error("Failed to execute bulk delete", error);
         }
     };
 
@@ -137,11 +155,11 @@ export default function AdminQuestoesPage() {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="w-56 rounded-2xl p-2 shadow-2xl border-muted/50">
-                            <DropdownMenuItem onClick={handleBulkDeleteByTopic} className="rounded-xl font-bold gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer h-10">
+                            <DropdownMenuItem onClick={() => openBulkDeleteModal("topic")} className="rounded-xl font-bold gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer h-10">
                                 <Trash2 className="w-4 h-4" />
                                 Por Assunto
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={handleBulkDeleteBySubject} className="rounded-xl font-bold gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer h-10">
+                            <DropdownMenuItem onClick={() => openBulkDeleteModal("subject")} className="rounded-xl font-bold gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer h-10">
                                 <Trash2 className="w-4 h-4" />
                                 Por Matéria
                             </DropdownMenuItem>
@@ -318,6 +336,115 @@ export default function AdminQuestoesPage() {
                     </table>
                 </div>
             </div>
+
+            {/* Bulk Delete Modal */}
+            <AnimatePresence>
+                {isBulkDeleteModalOpen && (
+                    <>
+                        {/* Backdrop */}
+                        <motion.div
+                            key="backdrop"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsBulkDeleteModalOpen(false)}
+                            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md"
+                        />
+
+                        {/* Modal container */}
+                        <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none">
+                            <motion.div
+                                key="modal"
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="w-full max-w-lg bg-card border shadow-2xl rounded-[32px] overflow-hidden pointer-events-auto"
+                            >
+                                <div className="p-8">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-destructive/10 flex items-center justify-center text-destructive">
+                                                <AlertTriangle className="w-6 h-6" />
+                                            </div>
+                                            <div className="text-left">
+                                                <h3 className="text-xl font-black">Limpar Acervo</h3>
+                                                <p className="text-sm font-bold text-muted-foreground leading-tight">
+                                                    Excluir por {bulkDeleteType === "topic" ? "Assunto" : "Matéria"} em <span className="text-primary">{activeTab === 'QUIZ' ? 'Quick Quiz' : 'Simulados'}</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => setIsBulkDeleteModalOpen(false)}
+                                            className="w-10 h-10 rounded-xl hover:bg-muted flex items-center justify-center transition-colors"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        <div className="space-y-2 text-left">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                                                Selecione o {bulkDeleteType === "topic" ? "Assunto" : "Matéria"}
+                                            </label>
+                                            <div className="relative">
+                                                {isFetchingItems ? (
+                                                    <div className="h-14 rounded-2xl bg-muted/50 animate-pulse flex items-center justify-center">
+                                                        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                                                    </div>
+                                                ) : (
+                                                    <select
+                                                        value={selectedBulkItem}
+                                                        onChange={(e) => setSelectedBulkItem(e.target.value)}
+                                                        className="w-full h-14 rounded-2xl bg-muted/50 border-2 border-transparent focus:border-primary px-6 font-bold outline-none transition-all appearance-none cursor-pointer"
+                                                    >
+                                                        <option value="">Selecione uma opção...</option>
+                                                        {bulkDeleteItems.sort().map((item) => (
+                                                            <option key={item} value={item}>{item}</option>
+                                                        ))}
+                                                    </select>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {selectedBulkItem && (
+                                            <motion.div
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: "auto" }}
+                                                className="space-y-4 pt-4 border-t"
+                                            >
+                                                <div className="p-5 rounded-2xl bg-destructive/5 border border-destructive/10 text-destructive text-sm font-bold leading-relaxed text-left">
+                                                    ⚠️ CUIDADO: Esta ação apagará permanentemente todas as questões de <strong>"{selectedBulkItem}"</strong>, incluindo histórico de duelos e tentativas de alunos.
+                                                </div>
+
+                                                <div className="space-y-2 text-left">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                                                        Digite <span className="text-destructive font-black">confirmar</span> para apagar
+                                                    </label>
+                                                    <Input
+                                                        placeholder="Escreva 'confirmar' aqui..."
+                                                        value={confirmInput}
+                                                        onChange={(e) => setConfirmInput(e.target.value)}
+                                                        className="h-14 rounded-2xl border-2 border-muted focus-visible:border-destructive focus-visible:ring-destructive/10 font-bold px-6"
+                                                    />
+                                                </div>
+
+                                                <Button
+                                                    disabled={confirmInput.toLowerCase() !== "confirmar"}
+                                                    onClick={handleExecuteBulkDelete}
+                                                    className="w-full h-16 rounded-2xl font-black gap-2 bg-destructive hover:bg-destructive/90 text-white shadow-xl shadow-destructive/20 transition-all disabled:opacity-50 disabled:grayscale"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                    APAGAR TUDO AGORA
+                                                </Button>
+                                            </motion.div>
+                                        )}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

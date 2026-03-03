@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import com.bizu.portal.commerce.application.PaymentService;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/admin/payments")
@@ -36,5 +37,21 @@ public class AdminPaymentController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Erro na simulação: " + e.getMessage());
         }
+    }
+
+    @DeleteMapping("/pending")
+    public ResponseEntity<Void> deleteAllPending() {
+        paymentRepository.deleteByStatus("PENDING");
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePayment(@PathVariable UUID id) {
+        Payment payment = paymentRepository.findById(id).orElseThrow();
+        if ("SUCCEEDED".equals(payment.getStatus())) {
+            return ResponseEntity.status(403).build();
+        }
+        paymentRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

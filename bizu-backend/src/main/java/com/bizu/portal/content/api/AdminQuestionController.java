@@ -45,6 +45,11 @@ public class AdminQuestionController {
         return ResponseEntity.ok(questionService.getBancas(category));
     }
 
+    @GetMapping("/topics")
+    public ResponseEntity<java.util.List<String>> getTopics(@RequestParam String category) {
+        return ResponseEntity.ok(questionService.getTopics(category));
+    }
+
     @PostMapping("/import")
     public ResponseEntity<Map<String, Object>> importQuestions(@RequestParam("file") MultipartFile file) {
         int count = questionImportService.importFromCsv(file);

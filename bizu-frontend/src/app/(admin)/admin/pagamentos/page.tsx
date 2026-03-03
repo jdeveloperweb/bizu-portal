@@ -15,13 +15,15 @@ import {
     ChevronDown,
     DollarSign,
     Users,
-    Play
+    Play,
+    Trash2
 } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface Payment {
     id: string;
@@ -88,6 +90,36 @@ export default function AdminPaymentsPage() {
         }
     };
 
+    const deletePayment = async (id: string) => {
+        if (!confirm("Deseja realmente excluir este registro de pagamento?")) return;
+        try {
+            const res = await apiFetch(`/admin/payments/${id}`, { method: "DELETE" });
+            if (res.ok) {
+                toast.success("Registro removido");
+                setPayments(prev => prev.filter(p => p.id !== id));
+            } else {
+                toast.error("Erro ao remover registro");
+            }
+        } catch (error) {
+            toast.error("Erro de conexão");
+        }
+    };
+
+    const clearAllPending = async () => {
+        if (!confirm("Deseja realmente excluir TODOS os registros pendentes? Esta ação não pode ser desfeita.")) return;
+        try {
+            const res = await apiFetch(`/admin/payments/pending`, { method: "DELETE" });
+            if (res.ok) {
+                toast.success("Todos os pendentes foram removidos");
+                setPayments(prev => prev.filter(p => p.status !== 'PENDING'));
+            } else {
+                toast.error("Erro ao remover registros");
+            }
+        } catch (error) {
+            toast.error("Erro de conexão");
+        }
+    };
+
     return (
         <div className="w-full px-8 py-8 h-full font-sans">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
@@ -96,9 +128,20 @@ export default function AdminPaymentsPage() {
                     description="Acompanhe todas as transações realizadas na plataforma em tempo real."
                     badge="REVENUE"
                 />
-                <Button variant="outline" className="h-12 rounded-xl border-slate-200 gap-2 font-bold text-slate-600">
-                    <Download className="w-4 h-4" /> Exportar CSV
-                </Button>
+                <div className="flex gap-3">
+                    {payments.some(p => p.status === 'PENDING') && (
+                        <Button
+                            variant="outline"
+                            onClick={clearAllPending}
+                            className="h-12 rounded-xl border-red-100 bg-red-50 text-red-600 gap-2 font-bold hover:bg-red-100"
+                        >
+                            <Trash2 className="w-4 h-4" /> Limpar Pendentes
+                        </Button>
+                    )}
+                    <Button variant="outline" className="h-12 rounded-xl border-slate-200 gap-2 font-bold text-slate-600">
+                        <Download className="w-4 h-4" /> Exportar CSV
+                    </Button>
+                </div>
             </div>
 
             {/* Quick Stats */}
@@ -164,7 +207,14 @@ export default function AdminPaymentsPage() {
                                     <td className="px-8 py-5">
                                         <div className="text-sm font-black text-slate-800">{p.user?.name || 'Usuário não identificado'}</div>
                                         <div className="text-[11px] font-bold text-indigo-600 uppercase tracking-tight mb-0.5">{p.plan?.name || 'Plano não identificado'}</div>
-                                        <div className="text-[10px] font-bold text-slate-400">{p.createdAt ? format(new Date(p.createdAt), "dd/MM/yyyy HH:mm") : 'Sem data'}</div>
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="text-[10px] font-bold text-slate-400">{p.createdAt ? format(new Date(p.createdAt), "dd/MM/yyyy HH:mm") : 'Sem data'}</div>
+                                            {p.status === 'PENDING' && p.createdAt && (
+                                                <div className="text-[9px] font-black text-amber-500 uppercase tracking-tight bg-amber-50 px-1.5 py-0.5 rounded-md">
+                                                    Pendente há {formatDistanceToNow(new Date(p.createdAt), { locale: ptBR })}
+                                                </div>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-8 py-5 font-black text-slate-900">R$ {p.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                                     <td className="px-8 py-5">
@@ -182,6 +232,16 @@ export default function AdminPaymentsPage() {
                                                     className="h-8 border-indigo-100 text-indigo-600 hover:bg-indigo-50 font-bold text-[9px] gap-1.5"
                                                 >
                                                     <Play size={10} fill="currentColor" /> SIMULAR APROVAÇÃO
+                                                </Button>
+                                            )}
+                                            {p.status !== 'SUCCEEDED' && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() => deletePayment(p.id)}
+                                                    className="h-8 w-8 p-0 text-slate-300 hover:text-red-500 hover:bg-red-50"
+                                                >
+                                                    <Trash2 size={14} />
                                                 </Button>
                                             )}
                                             <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${p.status === 'SUCCEEDED' ? 'bg-emerald-50 text-emerald-600' : p.status === 'PENDING' ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'

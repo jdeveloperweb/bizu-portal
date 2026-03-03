@@ -25,4 +25,9 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     List<Payment> findByUserIdOrderByCreatedAtDesc(UUID userId);
 
     java.util.Optional<Payment> findByStripeIntentId(String stripeIntentId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @Query("DELETE FROM Payment p WHERE p.status = :status")
+    void deleteByStatus(@Param("status") String status);
 }

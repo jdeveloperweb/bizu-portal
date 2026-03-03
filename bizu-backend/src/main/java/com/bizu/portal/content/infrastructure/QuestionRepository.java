@@ -64,6 +64,9 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
     @Query("SELECT DISTINCT q.banca FROM Question q WHERE q.category = :category AND q.banca IS NOT NULL")
     java.util.List<String> findDistinctBancasByCategory(@Param("category") String category);
 
+    @Query("SELECT DISTINCT q.topic FROM Question q WHERE q.category = :category")
+    java.util.List<String> findDistinctTopicsByCategory(@Param("category") String category);
+
     @Transactional
     void deleteByModule_Id(UUID moduleId);
 
