@@ -18,7 +18,8 @@ import {
     Dumbbell,
     AlertTriangle,
     X,
-    Loader2
+    Loader2,
+    Upload
 } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
 import { useState, useEffect } from "react";
@@ -169,6 +170,12 @@ export default function AdminQuestoesPage() {
                         <Filter className="w-5 h-5" />
                         Filtros Avançados
                     </Button>
+                    <Link href="/admin/questoes/importar">
+                        <Button variant="outline" className="h-14 rounded-xl font-black px-8 gap-2">
+                            <Upload className="w-5 h-5" />
+                            Importar em Lote
+                        </Button>
+                    </Link>
                     <Link href="/admin/questoes/nova">
                         <Button className="h-14 rounded-xl font-black px-8 gap-2 shadow-xl shadow-primary/20">
                             <Plus className="w-5 h-5" />

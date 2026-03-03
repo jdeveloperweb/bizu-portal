@@ -49,6 +49,9 @@ public class Question {
     @Builder.Default
     private String category = "SIMULADO"; // SIMULADO, QUIZ
 
+    @Column(name = "image_base64", columnDefinition = "TEXT")
+    private String imageBase64; // Optional base64-encoded image
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "module_id")
     @com.fasterxml.jackson.annotation.JsonBackReference

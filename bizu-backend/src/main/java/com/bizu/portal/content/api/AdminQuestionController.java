@@ -3,13 +3,19 @@ package com.bizu.portal.content.api;
 import com.bizu.portal.content.application.QuestionImportService;
 import com.bizu.portal.content.application.QuestionService;
 import com.bizu.portal.content.domain.Question;
+import com.bizu.portal.content.domain.QuestionImportLog;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -31,33 +37,74 @@ public class AdminQuestionController {
     }
 
     @GetMapping("/stats")
-    public ResponseEntity<java.util.Map<String, Object>> getStats(@RequestParam String category) {
+    public ResponseEntity<Map<String, Object>> getStats(@RequestParam String category) {
         return ResponseEntity.ok(questionService.getStats(category));
     }
 
     @GetMapping("/subjects")
-    public ResponseEntity<java.util.List<String>> getSubjects(@RequestParam String category) {
+    public ResponseEntity<List<String>> getSubjects(@RequestParam String category) {
         return ResponseEntity.ok(questionService.getSubjects(category));
     }
 
     @GetMapping("/bancas")
-    public ResponseEntity<java.util.List<String>> getBancas(@RequestParam String category) {
+    public ResponseEntity<List<String>> getBancas(@RequestParam String category) {
         return ResponseEntity.ok(questionService.getBancas(category));
     }
 
     @GetMapping("/topics")
-    public ResponseEntity<java.util.List<String>> getTopics(@RequestParam String category) {
+    public ResponseEntity<List<String>> getTopics(@RequestParam String category) {
         return ResponseEntity.ok(questionService.getTopics(category));
     }
 
-    @PostMapping("/import")
-    public ResponseEntity<Map<String, Object>> importQuestions(@RequestParam("file") MultipartFile file) {
-        int count = questionImportService.importFromCsv(file);
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Sucesso");
-        response.put("count", count);
-        return ResponseEntity.ok(response);
+    // ── Bulk Import ──────────────────────────────────────────────────────────
+
+    @GetMapping("/import/template")
+    public ResponseEntity<byte[]> downloadTemplate(
+            @RequestParam(required = false) String courseId,
+            @RequestParam(required = false) String courseTitle,
+            @RequestParam(required = false) String moduleId,
+            @RequestParam(required = false) String moduleTitle,
+            @RequestParam(defaultValue = "QUIZ") String category) {
+
+        String json = questionImportService.generateTemplate(courseId, courseTitle, moduleId, moduleTitle, category);
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+        String filename = "template_questoes_" + category.toLowerCase() + ".json";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentDisposition(ContentDisposition.attachment().filename(filename).build());
+
+        return ResponseEntity.ok().headers(headers).body(bytes);
     }
+
+    @PostMapping("/import/json")
+    public ResponseEntity<Map<String, Object>> importJson(
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication) {
+
+        String importedBy = authentication != null ? authentication.getName() : "admin";
+        Map<String, Object> result = questionImportService.importFromJson(file, importedBy);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/import/logs")
+    public ResponseEntity<List<QuestionImportLog>> getImportLogs() {
+        return ResponseEntity.ok(questionImportService.getLogs());
+    }
+
+    @GetMapping("/import/logs/{id}/file")
+    public ResponseEntity<byte[]> downloadImportFile(@PathVariable UUID id) {
+        String json = questionImportService.getLogFile(id);
+        byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentDisposition(ContentDisposition.attachment().filename("import_" + id + ".json").build());
+
+        return ResponseEntity.ok().headers(headers).body(bytes);
+    }
+
+    // ── CRUD ─────────────────────────────────────────────────────────────────
 
     @PostMapping
     public ResponseEntity<Question> createQuestion(@RequestBody Question question) {
@@ -73,6 +120,7 @@ public class AdminQuestionController {
     public ResponseEntity<Question> updateQuestion(@PathVariable UUID id, @RequestBody Question question) {
         Question existing = questionService.findById(id);
         existing.setStatement(question.getStatement());
+        existing.setImageBase64(question.getImageBase64());
         existing.setOptions(question.getOptions());
         existing.setCorrectOption(question.getCorrectOption());
         existing.setResolution(question.getResolution());
