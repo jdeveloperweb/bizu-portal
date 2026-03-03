@@ -1,6 +1,6 @@
 "use client"
 
-import PageHeader from "../../../../components/PageHeader";
+import PageHeader from "@/components/PageHeader";
 import {
     Search,
     Filter,
@@ -16,7 +16,7 @@ import {
     AlertTriangle,
     Mail
 } from "lucide-react";
-import { Button } from "../../../../components/ui/button";
+import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
