@@ -33,4 +33,19 @@ public class RankingController {
         UUID userId = userService.resolveUserId(jwt);
         return ResponseEntity.ok(rankingService.getUserRanking(userId));
     }
+
+    @GetMapping("/duelos")
+    public ResponseEntity<List<Map<String, Object>>> getDuelRanking(@RequestParam(defaultValue = "3") int limit) {
+        return ResponseEntity.ok(rankingService.getDuelRanking(limit));
+    }
+
+    @GetMapping("/simulados")
+    public ResponseEntity<List<Map<String, Object>>> getSimuladoRanking(@RequestParam(defaultValue = "3") int limit) {
+        return ResponseEntity.ok(rankingService.getSimuladoRanking(limit));
+    }
+
+    @GetMapping("/semanal")
+    public ResponseEntity<List<Map<String, Object>>> getWeeklyXpRanking(@RequestParam(defaultValue = "3") int limit) {
+        return ResponseEntity.ok(rankingService.getWeeklyXpRanking(limit));
+    }
 }

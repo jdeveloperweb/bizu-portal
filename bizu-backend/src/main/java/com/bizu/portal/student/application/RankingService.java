@@ -46,6 +46,63 @@ public class RankingService {
         }
     }
 
+    public List<Map<String, Object>> getDuelRanking(int limit) {
+        String sql = """
+            SELECT
+                u.id as id,
+                u.name as name,
+                u.nickname as nickname,
+                u.avatar_url as avatar,
+                COUNT(d.id) as wins,
+                RANK() OVER (ORDER BY COUNT(d.id) DESC) as rank
+            FROM identity.users u
+            JOIN student.duels d ON u.id = d.winner_id
+            WHERE d.status = 'COMPLETED'
+            GROUP BY u.id, u.name, u.nickname, u.avatar_url
+            ORDER BY wins DESC
+            LIMIT ?
+            """;
+        return jdbcTemplate.queryForList(sql, limit);
+    }
+
+    public List<Map<String, Object>> getSimuladoRanking(int limit) {
+        String sql = """
+            SELECT
+                u.id as id,
+                u.name as name,
+                u.nickname as nickname,
+                u.avatar_url as avatar,
+                MAX(aa.score_points) as best_score,
+                RANK() OVER (ORDER BY MAX(aa.score_points) DESC) as rank
+            FROM identity.users u
+            JOIN student.activity_attempts aa ON u.id = aa.user_id
+            WHERE aa.activity_type = 'OFFICIAL_EXAM' AND aa.status = 'COMPLETED'
+            GROUP BY u.id, u.name, u.nickname, u.avatar_url
+            ORDER BY best_score DESC
+            LIMIT ?
+            """;
+        return jdbcTemplate.queryForList(sql, limit);
+    }
+
+    public List<Map<String, Object>> getWeeklyXpRanking(int limit) {
+        String sql = """
+            SELECT
+                u.id as id,
+                u.name as name,
+                u.nickname as nickname,
+                u.avatar_url as avatar,
+                SUM(aa.xp_earned) as weekly_xp,
+                RANK() OVER (ORDER BY SUM(aa.xp_earned) DESC) as rank
+            FROM identity.users u
+            JOIN student.activity_attempts aa ON u.id = aa.user_id
+            WHERE aa.status = 'COMPLETED' AND aa.finished_at >= CURRENT_DATE - INTERVAL '7 days'
+            GROUP BY u.id, u.name, u.nickname, u.avatar_url
+            ORDER BY weekly_xp DESC
+            LIMIT ?
+            """;
+        return jdbcTemplate.queryForList(sql, limit);
+    }
+
     public Map<String, Object> getUserRanking(UUID userId) {
         String sql = """
             WITH RankedUsers AS (

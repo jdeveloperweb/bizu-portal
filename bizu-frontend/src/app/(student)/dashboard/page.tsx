@@ -25,6 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import MaterialViewerModal from "@/components/MaterialViewerModal";
 import XPInfoModal from "@/components/gamification/XPInfoModal";
 import { BadgeInsignia } from "@/components/gamification/BadgeInsignia";
+import { MiniRankingWidget } from "@/components/gamification/MiniRankingWidget";
 import { HelpCircle, Info, Shield } from "lucide-react";
 
 const quickActions = [
@@ -600,6 +601,9 @@ export default function DashboardPage() {
 
                 {/* Right Column (Narrower) */}
                 <div className="space-y-8">
+
+                    {/* Mini Ranking Widget */}
+                    <MiniRankingWidget />
 
                     {/* Daily Goal Card */}
                     <div className="bg-white border-2 border-indigo-100 rounded-[40px] p-8 shadow-xl shadow-indigo-100/20 relative overflow-hidden">
