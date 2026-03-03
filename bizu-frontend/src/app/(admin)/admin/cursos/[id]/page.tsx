@@ -416,11 +416,14 @@ export default function CourseEditorPage() {
                                                     {mIdx + 1}
                                                 </div>
                                                 <div>
-                                                    <div className="flex items-center gap-3">
+                                                    <div className="flex items-center gap-2.5 flex-wrap">
                                                         <h3 className="text-xl font-black text-slate-800">{mod.title}</h3>
                                                         {mod.isFree && (
                                                             <span className="bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border border-emerald-200">Gratuito</span>
                                                         )}
+                                                        <span className="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest">
+                                                            {mod.materials?.length || 0} aula{(mod.materials?.length || 0) !== 1 ? 's' : ''}
+                                                        </span>
                                                     </div>
                                                     {mod.description && <p className="text-sm text-slate-400 font-medium">{mod.description}</p>}
                                                 </div>
@@ -459,18 +462,44 @@ export default function CourseEditorPage() {
                                         </div>
 
                                         <div className="p-8 space-y-4">
+                                            {(mod.materials?.length === 0) && (
+                                                <div className="py-8 text-center">
+                                                    <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                                                        <Layout className="w-5 h-5 text-slate-400" />
+                                                    </div>
+                                                    <p className="text-sm font-bold text-slate-500">Nenhuma aula ainda</p>
+                                                    <p className="text-xs font-medium text-slate-400 mt-0.5">Adicione vídeos, artigos ou PDFs abaixo</p>
+                                                </div>
+                                            )}
                                             {mod.materials?.map((mat) => (
                                                 <div key={mat.id} className="bg-slate-50 border-2 border-transparent hover:border-blue-100 hover:bg-white p-5 rounded-3xl flex items-center justify-between transition-all group/item shadow-sm hover:shadow-lg">
                                                     <div className="flex items-center gap-5">
-                                                        <div className="w-12 h-12 rounded-2xl bg-white border flex items-center justify-center text-blue-600 shadow-sm transition-transform group-hover/item:scale-110">
-                                                            {mat.fileType === "VIDEO" ? <Video className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
+                                                        <div className={cn(
+                                                            "w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover/item:scale-110",
+                                                            mat.fileType === "VIDEO"   ? "bg-blue-50 text-blue-600 border border-blue-100" :
+                                                            mat.fileType === "ARTICLE" ? "bg-emerald-50 text-emerald-600 border border-emerald-100" :
+                                                            mat.fileType === "PDF"     ? "bg-orange-50 text-orange-600 border border-orange-100" :
+                                                            mat.fileType === "QUIZ"    ? "bg-purple-50 text-purple-600 border border-purple-100" :
+                                                            "bg-white border text-blue-600"
+                                                        )}>
+                                                            {mat.fileType === "VIDEO"   ? <Video className="w-6 h-6" /> :
+                                                             mat.fileType === "ARTICLE" ? <BookOpen className="w-6 h-6" /> :
+                                                             mat.fileType === "QUIZ"    ? <HelpCircle className="w-6 h-6" /> :
+                                                             <FileText className="w-6 h-6" />}
                                                         </div>
                                                         <div>
                                                             <p className="font-bold text-slate-800">{mat.title}</p>
                                                             <div className="flex items-center gap-3 mt-1">
                                                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{mat.durationMinutes || 0}M</span>
                                                                 <div className="w-1 h-1 rounded-full bg-slate-300" />
-                                                                <span className="text-[10px] font-black text-blue-500 uppercase tracking-tighter">{mat.fileType}</span>
+                                                                <span className={cn(
+                                                                    "text-[10px] font-black uppercase tracking-tighter",
+                                                                    mat.fileType === "VIDEO"   ? "text-blue-500" :
+                                                                    mat.fileType === "ARTICLE" ? "text-emerald-500" :
+                                                                    mat.fileType === "PDF"     ? "text-orange-500" :
+                                                                    mat.fileType === "QUIZ"    ? "text-purple-500" :
+                                                                    "text-blue-500"
+                                                                )}>{mat.fileType}</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -824,16 +853,32 @@ export default function CourseEditorPage() {
                                                     </div>
                                                     <div className="space-y-3">
                                                         <label className="text-[11px] font-black text-slate-400 ml-1 uppercase">Tipo de Conteúdo</label>
-                                                        <select
-                                                            value={materialForm.fileType}
-                                                            onChange={e => setMaterialForm({ ...materialForm, fileType: e.target.value })}
-                                                            className="w-full h-14 px-4 rounded-2xl border-2 bg-white text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
-                                                        >
-                                                            <option value="VIDEO">Vídeo (YouTube/Vimeo)</option>
-                                                            <option value="ARTICLE">Artigo / Texto</option>
-                                                            <option value="PDF">Documento (PDF/Google Drive)</option>
-                                                            <option value="QUIZ">Quiz / Desafio</option>
-                                                        </select>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            {[
+                                                                { value: "VIDEO",   label: "Vídeo",   sub: "YouTube/Vimeo",  icon: <Video className="w-4 h-4" />,      active: "text-blue-600 border-blue-300 bg-blue-50" },
+                                                                { value: "ARTICLE", label: "Artigo",  sub: "Texto/Markdown", icon: <BookOpen className="w-4 h-4" />,    active: "text-emerald-600 border-emerald-300 bg-emerald-50" },
+                                                                { value: "PDF",     label: "PDF",     sub: "Doc/Drive",      icon: <FileText className="w-4 h-4" />,    active: "text-orange-600 border-orange-300 bg-orange-50" },
+                                                                { value: "QUIZ",    label: "Quiz",    sub: "Desafio",        icon: <HelpCircle className="w-4 h-4" />,  active: "text-purple-600 border-purple-300 bg-purple-50" },
+                                                            ].map(type => (
+                                                                <button
+                                                                    key={type.value}
+                                                                    type="button"
+                                                                    onClick={() => setMaterialForm({ ...materialForm, fileType: type.value })}
+                                                                    className={cn(
+                                                                        "flex items-center gap-2.5 p-3 rounded-2xl border-2 text-left transition-all",
+                                                                        materialForm.fileType === type.value
+                                                                            ? type.active
+                                                                            : "text-slate-400 border-slate-200 bg-white hover:border-slate-300 hover:text-slate-600"
+                                                                    )}
+                                                                >
+                                                                    <span className="flex-shrink-0">{type.icon}</span>
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-xs font-black leading-none">{type.label}</p>
+                                                                        <p className="text-[9px] font-bold opacity-60 mt-0.5 truncate">{type.sub}</p>
+                                                                    </div>
+                                                                </button>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                     <div className="space-y-3">
                                                         <label className="text-[11px] font-black text-slate-400 ml-1 uppercase">Duração (Minutos)</label>
