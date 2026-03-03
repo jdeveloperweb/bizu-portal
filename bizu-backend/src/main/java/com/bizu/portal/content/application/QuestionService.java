@@ -82,11 +82,17 @@ public class QuestionService {
 
     @Transactional
     public void deleteAllByTopic(String topic) {
+        questionRepository.deleteDuelQuestionsByTopic(topic);
+        questionRepository.deleteAttemptsByTopic(topic);
+        questionRepository.deleteSimuladoQuestionsByTopic(topic);
         questionRepository.deleteByTopic(topic);
     }
 
     @Transactional
     public void deleteAllBySubject(String subject) {
+        questionRepository.deleteDuelQuestionsBySubject(subject);
+        questionRepository.deleteAttemptsBySubject(subject);
+        questionRepository.deleteSimuladoQuestionsBySubject(subject);
         questionRepository.deleteBySubject(subject);
     }
 

@@ -69,6 +69,36 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
 
     @Modifying
     @Transactional
+    @Query(value = "DELETE FROM student.duel_questions WHERE question_id IN (SELECT id FROM content.questions WHERE UPPER(topic) = UPPER(:topic))", nativeQuery = true)
+    void deleteDuelQuestionsByTopic(@Param("topic") String topic);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM student.attempts WHERE question_id IN (SELECT id FROM content.questions WHERE UPPER(topic) = UPPER(:topic))", nativeQuery = true)
+    void deleteAttemptsByTopic(@Param("topic") String topic);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM content.simulado_questions WHERE question_id IN (SELECT id FROM content.questions WHERE UPPER(topic) = UPPER(:topic))", nativeQuery = true)
+    void deleteSimuladoQuestionsByTopic(@Param("topic") String topic);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM student.duel_questions WHERE question_id IN (SELECT id FROM content.questions WHERE UPPER(subject) = UPPER(:subject))", nativeQuery = true)
+    void deleteDuelQuestionsBySubject(@Param("subject") String subject);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM student.attempts WHERE question_id IN (SELECT id FROM content.questions WHERE UPPER(subject) = UPPER(:subject))", nativeQuery = true)
+    void deleteAttemptsBySubject(@Param("subject") String subject);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM content.simulado_questions WHERE question_id IN (SELECT id FROM content.questions WHERE UPPER(subject) = UPPER(:subject))", nativeQuery = true)
+    void deleteSimuladoQuestionsBySubject(@Param("subject") String subject);
+
+    @Modifying
+    @Transactional
     @Query("DELETE FROM Question q WHERE UPPER(q.topic) = UPPER(:topic)")
     void deleteByTopic(@Param("topic") String topic);
 
