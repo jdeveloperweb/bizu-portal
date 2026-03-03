@@ -197,147 +197,202 @@ export default function ProfilePage() {
         );
     };
 
+    // ─── Shared field components ─────────────────────────────────────────────
+    const inputCls = "h-12 rounded-2xl bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-indigo-500/20 focus:border-indigo-400/50 text-sm font-medium shadow-none";
+    const labelCls = "text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-0.5 mb-1.5 block";
+    const skeletonRow = <div className="h-12 bg-slate-100 rounded-2xl animate-pulse" />;
+
+    const DeviceRow = ({ device }: { device: Device }) => (
+        <div className="p-4 lg:p-5">
+            <div className="flex items-center gap-3 lg:gap-4">
+                <div className="w-11 h-11 lg:w-12 lg:h-12 shrink-0 rounded-[14px] bg-slate-50 border border-slate-100 flex items-center justify-center">
+                    {device.osInfo?.toLowerCase().includes("mobile")
+                        ? <Smartphone className="w-5 h-5 text-slate-500" />
+                        : <Monitor className="w-5 h-5 text-slate-500" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-slate-900 text-sm">{device.lastIp || "IP desconhecido"}</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                    </div>
+                    <p className="text-[11px] text-slate-500 truncate">
+                        {device.browserInfo || "Navegador desconhecido"}{device.osInfo ? ` • ${device.osInfo}` : ""}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{new Date(device.lastSeenAt).toLocaleString("pt-BR")}</p>
+                </div>
+                <div className="shrink-0">
+                    {confirmingDeviceId === device.id ? (
+                        <div className="flex flex-col gap-1.5 items-end">
+                            <button onClick={() => removeDevice(device.id)} className="px-3 py-1.5 bg-red-500 text-white text-[11px] font-bold rounded-xl active:scale-95 transition-transform">Confirmar</button>
+                            <button onClick={() => setConfirmingDeviceId(null)} className="px-3 py-1.5 bg-slate-100 text-slate-500 text-[11px] font-bold rounded-xl active:scale-95 transition-transform">Cancelar</button>
+                        </div>
+                    ) : (
+                        <button onClick={() => setConfirmingDeviceId(device.id)} className="h-9 w-9 flex items-center justify-center rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 active:scale-90 transition-all">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+
     // ─── Tab content ─────────────────────────────────────────────────────────
     const TabContent = () => (
         <AnimatePresence mode="wait">
+            {/* ── PERFIL ── */}
             {activeTab === "profile" && (
-                <motion.div key="profile" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }} className="space-y-3">
-                    {/* Dados pessoais */}
-                    <div className="bg-white rounded-[20px] overflow-hidden shadow-sm border border-slate-100">
-                        <div className="px-5 pt-4 pb-3 border-b border-slate-50">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Dados Pessoais</span>
-                        </div>
-                        <div className="p-4 space-y-3">
-                            <div>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-0.5 mb-1.5 block">Nome Completo</label>
-                                {isLoading ? <div className="h-12 bg-slate-100 rounded-2xl animate-pulse" /> : (
-                                    <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome completo"
-                                        className="h-12 rounded-2xl bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-indigo-500/20 focus:border-indigo-400/50 text-sm font-medium shadow-none" />
-                                )}
+                <motion.div key="profile" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
+                    {/* Cards: stack on mobile, side-by-side on desktop */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
+                        {/* Dados pessoais */}
+                        <div className="bg-white rounded-[20px] overflow-hidden shadow-sm border border-slate-100">
+                            <div className="px-5 pt-4 pb-3 border-b border-slate-50">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Dados Pessoais</span>
                             </div>
-                            <div>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-0.5 mb-1.5 block">Nickname <span className="text-indigo-500">Arena</span></label>
-                                {isLoading ? <div className="h-12 bg-slate-100 rounded-2xl animate-pulse" /> : (
-                                    <Input value={nickname} onChange={(e) => setNickname(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))} placeholder="seu_nickname"
-                                        className="h-12 rounded-2xl bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-indigo-500/20 focus:border-indigo-400/50 text-sm font-medium shadow-none" />
-                                )}
-                                <p className="text-[10px] text-slate-400 ml-0.5 mt-1.5">Letras, números e underscore. Visível no ranking.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Contato */}
-                    <div className="bg-white rounded-[20px] overflow-hidden shadow-sm border border-slate-100">
-                        <div className="px-5 pt-4 pb-3 border-b border-slate-50">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contato</span>
-                        </div>
-                        <div className="p-4 space-y-3">
-                            <div>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-0.5 mb-1.5 block">E-mail</label>
-                                <div className="h-12 rounded-2xl bg-slate-100 border border-slate-200 flex items-center px-4 gap-2">
-                                    <span className="text-sm font-medium text-slate-400 flex-1 truncate">{user?.email || "—"}</span>
-                                    <span className="text-[10px] font-bold text-slate-400 bg-slate-200 px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0">fixo</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-0.5 mb-1.5 block">Telefone</label>
-                                <div className="relative">
-                                    <Input value={phone} onChange={(e) => setPhone(formatPhone(e.target.value))} disabled={isSaving || isVerifyingPhone}
-                                        placeholder="(00) 00000-0000"
-                                        className={`h-12 rounded-2xl bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm font-medium shadow-none pr-32 ${isVerifyingPhone ? "opacity-50" : ""}`} />
-                                    {phoneModified && !isVerifyingPhone && (
-                                        <Button onClick={requestPhoneChange} disabled={isSendingCode}
-                                            className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 px-3 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-none hover:bg-indigo-700">
-                                            {isSendingCode ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Enviar Código"}
-                                        </Button>
+                            <div className="p-4 lg:p-5 space-y-4">
+                                <div>
+                                    <label className={labelCls}>Nome Completo</label>
+                                    {isLoading ? skeletonRow : (
+                                        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome completo" className={inputCls} />
                                     )}
                                 </div>
-                                {isVerifyingPhone && (
-                                    <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="mt-2 flex gap-2">
-                                        <Input value={phoneCode} onChange={(e) => setPhoneCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                                            placeholder="000000" className="h-11 rounded-xl flex-1 text-center font-black tracking-[0.5em] bg-slate-50 border-slate-200 text-slate-900" />
-                                        <Button onClick={confirmPhoneChange} disabled={isSaving || phoneCode.length < 6}
-                                            className="h-11 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs">
-                                            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Verificar"}
-                                        </Button>
-                                        <Button variant="ghost" onClick={() => setIsVerifyingPhone(false)} className="h-11 px-3 rounded-xl text-slate-400 text-xs">✕</Button>
-                                    </motion.div>
-                                )}
+                                <div>
+                                    <label className={labelCls}>Nickname <span className="text-indigo-500">Arena</span></label>
+                                    {isLoading ? skeletonRow : (
+                                        <Input value={nickname} onChange={(e) => setNickname(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))} placeholder="seu_nickname" className={inputCls} />
+                                    )}
+                                    <p className="text-[10px] text-slate-400 ml-0.5 mt-1.5">Letras, números e underscore. Visível no ranking.</p>
+                                </div>
                             </div>
-                            <div className="flex items-start gap-3 bg-indigo-50 border border-indigo-100 rounded-2xl p-3 mt-1">
-                                <Shield className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
-                                <p className="text-[11px] text-indigo-700/80 leading-relaxed font-medium">
-                                    Alteração de telefone exige confirmação via WhatsApp/SMS. O e-mail não pode ser alterado por aqui.
-                                </p>
+                        </div>
+
+                        {/* Contato */}
+                        <div className="bg-white rounded-[20px] overflow-hidden shadow-sm border border-slate-100">
+                            <div className="px-5 pt-4 pb-3 border-b border-slate-50">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contato</span>
+                            </div>
+                            <div className="p-4 lg:p-5 space-y-4">
+                                <div>
+                                    <label className={labelCls}>E-mail</label>
+                                    <div className="h-12 rounded-2xl bg-slate-100 border border-slate-200 flex items-center px-4 gap-2">
+                                        <span className="text-sm font-medium text-slate-400 flex-1 truncate">{user?.email || "—"}</span>
+                                        <span className="text-[10px] font-bold text-slate-400 bg-slate-200 px-2 py-0.5 rounded-full uppercase tracking-wide shrink-0">fixo</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className={labelCls}>Telefone</label>
+                                    <div className="relative">
+                                        <Input value={phone} onChange={(e) => setPhone(formatPhone(e.target.value))} disabled={isSaving || isVerifyingPhone}
+                                            placeholder="(00) 00000-0000"
+                                            className={`${inputCls} pr-32 ${isVerifyingPhone ? "opacity-50" : ""}`} />
+                                        {phoneModified && !isVerifyingPhone && (
+                                            <Button onClick={requestPhoneChange} disabled={isSendingCode}
+                                                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 px-3 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-none hover:bg-indigo-700">
+                                                {isSendingCode ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Enviar Código"}
+                                            </Button>
+                                        )}
+                                    </div>
+                                    {isVerifyingPhone && (
+                                        <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="mt-2 flex gap-2">
+                                            <Input value={phoneCode} onChange={(e) => setPhoneCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                                                placeholder="000000" className="h-11 rounded-xl flex-1 text-center font-black tracking-[0.5em] bg-slate-50 border-slate-200 text-slate-900" />
+                                            <Button onClick={confirmPhoneChange} disabled={isSaving || phoneCode.length < 6}
+                                                className="h-11 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs">
+                                                {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Verificar"}
+                                            </Button>
+                                            <Button variant="ghost" onClick={() => setIsVerifyingPhone(false)} className="h-11 px-3 rounded-xl text-slate-400 text-xs">✕</Button>
+                                        </motion.div>
+                                    )}
+                                </div>
+                                <div className="flex items-start gap-3 bg-indigo-50 border border-indigo-100 rounded-2xl p-3">
+                                    <Shield className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
+                                    <p className="text-[11px] text-indigo-700/80 leading-relaxed font-medium">
+                                        Alteração de telefone exige confirmação via WhatsApp/SMS. O e-mail não pode ser alterado por aqui.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <Button onClick={handleSave} disabled={!isModified || isSaving}
-                        className="w-full h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-base shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                        {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                        Salvar Alterações
-                    </Button>
+                    {/* Save button — full width mobile, right-aligned desktop */}
+                    <div className="flex justify-stretch lg:justify-end mt-3 lg:mt-4">
+                        <Button onClick={handleSave} disabled={!isModified || isSaving}
+                            className="w-full lg:w-auto lg:min-w-56 h-14 lg:h-12 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-base lg:text-sm shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                            {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+                            Salvar Alterações
+                        </Button>
+                    </div>
                 </motion.div>
             )}
 
+            {/* ── ASSINATURA ── */}
             {activeTab === "subscription" && (
-                <motion.div key="subscription" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }} className="space-y-3">
+                <motion.div key="subscription" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
                     {isLoading ? (
-                        <div className="h-52 bg-white rounded-[20px] animate-pulse shadow-sm" />
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div className="h-52 bg-white rounded-[20px] animate-pulse shadow-sm" />
+                            <div className="h-52 bg-white rounded-[20px] animate-pulse shadow-sm" />
+                        </div>
                     ) : hasActiveSubscription ? (
-                        <>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
+                            {/* Plan card */}
                             <div className="relative overflow-hidden rounded-[20px] shadow-sm">
-                                <div className="bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-700 p-6">
+                                <div className="bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-700 p-6 h-full">
                                     <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                                    <div className="relative">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <div className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
-                                            <span className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">Ativo</span>
-                                        </div>
-                                        <div className="flex items-start justify-between gap-2 mb-4">
-                                            <div>
-                                                <h3 className="text-2xl font-black text-white tracking-tight uppercase leading-tight">{currentPlanLabel}</h3>
-                                                <p className="text-sm font-semibold text-indigo-200 mt-0.5">{currentCourseLabel}</p>
+                                    <div className="relative flex flex-col h-full gap-4">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <div className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
+                                                <span className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">Ativo</span>
                                             </div>
+                                            <h3 className="text-2xl font-black text-white tracking-tight uppercase leading-tight">{currentPlanLabel}</h3>
+                                            <p className="text-sm font-semibold text-indigo-200 mt-1">{currentCourseLabel}</p>
                                             {currentPlanPrice && (
-                                                <div className="text-right shrink-0">
-                                                    <div className="text-xl font-black text-white">{currentPlanPrice}</div>
-                                                    {currentBillingInterval && <div className="text-xs text-indigo-300 font-semibold">{currentBillingInterval}</div>}
-                                                </div>
+                                                <p className="text-lg font-black text-white mt-2">
+                                                    {currentPlanPrice}
+                                                    {currentBillingInterval && <span className="text-sm font-semibold text-indigo-300 ml-1">/ {currentBillingInterval}</span>}
+                                                </p>
                                             )}
                                         </div>
-                                        {subscription && (
-                                            <div className="bg-black/20 border border-white/10 rounded-2xl px-4 py-3 mb-4">
-                                                <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider mb-0.5">Próxima renovação</p>
-                                                <p className="text-sm font-bold text-white">
-                                                    {new Date(subscription.currentPeriodEnd).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}
-                                                </p>
-                                            </div>
-                                        )}
                                         <Button onClick={() => setIsSubscriptionModalOpen(true)}
-                                            className="w-full h-12 rounded-2xl bg-white text-indigo-700 hover:bg-indigo-50 font-bold active:scale-[0.98] transition-all shadow-none">
+                                            className="w-full h-11 rounded-2xl bg-white text-indigo-700 hover:bg-indigo-50 font-bold active:scale-[0.98] transition-all shadow-none mt-auto">
                                             Gerenciar Assinatura
                                         </Button>
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-white rounded-[20px] p-4 shadow-sm border border-slate-100">
-                                <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                                    Para cancelar ou alterar seu plano, use o botão <b>Gerenciar Assinatura</b> acima. Em caso de dúvidas, acesse o{" "}
-                                    <Link href="/faturamento" className="text-indigo-600 font-bold">histórico de faturamento</Link>.
-                                </p>
-                            </div>
-                        </>
-                    ) : (
-                        <div className="bg-white rounded-[20px] p-6 shadow-sm border border-slate-100">
-                            <div className="text-center mb-5">
-                                <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                    <CreditCard className="w-7 h-7 text-indigo-400" />
+
+                            {/* Details card */}
+                            <div className="flex flex-col gap-3">
+                                {subscription && (
+                                    <div className="bg-white rounded-[20px] p-5 shadow-sm border border-slate-100">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Próxima Renovação</p>
+                                        <p className="text-2xl font-black text-slate-900">
+                                            {new Date(subscription.currentPeriodEnd).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
+                                        </p>
+                                        <p className="text-sm text-slate-500 font-medium">
+                                            {new Date(subscription.currentPeriodEnd).toLocaleDateString("pt-BR", { year: "numeric" })}
+                                        </p>
+                                    </div>
+                                )}
+                                <div className="bg-white rounded-[20px] p-5 shadow-sm border border-slate-100 flex-1">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Faturamento</p>
+                                    <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                                        Para cancelar ou alterar seu plano, use o botão <b className="text-slate-700">Gerenciar Assinatura</b>. Em caso de dúvidas, acesse o{" "}
+                                        <Link href="/faturamento" className="text-indigo-600 font-bold">histórico de faturamento</Link>.
+                                    </p>
                                 </div>
-                                <h3 className="text-lg font-black text-slate-900 mb-1">Plano Gratuito</h3>
-                                <p className="text-sm text-slate-500 font-medium leading-relaxed">Acesso limitado ao conteúdo básico e simulados públicos.</p>
                             </div>
+                        </div>
+                    ) : (
+                        <div className="bg-white rounded-[20px] p-8 shadow-sm border border-slate-100 text-center lg:max-w-md">
+                            <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <CreditCard className="w-7 h-7 text-indigo-400" />
+                            </div>
+                            <h3 className="text-lg font-black text-slate-900 mb-1">Plano Gratuito</h3>
+                            <p className="text-sm text-slate-500 font-medium leading-relaxed mb-5">Acesso limitado ao conteúdo básico e simulados públicos.</p>
                             <Link href="/pricing">
                                 <Button className="w-full h-12 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold active:scale-[0.98] transition-all shadow-none">Ver Planos</Button>
                             </Link>
@@ -346,71 +401,55 @@ export default function ProfilePage() {
                 </motion.div>
             )}
 
+            {/* ── SESSÕES ── */}
             {activeTab === "security" && (
-                <motion.div key="security" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }} className="space-y-3">
-                    <div className="flex items-center justify-between px-0.5">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Dispositivos conectados</span>
-                        <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">{devices.length}</span>
-                    </div>
-                    <div className="bg-white rounded-[20px] overflow-hidden shadow-sm border border-slate-100 divide-y divide-slate-50">
-                        {isLoading ? (
-                            [1, 2].map(i => (
-                                <div key={i} className="p-4 flex items-center gap-4">
-                                    <div className="w-11 h-11 bg-slate-100 rounded-[14px] animate-pulse shrink-0" />
-                                    <div className="flex-1 space-y-2">
-                                        <div className="h-3.5 bg-slate-100 rounded animate-pulse w-2/3" />
-                                        <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />
-                                    </div>
-                                </div>
-                            ))
-                        ) : devices.length === 0 ? (
-                            <div className="py-12 text-center">
-                                <Monitor className="w-8 h-8 text-slate-200 mx-auto mb-3" />
-                                <p className="text-sm font-medium text-slate-400">Nenhum dispositivo encontrado.</p>
+                <motion.div key="security" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }}>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-4">
+                        {/* Device list — takes 2/3 on desktop */}
+                        <div className="lg:col-span-2 space-y-3">
+                            <div className="flex items-center justify-between px-0.5">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Dispositivos conectados</span>
+                                <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">{devices.length}</span>
                             </div>
-                        ) : (
-                            devices.map((device) => (
-                                <div key={device.id} className="p-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-11 h-11 shrink-0 rounded-[14px] bg-slate-50 border border-slate-100 flex items-center justify-center">
-                                            {device.osInfo?.toLowerCase().includes("mobile")
-                                                ? <Smartphone className="w-5 h-5 text-slate-500" />
-                                                : <Monitor className="w-5 h-5 text-slate-500" />}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="font-bold text-slate-900 text-sm">{device.lastIp || "IP desconhecido"}</span>
-                                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                            <div className="bg-white rounded-[20px] overflow-hidden shadow-sm border border-slate-100 divide-y divide-slate-50">
+                                {isLoading ? (
+                                    [1, 2].map(i => (
+                                        <div key={i} className="p-4 flex items-center gap-4">
+                                            <div className="w-11 h-11 bg-slate-100 rounded-[14px] animate-pulse shrink-0" />
+                                            <div className="flex-1 space-y-2">
+                                                <div className="h-3.5 bg-slate-100 rounded animate-pulse w-2/3" />
+                                                <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />
                                             </div>
-                                            <p className="text-[11px] text-slate-500 truncate">{device.browserInfo || "Navegador desconhecido"}{device.osInfo ? ` • ${device.osInfo}` : ""}</p>
-                                            <p className="text-[10px] text-slate-400 mt-0.5">{new Date(device.lastSeenAt).toLocaleString("pt-BR")}</p>
                                         </div>
-                                        <div className="shrink-0">
-                                            {confirmingDeviceId === device.id ? (
-                                                <div className="flex flex-col gap-1.5 items-end">
-                                                    <button onClick={() => removeDevice(device.id)} className="px-3 py-1.5 bg-red-500 text-white text-[11px] font-bold rounded-xl active:scale-95 transition-transform">Confirmar</button>
-                                                    <button onClick={() => setConfirmingDeviceId(null)} className="px-3 py-1.5 bg-slate-100 text-slate-500 text-[11px] font-bold rounded-xl active:scale-95 transition-transform">Cancelar</button>
-                                                </div>
-                                            ) : (
-                                                <button onClick={() => setConfirmingDeviceId(device.id)} className="h-9 w-9 flex items-center justify-center rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 active:scale-90 transition-all">
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
-                                            )}
-                                        </div>
+                                    ))
+                                ) : devices.length === 0 ? (
+                                    <div className="py-12 text-center">
+                                        <Monitor className="w-8 h-8 text-slate-200 mx-auto mb-3" />
+                                        <p className="text-sm font-medium text-slate-400">Nenhum dispositivo encontrado.</p>
                                     </div>
+                                ) : (
+                                    devices.map(device => <DeviceRow key={device.id} device={device} />)
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Security info — 1/3 on desktop */}
+                        <div className="space-y-3">
+                            <div className="bg-emerald-50 border border-emerald-100 rounded-[20px] p-5">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                    <p className="text-xs font-black text-emerald-800">Conta protegida</p>
                                 </div>
-                            ))
-                        )}
-                    </div>
-                    <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-100 rounded-[16px] p-4">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
-                        <div>
-                            <p className="text-xs font-bold text-emerald-800 mb-0.5">Conta protegida</p>
-                            <p className="text-[11px] text-emerald-700/70 leading-relaxed font-medium">
-                                Não reconheceu algum dispositivo? Remova-o e troque sua senha imediatamente.
-                            </p>
+                                <p className="text-[11px] text-emerald-700/70 leading-relaxed font-medium">
+                                    Não reconheceu algum dispositivo? Remova-o e troque sua senha imediatamente.
+                                </p>
+                            </div>
+                            <div className="bg-white border border-slate-100 rounded-[20px] p-5 shadow-sm">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Limite de sessões</p>
+                                <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
+                                    Cada conta pode ter múltiplos dispositivos simultâneos. Remova sessões antigas para manter a segurança.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </motion.div>
@@ -504,7 +543,7 @@ export default function ProfilePage() {
             {/* ═══════════════════════════════════════════════════
                 DESKTOP LAYOUT  (hidden below lg)
             ═══════════════════════════════════════════════════ */}
-            <div className="hidden lg:flex min-h-full">
+            <div className="hidden lg:flex min-h-[calc(100vh-4rem)]">
 
                 {/* Left sidebar */}
                 <aside className="w-72 xl:w-80 shrink-0 border-r border-slate-100 bg-white flex flex-col">
