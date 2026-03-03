@@ -13,6 +13,11 @@ export function useAdminUsers(currentUserEmail?: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
 
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const size = 10;
+
   const [plans, setPlans] = useState<Plan[]>([]);
   const [isPlansLoading, setIsPlansLoading] = useState(false);
   const [isPlansError, setIsPlansError] = useState(false);
@@ -29,24 +34,37 @@ export function useAdminUsers(currentUserEmail?: string) {
     planId: "",
   });
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = useCallback(async (currentPage = page, search = searchTerm) => {
     setIsLoading(true);
     setIsError(false);
     try {
-      const res = await apiFetch("/admin/users");
+      const queryParams = new URLSearchParams({
+        page: currentPage.toString(),
+        size: size.toString(),
+        sort: "createdAt,desc"
+      });
+
+      if (search) {
+        queryParams.append("search", search);
+      }
+
+      const res = await apiFetch(`/admin/users?${queryParams.toString()}`);
       if (res.ok) {
-        const data: AdminUser[] = await res.json();
-        const formatted = data.map((u) => ({
+        const data = await res.json();
+        const content: AdminUser[] = data.content || [];
+        const formatted = content.map((u: AdminUser) => ({
           ...u,
           joined: u.joined
             ? new Date(u.joined).toLocaleDateString("pt-BR", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
             : "N/A",
         }));
         setUsers(formatted);
+        setTotalPages(data.totalPages || 0);
+        setTotalElements(data.totalElements || 0);
       } else {
         setIsError(true);
       }
@@ -55,7 +73,7 @@ export function useAdminUsers(currentUserEmail?: string) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [page, searchTerm]);
 
   const fetchPlans = useCallback(async (force = false) => {
     if (!force && plans.length > 0) return;
@@ -170,12 +188,6 @@ export function useAdminUsers(currentUserEmail?: string) {
     setEditingUser(null);
   }, []);
 
-  const filteredUsers = users.filter(
-    (u) =>
-      u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const canDeleteUser = useCallback(
     (userEmail?: string) => currentUserEmail !== userEmail,
     [currentUserEmail]
@@ -183,7 +195,6 @@ export function useAdminUsers(currentUserEmail?: string) {
 
   return {
     users,
-    filteredUsers,
     isLoading,
     isError,
     plans,
@@ -192,6 +203,10 @@ export function useAdminUsers(currentUserEmail?: string) {
     isSubmitting,
     searchTerm,
     setSearchTerm,
+    page,
+    setPage,
+    totalPages,
+    totalElements,
     isEditing,
     editingUser,
     formUser,

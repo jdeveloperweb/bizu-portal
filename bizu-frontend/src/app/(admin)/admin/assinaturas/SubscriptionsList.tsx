@@ -35,14 +35,31 @@ export default function SubscriptionsList() {
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
+    const size = 10;
 
-    const fetchSubscriptions = async () => {
+    const fetchSubscriptions = async (currentPage = page, search = searchTerm) => {
         setLoading(true);
         try {
-            const res = await apiFetch("/admin/subscriptions");
+            const queryParams = new URLSearchParams({
+                page: currentPage.toString(),
+                size: size.toString(),
+                sort: "createdAt,desc"
+            });
+
+            if (search) {
+                queryParams.append("search", search);
+            }
+
+            const res = await apiFetch(`/admin/subscriptions?${queryParams.toString()}`);
             if (res.ok) {
                 const data = await res.json();
-                setSubscriptions(data);
+                // Spring Data Page object structure
+                setSubscriptions(data.content || []);
+                setTotalPages(data.totalPages || 0);
+                setTotalElements(data.totalElements || 0);
             } else {
                 toast.error("Erro ao carregar assinaturas: " + res.status);
             }
@@ -54,8 +71,19 @@ export default function SubscriptionsList() {
     };
 
     useEffect(() => {
-        fetchSubscriptions();
-    }, []);
+        const timeoutId = setTimeout(() => {
+            setPage(0);
+            fetchSubscriptions(0, searchTerm);
+        }, 500);
+        return () => clearTimeout(timeoutId);
+    }, [searchTerm]);
+
+    // Initial load and page changes
+    useEffect(() => {
+        if (page !== 0 || !searchTerm) {
+            fetchSubscriptions(page, searchTerm);
+        }
+    }, [page]);
 
     const updateStatus = async (id: string, newStatus: string) => {
         try {
@@ -72,12 +100,6 @@ export default function SubscriptionsList() {
         }
     };
 
-    const filtered = subscriptions.filter(s =>
-        s.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.plan?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
     return (
         <div className="w-full px-8 py-8 h-full font-sans">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
@@ -87,7 +109,7 @@ export default function SubscriptionsList() {
                     badge="COMMERCE"
                 />
                 <Button
-                    onClick={fetchSubscriptions}
+                    onClick={() => fetchSubscriptions()}
                     variant="outline"
                     className="h-12 rounded-xl font-bold px-6 gap-2 border-slate-200 text-slate-600 hover:bg-slate-50"
                 >
@@ -108,6 +130,11 @@ export default function SubscriptionsList() {
                             className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-50 text-sm font-medium outline-none transition-all border border-slate-100 text-slate-700 placeholder:text-slate-400 focus:border-indigo-500"
                         />
                     </div>
+                    {totalElements > 0 && (
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                            {totalElements} assinaturas encontradas
+                        </div>
+                    )}
                 </div>
 
                 <div className="overflow-x-auto">
@@ -127,7 +154,7 @@ export default function SubscriptionsList() {
                                         <Loader2 className="w-8 h-8 animate-spin text-indigo-500 mx-auto" />
                                     </td>
                                 </tr>
-                            ) : filtered.map(s => (
+                            ) : subscriptions.map(s => (
                                 <tr key={s.id} className="hover:bg-slate-50 transition-colors">
                                     <td className="px-8 py-5">
                                         <div className="flex items-center gap-4">
@@ -173,7 +200,7 @@ export default function SubscriptionsList() {
                                     </td>
                                 </tr>
                             ))}
-                            {!loading && filtered.length === 0 && (
+                            {!loading && subscriptions.length === 0 && (
                                 <tr>
                                     <td colSpan={4} className="px-8 py-20 text-center">
                                         <div className="flex flex-col items-center justify-center text-slate-400">
@@ -186,6 +213,34 @@ export default function SubscriptionsList() {
                         </tbody>
                     </table>
                 </div>
+
+                {totalPages > 1 && (
+                    <div className="p-6 border-t border-slate-100 flex items-center justify-between">
+                        <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                            Página {page + 1} de {totalPages}
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={page === 0}
+                                onClick={() => setPage(p => p - 1)}
+                                className="h-9 px-4 rounded-xl font-bold text-xs border-slate-200 text-slate-600 disabled:opacity-50"
+                            >
+                                Anterior
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={page >= totalPages - 1}
+                                onClick={() => setPage(p => p + 1)}
+                                className="h-9 px-4 rounded-xl font-bold text-xs border-slate-200 text-slate-600 disabled:opacity-50"
+                            >
+                                Próxima
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

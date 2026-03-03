@@ -95,4 +95,16 @@ public class AdminQuestionController {
         questionService.deleteAllByModule(moduleId);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/topic")
+    public ResponseEntity<Void> deleteAllByTopic(@RequestParam String topic) {
+        questionService.deleteAllByTopic(topic);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/subject")
+    public ResponseEntity<Void> deleteAllBySubject(@RequestParam String subject) {
+        questionService.deleteAllBySubject(subject);
+        return ResponseEntity.noContent().build();
+    }
 }

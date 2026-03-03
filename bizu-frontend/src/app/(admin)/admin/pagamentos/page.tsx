@@ -62,10 +62,12 @@ export default function AdminPaymentsPage() {
         .filter(p => p.status === 'SUCCEEDED')
         .reduce((acc, p) => acc + p.amount, 0);
 
-    const filtered = payments.filter(p =>
-        p.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filtered = payments.filter(p => {
+        const name = p.user?.name?.toLowerCase() || "";
+        const email = p.user?.email?.toLowerCase() || "";
+        const search = searchTerm.toLowerCase();
+        return name.includes(search) || email.includes(search);
+    });
 
     const simulateApproval = async (orderNsu: string) => {
         try {
@@ -190,6 +192,13 @@ export default function AdminPaymentsPage() {
                                     </td>
                                 </tr>
                             ))}
+                            {!loading && filtered.length === 0 && (
+                                <tr>
+                                    <td colSpan={4} className="px-8 py-20 text-center">
+                                        <div className="text-slate-400 font-medium">Nenhuma transação encontrada</div>
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>

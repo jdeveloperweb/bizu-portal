@@ -84,6 +84,42 @@ export default function AdminQuestoesPage() {
         }
     };
 
+    const handleBulkDeleteByTopic = async () => {
+        const topic = prompt("Digite o nome EXATO do ASSUNTO que deseja apagar TODAS as questões:");
+        if (!topic) return;
+
+        if (!confirm(`CUIDADO: Isso apagará TODAS as questões vinculadas ao assunto "${topic}". Deseja continuar?`)) return;
+
+        try {
+            const res = await apiFetch(`/admin/questions/topic?topic=${encodeURIComponent(topic)}`, { method: "DELETE" });
+            if (res.ok) {
+                fetchQuestions();
+                fetchStats();
+                alert("Todas as questões do assunto foram apagadas.");
+            }
+        } catch (error) {
+            console.error("Failed to delete questions by topic", error);
+        }
+    };
+
+    const handleBulkDeleteBySubject = async () => {
+        const subject = prompt("Digite o nome EXATO da MATÉRIA (Disciplina) que deseja apagar TODAS as questões:");
+        if (!subject) return;
+
+        if (!confirm(`CUIDADO: Isso apagará TODAS as questões vinculadas à matéria "${subject}". Deseja continuar?`)) return;
+
+        try {
+            const res = await apiFetch(`/admin/questions/subject?subject=${encodeURIComponent(subject)}`, { method: "DELETE" });
+            if (res.ok) {
+                fetchQuestions();
+                fetchStats();
+                alert("Todas as questões da matéria foram apagadas.");
+            }
+        } catch (error) {
+            console.error("Failed to delete questions by subject", error);
+        }
+    };
+
     return (
         <div className="w-full px-8 py-12">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
@@ -93,6 +129,24 @@ export default function AdminQuestoesPage() {
                     badge="CONTEÚDO"
                 />
                 <div className="flex items-center gap-3">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="h-14 rounded-2xl font-black px-8 gap-2">
+                                <Trash2 className="w-5 h-5" />
+                                Limpar Acervo
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56 rounded-2xl p-2 shadow-2xl border-muted/50">
+                            <DropdownMenuItem onClick={handleBulkDeleteByTopic} className="rounded-xl font-bold gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer h-10">
+                                <Trash2 className="w-4 h-4" />
+                                Por Assunto
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={handleBulkDeleteBySubject} className="rounded-xl font-bold gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer h-10">
+                                <Trash2 className="w-4 h-4" />
+                                Por Matéria
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button variant="outline" className="h-14 rounded-2xl font-black px-8 gap-2">
                         <Filter className="w-5 h-5" />
                         Filtros Avançados

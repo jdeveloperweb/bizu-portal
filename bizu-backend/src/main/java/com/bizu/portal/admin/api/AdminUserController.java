@@ -20,12 +20,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
 import java.time.OffsetDateTime;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -42,21 +43,33 @@ public class AdminUserController {
     private final EntitlementService entitlementService;
 
     @GetMapping
-    public ResponseEntity<List<AdminUserDto>> listUsers() {
-        List<User> users = userRepository.findAll();
+    public ResponseEntity<Page<AdminUserDto>> listUsers(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         
-        // Otimização: Busca todos os stats e assinaturas de uma vez
-        Map<UUID, GamificationStats> statsMap = gamificationRepository.findAll().stream()
+        Page<User> userPage;
+        if (search != null && !search.isBlank()) {
+            userPage = userRepository.searchAll(search, pageable);
+        } else {
+            userPage = userRepository.findAll(pageable);
+        }
+
+        if (userPage.isEmpty()) {
+            return ResponseEntity.ok(Page.empty(pageable));
+        }
+
+        Set<UUID> userIds = userPage.getContent().stream().map(User::getId).collect(Collectors.toSet());
+        
+        // Busca apenas para a página atual
+        Map<UUID, GamificationStats> statsMap = gamificationRepository.findAllByUserIdIn(userIds).stream()
                 .collect(Collectors.toMap(GamificationStats::getUserId, s -> s, (s1, s2) -> s1));
 
-        Map<UUID, Subscription> subsMap = subscriptionRepository.findAllByStatusIn(List.of("ACTIVE", "PAST_DUE")).stream()
+        Map<UUID, Subscription> subsMap = subscriptionRepository.findAllByUserIdInAndStatusIn(userIds, List.of("ACTIVE", "PAST_DUE")).stream()
                 .collect(Collectors.toMap(s -> s.getUser().getId(), s -> s, (s1, s2) -> s1));
 
-        List<AdminUserDto> dtos = users.stream()
-                .map(user -> toDto(user, statsMap.get(user.getId()), subsMap.get(user.getId())))
-                .collect(Collectors.toList());
+        Page<AdminUserDto> dtoPage = userPage.map(user -> toDto(user, statsMap.get(user.getId()), subsMap.get(user.getId())));
                 
-        return ResponseEntity.ok(dtos);
+        return ResponseEntity.ok(dtoPage);
     }
 
     @GetMapping("/{id}")

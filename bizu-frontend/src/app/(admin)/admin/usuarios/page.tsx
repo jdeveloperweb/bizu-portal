@@ -36,7 +36,6 @@ const itemVariants = {
 export default function AdminUsuariosPage() {
   const { user: currentUser } = useAuth();
   const {
-    filteredUsers,
     users,
     isLoading,
     isError,
@@ -46,6 +45,10 @@ export default function AdminUsuariosPage() {
     isSubmitting,
     searchTerm,
     setSearchTerm,
+    page,
+    setPage,
+    totalPages,
+    totalElements,
     isEditing,
     editingUser,
     formUser,
@@ -60,8 +63,18 @@ export default function AdminUsuariosPage() {
   } = useAdminUsers(currentUser?.email);
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    const timeoutId = setTimeout(() => {
+      setPage(0);
+      fetchUsers(0, searchTerm);
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, setPage, fetchUsers]);
+
+  useEffect(() => {
+    if (page !== 0 || !searchTerm) {
+      fetchUsers(page, searchTerm);
+    }
+  }, [page, fetchUsers]);
 
   return (
     <motion.div
@@ -115,7 +128,7 @@ export default function AdminUsuariosPage() {
               <Users className="w-4 h-4 text-primary" />
             </div>
             <span className="text-sm tracking-tight">
-              <span className="text-primary font-black text-lg">{users.length}</span> ALUNOS
+              <span className="text-primary font-black text-lg">{totalElements}</span> ALUNOS
             </span>
           </div>
         </div>
@@ -156,7 +169,7 @@ export default function AdminUsuariosPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={fetchUsers}
+                          onClick={() => fetchUsers()}
                           className="rounded-xl border-slate-200 text-slate-600 font-bold"
                         >
                           Tentar novamente
@@ -164,7 +177,7 @@ export default function AdminUsuariosPage() {
                       </div>
                     </td>
                   </motion.tr>
-                ) : filteredUsers.length === 0 ? (
+                ) : users.length === 0 ? (
                   <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                     <td colSpan={5} className="px-8 py-16 text-center text-slate-400 font-medium">
                       <div className="flex flex-col items-center gap-2">
@@ -174,7 +187,7 @@ export default function AdminUsuariosPage() {
                     </td>
                   </motion.tr>
                 ) : (
-                  filteredUsers.map((user) => (
+                  users.map((user) => (
                     <motion.tr
                       layout
                       key={user.id}
@@ -214,9 +227,8 @@ export default function AdminUsuariosPage() {
                       <td className="px-8 py-5">
                         <div className="flex flex-col gap-1">
                           <span
-                            className={`pill text-[10px] w-fit ${
-                              user.plan === "FREE" ? "pill-success" : "pill-primary"
-                            } uppercase tracking-wider`}
+                            className={`pill text-[10px] w-fit ${user.plan === "FREE" ? "pill-success" : "pill-primary"
+                              } uppercase tracking-wider`}
                           >
                             <Shield className="w-3 h-3" />
                             {user.plan || "Free"}
@@ -285,6 +297,34 @@ export default function AdminUsuariosPage() {
             </tbody>
           </table>
         </div>
+
+        {totalPages > 1 && (
+          <div className="p-6 border-t border-slate-100 flex items-center justify-between">
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+              Página {page + 1} de {totalPages}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page === 0}
+                onClick={() => setPage(p => p - 1)}
+                className="h-10 px-5 rounded-xl font-bold text-xs border-slate-200 text-slate-600 disabled:opacity-50"
+              >
+                Anterior
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage(p => p + 1)}
+                className="h-10 px-5 rounded-xl font-bold text-xs border-slate-200 text-slate-600 disabled:opacity-50"
+              >
+                Próxima
+              </Button>
+            </div>
+          </div>
+        )}
       </motion.div>
 
       <UserEditModal

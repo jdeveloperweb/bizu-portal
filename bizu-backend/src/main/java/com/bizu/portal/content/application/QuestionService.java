@@ -81,6 +81,16 @@ public class QuestionService {
     }
 
     @Transactional
+    public void deleteAllByTopic(String topic) {
+        questionRepository.deleteByTopic(topic);
+    }
+
+    @Transactional
+    public void deleteAllBySubject(String subject) {
+        questionRepository.deleteBySubject(subject);
+    }
+
+    @Transactional
     public Question save(Question question) {
         return questionRepository.save(question);
     }

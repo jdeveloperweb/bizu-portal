@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -63,4 +64,10 @@ public interface QuestionRepository extends JpaRepository<Question, UUID> {
     java.util.List<String> findDistinctBancasByCategory(@Param("category") String category);
 
     void deleteByModule_Id(UUID moduleId);
+
+    @Transactional
+    void deleteByTopic(String topic);
+
+    @Transactional
+    void deleteBySubject(String subject);
 }

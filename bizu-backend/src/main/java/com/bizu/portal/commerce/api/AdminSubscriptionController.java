@@ -7,6 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,8 +23,13 @@ public class AdminSubscriptionController {
     private final SubscriptionRepository subscriptionRepository;
 
     @GetMapping
-    public ResponseEntity<List<Subscription>> getAllSubscriptions() {
-        return ResponseEntity.ok(subscriptionRepository.findAll());
+    public ResponseEntity<Page<Subscription>> getAllSubscriptions(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        if (search != null && !search.isBlank()) {
+            return ResponseEntity.ok(subscriptionRepository.searchAll(search, pageable));
+        }
+        return ResponseEntity.ok(subscriptionRepository.findAll(pageable));
     }
 
     @PatchMapping("/{id}/status")

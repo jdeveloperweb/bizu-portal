@@ -13,7 +13,9 @@ import java.util.UUID;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, UUID> {
-    
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user", "plan"})
+    List<Payment> findAll();
+
     @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.status = :status AND p.createdAt >= :date")
     BigDecimal sumAmountByStatusAndCreatedAtAfter(@Param("status") String status, @Param("date") OffsetDateTime date);
 

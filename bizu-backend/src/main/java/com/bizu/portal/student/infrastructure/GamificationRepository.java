@@ -15,4 +15,5 @@ public interface GamificationRepository extends JpaRepository<GamificationStats,
     List<GamificationStats> findAllOrderByTotalXpDesc();
 
     java.util.Optional<GamificationStats> findByUserId(UUID userId);
+    java.util.List<GamificationStats> findAllByUserIdIn(java.util.Collection<UUID> userIds);
 }
