@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -60,7 +61,13 @@ public class AdminMaterialController {
             @RequestParam int count,
             @RequestParam String category,
             @RequestParam UUID moduleId,
-            @RequestParam(required = false, defaultValue = "Módulo") String moduleName) {
+            @RequestParam(required = false, defaultValue = "Módulo") String moduleName,
+            HttpServletResponse response) {
+
+        // Disable nginx/proxy buffering so events stream in real-time
+        response.setHeader("X-Accel-Buffering", "no");
+        response.setHeader("Cache-Control", "no-cache, no-transform");
+        response.setHeader("Connection", "keep-alive");
 
         Material material = materialService.findById(materialId);
         String content = material.getContent();

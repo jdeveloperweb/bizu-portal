@@ -55,32 +55,41 @@ function QuestionFormContainer() {
     const [selectedSimuladoId, setSelectedSimuladoId] = useState<string>("");
 
     const [isLoading, setIsLoading] = useState(!!editId);
+    // Holds the moduleId to restore after the course-change useEffect clears selectedModuleId
+    const pendingModuleIdRef = useRef<string>("");
 
     useEffect(() => {
-        if (editId) {
-            setIsLoading(true);
-            apiFetch(`/admin/questions/${editId}`)
-                .then(res => res.json())
-                .then(data => {
-                    setContent(data.statement || "");
-                    setResolution(data.resolution || "");
-                    setCategory(data.category || "QUIZ");
-                    setDifficulty(data.difficulty || "EASY");
-                    setSubject(data.subject || "");
-                    setTopic(data.topic || "");
-                    setBanca(data.banca || "");
-                    setYear(data.year || new Date().getFullYear());
-                    setImageBase64(data.imageBase64 || null);
-                    setOptions(data.options || { A: "", B: "", C: "", D: "" });
-                    setCorrectOption(data.correctOption || "A");
-                    if (data.module) {
-                        setSelectedModuleId(data.module.id);
-                        if (data.module.course) setSelectedCourseId(data.module.course.id);
+        if (!editId) return;
+        setIsLoading(true);
+
+        apiFetch(`/admin/questions/${editId}`)
+            .then(res => res.json())
+            .then(async data => {
+                setContent(data.statement || "");
+                setResolution(data.resolution || "");
+                setCategory(data.category || "QUIZ");
+                setDifficulty(data.difficulty || "EASY");
+                setSubject(data.subject || "");
+                setTopic(data.topic || "");
+                setBanca(data.banca || "");
+                setYear(data.year || new Date().getFullYear());
+                setImageBase64(data.imageBase64 || null);
+                setOptions(data.options || { A: "", B: "", C: "", D: "" });
+                setCorrectOption(data.correctOption || "A");
+
+                // Use moduleId (now returned by the API) to resolve course + module
+                const moduleId = data.moduleId || data.module?.id;
+                if (moduleId) {
+                    pendingModuleIdRef.current = moduleId;
+                    const modRes = await apiFetch(`/admin/modules/${moduleId}`);
+                    if (modRes.ok) {
+                        const mod = await modRes.json();
+                        if (mod.courseId) setSelectedCourseId(mod.courseId);
                     }
-                })
-                .catch(() => alert("Erro ao carregar os dados da questão.", { type: "danger" }))
-                .finally(() => setIsLoading(false));
-        }
+                }
+            })
+            .catch(() => alert("Erro ao carregar os dados da questão.", { type: "danger" }))
+            .finally(() => setIsLoading(false));
     }, [editId]);
 
     useEffect(() => {
@@ -104,7 +113,16 @@ function QuestionFormContainer() {
         if (selectedCourseId) {
             apiFetch(`/admin/modules/course/${selectedCourseId}`)
                 .then(res => res.json())
-                .then(data => Array.isArray(data) && setModules(data))
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        setModules(data);
+                        // Restore moduleId if we're loading an existing question
+                        if (pendingModuleIdRef.current) {
+                            setSelectedModuleId(pendingModuleIdRef.current);
+                            pendingModuleIdRef.current = "";
+                        }
+                    }
+                })
                 .catch(err => console.error("Error fetching modules", err));
 
             const currentSimulado = simulados.find(s => s.id === selectedSimuladoId);

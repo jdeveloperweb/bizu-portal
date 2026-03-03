@@ -36,6 +36,11 @@ public class AdminModuleController {
         return ResponseEntity.ok(moduleService.save(existing));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Module> getModule(@PathVariable UUID id) {
+        return ResponseEntity.ok(moduleService.findById(id));
+    }
+
     @GetMapping("/course/{courseId}")
     public ResponseEntity<List<Module>> getModulesByCourse(@PathVariable UUID courseId) {
         return ResponseEntity.ok(moduleService.findByCourseId(courseId));

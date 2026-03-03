@@ -57,6 +57,12 @@ public class Question {
     @com.fasterxml.jackson.annotation.JsonBackReference
     private Module module;
 
+    @com.fasterxml.jackson.annotation.JsonProperty("moduleId")
+    public UUID getModuleId() {
+        // Does NOT trigger lazy loading — Hibernate proxy returns ID directly
+        return module != null ? module.getId() : null;
+    }
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 

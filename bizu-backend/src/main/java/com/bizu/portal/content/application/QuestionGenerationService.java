@@ -37,21 +37,24 @@ public class QuestionGenerationService {
                 return;
             }
 
-            int totalChunks = chunks.size();
-            int questionsPerChunk = Math.max(1, count / totalChunks);
-            int remainder = count % totalChunks;
+            // Only process as many chunks as needed — never more than the requested count
+            int chunksNeeded = Math.min(chunks.size(), count);
+            List<String> activeChunks = chunks.subList(0, chunksNeeded);
+
+            int questionsPerChunk = count / chunksNeeded;
+            int remainder = count % chunksNeeded;
 
             sendEvent(emitter, "start",
                     String.format("{\"totalChunks\":%d,\"targetQuestions\":%d,\"materialTitle\":\"%s\"}",
-                            totalChunks, count, escapeJson(materialTitle)));
+                            chunksNeeded, count, escapeJson(materialTitle)));
 
             int totalGenerated = 0;
 
-            for (int i = 0; i < chunks.size(); i++) {
+            for (int i = 0; i < activeChunks.size(); i++) {
                 int questionsForChunk = questionsPerChunk + (i < remainder ? 1 : 0);
-                String chunk = chunks.get(i);
+                String chunk = activeChunks.get(i);
 
-                String prompt = buildPrompt(moduleName, i + 1, totalChunks, category, questionsForChunk);
+                String prompt = buildPrompt(moduleName, i + 1, chunksNeeded, category, questionsForChunk);
                 String aiResponse = aiService.analyze(prompt, chunk);
 
                 List<Question> saved = questionSaveService.parseAndSave(aiResponse, moduleId, category, moduleName);
@@ -59,7 +62,7 @@ public class QuestionGenerationService {
 
                 sendEvent(emitter, "progress",
                         String.format("{\"chunk\":%d,\"totalChunks\":%d,\"questionsGenerated\":%d}",
-                                i + 1, totalChunks, totalGenerated));
+                                i + 1, chunksNeeded, totalGenerated));
             }
 
             sendEvent(emitter, "complete",
