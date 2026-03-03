@@ -590,21 +590,11 @@ export default function ProfilePage() {
                         ))}
                     </nav>
 
-                    {/* Logout */}
-                    <div className="p-3 border-t border-slate-100">
-                        <button onClick={logout}
-                            className="flex items-center gap-3 px-3 py-3 rounded-xl w-full font-semibold text-sm text-red-500 hover:bg-red-50 transition-all active:scale-[0.98]">
-                            <div className="w-8 h-8 rounded-[10px] bg-red-50 flex items-center justify-center shrink-0">
-                                <LogOut className="w-4 h-4 text-red-500" />
-                            </div>
-                            <span className="text-[13px]">Sair da Conta</span>
-                        </button>
-                    </div>
                 </aside>
 
                 {/* Content area */}
                 <main className="flex-1 bg-slate-50 p-8 xl:p-10 overflow-auto">
-                    <div className="max-w-2xl space-y-2">
+                    <div className="space-y-2">
                         {/* Section heading */}
                         <div className="mb-6">
                             <h2 className="text-xl font-black text-slate-900">
