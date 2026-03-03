@@ -11,5 +11,6 @@ import java.util.UUID;
 @Repository
 public interface MaterialCompletionRepository extends JpaRepository<MaterialCompletion, UUID> {
     Optional<MaterialCompletion> findByUserIdAndMaterialId(UUID userId, UUID materialId);
+    List<MaterialCompletion> findByUserId(UUID userId);
     List<MaterialCompletion> findByUserIdAndCompletedTrue(UUID userId);
 }
