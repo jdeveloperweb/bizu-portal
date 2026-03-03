@@ -1,14 +1,18 @@
 package com.bizu.portal.content.api;
 
 import com.bizu.portal.content.application.MaterialService;
+import com.bizu.portal.content.application.QuestionGenerationService;
 import com.bizu.portal.content.domain.Material;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/v1/admin/materials")
@@ -17,6 +21,7 @@ import java.util.UUID;
 public class AdminMaterialController {
 
     private final MaterialService materialService;
+    private final QuestionGenerationService questionGenerationService;
 
     @PostMapping
     public ResponseEntity<Material> createMaterial(@RequestBody Material material) {
@@ -45,5 +50,27 @@ public class AdminMaterialController {
     public ResponseEntity<Void> deleteMaterial(@PathVariable UUID id) {
         materialService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // ── AI Question Generation ────────────────────────────────────────────────
+
+    @GetMapping(value = "/{materialId}/generate-questions", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter generateQuestions(
+            @PathVariable UUID materialId,
+            @RequestParam int count,
+            @RequestParam String category,
+            @RequestParam UUID moduleId,
+            @RequestParam(required = false, defaultValue = "Módulo") String moduleName) {
+
+        Material material = materialService.findById(materialId);
+        String content = material.getContent();
+        String title = material.getTitle();
+
+        SseEmitter emitter = new SseEmitter(300_000L); // 5-minute timeout
+
+        CompletableFuture.runAsync(() ->
+                questionGenerationService.generate(content, title, moduleId, moduleName, count, category, emitter));
+
+        return emitter;
     }
 }

@@ -22,7 +22,8 @@ import {
     MoreVertical,
     BookOpen,
     HelpCircle,
-    Eraser
+    Eraser,
+    Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,8 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import MarkdownViewer from "@/components/MarkdownViewer";
+import GenerateQuestionsModal from "@/components/admin/GenerateQuestionsModal";
+import GeneratingProgressModal from "@/components/admin/GeneratingProgressModal";
 
 interface Material {
     id: string;
@@ -79,6 +82,15 @@ export default function CourseEditorPage() {
     // Modals
     const [isModuleModalOpen, setIsModuleModalOpen] = useState(false);
     const [isStudioOpen, setIsStudioOpen] = useState(false);
+
+    // AI Question Generation
+    const [generateTarget, setGenerateTarget] = useState<{ material: Material; module: Module } | null>(null);
+    const [generatingConfig, setGeneratingConfig] = useState<{
+        material: Material;
+        module: Module;
+        count: number;
+        category: "QUIZ" | "SIMULADO";
+    } | null>(null);
 
     // Forms
     const [editingModule, setEditingModule] = useState<Module | null>(null);
@@ -464,6 +476,15 @@ export default function CourseEditorPage() {
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2 opacity-0 group-hover/item:opacity-100 transition-all">
+                                                        {mat.fileType === "ARTICLE" && (
+                                                            <button
+                                                                onClick={() => setGenerateTarget({ material: mat, module: mod })}
+                                                                title="Gerar questões com IA"
+                                                                className="p-3 bg-white border rounded-2xl hover:border-violet-500 hover:bg-violet-50 text-slate-400 hover:text-violet-600 transition-all shadow-sm"
+                                                            >
+                                                                <Sparkles className="w-4 h-4" />
+                                                            </button>
+                                                        )}
                                                         <button
                                                             onClick={() => {
                                                                 setEditingMaterial(mat);
@@ -1002,6 +1023,43 @@ export default function CourseEditorPage() {
                             </div>
                         </motion.div>
                     </div>
+                )}
+            </AnimatePresence>
+
+            {/* AI Question Generation Modals */}
+            <AnimatePresence>
+                {generateTarget && !generatingConfig && (
+                    <GenerateQuestionsModal
+                        material={generateTarget.material}
+                        module={generateTarget.module}
+                        onClose={() => setGenerateTarget(null)}
+                        onStart={(count, category) => {
+                            setGeneratingConfig({
+                                material: generateTarget.material,
+                                module: generateTarget.module,
+                                count,
+                                category,
+                            });
+                            setGenerateTarget(null);
+                        }}
+                    />
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {generatingConfig && (
+                    <GeneratingProgressModal
+                        materialId={generatingConfig.material.id}
+                        moduleId={generatingConfig.module.id}
+                        moduleName={generatingConfig.module.title}
+                        materialTitle={generatingConfig.material.title}
+                        count={generatingConfig.count}
+                        category={generatingConfig.category}
+                        onClose={() => setGeneratingConfig(null)}
+                        onComplete={(total) => {
+                            toast.success(`${total} questão${total !== 1 ? "ões" : ""} gerada${total !== 1 ? "s" : ""} com sucesso!`);
+                        }}
+                    />
                 )}
             </AnimatePresence>
         </div>
