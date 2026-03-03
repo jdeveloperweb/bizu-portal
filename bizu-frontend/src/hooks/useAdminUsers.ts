@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { apiFetch } from "@/lib/api";
 import { formatPhone, digitsOnly } from "@/lib/utils";
 import { useCustomDialog } from "@/components/CustomDialogProvider";
@@ -34,18 +34,33 @@ export function useAdminUsers(currentUserEmail?: string) {
     planId: "",
   });
 
-  const fetchUsers = useCallback(async (currentPage = page, search = searchTerm) => {
+  // Estabiliza fetchUsers evitando re-recriação a cada mudança de página/busca
+  const pageRef = useRef(page);
+  const searchRef = useRef(searchTerm);
+
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
+
+  useEffect(() => {
+    searchRef.current = searchTerm;
+  }, [searchTerm]);
+
+  const fetchUsers = useCallback(async (currentPage?: number, search?: string) => {
+    const p = currentPage !== undefined ? currentPage : pageRef.current;
+    const s = search !== undefined ? search : searchRef.current;
+
     setIsLoading(true);
     setIsError(false);
     try {
       const queryParams = new URLSearchParams({
-        page: currentPage.toString(),
+        page: p.toString(),
         size: size.toString(),
         sort: "createdAt,desc"
       });
 
-      if (search) {
-        queryParams.append("search", search);
+      if (s) {
+        queryParams.append("search", s);
       }
 
       const res = await apiFetch(`/admin/users?${queryParams.toString()}`);
@@ -73,7 +88,7 @@ export function useAdminUsers(currentUserEmail?: string) {
     } finally {
       setIsLoading(false);
     }
-  }, [page, searchTerm]);
+  }, []); // Sem dependências para ser estável
 
   const fetchPlans = useCallback(async (force = false) => {
     if (!force && plans.length > 0) return;

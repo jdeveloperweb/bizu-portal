@@ -62,16 +62,20 @@ export default function AdminUsuariosPage() {
     canDeleteUser,
   } = useAdminUsers(currentUser?.email);
 
+  // Debounce para busca - sempre reseta para página 0 e busca
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setPage(0);
       fetchUsers(0, searchTerm);
     }, 500);
     return () => clearTimeout(timeoutId);
+    // Não incluímos 'page' aqui para evitar que a navegação de página dispare o reset de busca
+    // Como fetchUsers agora é estável (via useRef no hook), este efeito não reinicia ao mudar de página
   }, [searchTerm, setPage, fetchUsers]);
 
+  // Busca quando a página muda (para páginas diferentes de 0)
   useEffect(() => {
-    if (page !== 0 || !searchTerm) {
+    if (page !== 0) {
       fetchUsers(page, searchTerm);
     }
   }, [page, fetchUsers]);
