@@ -250,7 +250,7 @@ export default function RankingStudentPage() {
                                     <div className="text-4xl font-black text-white leading-none tabular-nums">
                                         <span className="text-indigo-300 text-2xl">#</span>{myRank.rank > 0 ? myRank.rank : "–"}
                                     </div>
-                                    {myRank.delta !== 0 && (
+                                    {!!myRank.delta && (
                                         <div className={`text-[10px] font-bold flex items-center gap-0.5 mt-1 ${myRank.delta > 0 ? "text-emerald-300" : "text-red-300"}`}>
                                             {myRank.delta > 0 ? <ArrowUp size={9} /> : <ArrowDown size={9} />}
                                             {Math.abs(myRank.delta ?? 0)} posições
