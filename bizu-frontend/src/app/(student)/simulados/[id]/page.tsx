@@ -10,12 +10,14 @@ import { AlertTriangle, Clock, Target, Maximize, CheckCircle2, Minimize } from "
 export default function SimuladoProvaPage() {
     const params = useParams();
     const router = useRouter();
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://bizu.mjoinix.com.br/api/v1";
+    // Unified API URL from env or fallback (fixing typo)
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://bizu.mjolnix.com.br/api/v1";
     const simuladoId = params.id as string;
 
     const [simulado, setSimulado] = useState<any>(null);
     const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [cheatWarning, setCheatWarning] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -26,14 +28,24 @@ export default function SimuladoProvaPage() {
     useEffect(() => {
         const fetchSimulado = async () => {
             setIsLoading(true);
+            setError(null);
             try {
                 const res = await apiFetch(`/simulados/${simuladoId}`);
                 if (res.ok) {
                     const data = await res.json();
+
+                    // Filter out possible null/invalid questions from the array
+                    if (data && data.questions) {
+                        data.questions = data.questions.filter((q: any) => q !== null && q !== undefined);
+                    }
+
                     setSimulado(data);
+                } else {
+                    setError("Não foi possível carregar o simulado. Por favor, tente novamente.");
                 }
             } catch (error) {
                 console.error("Failed to fetch exam", error);
+                setError("Erro de conexão ao carregar a prova.");
             } finally {
                 setIsLoading(false);
             }
@@ -47,13 +59,13 @@ export default function SimuladoProvaPage() {
     // Anti-cheat & Fullscreen
     useEffect(() => {
         const handleVisibilityChange = () => {
-            if (document.hidden && !isFinished && !isLoading) {
+            if (document.hidden && !isFinished && !isLoading && simulado) {
                 setCheatWarning(true);
             }
         };
 
         const handleBlur = () => {
-            if (!isFinished && !isLoading) {
+            if (!isFinished && !isLoading && simulado) {
                 setCheatWarning(true);
             }
         };
@@ -75,7 +87,7 @@ export default function SimuladoProvaPage() {
                 document.exitFullscreen().catch(err => console.log(err));
             }
         };
-    }, [simuladoId, isFinished, isLoading]);
+    }, [simuladoId, isFinished, isLoading, simulado]);
 
     const requestFullscreen = () => {
         if (containerRef.current) {
@@ -86,7 +98,7 @@ export default function SimuladoProvaPage() {
     };
 
     const handleNext = () => {
-        if (simulado && currentQuestionIdx < simulado.questions.length - 1) {
+        if (simulado && currentQuestionIdx < (simulado.questions?.length || 0) - 1) {
             setCurrentQuestionIdx(currentQuestionIdx + 1);
         } else {
             setIsFinished(true);
@@ -104,12 +116,14 @@ export default function SimuladoProvaPage() {
         return <div className="p-8 text-center text-muted-foreground flex items-center justify-center min-h-screen">Carregando prova...</div>;
     }
 
-    if (!simulado || !simulado.questions || simulado.questions.length === 0) {
+    if (error || !simulado || !simulado.questions || simulado.questions.length === 0) {
         return (
-            <div className="container mx-auto px-4 py-8">
-                <div className="text-center bg-card p-12 rounded-3xl border border-muted shadow-sm">
-                    <h2 className="text-xl font-bold mb-4">Nenhuma questão encontrada no simulado</h2>
-                    <Button onClick={() => router.push("/simulados")}>Voltar</Button>
+            <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-screen">
+                <div className="text-center bg-white p-12 rounded-3xl border border-muted shadow-lg max-w-md w-full">
+                    <AlertTriangle className="w-16 h-16 text-amber-500 mx-auto mb-4" />
+                    <h2 className="text-xl font-bold mb-4">{error || "Nenhuma questão encontrada no simulado"}</h2>
+                    <p className="text-slate-500 mb-8 text-sm">O conteúdo pode estar em manutenção ou não estar disponível para o seu curso.</p>
+                    <Button className="w-full" onClick={() => router.push("/simulados")}>Voltar para Simulados</Button>
                 </div>
             </div>
         );
@@ -132,12 +146,25 @@ export default function SimuladoProvaPage() {
 
     const currentQuestion = simulado.questions[currentQuestionIdx];
 
+    // Final safety check to avoid crash before render
+    if (!currentQuestion) {
+        return (
+            <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-screen">
+                <div className="text-center bg-white p-12 rounded-3xl border border-muted shadow-sm max-w-md">
+                    <h2 className="text-xl font-bold mb-4">Questão não encontrada</h2>
+                    <p className="text-slate-500 mb-8">Houve um erro ao carregar esta questão específica.</p>
+                    <Button onClick={() => router.push("/simulados")}>Voltar</Button>
+                </div>
+            </div>
+        );
+    }
+
     const formattedOptions = currentQuestion.options ? Object.entries(currentQuestion.options).map(([key, value]) => ({
         id: key,
         text: value as string,
     })) : [];
 
-    const mappedQuestion = currentQuestion ? {
+    const mappedQuestion = {
         id: currentQuestion.id,
         statement: currentQuestion.statement || "Questão sem enunciado",
         options: formattedOptions,
@@ -146,9 +173,7 @@ export default function SimuladoProvaPage() {
         banca: currentQuestion.banca,
         year: currentQuestion.year,
         subject: currentQuestion.module?.title || currentQuestion.subject || "Geral",
-    } : null;
-
-    if (!mappedQuestion) return null;
+    };
 
     return (
         <div ref={containerRef} className="bg-slate-50 min-h-screen w-full relative font-sans text-slate-800">
