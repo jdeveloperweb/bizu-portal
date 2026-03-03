@@ -53,7 +53,7 @@ export default function StudentSidebar() {
     const { logout, user, subscription, entitlements, selectedCourseId, isFree, authenticated } = useAuth();
     const { setIsOpen: setPomodoroOpen } = usePomodoro();
     const { pendingDuels } = useDuels();
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isMoreOpen, setIsMoreOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [pendingFriendsCount, setPendingFriendsCount] = useState(0);
     const [pendingTasksCount, setPendingTasksCount] = useState(0);
@@ -115,7 +115,7 @@ export default function StudentSidebar() {
         window.addEventListener("tasks:updated", fetchSidebarData);
         window.addEventListener("buff-activated", fetchSidebarData);
 
-        const interval = setInterval(fetchSidebarData, 120000); // 2 minutos
+        const interval = setInterval(fetchSidebarData, 120000);
 
         return () => {
             window.removeEventListener("friends:updated", fetchSidebarData);
@@ -125,6 +125,11 @@ export default function StudentSidebar() {
         };
     }, [fetchSidebarData]);
 
+    // Close more sheet when navigating
+    useEffect(() => {
+        setIsMoreOpen(false);
+    }, [pathname]);
+
     const Item = ({ href, icon: Icon, label, badge, badgeVariant = "rose", customBadge }: { href: string; icon: typeof LayoutDashboard; label: string; badge?: number; badgeVariant?: "rose" | "amber"; customBadge?: React.ReactNode }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
         const isPremiumRoute = ["/pomodoro", "/simulados", "/flashcards", "/arena", "/redacao", "/desempenho", "/ranking", "/conquistas", "/amigos"].some(r => href.startsWith(r));
@@ -132,7 +137,7 @@ export default function StudentSidebar() {
         const hasArenaInvite = label === "Arena PVP" && typeof badge === "number" && badge > 0;
 
         const handleClick = () => {
-            setIsMobileMenuOpen(false);
+            setIsMoreOpen(false);
             if (label === "Pomodoro") {
                 setPomodoroOpen(true);
             }
@@ -191,28 +196,240 @@ export default function StudentSidebar() {
         );
     };
 
+    // Mobile bottom nav tabs
+    const mobileNavTabs = [
+        { href: "/dashboard", icon: LayoutDashboard, label: "Início" },
+        { href: "/questoes/treino", icon: PlayCircle, label: "Quiz" },
+        { href: "/arena", icon: Swords, label: "Arena", badge: pendingDuels.length },
+        { href: "/ranking", icon: BarChart3, label: "Ranking", customBadge: rankingPosition },
+    ];
+
     return (
         <>
-            {/* Menu Mobile Topo */}
-            <div className="md:hidden fixed top-0 left-0 right-0 h-[calc(4rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] bg-indigo-600 border-b border-indigo-500/30 flex items-center justify-between px-4 z-40 shadow-lg shadow-indigo-500/10">
-                <BrandLogo size="md" variant="light" />
-                <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 -mr-2 text-white/80 hover:text-white transition-colors">
-                    {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            {/* ── Mobile top bar ─────────────────────────────────────────── */}
+            <div className="md:hidden fixed top-0 left-0 right-0 h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] bg-card border-b border-border flex items-center justify-between px-4 z-40">
+                <BrandLogo size="md" variant="dark" />
+                <button
+                    onClick={() => setIsMoreOpen(true)}
+                    className="relative p-1"
+                    aria-label="Menu"
+                >
+                    <Avatar
+                        src={user?.avatarUrl}
+                        name={user?.name || 'Usuário'}
+                    />
+                    {(buffs.xpBoost || buffs.radar || buffs.elite) && (
+                        <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-indigo-500 rounded-full border-2 border-card" />
+                    )}
                 </button>
             </div>
 
-            {/* Overlay Mobile */}
-            {isMobileMenuOpen && (
-                <div
-                    className="md:hidden fixed inset-0 bg-slate-900/20 z-40 backdrop-blur-sm"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                />
+            {/* ── Mobile bottom nav ──────────────────────────────────────── */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border z-40 pb-[env(safe-area-inset-bottom)]">
+                <div className="flex items-stretch h-14">
+                    {mobileNavTabs.map(({ href, icon: Icon, label, badge, customBadge }) => {
+                        const active = pathname === href || pathname.startsWith(href + "/");
+                        return (
+                            <Link
+                                key={href}
+                                href={href}
+                                className={`flex-1 flex flex-col items-center justify-center gap-0.5 relative transition-colors ${active ? "text-indigo-600" : "text-muted-foreground"}`}
+                            >
+                                {active && (
+                                    <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-indigo-600 rounded-b-full" />
+                                )}
+                                <div className="relative">
+                                    <Icon size={20} strokeWidth={active ? 2.5 : 1.75} />
+                                    {typeof badge === "number" && badge > 0 && (
+                                        <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-rose-500 text-white text-[8px] flex items-center justify-center rounded-full font-bold border-2 border-card">
+                                            {badge > 9 ? '9+' : badge}
+                                        </span>
+                                    )}
+                                    {typeof customBadge === "number" && customBadge > 0 && (
+                                        <span className="absolute -top-1.5 -right-2 bg-amber-100 text-amber-700 text-[8px] font-bold px-1 rounded leading-tight border border-amber-200">
+                                            #{customBadge}
+                                        </span>
+                                    )}
+                                </div>
+                                <span className={`text-[10px] leading-none ${active ? "font-semibold" : "font-medium"}`}>{label}</span>
+                            </Link>
+                        );
+                    })}
+
+                    {/* More tab */}
+                    <button
+                        onClick={() => setIsMoreOpen(true)}
+                        className={`flex-1 flex flex-col items-center justify-center gap-0.5 relative transition-colors ${isMoreOpen ? "text-indigo-600" : "text-muted-foreground"}`}
+                    >
+                        {isMoreOpen && (
+                            <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-indigo-600 rounded-b-full" />
+                        )}
+                        <Menu size={20} strokeWidth={1.75} />
+                        <span className="text-[10px] font-medium leading-none">Mais</span>
+                    </button>
+                </div>
+            </nav>
+
+            {/* ── More sheet (mobile) ────────────────────────────────────── */}
+            {isMoreOpen && (
+                <>
+                    <div
+                        className="md:hidden fixed inset-0 bg-slate-900/30 z-50 backdrop-blur-sm"
+                        onClick={() => setIsMoreOpen(false)}
+                    />
+                    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card rounded-t-2xl shadow-2xl overflow-hidden max-h-[85dvh] flex flex-col pb-[env(safe-area-inset-bottom)]">
+                        {/* Drag handle */}
+                        <div className="flex justify-center pt-2.5 pb-1 shrink-0">
+                            <div className="w-9 h-1 bg-border rounded-full" />
+                        </div>
+
+                        {/* User profile */}
+                        <div className="px-4 pt-2 pb-3 border-b border-border flex items-center gap-3 shrink-0">
+                            <Avatar src={user?.avatarUrl} name={user?.name || 'Usuário'} />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[13px] font-bold text-foreground truncate leading-none mb-1">
+                                    {user?.name || 'Usuário'}
+                                </p>
+                                <p className="text-[11px] text-indigo-500 truncate leading-none">
+                                    @{user?.nickname || 'nickname'}
+                                </p>
+                                {(buffs.xpBoost || buffs.radar || buffs.elite) && (
+                                    <div className="flex gap-1.5 items-center mt-1.5">
+                                        {buffs.xpBoost && (
+                                            <div title="XP 2x Ativo" className="h-5 px-1.5 rounded-md bg-amber-100 flex items-center gap-0.5 text-amber-600 border border-amber-200">
+                                                <Zap size={10} className="fill-current" />
+                                                <span className="text-[9px] font-black leading-none">2x</span>
+                                            </div>
+                                        )}
+                                        {buffs.radar && (
+                                            <div title="Radar Ativo" className="w-5 h-5 rounded-md bg-emerald-100 flex items-center justify-center text-emerald-600 border border-emerald-200">
+                                                <Target size={10} />
+                                            </div>
+                                        )}
+                                        {buffs.elite && (
+                                            <div title="Status Elite" className="w-5 h-5 rounded-md bg-purple-100 flex items-center justify-center text-purple-600 border border-purple-200">
+                                                <Crown size={10} className="fill-current" />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                            <button
+                                onClick={() => setIsMoreOpen(false)}
+                                className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        {/* Search */}
+                        <div className="px-3 py-2.5 border-b border-border shrink-0">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted border border-border text-muted-foreground text-[13px]">
+                                <Search size={14} />
+                                <span>Buscar...</span>
+                            </div>
+                        </div>
+
+                        {/* Nav content */}
+                        <div className="overflow-y-auto flex-1 px-3 py-3 space-y-3">
+                            {/* Estudar */}
+                            <div>
+                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] px-3 mb-1.5">Estudar</p>
+                                <div className="space-y-px">
+                                    {studyNav.map((i) => (
+                                        <Item
+                                            key={i.href}
+                                            {...i}
+                                            badge={i.label === "Arena PVP" ? pendingDuels.length : i.label === "Flashcards" ? pendingFlashcardsCount || undefined : undefined}
+                                            badgeVariant={i.label === "Flashcards" ? "amber" : "rose"}
+                                            customBadge={
+                                                i.label === "Arena PVP" && (!pendingDuels || pendingDuels.length === 0) && onlineCount > 0 ? (
+                                                    <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                        {onlineCount}
+                                                    </div>
+                                                ) : undefined
+                                            }
+                                        />
+                                    ))}
+                                    {entitlements?.find(e => e.course?.id === selectedCourseId)?.course?.hasEssay && (
+                                        <Item href="/redacao" icon={FileText} label="Redação" />
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Planejar */}
+                            <div>
+                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] px-3 mb-1.5">Planejar</p>
+                                <div className="space-y-px">
+                                    {planNav.map((i) => (
+                                        <Item key={i.href} {...i} badge={i.label === "Tarefas" ? pendingTasksCount || undefined : undefined} />
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Acompanhar */}
+                            <div>
+                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.15em] px-3 mb-1.5">Acompanhar</p>
+                                <div className="space-y-px">
+                                    {trackNav.map((i) => (
+                                        <Item
+                                            key={i.href}
+                                            {...i}
+                                            badge={i.label === "Amigos" ? pendingFriendsCount : undefined}
+                                            customBadge={
+                                                i.label === "Ranking" && rankingPosition ? (
+                                                    <span className="bg-amber-100 text-amber-700 border border-amber-200 text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+                                                        #{rankingPosition}
+                                                    </span>
+                                                ) : undefined
+                                            }
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Bottom nav items */}
+                            <div className="border-t border-border pt-3 space-y-px">
+                                {bottomNav.map((i) => <Item key={i.href} {...i} />)}
+                            </div>
+                        </div>
+
+                        {/* Plan info + logout */}
+                        <div className="px-3 py-3 border-t border-border shrink-0 space-y-2">
+                            <div className="rounded-lg bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-100 px-3.5 py-3">
+                                {subscription || entitlements?.some(e => e.course?.id === selectedCourseId && e.active) ? (
+                                    <>
+                                        <p className="text-[11px] font-bold text-indigo-700 mb-0.5">
+                                            {subscription?.plan?.name || (entitlements?.find(e => e.course?.id === selectedCourseId)?.source === 'MANUAL' ? 'Plano Vitalício' : 'Plano Ativo')}
+                                        </p>
+                                        <p className="text-[10px] text-indigo-500/70 truncate">
+                                            {entitlements?.find(e => e.course?.id === selectedCourseId)?.course?.title || "Curso Ativo"}
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="text-[11px] font-bold text-indigo-700 mb-0.5">Plano Free</p>
+                                        <p className="text-[10px] text-indigo-500/70">Faca upgrade para desbloquear tudo</p>
+                                    </>
+                                )}
+                            </div>
+                            <button
+                                onClick={logout}
+                                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-medium text-muted-foreground hover:bg-red-50 hover:text-red-500 transition-all"
+                            >
+                                <LogOut size={15} />
+                                Sair
+                            </button>
+                        </div>
+                    </div>
+                </>
             )}
 
+            {/* ── Desktop sidebar (unchanged) ───────────────────────────── */}
             <aside className={`
-                ${isCollapsed ? 'w-[72px]' : 'w-[230px]'} shrink-0 h-[100dvh] bg-card border-r border-border flex flex-col
-                fixed md:sticky top-0 z-50 transition-[width,transform] duration-300 ease-in-out
-                ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+                ${isCollapsed ? 'w-[72px]' : 'w-[230px]'} shrink-0 h-[100dvh] bg-card border-r border-border flex-col
+                hidden md:flex sticky top-0 z-50 transition-[width] duration-300 ease-in-out
             `}>
                 <div
                     className={`h-16 flex items-center ${isCollapsed ? 'justify-center cursor-pointer hover:bg-muted/50 transition-colors' : 'justify-between px-4'} border-b border-border shrink-0`}
