@@ -32,6 +32,14 @@ public class MaterialCompletion {
     @Column(name = "completed_at", nullable = false)
     private OffsetDateTime completedAt;
 
+    @Column(name = "completed", nullable = false)
+    @Builder.Default
+    private boolean completed = true;
+
+    @Column(name = "xp_awarded", nullable = false)
+    @Builder.Default
+    private boolean xpAwarded = false;
+
     @PrePersist
     protected void onCreate() {
         completedAt = OffsetDateTime.now();

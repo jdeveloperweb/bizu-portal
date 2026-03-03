@@ -58,7 +58,7 @@ public class StudentMaterialController {
     @GetMapping("/completed")
     public ResponseEntity<List<UUID>> getCompletedMaterials(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = userService.resolveUserId(jwt);
-        return ResponseEntity.ok(completionRepository.findByUserId(userId)
+        return ResponseEntity.ok(completionRepository.findByUserIdAndCompletedTrue(userId)
             .stream()
             .map(c -> c.getMaterial().getId())
             .collect(Collectors.toList()));
@@ -68,29 +68,39 @@ public class StudentMaterialController {
     public ResponseEntity<com.bizu.portal.student.application.RewardDTO> toggleCompletion(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         UUID userId = userService.resolveUserId(jwt);
         java.util.Optional<com.bizu.portal.student.domain.MaterialCompletion> existing = completionRepository.findByUserIdAndMaterialId(userId, id);
-        
-        boolean completed = false;
+
+        com.bizu.portal.student.application.RewardDTO reward = null;
+
         if (existing.isPresent()) {
-            completionRepository.delete(existing.get());
+            com.bizu.portal.student.domain.MaterialCompletion record = existing.get();
+            // Soft delete: apenas alterna o flag, nunca deleta o registro
+            record.setCompleted(!record.isCompleted());
+            boolean nowCompleted = record.isCompleted();
+
+            // XP só é concedido uma vez por material (na primeira conclusão)
+            if (nowCompleted && !record.isXpAwarded()) {
+                record.setXpAwarded(true);
+                reward = gamificationService.addXp(userId, 50);
+                completionRepository.save(record);
+                certificateService.checkAndIssueCertificate(userId, id);
+            } else {
+                completionRepository.save(record);
+            }
         } else {
+            // Primeiro registro: cria, concede XP e marca xpAwarded
             Material material = materialService.findById(id);
             com.bizu.portal.student.domain.MaterialCompletion completion = com.bizu.portal.student.domain.MaterialCompletion.builder()
                 .user(userRepository.getReferenceById(userId))
                 .material(material)
+                .completed(true)
+                .xpAwarded(true)
                 .build();
             completionRepository.save(completion);
-            completed = true;
-        }
-        
-        com.bizu.portal.student.application.RewardDTO reward = null;
-        if (completed) {
-            // Recompensa Fixa por material: 50 XP
+            // Recompensa fixa por material: 50 XP
             reward = gamificationService.addXp(userId, 50);
-            
-            // Disparar verificação de completude 100% de curso e emitir certificado
             certificateService.checkAndIssueCertificate(userId, id);
         }
-        
+
         return ResponseEntity.ok(reward);
     }
 
