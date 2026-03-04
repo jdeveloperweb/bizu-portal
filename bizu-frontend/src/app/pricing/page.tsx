@@ -47,7 +47,10 @@ function PricingContent() {
         fetchData();
     }, [apiUrl]);
 
-    const filteredPlans = plans.filter(p => !selectedCourseId || (p.course && p.course.id === selectedCourseId));
+    const filteredPlans = plans.filter(p =>
+        p.course &&
+        (!selectedCourseId || String(p.course.id) === String(selectedCourseId))
+    );
 
     const faqs = [
         {
