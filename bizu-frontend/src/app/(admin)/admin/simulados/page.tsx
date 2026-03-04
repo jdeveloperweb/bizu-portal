@@ -156,6 +156,15 @@ export default function AdminSimuladosPage() {
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
+                                                className="rounded-xl hover:bg-muted text-muted-foreground"
+                                                onClick={() => router.push(`/admin/simulados/${simulado.id}/editar`)}
+                                                title="Editar Simulado"
+                                            >
+                                                <Pencil className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 onClick={() => handleDelete(simulado.id)}
                                                 className="rounded-xl text-destructive hover:bg-destructive/10"
                                                 title="Excluir Simulado"
