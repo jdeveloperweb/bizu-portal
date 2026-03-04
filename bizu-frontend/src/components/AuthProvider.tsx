@@ -311,7 +311,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!keycloak) return;
         keycloak.login({
             idpHint: 'google',
-            redirectUri: window.location.origin + '/dashboard'
+            redirectUri: window.location.origin + '/auth/google/confirm'
         });
     };
 
