@@ -4,6 +4,7 @@ import com.bizu.portal.student.domain.SimuladoSession;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,4 +19,6 @@ public interface SimuladoSessionRepository extends JpaRepository<SimuladoSession
     boolean existsByUser_IdAndSimulado_Id(UUID userId, UUID simuladoId);
 
     List<SimuladoSession> findAllBySimulado_IdOrderByStartedAtDesc(UUID simuladoId);
+
+    List<SimuladoSession> findAllByStatusAndExpiresAtBefore(String status, OffsetDateTime time);
 }

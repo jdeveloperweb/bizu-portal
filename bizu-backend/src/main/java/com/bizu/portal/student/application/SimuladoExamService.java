@@ -12,6 +12,7 @@ import com.bizu.portal.student.infrastructure.SimuladoResultRepository;
 import com.bizu.portal.student.infrastructure.SimuladoSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -402,6 +403,25 @@ public class SimuladoExamService {
             case "EXPIRADO"   -> 3;
             default           -> 4;
         };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Scheduled: expire abandoned IN_PROGRESS sessions
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Scheduled(fixedDelay = 60_000)
+    @Transactional
+    public void expireAbandonedSessions() {
+        List<SimuladoSession> stale = sessionRepository
+                .findAllByStatusAndExpiresAtBefore("IN_PROGRESS", OffsetDateTime.now());
+        if (!stale.isEmpty()) {
+            OffsetDateTime now = OffsetDateTime.now();
+            stale.forEach(s -> {
+                s.setStatus("EXPIRED");
+                s.setSubmittedAt(now);
+            });
+            sessionRepository.saveAll(stale);
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
