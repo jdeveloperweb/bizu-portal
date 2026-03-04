@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
+import { apiFetch } from "@/lib/api";
 import { CheckCircle, Loader2, User, Mail, ArrowRight } from "lucide-react";
 import Image from "next/image";
 
@@ -11,12 +12,31 @@ export default function GoogleConfirmPage() {
     const router = useRouter();
     const [confirming, setConfirming] = useState(false);
     const [redirectReady, setRedirectReady] = useState(false);
+    const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
 
     useEffect(() => {
         if (!loading && !authenticated) {
             router.replace("/login");
         }
     }, [loading, authenticated, router]);
+
+    // After auth loads, check backend: existing user → redirect silently; new user → show confirmation
+    useEffect(() => {
+        if (loading || !authenticated) return;
+
+        apiFetch("/users/me")
+            .then(async (res) => {
+                if (res.ok) {
+                    // Returning user — skip confirmation, redirect directly
+                    await refreshUserProfile();
+                    setRedirectReady(true);
+                } else {
+                    // New user — show confirmation screen
+                    setIsNewUser(true);
+                }
+            })
+            .catch(() => setIsNewUser(true));
+    }, [loading, authenticated, refreshUserProfile]);
 
     // Fires after refreshUserProfile() updates subscription state
     useEffect(() => {
@@ -49,7 +69,7 @@ export default function GoogleConfirmPage() {
     const displayEmail = user?.email || user?.preferred_username || "";
     const avatarUrl = user?.picture as string | undefined;
 
-    if (loading) {
+    if (loading || !authenticated || isNewUser === null) {
         return (
             <div className="h-[100dvh] flex items-center justify-center bg-[#020617]">
                 <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
