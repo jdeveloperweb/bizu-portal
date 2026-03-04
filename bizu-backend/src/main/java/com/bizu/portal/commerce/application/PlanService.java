@@ -21,7 +21,7 @@ public class PlanService {
     }
 
     public List<Plan> findAllActive() {
-        return planRepository.findAllByActiveTrueOrderBySortOrder();
+        return planRepository.findAllByActiveTrueAndCodeNotStartingWithOrderBySortOrder("AXON_PACK_");
     }
 
     public List<Plan> findAllByCourse(UUID courseId) {

@@ -7,15 +7,28 @@ import { CheckCircle, Loader2, User, Mail, ArrowRight } from "lucide-react";
 import Image from "next/image";
 
 export default function GoogleConfirmPage() {
-    const { authenticated, user, loading, isAdmin, refreshUserProfile } = useAuth();
+    const { authenticated, user, loading, isAdmin, isPremium, refreshUserProfile } = useAuth();
     const router = useRouter();
     const [confirming, setConfirming] = useState(false);
+    const [redirectReady, setRedirectReady] = useState(false);
 
     useEffect(() => {
         if (!loading && !authenticated) {
             router.replace("/login");
         }
     }, [loading, authenticated, router]);
+
+    // Fires after refreshUserProfile() updates subscription state
+    useEffect(() => {
+        if (!redirectReady) return;
+        if (isAdmin) {
+            router.push("/admin");
+        } else if (isPremium) {
+            router.push("/dashboard");
+        } else {
+            router.push("/checkout");
+        }
+    }, [redirectReady, isAdmin, isPremium, router]);
 
     const handleConfirm = async () => {
         setConfirming(true);
@@ -24,11 +37,7 @@ export default function GoogleConfirmPage() {
         } catch {
             // proceed anyway
         }
-        if (isAdmin) {
-            router.push("/admin");
-        } else {
-            router.push("/dashboard");
-        }
+        setRedirectReady(true);
     };
 
     const displayName =
