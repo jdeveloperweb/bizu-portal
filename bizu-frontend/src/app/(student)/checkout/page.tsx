@@ -183,10 +183,7 @@ function CheckoutContent() {
 
     const cardBrand = useMemo(() => detectCardBrand(cardNumber), [cardNumber]);
     const filteredPlans = useMemo(
-        () => plans.filter((plan) =>
-            plan.course &&
-            (!selectedCourseId || String(plan.course.id) === String(selectedCourseId))
-        ),
+        () => plans.filter((plan) => !selectedCourseId || (plan.course && plan.course.id === selectedCourseId)),
         [plans, selectedCourseId],
     );
 
