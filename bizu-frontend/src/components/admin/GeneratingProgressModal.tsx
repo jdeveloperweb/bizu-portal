@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, CheckCircle2, XCircle } from "lucide-react";
+import { Sparkles, CheckCircle2, XCircle, StopCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api";
 
@@ -17,7 +17,7 @@ interface Props {
     onComplete: (totalGenerated: number) => void;
 }
 
-type Status = "generating" | "complete" | "error";
+type Status = "generating" | "complete" | "partial" | "error";
 
 export default function GeneratingProgressModal({
     materialId,

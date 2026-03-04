@@ -281,7 +281,7 @@ export default function SimuladosPage() {
 
     if (isFree) {
         return (
-            <div className="p-6 lg:p-12 w-full max-w-4xl mx-auto flex items-center justify-center min-h-[60vh]">
+            <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto flex items-center justify-center min-h-[60vh]">
                 <PremiumFeatureCard
                     title="Simulados Premium"
                     description="O acesso aos simulados de concurso é exclusivo para assinantes. Aperfeiçoe seus estudos e ganhe vantagem na aprovação!"
@@ -310,12 +310,7 @@ export default function SimuladosPage() {
         : realized;
 
     return (
-        <div className="min-h-screen bg-background relative overflow-hidden pb-16">
-            {/* Ambient glow */}
-            <div className="pointer-events-none absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-primary/4 blur-[120px]" />
-            <div className="pointer-events-none absolute bottom-0 -left-40 h-[500px] w-[500px] rounded-full bg-primary/3 blur-[120px]" />
-
-            <div className="container mx-auto px-4 sm:px-6 py-8 md:py-12 max-w-4xl relative z-10">
+        <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
 
                 {/* Header */}
                 <div className="mb-10">
@@ -448,7 +443,6 @@ export default function SimuladosPage() {
                         </AnimatePresence>
                     )}
                 </div>
-            </div>
         </div>
     );
 }
