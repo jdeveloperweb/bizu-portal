@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -107,13 +109,22 @@ public class AdminSimuladoService {
     public Simulado generateQuestions(UUID simuladoId, java.util.Map<UUID, Integer> moduleWeights) {
         Simulado simulado = findById(simuladoId);
         
+        Set<UUID> existingIds = simulado.getQuestions().stream()
+                .map(Question::getId)
+                .collect(Collectors.toSet());
+
         for (java.util.Map.Entry<UUID, Integer> entry : moduleWeights.entrySet()) {
             UUID moduleId = entry.getKey();
             Integer count = entry.getValue();
-            
+
             if (count != null && count > 0) {
                 java.util.List<Question> randomQuestions = questionRepository.findRandomByModuleAndCategory(moduleId, "SIMULADO", count);
-                simulado.getQuestions().addAll(randomQuestions);
+                randomQuestions.stream()
+                        .filter(q -> !existingIds.contains(q.getId()))
+                        .forEach(q -> {
+                            simulado.getQuestions().add(q);
+                            existingIds.add(q.getId());
+                        });
             }
         }
         
