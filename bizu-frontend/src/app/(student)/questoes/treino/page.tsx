@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense, useMemo, useRef } from "react";
 import { apiFetch } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/components/AuthProvider";
 import { useCustomDialog } from "@/components/CustomDialogProvider";
@@ -249,35 +250,51 @@ function TreinoContent() {
         subject: currentQuestion.module?.title || currentQuestion.subject,
     };
 
+    const progressPct = filteredQuestions.length > 0
+        ? Math.round((currentQuestionIdx / filteredQuestions.length) * 100)
+        : 0;
+
     return (
         <div ref={containerRef} className="min-h-screen bg-background relative overflow-hidden pb-12">
             {/* Design Background elements */}
             <div className={`pointer-events-none absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px] ${isFocusMode ? "opacity-30" : ""}`} />
             <div className={`pointer-events-none absolute top-1/2 -left-40 h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px] ${isFocusMode ? "opacity-30" : ""}`} />
 
+            {/* Top progress bar */}
+            <div className="fixed top-0 left-0 right-0 z-[200] h-[3px] bg-primary/8">
+                <motion.div
+                    className="h-full bg-primary/60 shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+                    initial={false}
+                    animate={{ width: `${progressPct}%` }}
+                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                />
+            </div>
+
             {/* Floating Focus Controls */}
-            <div className="fixed top-4 right-4 z-[100] flex items-center gap-1 sm:gap-2 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl bg-white/60 backdrop-blur-xl border border-white/40 shadow-2xl">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className={`rounded-lg sm:rounded-xl px-2 sm:px-4 py-2 sm:py-6 flex flex-col items-center gap-1 transition-all ${isFocusMode ? "bg-primary text-primary-foreground shadow-lg h-auto" : "text-slate-600 hover:bg-white/80 h-auto"}`}
+            <div className="fixed top-4 right-4 z-[100] flex items-center gap-1 p-1 rounded-xl bg-background/80 backdrop-blur-xl border border-border/40 shadow-xl">
+                <button
+                    className={cn(
+                        "flex flex-col items-center gap-0.5 px-2.5 py-2 rounded-lg transition-all duration-200",
+                        isFocusMode ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                    )}
                     onClick={() => setIsFocusMode(!isFocusMode)}
                     title={isFocusMode ? "Sair do Modo Foco" : "Entrar no Modo Foco"}
                 >
-                    {isFocusMode ? <LayoutGrid size={16} className="sm:w-[18px] sm:h-[18px]" /> : <Maximize size={16} className="sm:w-[18px] sm:h-[18px]" />}
-                    <span className="hidden sm:block text-[9px] font-black uppercase tracking-widest">{isFocusMode ? "Normal" : "Foco"}</span>
-                </Button>
+                    {isFocusMode ? <LayoutGrid size={15} /> : <Maximize size={15} />}
+                    <span className="text-[8px] font-black uppercase tracking-wider leading-none">{isFocusMode ? "Normal" : "Foco"}</span>
+                </button>
 
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className={`hidden sm:flex rounded-xl px-4 py-6 flex-col items-center gap-1 transition-all ${isFullscreen ? "bg-slate-900 text-white shadow-lg h-auto" : "text-slate-600 hover:bg-white/80 h-auto"}`}
+                <button
+                    className={cn(
+                        "hidden sm:flex flex-col items-center gap-0.5 px-2.5 py-2 rounded-lg transition-all duration-200",
+                        isFullscreen ? "bg-foreground text-background shadow-sm" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                    )}
                     onClick={toggleFullscreen}
                     title={isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
                 >
-                    {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
-                    <span className="text-[9px] font-black uppercase tracking-widest">{isFullscreen ? "Sair" : "Cheia"}</span>
-                </Button>
+                    {isFullscreen ? <Minimize size={15} /> : <Maximize size={15} />}
+                    <span className="text-[8px] font-black uppercase tracking-wider leading-none">{isFullscreen ? "Sair" : "Cheia"}</span>
+                </button>
             </div>
 
             <div className={`container mx-auto max-w-5xl px-4 sm:px-6 relative z-10 transition-all ${isFocusMode ? "py-4 md:py-12" : "py-4 sm:py-8"}`}>

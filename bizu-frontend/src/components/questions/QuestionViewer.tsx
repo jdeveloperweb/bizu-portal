@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Bookmark, MessageSquare, Share2, CheckCircle2, XCircle, Sparkles } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Bookmark, MessageSquare, Share2, CheckCircle2, XCircle, Sparkles, Pause, Play, SkipForward } from "lucide-react";
+import { motion, AnimatePresence, useAnimationControls } from "framer-motion";
 
 interface Option {
     id: string;
@@ -40,21 +40,42 @@ export default function QuestionViewer({
     const AUTO_NEXT_DELAY_MS = 5000;
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const [countdownKey, setCountdownKey] = useState(0);
+    const [isPaused, setIsPaused] = useState(false);
+
+    const timerControls = useAnimationControls();
     const autoNextTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const timerStartRef = useRef<number>(0);
+    const remainingMsRef = useRef<number>(AUTO_NEXT_DELAY_MS);
+
+    const clearTimer = () => {
+        if (autoNextTimeoutRef.current) clearTimeout(autoNextTimeoutRef.current);
+    };
+
+    const startTimerAnimation = (duration: number) => {
+        const fromPct = (duration / AUTO_NEXT_DELAY_MS) * 100;
+        timerControls.set({ width: `${fromPct}%` });
+        timerControls.start(
+            { width: "0%" },
+            { duration: duration / 1000, ease: "linear" }
+        );
+    };
+
+    const beginTimer = (duration: number) => {
+        remainingMsRef.current = duration;
+        timerStartRef.current = Date.now();
+        clearTimer();
+        autoNextTimeoutRef.current = setTimeout(() => onNext?.(), duration);
+        startTimerAnimation(duration);
+    };
 
     const handleSelect = (id: string) => {
         if (isSubmitted) return;
-
         setSelectedOption(id);
 
         if (!isSimuladoMode) {
             setIsSubmitted(true);
-            setCountdownKey((prev) => prev + 1);
-            if (autoNextTimeoutRef.current) clearTimeout(autoNextTimeoutRef.current);
-            autoNextTimeoutRef.current = setTimeout(() => {
-                onNext?.();
-            }, AUTO_NEXT_DELAY_MS);
+            setIsPaused(false);
+            beginTimer(AUTO_NEXT_DELAY_MS);
         }
     };
 
@@ -62,29 +83,50 @@ export default function QuestionViewer({
         if (selectedOption) setIsSubmitted(true);
     };
 
+    const handlePauseResume = () => {
+        if (isPaused) {
+            // Resume
+            const remaining = remainingMsRef.current;
+            timerStartRef.current = Date.now();
+            clearTimer();
+            autoNextTimeoutRef.current = setTimeout(() => onNext?.(), remaining);
+            startTimerAnimation(remaining);
+            setIsPaused(false);
+        } else {
+            // Pause
+            const elapsed = Date.now() - timerStartRef.current;
+            remainingMsRef.current = Math.max(0, remainingMsRef.current - elapsed);
+            timerControls.stop();
+            clearTimer();
+            setIsPaused(true);
+        }
+    };
+
+    const handleSkip = () => {
+        timerControls.stop();
+        clearTimer();
+        onNext?.();
+    };
+
     useEffect(() => {
-        // Obfuscate / clear clipboard on PrintScreen keyup
         const handleKeyUp = (e: KeyboardEvent) => {
             if (e.key === "PrintScreen") {
                 navigator.clipboard.writeText("Captura de tela bloqueada por direitos autorais.");
             }
         };
-
-        // Block Ctrl+P and Ctrl+S
         const handleKeyDown = (e: KeyboardEvent) => {
             if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 's' || e.key === 'c')) {
                 e.preventDefault();
             }
         };
-
         window.addEventListener("keyup", handleKeyUp);
         window.addEventListener("keydown", handleKeyDown);
-
         return () => {
-            if (autoNextTimeoutRef.current) clearTimeout(autoNextTimeoutRef.current);
+            clearTimer();
             window.removeEventListener("keyup", handleKeyUp);
             window.removeEventListener("keydown", handleKeyDown);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
@@ -191,7 +233,7 @@ export default function QuestionViewer({
             </div>
 
             {/* Bottom Section: Footer Actions and Feedback */}
-            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-5 md:pt-8 border-t border-border/30">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-5 md:pt-8 border-t border-border/30">
                 <Button variant="ghost" className="rounded-2xl font-black flex items-center gap-2 h-10 md:h-14 justify-center text-[10px] md:text-sm hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all duration-300">
                     <MessageSquare className="w-3.5 h-3.5 md:w-4 md:h-4" />
                     COMENTÁRIOS DA COMUNIDADE
@@ -218,35 +260,105 @@ export default function QuestionViewer({
                         </Button>
                     )
                 ) : isSubmitted ? (
-                    <button
-                        onClick={() => {
-                            if (autoNextTimeoutRef.current) clearTimeout(autoNextTimeoutRef.current);
-                            onNext?.();
-                        }}
-                        className="w-full sm:w-[280px] h-12 md:h-14 p-3.5 md:p-4 rounded-[1rem] md:rounded-[1.25rem] bg-primary/[0.03] border border-primary/10 overflow-hidden relative group hover:bg-primary/[0.08] hover:border-primary/30 transition-all duration-300"
-                    >
-                        <div className="flex items-center justify-center gap-2 h-full relative z-10">
-                            <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                            >
-                                <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary/60 group-hover:text-primary transition-colors" />
-                            </motion.div>
-                            <div className="flex flex-col items-center">
-                                <span className="text-[9px] md:text-xs font-black text-primary/80 uppercase tracking-widest group-hover:text-primary transition-colors">Avançando agora...</span>
-                                <span className="text-[7px] md:text-[8px] text-primary/40 uppercase font-black tracking-tighter group-hover:text-primary/60">Clique para pular</span>
+                    /* ── Timer Controls: Pause/Resume + Skip ── */
+                    <div className="flex items-stretch gap-2 w-full sm:w-auto">
+                        {/* Pause / Resume button */}
+                        <motion.button
+                            onClick={handlePauseResume}
+                            whileTap={{ scale: 0.93 }}
+                            title={isPaused ? "Retomar contagem" : "Pausar contagem"}
+                            className={cn(
+                                "flex items-center justify-center w-12 md:w-14 h-12 md:h-14 rounded-[1rem] md:rounded-[1.25rem] border-2 transition-all duration-300 flex-shrink-0",
+                                isPaused
+                                    ? "bg-amber-50 border-amber-300 text-amber-600 shadow-md shadow-amber-100 hover:bg-amber-100"
+                                    : "bg-primary/[0.03] border-primary/15 text-primary/50 hover:bg-primary/[0.08] hover:border-primary/30 hover:text-primary/70"
+                            )}
+                        >
+                            <AnimatePresence mode="wait" initial={false}>
+                                {isPaused ? (
+                                    <motion.div
+                                        key="play"
+                                        initial={{ scale: 0.6, opacity: 0, rotate: -10 }}
+                                        animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                                        exit={{ scale: 0.6, opacity: 0 }}
+                                        transition={{ duration: 0.18 }}
+                                    >
+                                        <Play className="w-4 h-4 md:w-[18px] md:h-[18px] fill-current" />
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="pause"
+                                        initial={{ scale: 0.6, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        exit={{ scale: 0.6, opacity: 0 }}
+                                        transition={{ duration: 0.18 }}
+                                    >
+                                        <Pause className="w-4 h-4 md:w-[18px] md:h-[18px] fill-current" />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </motion.button>
+
+                        {/* Skip button with countdown bar */}
+                        <motion.button
+                            onClick={handleSkip}
+                            whileTap={{ scale: 0.97 }}
+                            className="flex-1 sm:w-[230px] h-12 md:h-14 rounded-[1rem] md:rounded-[1.25rem] border-2 overflow-hidden relative group transition-all duration-300 bg-primary/[0.03] border-primary/15 hover:bg-primary/[0.08] hover:border-primary/30"
+                        >
+                            {/* Content */}
+                            <div className="flex items-center justify-center gap-2.5 h-full relative z-10 px-4">
+                                <AnimatePresence mode="wait" initial={false}>
+                                    {isPaused ? (
+                                        <motion.div
+                                            key="paused-state"
+                                            initial={{ opacity: 0, y: 4 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -4 }}
+                                            className="flex items-center gap-2.5"
+                                        >
+                                            <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                                            <div className="flex flex-col items-start">
+                                                <span className="text-[9px] md:text-[10px] font-black text-amber-600/90 uppercase tracking-widest leading-none">Pausado</span>
+                                                <span className="text-[7px] md:text-[8px] text-muted-foreground/50 uppercase font-bold tracking-wide leading-none mt-0.5">Clique para pular</span>
+                                            </div>
+                                            <SkipForward className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-primary/50 transition-colors ml-1" />
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div
+                                            key="running-state"
+                                            initial={{ opacity: 0, y: 4 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -4 }}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <motion.div
+                                                animate={{ rotate: 360 }}
+                                                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                                            >
+                                                <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary/50 group-hover:text-primary transition-colors" />
+                                            </motion.div>
+                                            <div className="flex flex-col items-start">
+                                                <span className="text-[9px] md:text-[10px] font-black text-primary/70 uppercase tracking-widest leading-none group-hover:text-primary transition-colors">Avançando...</span>
+                                                <span className="text-[7px] md:text-[8px] text-muted-foreground/40 uppercase font-bold tracking-wide leading-none mt-0.5 group-hover:text-primary/50 transition-colors">Clique para pular</span>
+                                            </div>
+                                            <SkipForward className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary/50 transition-colors ml-1" />
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
-                        </div>
-                        <div className="absolute bottom-0 left-0 h-1 w-full bg-primary/5">
-                            <motion.div
-                                key={countdownKey}
-                                className="h-full bg-primary/40 shadow-[0_0_10px_rgba(99,102,241,0.5)]"
-                                initial={{ width: "100%" }}
-                                animate={{ width: "0%" }}
-                                transition={{ duration: AUTO_NEXT_DELAY_MS / 1000, ease: "linear" }}
-                            />
-                        </div>
-                    </button>
+
+                            {/* Countdown progress bar */}
+                            <div className="absolute bottom-0 left-0 h-[3px] w-full bg-primary/5">
+                                <motion.div
+                                    animate={timerControls}
+                                    className={cn(
+                                        "h-full shadow-[0_0_8px_rgba(99,102,241,0.4)] transition-colors duration-300",
+                                        isPaused ? "bg-amber-400/60" : "bg-primary/50"
+                                    )}
+                                />
+                            </div>
+                        </motion.button>
+                    </div>
                 ) : (
                     <div className="flex items-center gap-2 text-[9px] md:text-[10px] font-black text-muted-foreground/30 uppercase tracking-widest pr-4">
                         <Sparkles className="w-3.5 h-3.5 animate-pulse" />
@@ -287,4 +399,3 @@ export default function QuestionViewer({
         </motion.div>
     );
 }
-

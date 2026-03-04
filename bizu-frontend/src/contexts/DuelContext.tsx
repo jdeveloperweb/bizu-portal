@@ -10,6 +10,8 @@ interface DuelContextType {
     activeDuel: Duel | null;
     showOverlay: boolean;
     setShowOverlay: (show: boolean) => void;
+    focusMode: boolean;
+    setFocusMode: (active: boolean) => void;
     refreshDuels: () => Promise<void>;
     acceptDuel: (duelId: string) => Promise<void>;
     declineDuel: (duelId: string) => Promise<void>;
@@ -21,8 +23,13 @@ export function DuelProvider({ children }: { children: React.ReactNode }) {
     const { user, authenticated } = useAuth();
     const [pendingDuels, setPendingDuels] = useState<Duel[]>([]);
     const [showOverlay, setShowOverlay] = useState(false);
+    const [focusMode, setFocusMode] = useState(false);
     const [hasNewDuelSinceLastRefresh, setHasNewDuelSinceLastRefresh] = useState(false);
     const lastNotifiedDuelId = useRef<string | null>(null);
+    const focusModeRef = useRef(false);
+
+    // Keep ref in sync so callbacks always see latest value
+    useEffect(() => { focusModeRef.current = focusMode; }, [focusMode]);
 
     const refreshDuels = useCallback(async () => {
         if (!authenticated || !user) return;
@@ -31,7 +38,8 @@ export function DuelProvider({ children }: { children: React.ReactNode }) {
             setPendingDuels(data || []);
 
             // If there's a pending duel and we haven't shown the overlay yet in this session
-            if (data && data.length > 0 && !hasNewDuelSinceLastRefresh) {
+            // Suppress overlay during focus mode (e.g. simulado in progress)
+            if (data && data.length > 0 && !hasNewDuelSinceLastRefresh && !focusModeRef.current) {
                 setShowOverlay(true);
                 setHasNewDuelSinceLastRefresh(true);
             }
@@ -67,7 +75,9 @@ export function DuelProvider({ children }: { children: React.ReactNode }) {
                 return [newDuel, ...prev];
             });
 
-            // Always show overlay for a REAL new notification via WS
+            // Suppress overlay and sound during focus mode (e.g. simulado in progress)
+            if (focusModeRef.current) return;
+
             setShowOverlay(true);
             setHasNewDuelSinceLastRefresh(true);
 
@@ -107,6 +117,8 @@ export function DuelProvider({ children }: { children: React.ReactNode }) {
             activeDuel: pendingDuels.length > 0 ? pendingDuels[0] : null,
             showOverlay,
             setShowOverlay,
+            focusMode,
+            setFocusMode,
             refreshDuels,
             acceptDuel,
             declineDuel
