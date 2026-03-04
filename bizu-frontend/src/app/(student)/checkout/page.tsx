@@ -219,7 +219,13 @@ function CheckoutContent() {
                 const [coursesRes, plansRes] = await Promise.all([apiFetch("/public/courses"), apiFetch("/public/plans")]);
 
                 if (plansRes.ok) {
-                    const plansData: Plan[] = await plansRes.json();
+                    const raw = await plansRes.json();
+                    const plansData: Plan[] = raw.map((p: any) => ({
+                        ...p,
+                        course: p.course
+                            ? { id: p.course.id, title: p.course.title, themeColor: p.course.themeColor }
+                            : null,
+                    }));
                     setPlans(plansData);
 
                     if (initialPlanId) {

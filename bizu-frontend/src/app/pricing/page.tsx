@@ -31,11 +31,17 @@ function PricingContent() {
                     }
                 }
 
-                // Fetch all active plans
+                // Fetch all active plans — strip heavy nested course data (modules/questions)
                 const plansRes = await fetch(`${apiUrl}/public/plans`);
                 if (plansRes.ok) {
                     const plansData = await plansRes.json();
-                    setPlans(plansData);
+                    const cleanedPlans = plansData.map((p: any) => ({
+                        ...p,
+                        course: p.course
+                            ? { id: p.course.id, title: p.course.title, themeColor: p.course.themeColor, textColor: p.course.textColor }
+                            : null,
+                    }));
+                    setPlans(cleanedPlans);
                 }
             } catch (error) {
                 console.error("Failed to fetch pricing data", error);
