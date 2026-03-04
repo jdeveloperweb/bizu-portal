@@ -129,6 +129,12 @@ public class SimuladoExamService {
 
         // Enforce single-attempt rule
         sessionRepository.findByUser_IdAndSimulado_Id(userId, simuladoId).ifPresent(existing -> {
+            // If still IN_PROGRESS but user is trying to restart → they abandoned it → cancel it
+            if ("IN_PROGRESS".equals(existing.getStatus())) {
+                existing.setStatus(now.isAfter(existing.getExpiresAt()) ? "EXPIRED" : "CANCELLED");
+                existing.setSubmittedAt(now);
+                sessionRepository.save(existing);
+            }
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Você já realizou este simulado. Status: " + existing.getStatus());
         });

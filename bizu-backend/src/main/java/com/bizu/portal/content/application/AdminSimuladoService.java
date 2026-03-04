@@ -91,8 +91,25 @@ public class AdminSimuladoService {
         return simuladoRepository.save(simulado);
     }
 
-    public List<SimuladoSession> listSessions(UUID simuladoId) {
-        return sessionRepository.findAllBySimulado_IdOrderByStartedAtDesc(simuladoId);
+    public record SessionUserDTO(UUID id, String name, String email, String nickname) {}
+    public record SessionDTO(UUID id, String status, Integer score, Integer totalQuestions,
+                             java.time.OffsetDateTime startedAt, SessionUserDTO user) {}
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<SessionDTO> listSessions(UUID simuladoId) {
+        return sessionRepository.findAllBySimulado_IdOrderByStartedAtDesc(simuladoId)
+                .stream()
+                .map(s -> {
+                    SessionUserDTO userDTO = s.getUser() == null ? null
+                            : new SessionUserDTO(
+                                    s.getUser().getId(),
+                                    s.getUser().getName(),
+                                    s.getUser().getEmail(),
+                                    s.getUser().getNickname());
+                    return new SessionDTO(s.getId(), s.getStatus(), s.getScore(),
+                            s.getTotalQuestions(), s.getStartedAt(), userDTO);
+                })
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Transactional

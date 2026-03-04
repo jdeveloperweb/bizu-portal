@@ -4,7 +4,7 @@ import com.bizu.portal.content.application.AdminSimuladoService;
 import com.bizu.portal.content.domain.Question;
 import com.bizu.portal.content.domain.Simulado;
 import com.bizu.portal.shared.pagination.PageResponse;
-import com.bizu.portal.student.domain.SimuladoSession;
+import com.bizu.portal.content.application.AdminSimuladoService.SessionDTO;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -93,7 +93,7 @@ public class AdminSimuladoController {
     }
 
     @GetMapping("/{id}/sessions")
-    public ResponseEntity<List<SimuladoSession>> listSessions(@PathVariable UUID id) {
+    public ResponseEntity<List<SessionDTO>> listSessions(@PathVariable UUID id) {
         return ResponseEntity.ok(adminSimuladoService.listSessions(id));
     }
 

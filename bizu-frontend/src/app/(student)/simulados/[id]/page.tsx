@@ -362,6 +362,9 @@ export default function SimuladoExamPage() {
                     setSession(data);
                     sessionRef.current = data;
                     setPhase("exam");
+                } else if (res.status === 409) {
+                    // Session already exists (abandoned/completed) → show result
+                    router.replace(`/simulados/${simuladoId}/resultado`);
                 } else {
                     const text = await res.text();
                     let msg = "Não foi possível iniciar o simulado.";
