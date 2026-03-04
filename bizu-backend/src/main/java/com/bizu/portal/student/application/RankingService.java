@@ -72,11 +72,10 @@ public class RankingService {
                 u.name as name,
                 u.nickname as nickname,
                 u.avatar_url as avatar,
-                MAX(aa.score_points) as best_score,
-                RANK() OVER (ORDER BY MAX(aa.score_points) DESC) as rank
+                MAX(sr.score) as best_score,
+                RANK() OVER (ORDER BY MAX(sr.score) DESC) as rank
             FROM identity.users u
-            JOIN student.activity_attempts aa ON u.id = aa.user_id
-            WHERE aa.activity_type = 'OFFICIAL_EXAM' AND aa.status = 'COMPLETED'
+            JOIN student.simulado_results sr ON u.id = sr.user_id
             GROUP BY u.id, u.name, u.nickname, u.avatar_url
             ORDER BY best_score DESC
             LIMIT ?
