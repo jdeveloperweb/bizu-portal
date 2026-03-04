@@ -129,14 +129,26 @@ public class SimuladoExamService {
 
         // Enforce single-attempt rule
         sessionRepository.findByUser_IdAndSimulado_Id(userId, simuladoId).ifPresent(existing -> {
-            // If still IN_PROGRESS but user is trying to restart → they abandoned it → cancel it
-            if ("IN_PROGRESS".equals(existing.getStatus())) {
+            String status = existing.getStatus();
+            // COMPLETED or EXPIRED are final — cannot retry
+            if ("COMPLETED".equals(status) || "EXPIRED".equals(status)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Você já realizou este simulado. Status: " + status);
+            }
+            // CANCELLED (anti-cheat or manual) — delete and allow a fresh attempt
+            if ("CANCELLED".equals(status)) {
+                sessionRepository.delete(existing);
+                sessionRepository.flush();
+                return;
+            }
+            // IN_PROGRESS but user is restarting — mark as abandoned then block
+            if ("IN_PROGRESS".equals(status)) {
                 existing.setStatus(now.isAfter(existing.getExpiresAt()) ? "EXPIRED" : "CANCELLED");
                 existing.setSubmittedAt(now);
                 sessionRepository.save(existing);
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Você já possui uma sessão em andamento para este simulado. Status: " + existing.getStatus());
             }
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Você já realizou este simulado. Status: " + existing.getStatus());
         });
 
         // Calculate expiry
