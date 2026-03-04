@@ -25,7 +25,7 @@ public class PlanService {
     }
 
     public List<Plan> findAllByCourse(UUID courseId) {
-        return planRepository.findAllByCourseIdOrderBySortOrder(courseId);
+        return planRepository.findAllByCourseIdAndActiveTrueOrderBySortOrder(courseId);
     }
 
     public Plan findById(UUID id) {

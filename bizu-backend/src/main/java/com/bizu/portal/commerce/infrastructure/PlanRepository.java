@@ -13,8 +13,10 @@ import java.util.UUID;
 public interface PlanRepository extends JpaRepository<Plan, UUID> {
     List<Plan> findAllByActiveTrueOrderBySortOrder();
 
-    @Query("SELECT p FROM Plan p WHERE p.active = true AND p.code NOT LIKE concat(:codePrefix, '%') ORDER BY p.sortOrder")
+    @Query("SELECT p FROM Plan p WHERE p.active = true AND (p.code IS NULL OR p.code NOT LIKE concat(:codePrefix, '%') OR p.course IS NOT NULL) ORDER BY p.sortOrder")
     List<Plan> findAllByActiveTrueAndCodeNotStartingWithOrderBySortOrder(@Param("codePrefix") String codePrefix);
+
+    List<Plan> findAllByCourseIdAndActiveTrueOrderBySortOrder(UUID courseId);
     List<Plan> findAllByCourseIdOrderBySortOrder(UUID courseId);
     java.util.Optional<Plan> findByCode(String code);
     List<Plan> findByCodeStartingWithAndActiveTrueOrderBySortOrderAsc(String prefix);
