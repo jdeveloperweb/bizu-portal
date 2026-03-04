@@ -25,6 +25,7 @@ interface AuthContextType {
     isPremium: boolean;
     isFree: boolean;
     isAdmin: boolean;
+    loginWithGoogle: () => void;
 }
 
 interface AuthUser {
@@ -306,6 +307,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const login = () => keycloak?.login();
 
+    const loginWithGoogle = () => {
+        if (!keycloak) return;
+        keycloak.login({
+            idpHint: 'google',
+            redirectUri: window.location.origin + '/dashboard'
+        });
+    };
+
     const loginDirect = async (username: string, password: string) => {
         const params = new URLSearchParams();
         params.append("client_id", "bizu-portal-app");
@@ -428,7 +437,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     return (
-        <AuthContext.Provider value={{ authenticated, login, loginDirect, logout, token: keycloak?.token, user, loading, register, sendVerificationCode, selectedCourseId, setSelectedCourseId, refreshUserProfile, subscription, entitlements, isPremium, isFree, isAdmin }}>
+        <AuthContext.Provider value={{ authenticated, login, loginDirect, loginWithGoogle, logout, token: keycloak?.token, user, loading, register, sendVerificationCode, selectedCourseId, setSelectedCourseId, refreshUserProfile, subscription, entitlements, isPremium, isFree, isAdmin }}>
             {/* Renderizamos as children imediatamente se autenticado.
                 O registro do dispositivo ocorre em background. Se houver limite atingido,
                 o modal aparecerá sobre o app. */}
