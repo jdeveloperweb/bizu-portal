@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { useDuels } from "@/contexts/DuelContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -444,9 +444,13 @@ function ExamResultView({ result, simuladoTitle, isPractice, onBack }: {
 export default function SimuladoExamPage() {
     const params = useParams();
     const router = useRouter();
-    const searchParams = useSearchParams();
     const simuladoId = params.id as string;
-    const isPractice = searchParams.get("modo") === "pratica";
+    const [isPractice, setIsPractice] = useState(false);
+
+    useEffect(() => {
+        const p = new URLSearchParams(window.location.search);
+        setIsPractice(p.get("modo") === "pratica");
+    }, []);
     const { setFocusMode } = useDuels();
 
     const [phase, setPhase] = useState<"loading" | "starting" | "exam" | "submitting" | "result" | "cancelled" | "error">("loading");
