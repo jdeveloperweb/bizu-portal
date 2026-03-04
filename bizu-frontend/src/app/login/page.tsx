@@ -21,7 +21,7 @@ const getRealmRoles = (user: unknown): string[] => {
 };
 
 export default function LoginPage() {
-    const { loginDirect, authenticated, user, isAdmin } = useAuth();
+    const { loginDirect, loginWithGoogle, authenticated, user, isAdmin } = useAuth();
     const { notify } = useNotification();
     const router = useRouter();
     const [show, setShow] = useState(false);
