@@ -4,6 +4,7 @@ import com.bizu.portal.content.application.AdminSimuladoService;
 import com.bizu.portal.content.domain.Question;
 import com.bizu.portal.content.domain.Simulado;
 import com.bizu.portal.shared.pagination.PageResponse;
+import com.bizu.portal.student.domain.SimuladoSession;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -85,8 +87,19 @@ public class AdminSimuladoController {
 
     @PostMapping("/{id}/generate")
     public ResponseEntity<Simulado> generateQuestions(
-            @PathVariable UUID id, 
+            @PathVariable UUID id,
             @RequestBody java.util.Map<UUID, Integer> moduleWeights) {
         return ResponseEntity.ok(adminSimuladoService.generateQuestions(id, moduleWeights));
+    }
+
+    @GetMapping("/{id}/sessions")
+    public ResponseEntity<List<SimuladoSession>> listSessions(@PathVariable UUID id) {
+        return ResponseEntity.ok(adminSimuladoService.listSessions(id));
+    }
+
+    @DeleteMapping("/{id}/sessions/{sessionId}")
+    public ResponseEntity<Void> deleteSession(@PathVariable UUID id, @PathVariable UUID sessionId) {
+        adminSimuladoService.deleteSession(id, sessionId);
+        return ResponseEntity.noContent().build();
     }
 }

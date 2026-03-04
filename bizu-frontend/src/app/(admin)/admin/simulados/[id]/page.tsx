@@ -1,7 +1,7 @@
 "use client";
 
 import PageHeader from "../../../../../components/PageHeader";
-import { Plus, Trash2, ArrowLeft, Calendar, BookOpen, Clock } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Calendar, BookOpen, Clock, Users } from "lucide-react";
 import { Button } from "../../../../../components/ui/button";
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -18,6 +18,8 @@ export default function DetalhesSimuladoPage() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [courseModules, setCourseModules] = useState<any[]>([]);
     const [weights, setWeights] = useState<Record<string, number>>({});
+    const [sessions, setSessions] = useState<any[]>([]);
+    const [sessionsLoading, setSessionsLoading] = useState(false);
 
     const fetchSimulado = async () => {
         setIsLoading(true);
@@ -34,9 +36,37 @@ export default function DetalhesSimuladoPage() {
         }
     };
 
+    const fetchSessions = async () => {
+        setSessionsLoading(true);
+        try {
+            const res = await apiFetch(`/admin/simulados/${id}/sessions`);
+            if (res.ok) {
+                const data = await res.json();
+                setSessions(Array.isArray(data) ? data : []);
+            }
+        } catch (error) {
+            console.error("Failed to fetch sessions", error);
+        } finally {
+            setSessionsLoading(false);
+        }
+    };
+
+    const handleDeleteSession = async (sessionId: string, studentName: string) => {
+        if (!confirm(`Excluir a sessão de "${studentName}"? O aluno poderá refazer o simulado.`)) return;
+        try {
+            const res = await apiFetch(`/admin/simulados/${id}/sessions/${sessionId}`, { method: "DELETE" });
+            if (res.ok) {
+                setSessions(prev => prev.filter(s => s.id !== sessionId));
+            }
+        } catch (error) {
+            console.error("Failed to delete session", error);
+        }
+    };
+
     useEffect(() => {
         if (id) {
             fetchSimulado();
+            fetchSessions();
         }
     }, [id]);
 
@@ -219,6 +249,92 @@ export default function DetalhesSimuladoPage() {
                     </tbody>
                 </table>
             </div>
+            {/* Sessions Section */}
+            <div className="mt-12">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                        <Users className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-black">Sessões dos Alunos</h2>
+                        <p className="text-xs text-muted-foreground">Exclua uma sessão para permitir que o aluno refaça o simulado.</p>
+                    </div>
+                    <span className="ml-auto text-xs font-black text-muted-foreground bg-muted px-3 py-1 rounded-full">
+                        {sessions.length} {sessions.length === 1 ? "sessão" : "sessões"}
+                    </span>
+                </div>
+                <div className="bg-card border rounded-2xl overflow-hidden shadow-sm">
+                    <table className="w-full text-left">
+                        <thead className="bg-muted/30 border-b">
+                            <tr>
+                                <th className="px-8 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest">Aluno</th>
+                                <th className="px-8 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest text-center">Status</th>
+                                <th className="px-8 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest text-center">Nota</th>
+                                <th className="px-8 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest text-center">Iniciado em</th>
+                                <th className="px-8 py-5 text-xs font-black text-muted-foreground uppercase tracking-widest text-right">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                            {sessionsLoading ? (
+                                <tr>
+                                    <td colSpan={5} className="px-8 py-10 text-center text-muted-foreground">Carregando sessões...</td>
+                                </tr>
+                            ) : sessions.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="px-8 py-10 text-center text-muted-foreground font-medium">
+                                        Nenhum aluno iniciou este simulado ainda.
+                                    </td>
+                                </tr>
+                            ) : sessions.map((s: any) => {
+                                const statusColors: Record<string, string> = {
+                                    IN_PROGRESS: "bg-blue-50 text-blue-600 border-blue-200",
+                                    COMPLETED: "bg-success/5 text-success border-success/20",
+                                    CANCELLED: "bg-destructive/5 text-destructive border-destructive/20",
+                                    EXPIRED: "bg-muted text-muted-foreground border-muted",
+                                };
+                                const statusLabels: Record<string, string> = {
+                                    IN_PROGRESS: "Em andamento",
+                                    COMPLETED: "Concluído",
+                                    CANCELLED: "Cancelado",
+                                    EXPIRED: "Expirado",
+                                };
+                                const studentName = s.user?.name || s.user?.preferredUsername || s.user?.email || "—";
+                                return (
+                                    <tr key={s.id} className="hover:bg-muted/30 transition-colors">
+                                        <td className="px-8 py-5">
+                                            <div className="font-bold text-sm">{studentName}</div>
+                                            <div className="text-xs text-muted-foreground">{s.user?.email}</div>
+                                        </td>
+                                        <td className="px-8 py-5 text-center">
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black border uppercase tracking-widest ${statusColors[s.status] || "bg-muted text-muted-foreground border-muted"}`}>
+                                                {statusLabels[s.status] || s.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-5 text-center font-bold text-sm">
+                                            {s.score != null ? `${s.score} / ${s.totalQuestions}` : "—"}
+                                        </td>
+                                        <td className="px-8 py-5 text-center text-sm text-muted-foreground">
+                                            {s.startedAt ? new Date(s.startedAt).toLocaleString("pt-BR") : "—"}
+                                        </td>
+                                        <td className="px-8 py-5 text-right">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleDeleteSession(s.id, studentName)}
+                                                className="rounded-xl text-destructive hover:bg-destructive/10"
+                                                title="Excluir sessão (liberar para refazer)"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             {/* Generation Modal */}
             {isGenerating && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

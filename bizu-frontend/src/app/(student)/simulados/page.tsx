@@ -228,13 +228,19 @@ function SimuladoCard({ sim, idx }: { sim: SimuladoItem; idx: number }) {
                             </Button>
                         </Link>
                     )}
-                    {isRealizado && (
+                    {isRealizado && sim.sessionStatus !== "IN_PROGRESS" && (
                         <Link href={`/simulados/${sim.id}/resultado`}>
                             <Button variant="outline" className="rounded-2xl h-11 px-6 font-black text-xs uppercase tracking-widest gap-2 border-border/60 hover:border-primary/40 hover:text-primary transition-all">
                                 Ver resultado
                                 <ChevronRight size={14} />
                             </Button>
                         </Link>
+                    )}
+                    {isRealizado && sim.sessionStatus === "IN_PROGRESS" && (
+                        <div className="flex items-center gap-2 bg-primary/5 px-5 py-2.5 rounded-2xl border border-primary/20">
+                            <Timer size={14} className="text-primary" />
+                            <span className="text-[11px] font-black text-primary uppercase tracking-widest">Em andamento</span>
+                        </div>
                     )}
                     {isEmBreve && (
                         <div className="flex items-center gap-2 bg-muted/40 px-5 py-2.5 rounded-2xl border border-border/40">

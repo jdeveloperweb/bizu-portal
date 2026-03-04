@@ -350,7 +350,8 @@ public class SimuladoExamService {
             String availability;
             if (session != null && ("COMPLETED".equals(sessionStatus)
                     || "CANCELLED".equals(sessionStatus)
-                    || "EXPIRED".equals(sessionStatus))) {
+                    || "EXPIRED".equals(sessionStatus)
+                    || "IN_PROGRESS".equals(sessionStatus))) {
                 availability = "REALIZADO";
             } else if (sim.getStartDate() == null || sim.getEndDate() == null) {
                 availability = "SEM_DATA";

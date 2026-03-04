@@ -7,12 +7,15 @@ import com.bizu.portal.content.infrastructure.CourseRepository;
 import com.bizu.portal.content.infrastructure.QuestionRepository;
 import com.bizu.portal.content.infrastructure.SimuladoRepository;
 import com.bizu.portal.shared.exception.ResourceNotFoundException;
+import com.bizu.portal.student.domain.SimuladoSession;
+import com.bizu.portal.student.infrastructure.SimuladoSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -22,6 +25,7 @@ public class AdminSimuladoService {
     private final SimuladoRepository simuladoRepository;
     private final CourseRepository courseRepository;
     private final QuestionRepository questionRepository;
+    private final SimuladoSessionRepository sessionRepository;
 
     public Page<Simulado> findAll(Pageable pageable) {
         return simuladoRepository.findAll(pageable);
@@ -83,6 +87,20 @@ public class AdminSimuladoService {
         Simulado simulado = findById(simuladoId);
         simulado.getQuestions().removeIf(q -> q.getId().equals(questionId));
         return simuladoRepository.save(simulado);
+    }
+
+    public List<SimuladoSession> listSessions(UUID simuladoId) {
+        return sessionRepository.findAllBySimulado_IdOrderByStartedAtDesc(simuladoId);
+    }
+
+    @Transactional
+    public void deleteSession(UUID simuladoId, UUID sessionId) {
+        SimuladoSession session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sessão não encontrada"));
+        if (!session.getSimulado().getId().equals(simuladoId)) {
+            throw new ResourceNotFoundException("Sessão não pertence a este simulado");
+        }
+        sessionRepository.delete(session);
     }
 
     @Transactional

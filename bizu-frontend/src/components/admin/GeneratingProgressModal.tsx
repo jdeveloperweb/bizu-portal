@@ -34,11 +34,22 @@ export default function GeneratingProgressModal({
     const [totalChunks, setTotalChunks] = useState(1);
     const [questionsGenerated, setQuestionsGenerated] = useState(0);
     const [errorMessage, setErrorMessage] = useState("");
+    const [isStopping, setIsStopping] = useState(false);
+
+    const cancelledRef = useRef(false);
+    const stoppedRef = useRef(false);
+    const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
+    const questionsGeneratedRef = useRef(0);
+
+    const handleStop = () => {
+        setIsStopping(true);
+        stoppedRef.current = true;
+    };
 
     useEffect(() => {
-        let cancelled = false;
-
         const run = async () => {
+            let completedNormally = false;
+
             try {
                 const params = new URLSearchParams({
                     perChunk: count.toString(),
@@ -67,10 +78,11 @@ export default function GeneratingProgressModal({
                     return;
                 }
 
+                readerRef.current = reader;
                 const decoder = new TextDecoder();
                 let buffer = "";
 
-                while (!cancelled) {
+                while (!cancelledRef.current) {
                     const { done, value } = await reader.read();
                     if (done) break;
 
@@ -95,37 +107,58 @@ export default function GeneratingProgressModal({
                             const parsed = JSON.parse(data);
                             if (eventType === "start") {
                                 setTotalChunks(parsed.totalChunks ?? 1);
-                                // perChunk available as parsed.perChunk if needed
                             } else if (eventType === "progress") {
+                                const q = parsed.questionsGenerated ?? 0;
                                 setCurrentChunk(parsed.chunk ?? 0);
-                                setQuestionsGenerated(parsed.questionsGenerated ?? 0);
+                                setQuestionsGenerated(q);
+                                questionsGeneratedRef.current = q;
                             } else if (eventType === "complete") {
                                 const total = parsed.totalGenerated ?? 0;
+                                questionsGeneratedRef.current = total;
                                 setQuestionsGenerated(total);
                                 setStatus("complete");
                                 onComplete(total);
+                                completedNormally = true;
                             } else if (eventType === "error") {
                                 setStatus("error");
                                 setErrorMessage(parsed.message ?? "Erro desconhecido.");
+                                completedNormally = true;
                             }
                         } catch {
                             // Ignore malformed SSE events
                         }
                     }
+
+                    // After processing each read batch, check if user requested stop
+                    if (stoppedRef.current && !cancelledRef.current) {
+                        reader.cancel().catch(() => {});
+                        break;
+                    }
+                }
+
+                if (!cancelledRef.current && !completedNormally && stoppedRef.current) {
+                    setStatus("partial");
+                    onComplete(questionsGeneratedRef.current);
                 }
             } catch (err: unknown) {
-                if (!cancelled) {
-                    setStatus("error");
-                    setErrorMessage(
-                        err instanceof Error ? err.message : "Erro de conexão com o servidor."
-                    );
+                if (!cancelledRef.current) {
+                    if (stoppedRef.current) {
+                        setStatus("partial");
+                        onComplete(questionsGeneratedRef.current);
+                    } else {
+                        setStatus("error");
+                        setErrorMessage(
+                            err instanceof Error ? err.message : "Erro de conexão com o servidor."
+                        );
+                    }
                 }
             }
         };
 
         run();
         return () => {
-            cancelled = true;
+            cancelledRef.current = true;
+            readerRef.current?.cancel().catch(() => {});
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -192,9 +225,19 @@ export default function GeneratingProgressModal({
                             </div>
                         </div>
 
-                        <p className="text-xs text-slate-300 font-medium mt-8 leading-relaxed">
+                        <p className="text-xs text-slate-300 font-medium mt-6 leading-relaxed">
                             Não feche esta janela. O processo pode levar alguns minutos dependendo do tamanho do artigo.
                         </p>
+
+                        <Button
+                            onClick={handleStop}
+                            disabled={isStopping}
+                            variant="outline"
+                            className="mt-6 w-full h-10 rounded-xl font-black border-red-200 text-red-500 hover:bg-red-50 disabled:opacity-60 gap-2"
+                        >
+                            <StopCircle className="w-4 h-4" />
+                            {isStopping ? "Interrompendo após trecho atual..." : "Interromper geração"}
+                        </Button>
                     </>
                 )}
 
@@ -222,6 +265,36 @@ export default function GeneratingProgressModal({
                         <Button
                             onClick={onClose}
                             className="w-full h-12 rounded-xl font-black bg-emerald-600 hover:bg-emerald-700 text-white"
+                        >
+                            Fechar
+                        </Button>
+                    </>
+                )}
+
+                {/* ── Partial ─────────────────────────────────────────────── */}
+                {status === "partial" && (
+                    <>
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 200, damping: 12 }}
+                            className="w-20 h-20 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-6"
+                        >
+                            <StopCircle className="w-10 h-10 text-amber-500" />
+                        </motion.div>
+
+                        <h2 className="text-xl font-black text-slate-800 mb-3">Geração parcial concluída</h2>
+                        <p className="text-slate-400 font-medium text-sm mb-1">
+                            <span className="text-amber-500 font-black text-4xl block mb-1">{questionsGenerated}</span>
+                            {questionsGenerated === 1 ? "questão gerada" : "questões geradas"} antes da interrupção
+                        </p>
+                        <p className="text-slate-400 text-xs mb-8">
+                            Módulo: <strong className="text-slate-600">{moduleName}</strong>
+                        </p>
+
+                        <Button
+                            onClick={onClose}
+                            className="w-full h-12 rounded-xl font-black bg-amber-500 hover:bg-amber-600 text-white"
                         >
                             Fechar
                         </Button>

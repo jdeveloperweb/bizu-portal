@@ -16,4 +16,6 @@ public interface SimuladoSessionRepository extends JpaRepository<SimuladoSession
     List<SimuladoSession> findAllByUser_IdOrderByStartedAtDesc(UUID userId);
 
     boolean existsByUser_IdAndSimulado_Id(UUID userId, UUID simuladoId);
+
+    List<SimuladoSession> findAllBySimulado_IdOrderByStartedAtDesc(UUID simuladoId);
 }
