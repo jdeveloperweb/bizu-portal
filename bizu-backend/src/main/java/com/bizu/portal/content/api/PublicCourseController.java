@@ -1,6 +1,7 @@
 package com.bizu.portal.content.api;
 
 import com.bizu.portal.content.api.dto.PublicCourseDTO;
+import com.bizu.portal.content.api.dto.PublicCourseSlimDTO;
 import com.bizu.portal.content.application.CourseService;
 import com.bizu.portal.content.domain.Course;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +25,9 @@ public class PublicCourseController {
     private final CourseService courseService;
 
     @GetMapping
-    public ResponseEntity<List<PublicCourseDTO>> getAllCourses() {
+    public ResponseEntity<List<PublicCourseSlimDTO>> getAllCourses() {
         return ResponseEntity.ok(courseService.findAllPublic().stream()
-                .map(PublicCourseDTO::fromEntity)
+                .map(PublicCourseSlimDTO::fromEntity)
                 .collect(Collectors.toList()));
     }
 

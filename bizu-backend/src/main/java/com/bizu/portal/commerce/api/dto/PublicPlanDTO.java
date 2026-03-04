@@ -1,7 +1,7 @@
 package com.bizu.portal.commerce.api.dto;
 
 import com.bizu.portal.commerce.domain.Plan;
-import com.bizu.portal.content.api.dto.PublicCourseDTO;
+import com.bizu.portal.content.api.dto.PublicCourseSlimDTO;
 import lombok.Builder;
 import lombok.Data;
 
@@ -22,7 +22,7 @@ public class PublicPlanDTO {
     private boolean group;
     private int maxMembers;
     private int devicesPerUser;
-    private PublicCourseDTO course;
+    private PublicCourseSlimDTO course;
     private String features;
     private boolean highlight;
     private String badge;
@@ -43,7 +43,7 @@ public class PublicPlanDTO {
                 .group(plan.isGroup())
                 .maxMembers(plan.getMaxMembers())
                 .devicesPerUser(plan.getDevicesPerUser())
-                .course(PublicCourseDTO.fromEntity(plan.getCourse()))
+                .course(PublicCourseSlimDTO.fromEntity(plan.getCourse()))
                 .features(plan.getFeatures())
                 .highlight(plan.isHighlight())
                 .badge(plan.getBadge())

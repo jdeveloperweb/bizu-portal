@@ -4,13 +4,11 @@ import com.bizu.portal.content.domain.Course;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Data
 @Builder
-public class PublicCourseDTO {
+public class PublicCourseSlimDTO {
     private UUID id;
     private String title;
     private String description;
@@ -19,11 +17,10 @@ public class PublicCourseDTO {
     private String textColor;
     private String level;
     private String category;
-    private List<PublicModuleDTO> modules;
 
-    public static PublicCourseDTO fromEntity(Course course) {
+    public static PublicCourseSlimDTO fromEntity(Course course) {
         if (course == null) return null;
-        return PublicCourseDTO.builder()
+        return PublicCourseSlimDTO.builder()
                 .id(course.getId())
                 .title(course.getTitle())
                 .description(course.getDescription())
@@ -32,8 +29,6 @@ public class PublicCourseDTO {
                 .textColor(course.getTextColor())
                 .level(course.getLevel())
                 .category(course.getCategory())
-                .modules(course.getModules() != null ? 
-                    course.getModules().stream().map(PublicModuleDTO::fromEntity).collect(Collectors.toList()) : null)
                 .build();
     }
 }
