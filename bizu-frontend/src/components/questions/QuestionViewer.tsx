@@ -68,8 +68,18 @@ export default function QuestionViewer({
         timerStartRef.current = Date.now();
         clearTimer();
         autoNextTimeoutRef.current = setTimeout(() => onNext?.(), duration);
-        startTimerAnimation(duration);
+        // Animation is started via useEffect after the timer dock mounts
     };
+
+    // Start animation only after isSubmitted flips to true and the dock is in the DOM
+    useEffect(() => {
+        if (!isSubmitted || isSimuladoMode) return;
+        const raf = requestAnimationFrame(() => {
+            startTimerAnimation(AUTO_NEXT_DELAY_MS);
+        });
+        return () => cancelAnimationFrame(raf);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isSubmitted]);
 
     const handleSelect = (id: string) => {
         if (isSubmitted) return;
@@ -338,18 +348,17 @@ export default function QuestionViewer({
                                 </span>
                             </div>
                             <div
-                                className="h-1.5 rounded-full overflow-hidden cursor-pointer group/bar"
+                                className="h-1.5 rounded-full overflow-hidden cursor-pointer"
                                 style={{ background: isPaused ? "rgba(251,191,36,0.15)" : "hsl(var(--primary)/0.08)" }}
                                 onClick={handleSkip}
                                 title="Pular"
                             >
                                 <motion.div
                                     animate={timerControls}
+                                    initial={{ width: "100%" }}
                                     className={cn(
-                                        "h-full rounded-full transition-colors duration-300",
-                                        isPaused
-                                            ? "bg-amber-400/70"
-                                            : "bg-primary/60 shadow-[0_0_6px_hsl(var(--primary)/0.4)]"
+                                        "h-full rounded-full",
+                                        isPaused ? "bg-amber-400/70" : "bg-primary/60"
                                     )}
                                 />
                             </div>
@@ -417,8 +426,7 @@ export default function QuestionViewer({
                                     transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                                     className="overflow-hidden"
                                 >
-                                    <div className="mt-2 px-5 py-5 rounded-2xl bg-muted/20 border border-border/20">
-                                        <div className="absolute top-0 left-0 w-1 h-full bg-success/30 rounded-l-2xl" />
+                                    <div className="mt-2 px-5 py-5 rounded-2xl bg-muted/20 border border-border/20 border-l-2 border-l-success/40">
                                         <div
                                             className="text-sm md:text-base leading-relaxed text-foreground/80 font-medium prose prose-primary dark:prose-invert max-w-none [&>p]:mb-3 last:[&>p]:mb-0"
                                             dangerouslySetInnerHTML={{ __html: resolution }}
