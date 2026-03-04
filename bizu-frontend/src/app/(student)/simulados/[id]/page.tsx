@@ -445,12 +445,11 @@ export default function SimuladoExamPage() {
     const params = useParams();
     const router = useRouter();
     const simuladoId = params.id as string;
-    const [isPractice, setIsPractice] = useState(false);
-
-    useEffect(() => {
-        const p = new URLSearchParams(window.location.search);
-        setIsPractice(p.get("modo") === "pratica");
-    }, []);
+    const [isPractice] = useState(
+        () => typeof window !== "undefined"
+            ? new URLSearchParams(window.location.search).get("modo") === "pratica"
+            : false
+    );
     const { setFocusMode } = useDuels();
 
     const [phase, setPhase] = useState<"loading" | "starting" | "exam" | "submitting" | "result" | "cancelled" | "error">("loading");
