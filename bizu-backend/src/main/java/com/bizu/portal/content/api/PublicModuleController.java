@@ -1,5 +1,6 @@
 package com.bizu.portal.content.api;
 
+import com.bizu.portal.content.api.dto.PublicModuleDTO;
 import com.bizu.portal.content.application.ModuleService;
 import com.bizu.portal.content.domain.Module;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,8 @@ public class PublicModuleController {
     private final ModuleService moduleService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<Module> getModuleById(@PathVariable UUID id) {
-        return ResponseEntity.ok(moduleService.findById(id));
+    public ResponseEntity<PublicModuleDTO> getModuleById(@PathVariable UUID id) {
+        Module module = moduleService.findById(id);
+        return ResponseEntity.ok(PublicModuleDTO.fromEntity(module));
     }
 }
