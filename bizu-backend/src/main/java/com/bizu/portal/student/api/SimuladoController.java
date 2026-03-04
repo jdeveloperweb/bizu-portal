@@ -104,6 +104,39 @@ public class SimuladoController {
     }
 
     // ─────────────────────────────────────────────────────────────────────
+    // Practice Exam (refazer) — no ranking impact
+    // ─────────────────────────────────────────────────────────────────────
+
+    @PostMapping("/{id}/refazer/iniciar")
+    public ResponseEntity<SessionStartDTO> startPracticeExam(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        return ResponseEntity.ok(simuladoExamService.startPracticeExam(userId, id));
+    }
+
+    @PostMapping("/{id}/refazer/submeter")
+    public ResponseEntity<ExamResultDTO> submitPracticeExam(
+            @PathVariable UUID id,
+            @RequestParam UUID sessionId,
+            @RequestBody SubmitRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        return ResponseEntity.ok(simuladoExamService.submitPracticeExam(
+                userId, id, sessionId,
+                request.getAnswers() != null ? request.getAnswers() : Map.of()));
+    }
+
+    @PostMapping("/{id}/refazer/cancelar")
+    public ResponseEntity<Void> cancelPracticeExam(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        simuladoExamService.cancelPracticeExam(userId, id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
     // Legacy endpoints (quick quiz, custom simulado)
     // ─────────────────────────────────────────────────────────────────────
 

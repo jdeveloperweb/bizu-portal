@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
     FileText, CheckCircle2, PlayCircle, Clock, Trophy,
     Lock, BookOpen, AlertTriangle, XCircle, Timer,
-    CalendarDays, ChevronRight, Sparkles, Target, Ban
+    CalendarDays, ChevronRight, Sparkles, Target, Ban, RotateCcw
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
@@ -229,12 +229,23 @@ function SimuladoCard({ sim, idx }: { sim: SimuladoItem; idx: number }) {
                         </Link>
                     )}
                     {isRealizado && sim.sessionStatus !== "IN_PROGRESS" && (
-                        <Link href={`/simulados/${sim.id}/resultado`}>
-                            <Button variant="outline" className="rounded-2xl h-11 px-6 font-black text-xs uppercase tracking-widest gap-2 border-border/60 hover:border-primary/40 hover:text-primary transition-all">
-                                Ver resultado
-                                <ChevronRight size={14} />
-                            </Button>
-                        </Link>
+                        <div className="flex flex-col items-start sm:items-end gap-2">
+                            <Link href={`/simulados/${sim.id}/resultado`}>
+                                <Button variant="outline" className="rounded-2xl h-11 px-6 font-black text-xs uppercase tracking-widest gap-2 border-border/60 hover:border-primary/40 hover:text-primary transition-all">
+                                    Ver resultado
+                                    <ChevronRight size={14} />
+                                </Button>
+                            </Link>
+                            {sim.sessionStatus === "COMPLETED" && (
+                                <Link href={`/simulados/${sim.id}?modo=pratica`}>
+                                    <Button variant="ghost" className="rounded-2xl h-9 px-5 font-black text-[10px] uppercase tracking-widest gap-1.5 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all">
+                                        <RotateCcw size={12} />
+                                        Refazer
+                                        <span className="text-[9px] opacity-60 font-bold normal-case tracking-normal">(sem ranking)</span>
+                                    </Button>
+                                </Link>
+                            )}
+                        </div>
                     )}
                     {isRealizado && sim.sessionStatus === "IN_PROGRESS" && (
                         <div className="flex items-center gap-2 bg-primary/5 px-5 py-2.5 rounded-2xl border border-primary/20">

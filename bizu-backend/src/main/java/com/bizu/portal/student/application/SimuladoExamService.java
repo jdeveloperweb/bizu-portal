@@ -6,8 +6,10 @@ import com.bizu.portal.content.infrastructure.SimuladoRepository;
 import com.bizu.portal.identity.domain.User;
 import com.bizu.portal.identity.infrastructure.UserRepository;
 import com.bizu.portal.shared.exception.ResourceNotFoundException;
+import com.bizu.portal.student.domain.SimuladoPracticeSession;
 import com.bizu.portal.student.domain.SimuladoResult;
 import com.bizu.portal.student.domain.SimuladoSession;
+import com.bizu.portal.student.infrastructure.SimuladoPracticeSessionRepository;
 import com.bizu.portal.student.infrastructure.SimuladoResultRepository;
 import com.bizu.portal.student.infrastructure.SimuladoSessionRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ public class SimuladoExamService {
 
     private final SimuladoRepository simuladoRepository;
     private final SimuladoSessionRepository sessionRepository;
+    private final SimuladoPracticeSessionRepository practiceSessionRepository;
     private final SimuladoResultRepository resultRepository;
     private final UserRepository userRepository;
 
@@ -424,6 +427,130 @@ public class SimuladoExamService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Practice Exam (refazer) — no ranking impact
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Transactional
+    public SessionStartDTO startPracticeExam(UUID userId, UUID simuladoId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Simulado simulado = simuladoRepository.findById(simuladoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Simulado not found"));
+        simulado.getQuestions().size();
+
+        // Must have completed the official exam at least once
+        SimuladoSession official = sessionRepository.findByUser_IdAndSimulado_Id(userId, simuladoId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Você ainda não realizou este simulado. Complete a prova oficial primeiro."));
+
+        if (!"COMPLETED".equals(official.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Apenas simulados concluídos podem ser refeitos no modo prática.");
+        }
+
+        // Cancel any existing IN_PROGRESS practice session for this simulado
+        practiceSessionRepository
+                .findTopByUser_IdAndSimulado_IdAndStatusOrderByStartedAtDesc(userId, simuladoId, "IN_PROGRESS")
+                .ifPresent(existing -> {
+                    existing.setStatus("CANCELLED");
+                    existing.setSubmittedAt(OffsetDateTime.now());
+                    practiceSessionRepository.save(existing);
+                });
+
+        int duration = simulado.getDurationMinutes() != null
+                ? simulado.getDurationMinutes()
+                : DEFAULT_DURATION_MINUTES;
+        OffsetDateTime now = OffsetDateTime.now();
+
+        SimuladoPracticeSession session = SimuladoPracticeSession.builder()
+                .user(user)
+                .simulado(simulado)
+                .startedAt(now)
+                .expiresAt(now.plusMinutes(duration))
+                .status("IN_PROGRESS")
+                .build();
+        session = practiceSessionRepository.save(session);
+
+        List<QuestionExamDTO> questions = simulado.getQuestions().stream()
+                .map(this::toExamDTO)
+                .collect(Collectors.toList());
+
+        return new SessionStartDTO(
+                session.getId(),
+                session.getStartedAt(),
+                session.getExpiresAt(),
+                simulado.getDurationMinutes(),
+                simulado.getTitle(),
+                questions
+        );
+    }
+
+    @Transactional
+    public ExamResultDTO submitPracticeExam(UUID userId, UUID simuladoId, UUID sessionId, Map<String, String> answers) {
+        SimuladoPracticeSession session = practiceSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Sessão de prática não encontrada."));
+
+        if (!session.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado.");
+        }
+
+        if (!"IN_PROGRESS".equals(session.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Esta sessão de prática já foi finalizada.");
+        }
+
+        OffsetDateTime now = OffsetDateTime.now();
+        if (now.isAfter(session.getExpiresAt())) {
+            session.setStatus("EXPIRED");
+            session.setSubmittedAt(now);
+            practiceSessionRepository.save(session);
+            throw new ResponseStatusException(HttpStatus.GONE, "O tempo do simulado esgotou.");
+        }
+
+        Simulado simulado = simuladoRepository.findById(simuladoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Simulado not found"));
+        simulado.getQuestions().size();
+
+        List<Question> questions = simulado.getQuestions();
+        int total = questions.size();
+
+        List<QuestionResultDTO> results = questions.stream().map(q -> {
+            String qId = q.getId().toString();
+            String userAnswer = answers.getOrDefault(qId, null);
+            boolean correct = q.getCorrectOption() != null && q.getCorrectOption().equals(userAnswer);
+            return new QuestionResultDTO(q.getId(), q.getStatement(), q.getCorrectOption(), userAnswer, correct, q.getResolution());
+        }).collect(Collectors.toList());
+
+        long correctCount = results.stream().filter(QuestionResultDTO::correct).count();
+
+        session.setAnswers(answers != null ? new HashMap<>(answers) : new HashMap<>());
+        session.setScore((int) correctCount);
+        session.setTotalQuestions(total);
+        session.setStatus("COMPLETED");
+        session.setSubmittedAt(now);
+        practiceSessionRepository.save(session);
+
+        // ✦ No SimuladoResult saved — practice sessions never affect the ranking ✦
+
+        double percent = total > 0 ? (correctCount * 100.0 / total) : 0;
+        return new ExamResultDTO(session.getId(), "COMPLETED", (int) correctCount, total, percent,
+                session.getStartedAt(), now, results);
+    }
+
+    @Transactional
+    public void cancelPracticeExam(UUID userId, UUID simuladoId) {
+        practiceSessionRepository
+                .findTopByUser_IdAndSimulado_IdAndStatusOrderByStartedAtDesc(userId, simuladoId, "IN_PROGRESS")
+                .ifPresent(session -> {
+                    session.setStatus("CANCELLED");
+                    session.setSubmittedAt(OffsetDateTime.now());
+                    practiceSessionRepository.save(session);
+                });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Scheduled: expire abandoned IN_PROGRESS sessions
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -439,6 +566,17 @@ public class SimuladoExamService {
                 s.setSubmittedAt(now);
             });
             sessionRepository.saveAll(stale);
+        }
+
+        List<SimuladoPracticeSession> staleP = practiceSessionRepository
+                .findAllByStatusAndExpiresAtBefore("IN_PROGRESS", OffsetDateTime.now());
+        if (!staleP.isEmpty()) {
+            OffsetDateTime now = OffsetDateTime.now();
+            staleP.forEach(s -> {
+                s.setStatus("EXPIRED");
+                s.setSubmittedAt(now);
+            });
+            practiceSessionRepository.saveAll(staleP);
         }
     }
 

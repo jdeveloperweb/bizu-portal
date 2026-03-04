@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { useDuels } from "@/contexts/DuelContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     AlertTriangle, Clock, CheckCircle2, XCircle, Flag, ChevronLeft,
-    ChevronRight, Send, Ban, Loader2, BookOpen, Target, LayoutGrid, X
+    ChevronRight, Send, Ban, Loader2, BookOpen, Target, LayoutGrid, X, RotateCcw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -280,9 +280,10 @@ function OptionButton({
 
 // ─── Result View ─────────────────────────────────────────────────────────────
 
-function ExamResultView({ result, simuladoTitle, onBack }: {
+function ExamResultView({ result, simuladoTitle, isPractice, onBack }: {
     result: ExamResult;
     simuladoTitle: string;
+    isPractice?: boolean;
     onBack: () => void;
 }) {
     const pct = Math.round(result.scorePercent);
@@ -294,11 +295,16 @@ function ExamResultView({ result, simuladoTitle, onBack }: {
             <div className="bg-slate-900 border-b border-slate-800 px-6 py-4">
                 <div className="max-w-4xl mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="bg-indigo-500/20 p-2 rounded-xl">
-                            <Target size={18} className="text-indigo-400" />
+                        <div className={cn("p-2 rounded-xl", isPractice ? "bg-amber-500/20" : "bg-indigo-500/20")}>
+                            {isPractice
+                                ? <RotateCcw size={18} className="text-amber-400" />
+                                : <Target size={18} className="text-indigo-400" />
+                            }
                         </div>
                         <div>
-                            <p className="text-xs font-black text-indigo-400 uppercase tracking-widest">Resultado</p>
+                            <p className={cn("text-xs font-black uppercase tracking-widest", isPractice ? "text-amber-400" : "text-indigo-400")}>
+                                {isPractice ? "Resultado — Modo Prática" : "Resultado"}
+                            </p>
                             <p className="text-sm font-bold text-slate-300 truncate max-w-[240px] md:max-w-[400px]">{simuladoTitle}</p>
                         </div>
                     </div>
@@ -307,6 +313,14 @@ function ExamResultView({ result, simuladoTitle, onBack }: {
                     </button>
                 </div>
             </div>
+            {isPractice && (
+                <div className="bg-amber-500/10 border-b border-amber-500/20 px-6 py-2.5">
+                    <div className="max-w-4xl mx-auto flex items-center gap-2 text-amber-400 text-xs font-bold">
+                        <RotateCcw size={12} />
+                        Este resultado é apenas para estudo e não conta para o ranking.
+                    </div>
+                </div>
+            )}
 
             <div className="max-w-4xl mx-auto px-4 py-10">
                 <motion.div
@@ -430,7 +444,9 @@ function ExamResultView({ result, simuladoTitle, onBack }: {
 export default function SimuladoExamPage() {
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const simuladoId = params.id as string;
+    const isPractice = searchParams.get("modo") === "pratica";
     const { setFocusMode } = useDuels();
 
     const [phase, setPhase] = useState<"loading" | "starting" | "exam" | "submitting" | "result" | "cancelled" | "error">("loading");
@@ -466,14 +482,17 @@ export default function SimuladoExamPage() {
     useEffect(() => {
         const startExam = async () => {
             setPhase("starting");
+            const endpoint = isPractice
+                ? `/simulados/${simuladoId}/refazer/iniciar`
+                : `/simulados/${simuladoId}/iniciar`;
             try {
-                const res = await apiFetch(`/simulados/${simuladoId}/iniciar`, { method: "POST" });
+                const res = await apiFetch(endpoint, { method: "POST" });
                 if (res.ok) {
                     const data: SessionStart = await res.json();
                     setSession(data);
                     sessionRef.current = data;
                     setPhase("exam");
-                } else if (res.status === 409) {
+                } else if (!isPractice && res.status === 409) {
                     router.replace(`/simulados/${simuladoId}/resultado`);
                 } else {
                     const text = await res.text();
@@ -488,11 +507,11 @@ export default function SimuladoExamPage() {
             }
         };
         startExam();
-    }, [simuladoId]);
+    }, [simuladoId, isPractice]);
 
-    // ── Anti-cheat ────────────────────────────────────────────────────────
+    // ── Anti-cheat (official exams only) ─────────────────────────────────
     useEffect(() => {
-        if (phase !== "exam") return;
+        if (phase !== "exam" || isPractice) return;
         const handleHidden = async () => {
             if (document.hidden && !cancelledRef.current) {
                 cancelledRef.current = true;
@@ -502,7 +521,7 @@ export default function SimuladoExamPage() {
         };
         document.addEventListener("visibilitychange", handleHidden);
         return () => document.removeEventListener("visibilitychange", handleHidden);
-    }, [phase, simuladoId]);
+    }, [phase, simuladoId, isPractice]);
 
     // ── Timer expire → auto submit ─────────────────────────────────────────
     const handleTimerExpire = useCallback(async () => {
@@ -522,7 +541,10 @@ export default function SimuladoExamPage() {
             if (answers[i]) answersMap[q.id] = answers[i];
         });
         try {
-            const res = await apiFetch(`/simulados/${simuladoId}/submeter`, {
+            const endpoint = isPractice
+                ? `/simulados/${simuladoId}/refazer/submeter?sessionId=${currentSession.sessionId}`
+                : `/simulados/${simuladoId}/submeter`;
+            const res = await apiFetch(endpoint, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ answers: answersMap }),
@@ -650,6 +672,7 @@ export default function SimuladoExamPage() {
             <ExamResultView
                 result={result}
                 simuladoTitle={session.simuladoTitle}
+                isPractice={isPractice}
                 onBack={() => router.push("/simulados")}
             />
         );
@@ -749,12 +772,15 @@ export default function SimuladoExamPage() {
             >
                 {/* Left: Title */}
                 <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="bg-indigo-500/15 p-1.5 rounded-xl shrink-0">
-                        <BookOpen size={15} className="text-indigo-400" />
+                    <div className={cn("p-1.5 rounded-xl shrink-0", isPractice ? "bg-amber-500/15" : "bg-indigo-500/15")}>
+                        {isPractice
+                            ? <RotateCcw size={15} className="text-amber-400" />
+                            : <BookOpen size={15} className="text-indigo-400" />
+                        }
                     </div>
                     <div className="min-w-0">
-                        <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-0.5">
-                            Modo Prova
+                        <p className={cn("text-[9px] font-black uppercase tracking-widest leading-none mb-0.5", isPractice ? "text-amber-400" : "text-indigo-400")}>
+                            {isPractice ? "Modo Prática" : "Modo Prova"}
                         </p>
                         <p className="text-xs text-slate-400 font-bold truncate max-w-[130px] sm:max-w-[300px] md:max-w-[400px]">
                             {session.simuladoTitle}
@@ -794,9 +820,19 @@ export default function SimuladoExamPage() {
                 <motion.div
                     animate={{ width: `${progressPct}%` }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="h-full bg-indigo-500"
+                    className={cn("h-full", isPractice ? "bg-amber-500" : "bg-indigo-500")}
                 />
             </div>
+
+            {/* ── Practice Mode Notice ── */}
+            {isPractice && (
+                <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 shrink-0 flex items-center justify-center gap-2">
+                    <RotateCcw size={11} className="text-amber-400" />
+                    <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">
+                        Modo Prática — Não conta para o ranking
+                    </span>
+                </div>
+            )}
 
             {/* ── Body ── */}
             <div className="flex-1 flex min-h-0">
