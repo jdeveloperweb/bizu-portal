@@ -56,6 +56,9 @@ public class Simulado {
     @Builder.Default
     private List<Question> questions = new ArrayList<>();
 
+    @Column(name = "duration_minutes")
+    private Integer durationMinutes;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 

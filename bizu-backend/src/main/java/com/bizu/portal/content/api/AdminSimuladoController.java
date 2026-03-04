@@ -41,6 +41,8 @@ public class AdminSimuladoController {
         private OffsetDateTime startDate;
         private OffsetDateTime endDate;
         private UUID courseId;
+        /** Duration in minutes for this exam. Null = 240 min default. */
+        private Integer durationMinutes;
     }
 
     @PostMapping
@@ -50,6 +52,7 @@ public class AdminSimuladoController {
         simulado.setDescription(request.getDescription());
         simulado.setStartDate(request.getStartDate());
         simulado.setEndDate(request.getEndDate());
+        simulado.setDurationMinutes(request.getDurationMinutes());
         return ResponseEntity.ok(adminSimuladoService.createSimulado(simulado, request.getCourseId()));
     }
 
@@ -60,6 +63,7 @@ public class AdminSimuladoController {
         simulado.setDescription(request.getDescription());
         simulado.setStartDate(request.getStartDate());
         simulado.setEndDate(request.getEndDate());
+        simulado.setDurationMinutes(request.getDurationMinutes());
         return ResponseEntity.ok(adminSimuladoService.updateSimulado(id, simulado, request.getCourseId()));
     }
 

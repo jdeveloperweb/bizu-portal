@@ -50,6 +50,7 @@ public class AdminSimuladoService {
         simulado.setStartDate(updateData.getStartDate());
         simulado.setEndDate(updateData.getEndDate());
         simulado.setActive(updateData.isActive());
+        simulado.setDurationMinutes(updateData.getDurationMinutes());
         
         if (courseId != null) {
             Course course = courseRepository.findById(courseId)

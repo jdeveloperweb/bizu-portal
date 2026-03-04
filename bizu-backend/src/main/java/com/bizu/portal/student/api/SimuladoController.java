@@ -2,9 +2,13 @@ package com.bizu.portal.student.api;
 
 import com.bizu.portal.commerce.application.EntitlementService;
 import com.bizu.portal.content.domain.Simulado;
-import com.bizu.portal.content.infrastructure.SimuladoRepository;
 import com.bizu.portal.identity.application.UserService;
+import com.bizu.portal.student.application.SimuladoExamService;
+import com.bizu.portal.student.application.SimuladoExamService.ExamResultDTO;
+import com.bizu.portal.student.application.SimuladoExamService.SessionStartDTO;
+import com.bizu.portal.student.application.SimuladoExamService.SimuladoListItemDTO;
 import com.bizu.portal.student.application.StudentSimuladoService;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,6 +16,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -20,36 +25,87 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SimuladoController {
 
-    private final SimuladoRepository simuladoRepository;
     private final StudentSimuladoService studentSimuladoService;
+    private final SimuladoExamService simuladoExamService;
     private final EntitlementService entitlementService;
     private final UserService userService;
 
+    // ─────────────────────────────────────────────────────────────────────
+    // List available simulados with user-specific status
+    // ─────────────────────────────────────────────────────────────────────
+
     @GetMapping("/disponiveis")
-    public ResponseEntity<List<Simulado>> getAvailableSimulados(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<List<SimuladoListItemDTO>> getAvailableSimulados(
+            @AuthenticationPrincipal Jwt jwt) {
         UUID userId = userService.resolveUserId(jwt);
-        
-        // Get active course IDs for the user
+
         List<UUID> activeCourseIds = entitlementService.getActiveEntitlements(userId)
-            .stream()
-            .map(e -> e.getCourse().getId())
-            .collect(Collectors.toList());
-            
-        if (activeCourseIds.isEmpty()) {
-            return ResponseEntity.ok(simuladoRepository.findAllByCourseIsNull());
-        }
+                .stream()
+                .map(e -> e.getCourse().getId())
+                .collect(Collectors.toList());
 
-        List<Simulado> simulados = simuladoRepository.findAllByCourseIdIn(activeCourseIds);
-        // Also include national simulados (those without a specific course)
-        simulados.addAll(simuladoRepository.findAllByCourseIsNull());
-        
-        return ResponseEntity.ok(simulados);
+        return ResponseEntity.ok(simuladoExamService.getAvailableSimuladoList(userId, activeCourseIds));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Simulado> getSimulado(@PathVariable UUID id) {
-        return ResponseEntity.ok(studentSimuladoService.getSimuladoCompleto(id));
+    // ─────────────────────────────────────────────────────────────────────
+    // Start Exam Session
+    // ─────────────────────────────────────────────────────────────────────
+
+    @PostMapping("/{id}/iniciar")
+    public ResponseEntity<SessionStartDTO> startExam(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        return ResponseEntity.ok(simuladoExamService.startExam(userId, id));
     }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Submit Exam Answers
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Data
+    public static class SubmitRequest {
+        private Map<String, String> answers;
+    }
+
+    @PostMapping("/{id}/submeter")
+    public ResponseEntity<ExamResultDTO> submitExam(
+            @PathVariable UUID id,
+            @RequestBody SubmitRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        return ResponseEntity.ok(simuladoExamService.submitExam(userId, id,
+                request.getAnswers() != null ? request.getAnswers() : Map.of()));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Cancel Exam (anti-cheat: user left the page)
+    // ─────────────────────────────────────────────────────────────────────
+
+    @PostMapping("/{id}/cancelar")
+    public ResponseEntity<Void> cancelExam(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        simuladoExamService.cancelExam(userId, id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Get my result for a specific simulado
+    // ─────────────────────────────────────────────────────────────────────
+
+    @GetMapping("/{id}/meu-resultado")
+    public ResponseEntity<ExamResultDTO> getMyResult(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        return ResponseEntity.ok(simuladoExamService.getMyResult(userId, id));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Legacy endpoints (quick quiz, custom simulado)
+    // ─────────────────────────────────────────────────────────────────────
 
     @GetMapping("/quiz/rapido")
     public ResponseEntity<Simulado> getQuickQuiz(

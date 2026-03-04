@@ -17,6 +17,7 @@ export default function NovoSimuladoPage() {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [courseId, setCourseId] = useState("");
+    const [durationMinutes, setDurationMinutes] = useState<string>("");
     const [courses, setCourses] = useState<any[]>([]);
 
     useEffect(() => {
@@ -39,6 +40,7 @@ export default function NovoSimuladoPage() {
             if (startDate) bodyData.startDate = new Date(startDate).toISOString();
             if (endDate) bodyData.endDate = new Date(endDate).toISOString();
             if (courseId) bodyData.courseId = courseId;
+            if (durationMinutes) bodyData.durationMinutes = parseInt(durationMinutes, 10);
 
             const res = await apiFetch("/admin/simulados", {
                 method: "POST",
@@ -184,6 +186,23 @@ export default function NovoSimuladoPage() {
                                         onChange={(e) => setEndDate(e.target.value)}
                                         className="w-full h-14 px-5 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/30 focus:bg-white font-black text-sm outline-none transition-all"
                                     />
+                                </div>
+
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Duração (minutos)</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        placeholder="Ex: 180 (3 horas)"
+                                        value={durationMinutes}
+                                        onChange={(e) => setDurationMinutes(e.target.value)}
+                                        className="w-full h-14 px-5 rounded-2xl bg-muted/30 border-2 border-transparent focus:border-primary/30 focus:bg-white font-black text-sm outline-none transition-all"
+                                    />
+                                    {durationMinutes && (
+                                        <p className="text-[11px] text-muted-foreground font-bold ml-1">
+                                            ≈ {Math.floor(parseInt(durationMinutes) / 60)}h {parseInt(durationMinutes) % 60}min
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>
