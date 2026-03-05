@@ -379,7 +379,7 @@ export default function DashboardPage() {
                         label: gamification?.rank ? `Patente: ${gamification.rank}` : "Patente",
                         val: (
                             <div className="flex items-center gap-2">
-                                <RankInsignia level={gamification?.level || 1} rank={gamification?.rank} size="sm" />
+                                <RankInsignia level={gamification?.level || 1} rank={gamification?.rank} size="xs" />
                                 <span>{(gamification?.level || 1).toString()}</span>
                             </div>
                         ),

@@ -7,7 +7,7 @@ interface RankInsigniaProps {
     rank?: string;
     className?: string;
     showName?: boolean;
-    size?: "sm" | "md" | "lg";
+    size?: "xs" | "sm" | "md" | "lg";
 }
 
 // Custom SVG Insignia Components
@@ -26,11 +26,14 @@ const InsigniaSVG = ({ level, size = 24 }: { level: number, size?: number }) => 
         else if (level <= 20) { stripes = 4; color = "#92400e"; } // 2º Sargento
         else { stripes = 5; color = "#78350f"; } // 1º Sargento
 
+        // Center chevrons vertically: total span = 20 + (stripes-1)*15, top_y = (95 - 15*stripes) / 2
+        const topY = stripes > 0 ? (95 - 15 * stripes) / 2 : 0;
+
         return (
             <svg width={size} height={size} viewBox={viewBox} fill="none" xmlns="http://www.w3.org/2000/svg">
                 {stripes === 0 && <circle cx="50" cy="50" r="20" stroke={color} strokeWidth="8" />}
                 {[...Array(stripes)].map((_, i) => (
-                    <path key={i} d={`M20 ${20 + i * 15} L50 ${40 + i * 15} L80 ${20 + i * 15}`}
+                    <path key={i} d={`M20 ${topY + i * 15} L50 ${topY + 20 + i * 15} L80 ${topY + i * 15}`}
                         stroke={color} strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" />
                 ))}
             </svg>
@@ -99,6 +102,7 @@ const InsigniaSVG = ({ level, size = 24 }: { level: number, size?: number }) => 
 
 export function RankInsignia({ level, rank, className, showName = false, size = "md" }: RankInsigniaProps) {
     const sizeMap = {
+        xs: { container: "w-6 h-6 p-0.5", icon: 16 },
         sm: { container: "w-8 h-8 p-1", icon: 20 },
         md: { container: "w-12 h-12 p-2", icon: 32 },
         lg: { container: "w-20 h-20 p-3.5", icon: 56 }

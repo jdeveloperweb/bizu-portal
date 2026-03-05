@@ -26,6 +26,7 @@ interface RankedUser {
     accuracy?: number;
     questionsThisWeek?: number;
     delta?: number;
+    level?: number;
 }
 
 interface RankedSimulado {
@@ -110,8 +111,59 @@ export default function RankingStudentPage() {
         fetchRanking();
     }, []);
 
+    const fetchWeeklyRanking = async () => {
+        setLoading(true);
+        try {
+            const selectedCourseId = getStoredSelectedCourseId();
+            const courseQuery = selectedCourseId ? `courseId=${selectedCourseId}` : "";
+            const res = await apiFetch(`/student/ranking/semanal?limit=50${courseQuery ? `&${courseQuery}` : ""}`);
+            if (res.ok) {
+                const data = await res.json();
+                setTopUsers(data.map((u: any) => ({
+                    rank: parseInt(u.rank),
+                    name: u.name,
+                    nickname: u.nickname,
+                    avatar: u.avatar || u.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase(),
+                    xp: u.weekly_xp || u.xp || 0,
+                    streak: u.streak || 0,
+                    accuracy: u.accuracy ? Math.round(Number(u.accuracy)) : 0,
+                    level: u.level
+                })));
+            }
+        } catch (error) {
+            console.error("Error fetching weekly ranking:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchGlobalRanking = async () => {
+        setLoading(true);
+        try {
+            const selectedCourseId = getStoredSelectedCourseId();
+            const courseQuery = selectedCourseId ? `courseId=${selectedCourseId}` : "";
+            const res = await apiFetch(`/student/ranking/global?limit=50${courseQuery ? `&${courseQuery}` : ""}`);
+            if (res.ok) {
+                const data = await res.json();
+                setTopUsers(data.map((u: any) => ({
+                    rank: parseInt(u.rank),
+                    name: u.name,
+                    nickname: u.nickname,
+                    avatar: u.avatar || u.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase(),
+                    xp: u.xp,
+                    streak: u.streak || 0,
+                    accuracy: u.accuracy ? Math.round(Number(u.accuracy)) : 0,
+                    level: u.level
+                })));
+            }
+        } catch (error) {
+            console.error("Error fetching global ranking:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const fetchSimuladoRanking = async () => {
-        if (simuladoRanking.length > 0) return;
         setSimuladoLoading(true);
         try {
             const selectedCourseId = getStoredSelectedCourseId();
@@ -127,6 +179,7 @@ export default function RankingStudentPage() {
                     avatar: u.avatar || (u.name || "?").split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase(),
                     best_score: Number(u.best_score ?? 0),
                     total_simulados: Number(u.total_simulados ?? 0),
+                    level: u.level
                 })));
             }
         } catch (error) {
@@ -139,6 +192,8 @@ export default function RankingStudentPage() {
     const handleTabChange = (tab: RankingTab) => {
         setActiveTab(tab);
         if (tab === "simulado") fetchSimuladoRanking();
+        else if (tab === "semanal") fetchWeeklyRanking();
+        else if (tab === "geral") fetchGlobalRanking();
     };
 
     const subjects = ["Todas", ...availableModules];
@@ -298,11 +353,10 @@ export default function RankingStudentPage() {
                         const active = activeTab === tab.key;
                         return (
                             <button key={tab.key} onClick={() => handleTabChange(tab.key)}
-                                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[12px] font-bold transition-all ${
-                                    active
-                                        ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm"
-                                        : "text-slate-500 hover:bg-slate-50"
-                                }`}>
+                                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[12px] font-bold transition-all ${active
+                                    ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm"
+                                    : "text-slate-500 hover:bg-slate-50"
+                                    }`}>
                                 <Icon size={13} />{tab.label}
                             </button>
                         );
@@ -314,11 +368,10 @@ export default function RankingStudentPage() {
                     <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-5 scrollbar-hide">
                         {subjects.map(s => (
                             <button key={s} onClick={() => setSelectedSubject(s)}
-                                className={`px-3 py-1.5 rounded-xl text-[10px] font-bold whitespace-nowrap transition-all border ${
-                                    selectedSubject === s
-                                        ? "bg-indigo-50 text-indigo-700 border-indigo-200"
-                                        : "text-slate-400 hover:text-slate-600 hover:bg-slate-50 border-transparent"
-                                }`}>
+                                className={`px-3 py-1.5 rounded-xl text-[10px] font-bold whitespace-nowrap transition-all border ${selectedSubject === s
+                                    ? "bg-indigo-50 text-indigo-700 border-indigo-200"
+                                    : "text-slate-400 hover:text-slate-600 hover:bg-slate-50 border-transparent"
+                                    }`}>
                                 {s === "Todas" ? s : s.replace("Direito ", "D. ").replace("Processo ", "P. ").replace("Legislação ", "Leg. ").substring(0, 25)}
                             </button>
                         ))}
@@ -340,7 +393,7 @@ export default function RankingStudentPage() {
                                 </div>
                                 {simuladoLoading ? (
                                     <div className="divide-y divide-slate-50">
-                                        {[1,2,3,4,5].map(i => (
+                                        {[1, 2, 3, 4, 5].map(i => (
                                             <div key={i} className="flex items-center gap-3 px-5 py-3">
                                                 <div className="w-8 h-8 rounded-xl bg-slate-100 animate-pulse shrink-0" />
                                                 <div className="w-9 h-9 rounded-xl bg-slate-100 animate-pulse shrink-0" />

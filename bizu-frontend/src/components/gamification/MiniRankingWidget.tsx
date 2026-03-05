@@ -17,6 +17,8 @@ interface RankEntry {
     avatar?: string;
     rank: number;
     level?: number;
+    activeAura?: string | null;
+    activeBorder?: string | null;
     value: number; // wins / best_score / weekly_xp
 }
 
@@ -99,6 +101,8 @@ function parseEntry(raw: any, tab: Tab): RankEntry {
         avatar: avatarUrl || initials,
         rank: Number(raw.rank ?? 0),
         level: Number(raw.level ?? 1),
+        activeAura: raw.activeAura || null,
+        activeBorder: raw.activeBorder || null,
         value: Number(raw[tab.valueKey] ?? 0),
     };
 }
@@ -270,6 +274,8 @@ function RankRow({ entry, index, tab }: { entry: RankEntry; index: number; tab: 
                     name={entry.name}
                     size="sm"
                     rankLevel={entry.level}
+                    activeAura={entry.activeAura}
+                    activeBorder={entry.activeBorder}
                 />
             </div>
 

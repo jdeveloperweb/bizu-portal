@@ -24,6 +24,8 @@ public class PublicProfileService {
                     u.avatar_url,
                     COALESCE(g.total_xp, 0) as total_xp,
                     COALESCE(g.current_streak, 0) as current_streak,
+                    g.active_aura,
+                    g.active_border,
                     RANK() OVER (ORDER BY COALESCE(g.total_xp, 0) DESC) as rank
                 FROM identity.users u
                 LEFT JOIN student.gamification_stats g ON u.id = g.user_id
@@ -35,6 +37,8 @@ public class PublicProfileService {
                 r.avatar_url as "avatar",
                 r.total_xp as "xp",
                 r.current_streak as "streak",
+                r.active_aura as "activeAura",
+                r.active_border as "activeBorder",
                 r.rank as "rank",
                 FLOOR(POWER(COALESCE(r.total_xp, 0) / 1000.0, 2.0/3.0)) + 1 as "level",
                 (SELECT status FROM identity.friendships f 

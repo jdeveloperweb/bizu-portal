@@ -125,6 +125,8 @@ export function UserProfileModal({ nickname, isOpen, onClose }: UserProfileModal
                             size="xl"
                             className="!w-24 !h-24 !rounded-[1.5rem]"
                             rankLevel={profile?.level}
+                            activeAura={profile?.activeAura}
+                            activeBorder={profile?.activeBorder}
                         />
                     </div>
                 </div>

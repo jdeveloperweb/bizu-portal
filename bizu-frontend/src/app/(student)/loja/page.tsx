@@ -354,8 +354,8 @@ function AxonStoreContent() {
                         exit={{ opacity: 0, y: -16, scale: 0.98 }}
                         transition={{ type: "spring", stiffness: 280, damping: 28 }}
                         className={`mb-8 rounded-[24px] p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 shadow-xl ${paymentTimedOut
-                                ? "bg-gradient-to-r from-red-600 to-rose-600 shadow-red-200"
-                                : "bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-700 shadow-indigo-200"
+                            ? "bg-gradient-to-r from-red-600 to-rose-600 shadow-red-200"
+                            : "bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-700 shadow-indigo-200"
                             }`}
                     >
                         {/* Ícone animado */}
@@ -489,8 +489,10 @@ function AxonStoreContent() {
                     if (item.category === "status" || item.code.startsWith("AURA_") || item.code.startsWith("BORDER_")) {
                         if (item.code.startsWith("STATUS_")) {
                             const titleValue = item.code.replace("STATUS_", "");
-                            // Alguns títulos tem nomes amigáveis no backend (Mestre, Lenda)
-                            const mappedTitle = titleValue === "MASTER" ? "Mestre" : titleValue === "LEGEND" ? "Lenda" : titleValue;
+                            // Nomes no backend: Elite, Mestre, Lenda
+                            const mappedTitle = titleValue === "MASTER" ? "Mestre" :
+                                titleValue === "LEGEND" ? "Lenda" :
+                                    titleValue === "ELITE" ? "Elite" : titleValue;
                             isActive = gamification?.activeTitle === mappedTitle;
                         } else if (item.code.startsWith("AURA_")) {
                             isActive = gamification?.activeAura === item.code.replace("AURA_", "");
