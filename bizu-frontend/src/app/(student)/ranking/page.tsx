@@ -27,6 +27,8 @@ interface RankedUser {
     questionsThisWeek?: number;
     delta?: number;
     level?: number;
+    activeAura?: string | null;
+    activeBorder?: string | null;
 }
 
 interface RankedSimulado {
@@ -37,6 +39,9 @@ interface RankedSimulado {
     avatar: string;
     best_score: number;
     total_simulados?: number;
+    level?: number;
+    activeAura?: string | null;
+    activeBorder?: string | null;
 }
 
 export default function RankingStudentPage() {
@@ -74,7 +79,10 @@ export default function RankingStudentPage() {
                         streak: u.streak || 0,
                         accuracy: u.accuracy ? Math.round(Number(u.accuracy)) : 0,
                         questionsThisWeek: u.questionsThisWeek || 0,
-                        delta: u.delta || 0
+                        delta: u.delta || 0,
+                        level: u.level,
+                        activeAura: u.activeAura,
+                        activeBorder: u.activeBorder
                     })));
                 }
 
@@ -89,7 +97,10 @@ export default function RankingStudentPage() {
                         streak: u.streak || 0,
                         accuracy: u.accuracy ? Math.round(Number(u.accuracy)) : 0,
                         questionsThisWeek: u.questionsThisWeek || 0,
-                        delta: u.delta || 0
+                        delta: u.delta || 0,
+                        level: u.level,
+                        activeAura: u.activeAura,
+                        activeBorder: u.activeBorder
                     });
                 }
 
@@ -179,7 +190,9 @@ export default function RankingStudentPage() {
                     avatar: u.avatar || (u.name || "?").split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase(),
                     best_score: Number(u.best_score ?? 0),
                     total_simulados: Number(u.total_simulados ?? 0),
-                    level: u.level
+                    level: u.level,
+                    activeAura: u.activeAura,
+                    activeBorder: u.activeBorder
                 })));
             }
         } catch (error) {
@@ -435,7 +448,7 @@ export default function RankingStudentPage() {
                                                         {user.rank <= 3 ? MEDALS[user.rank - 1] : user.rank}
                                                     </div>
                                                     <div className={`relative z-10 flex-shrink-0 rounded-xl overflow-hidden ${user.rank <= 3 ? m.ring : ""}`}>
-                                                        <Avatar src={user.avatar} name={user.name} size="sm" className="border-0" />
+                                                        <Avatar src={user.avatar} name={user.name} size="sm" className="border-0" rankLevel={user.level} activeAura={user.activeAura} activeBorder={user.activeBorder} />
                                                     </div>
                                                     <div className="relative z-10 flex-1 min-w-0">
                                                         <div className="text-[13px] font-bold text-slate-800 truncate">{user.name}</div>
@@ -489,6 +502,9 @@ export default function RankingStudentPage() {
                                                         name={user.name}
                                                         size={user.rank === 1 ? "lg" : "md"}
                                                         className={`border-2 border-white ${m.ring}`}
+                                                        rankLevel={user.level}
+                                                        activeAura={user.activeAura}
+                                                        activeBorder={user.activeBorder}
                                                     />
                                                 </div>
 
@@ -554,7 +570,7 @@ export default function RankingStudentPage() {
 
                                             {/* Avatar */}
                                             <div className={`relative z-10 flex-shrink-0 rounded-xl overflow-hidden ${user.rank <= 3 ? m.ring : ""}`}>
-                                                <Avatar src={user.avatar} name={user.name} size="sm" className="border-0" />
+                                                <Avatar src={user.avatar} name={user.name} size="sm" className="border-0" rankLevel={user.level} activeAura={user.activeAura} activeBorder={user.activeBorder} />
                                             </div>
 
                                             {/* Info */}
@@ -604,6 +620,9 @@ export default function RankingStudentPage() {
                                                 size="sm"
                                                 className="border-0"
                                                 fallbackClassName="bg-indigo-600 text-white"
+                                                rankLevel={myRank.level}
+                                                activeAura={myRank.activeAura}
+                                                activeBorder={myRank.activeBorder}
                                             />
                                         </div>
                                         <div className="flex-1 min-w-0">

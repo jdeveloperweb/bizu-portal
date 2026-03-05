@@ -34,6 +34,8 @@ export interface User {
     nickname?: string;
     avatarUrl?: string;
     level?: number;
+    activeAura?: string | null;
+    activeBorder?: string | null;
 }
 
 export interface Duel {
