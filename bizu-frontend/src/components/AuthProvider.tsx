@@ -204,6 +204,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const res = await apiFetch("/users/me");
         if (res.ok) {
             const me = await res.json();
+            // Add a timestamp to the avatarUrl to force re-render across the app
+            if (me.avatarUrl) {
+                me.avatarUrl = `${me.avatarUrl.split('?')[0]}?t=${Date.now()}`;
+            }
             setUser(me);
             applySelectedCourseId(me);
 

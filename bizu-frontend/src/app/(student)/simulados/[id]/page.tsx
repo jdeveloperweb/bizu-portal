@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { useDuels } from "@/contexts/DuelContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -445,12 +445,11 @@ export default function SimuladoExamPage() {
     const params = useParams();
     const router = useRouter();
     const simuladoId = params.id as string;
-    const [isPractice, setIsPractice] = useState(false);
+    const searchParams = useSearchParams();
+    const isPractice = searchParams.get("modo") === "pratica";
     const [paramsReady, setParamsReady] = useState(false);
 
     useEffect(() => {
-        const p = new URLSearchParams(window.location.search).get("modo") === "pratica";
-        setIsPractice(p);
         setParamsReady(true);
     }, []);
 
@@ -505,7 +504,7 @@ export default function SimuladoExamPage() {
                 } else {
                     const text = await res.text();
                     let msg = "Não foi possível iniciar o simulado.";
-                    try { msg = JSON.parse(text)?.message || msg; } catch {}
+                    try { msg = JSON.parse(text)?.message || msg; } catch { }
                     setErrorMsg(msg);
                     setPhase("error");
                 }
@@ -515,7 +514,7 @@ export default function SimuladoExamPage() {
             }
         };
         startExam();
-    }, [simuladoId, paramsReady]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [simuladoId, paramsReady, isPractice]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ── Anti-cheat (official exams only) ─────────────────────────────────
     useEffect(() => {
@@ -523,7 +522,7 @@ export default function SimuladoExamPage() {
         const handleHidden = async () => {
             if (document.hidden && !cancelledRef.current) {
                 cancelledRef.current = true;
-                try { await apiFetch(`/simulados/${simuladoId}/cancelar`, { method: "POST" }); } catch {}
+                try { await apiFetch(`/simulados/${simuladoId}/cancelar`, { method: "POST" }); } catch { }
                 setPhase("cancelled");
             }
         };
@@ -535,7 +534,7 @@ export default function SimuladoExamPage() {
     const handleTimerExpire = useCallback(async () => {
         if (cancelledRef.current || phase !== "exam") return;
         await doSubmit();
-    }, [phase]); // eslint-disable-line
+    }, [phase, doSubmit]); // eslint-disable-line
 
     // ── Submit ────────────────────────────────────────────────────────────
     const doSubmit = async () => {
@@ -686,10 +685,24 @@ export default function SimuladoExamPage() {
         );
     }
 
-    if (!session || session.questions.length === 0) return null;
+    if (!session || !session.questions || session.questions.length === 0) {
+        if (phase === "exam") {
+            return (
+                <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 p-6 text-center">
+                    <AlertTriangle size={40} className="text-amber-400 mb-4" />
+                    <h2 className="text-lg font-black text-slate-100 mb-2">Simulado sem questões</h2>
+                    <p className="text-sm text-slate-400 mb-8">Este simulado ainda não possui questões cadastradas.</p>
+                    <Button onClick={() => router.push("/simulados")} className="rounded-2xl h-12 px-8 font-black text-xs uppercase tracking-widest">
+                        Voltar para simulados
+                    </Button>
+                </div>
+            );
+        }
+        return null;
+    }
 
     const q = session.questions[currentIdx];
-    const sortedOptions = Object.entries(q.options).sort(([a], [b]) => a.localeCompare(b));
+    const sortedOptions = Object.entries(q.options || {}).sort(([a], [b]) => a.localeCompare(b));
     const answeredCount = Object.keys(answers).length;
     const unansweredCount = session.questions.length - answeredCount;
     const isFlagged = flagged.has(currentIdx);

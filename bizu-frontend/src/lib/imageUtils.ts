@@ -72,7 +72,7 @@ export async function compressImage(
  */
 export function getAvatarUrl(url?: string): string {
     if (!url) return '';
-    if (url.startsWith('http')) return url;
+    if (url.startsWith('http') || url.startsWith('blob:')) return url;
 
     let apiBase = process.env.NEXT_PUBLIC_API_URL || '';
     // Ensure apiBase doesn't end with a slash for easier joining

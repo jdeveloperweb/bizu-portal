@@ -109,7 +109,7 @@ public class SimuladoExamService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        Simulado simulado = simuladoRepository.findById(simuladoId)
+        Simulado simulado = simuladoRepository.findByIdWithQuestions(simuladoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Simulado not found"));
 
         // Force-load questions within transaction
@@ -209,9 +209,8 @@ public class SimuladoExamService {
         }
 
         // Load simulado + questions
-        Simulado simulado = simuladoRepository.findById(simuladoId)
+        Simulado simulado = simuladoRepository.findByIdWithQuestions(simuladoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Simulado not found"));
-        simulado.getQuestions().size();
 
         List<Question> questions = simulado.getQuestions();
         int total = questions.size();
@@ -292,9 +291,8 @@ public class SimuladoExamService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Nenhuma sessão encontrada para este simulado."));
 
-        Simulado simulado = simuladoRepository.findById(simuladoId)
+        Simulado simulado = simuladoRepository.findByIdWithQuestions(simuladoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Simulado not found"));
-        simulado.getQuestions().size();
 
         List<Question> questions = simulado.getQuestions();
         Map<String, String> answers = session.getAnswers() != null ? session.getAnswers() : Map.of();
@@ -435,9 +433,8 @@ public class SimuladoExamService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        Simulado simulado = simuladoRepository.findById(simuladoId)
+        Simulado simulado = simuladoRepository.findByIdWithQuestions(simuladoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Simulado not found"));
-        simulado.getQuestions().size();
 
         // Must have completed the official exam at least once
         SimuladoSession official = sessionRepository.findByUser_IdAndSimulado_Id(userId, simuladoId)
@@ -509,9 +506,8 @@ public class SimuladoExamService {
             throw new ResponseStatusException(HttpStatus.GONE, "O tempo do simulado esgotou.");
         }
 
-        Simulado simulado = simuladoRepository.findById(simuladoId)
+        Simulado simulado = simuladoRepository.findByIdWithQuestions(simuladoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Simulado not found"));
-        simulado.getQuestions().size();
 
         List<Question> questions = simulado.getQuestions();
         int total = questions.size();

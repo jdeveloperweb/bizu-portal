@@ -46,7 +46,8 @@ function getInitials(name: string): string {
 // Only treat src as a real image URL if it looks like one
 function isImageUrl(src?: string): boolean {
     if (!src) return false;
-    return src.startsWith("http") || src.startsWith("/") || src.length > 4;
+    // Handle both string paths and blobs/urls with query params
+    return src.startsWith("http") || src.startsWith("/") || src.startsWith("blob:") || src.length > 4;
 }
 
 export function Avatar({
@@ -90,11 +91,11 @@ export function Avatar({
     const validSrc = isImageUrl(src) ? src : undefined;
     const showImage = !!validSrc && !hasError;
 
-    // Aura glow effect
+    // Aura glow effect - Improved to look more like a glowing border
     const auraStyle = activeAura === "GOLD"
-        ? "after:absolute after:inset-[-6px] after:rounded-[inherit] after:bg-yellow-400/40 after:blur-lg after:animate-pulse before:absolute before:inset-[-12px] before:rounded-[inherit] before:bg-yellow-400/10 before:blur-xl before:animate-pulse"
+        ? "after:absolute after:inset-[-3px] after:rounded-[inherit] after:bg-yellow-400 after:blur-[4px] after:animate-pulse before:absolute before:inset-[-6px] before:rounded-[inherit] before:bg-yellow-400/20 before:blur-xl before:animate-pulse"
         : activeAura === "BLUE"
-            ? "after:absolute after:inset-[-6px] after:rounded-[inherit] after:bg-cyan-400/40 after:blur-lg after:animate-pulse before:absolute before:inset-[-12px] before:rounded-[inherit] before:bg-cyan-400/10 before:blur-xl before:animate-pulse"
+            ? "after:absolute after:inset-[-3px] after:rounded-[inherit] after:bg-cyan-400 after:blur-[4px] after:animate-pulse before:absolute before:inset-[-6px] before:rounded-[inherit] before:bg-cyan-400/20 before:blur-xl before:animate-pulse"
             : "";
 
     // Animated rainbow border
@@ -108,13 +109,30 @@ export function Avatar({
         if (activeAura === "GOLD" && !auraMetadata) {
             meta.auraColor = "#fbbf24";
             meta.auraStyle = "pulse";
+            meta.glowSize = 4;
         }
         if (activeAura === "BLUE" && !auraMetadata) {
             meta.auraColor = "#22d3ee";
             meta.auraStyle = "pulse";
+            meta.glowSize = 4;
         }
         return Object.keys(meta).length > 0 ? meta : null;
     }, [activeAura, auraMetadata, borderMetadata]);
+
+    // Force refresh image if it's external and we suspect an update
+    const finalSrc = useMemo(() => {
+        if (!validSrc) return undefined;
+        let url = getAvatarUrl(validSrc);
+        // If it's a relative path from our API, we only add cache buster if it's not a blob
+        if (url && !url.startsWith('blob:') && !url.includes('?v=')) {
+            // We use a small trick: add a version based on the hour to avoid extreme refetching 
+            // but still allow daily/session updates, or the user can pass it.
+            // Since we can't easily get the 'me' update time here without major refactor,
+            // we'll at least make the URL clean and handled.
+            return url;
+        }
+        return url;
+    }, [validSrc]);
 
     return (
         <div className={cn("relative inline-block shrink-0", !combinedMetadata && auraStyle)}>
@@ -127,8 +145,8 @@ export function Avatar({
             )}>
                 {showImage ? (
                     <img
-                        src={getAvatarUrl(validSrc)}
-                        className="w-full h-full object-cover"
+                        src={finalSrc}
+                        className="w-full h-full object-cover relative z-[2]"
                         alt={name || "Avatar"}
                         onError={() => setHasError(true)}
                     />
