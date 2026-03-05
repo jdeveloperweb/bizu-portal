@@ -231,7 +231,7 @@ export default function RedacaoPage() {
     }
 
     return (
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
+        <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
                     {view !== "list" && (
@@ -326,7 +326,7 @@ export default function RedacaoPage() {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="max-w-4xl mx-auto"
+                        className="w-full mx-auto"
                     >
                         <form onSubmit={handleSubmit} className="bg-card border border-border rounded-3xl p-8 shadow-2xl space-y-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
