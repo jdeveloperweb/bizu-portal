@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { getAvatarUrl } from "@/lib/imageUtils";
 import { cn } from "@/lib/utils";
 import { RankInsignia } from "../gamification/RankInsignia";
+import { AvatarEffects } from "./AvatarEffects";
 
 interface AvatarProps {
     src?: string;
@@ -14,6 +15,8 @@ interface AvatarProps {
     rankLevel?: number;
     activeAura?: string | null;
     activeBorder?: string | null;
+    auraMetadata?: any;
+    borderMetadata?: any;
 }
 
 // Vibrant gradients — assigned deterministically by name so each user always gets the same color
@@ -55,6 +58,8 @@ export function Avatar({
     rankLevel,
     activeAura,
     activeBorder,
+    auraMetadata,
+    borderMetadata,
 }: AvatarProps) {
     const [hasError, setHasError] = useState(false);
 
@@ -93,12 +98,27 @@ export function Avatar({
             : "";
 
     // Animated rainbow border
-    const borderStyle = activeBorder === "RAINBOW"
+    const borderStyle = activeBorder === "RAINBOW" || borderMetadata?.visual?.borderStyle === "rainbow"
         ? "before:absolute before:inset-[-2px] before:rounded-[inherit] before:bg-gradient-to-tr before:from-red-500 before:via-green-500 before:to-blue-500 before:animate-[spin_3s_linear_infinite] after:absolute after:inset-0 after:rounded-[inherit] after:bg-inherit after:z-[1]"
         : "";
 
+    // Merge metadata if available
+    const combinedMetadata = useMemo(() => {
+        const meta = { ...auraMetadata?.visual, ...borderMetadata?.visual };
+        if (activeAura === "GOLD" && !auraMetadata) {
+            meta.auraColor = "#fbbf24";
+            meta.auraStyle = "pulse";
+        }
+        if (activeAura === "BLUE" && !auraMetadata) {
+            meta.auraColor = "#22d3ee";
+            meta.auraStyle = "pulse";
+        }
+        return Object.keys(meta).length > 0 ? meta : null;
+    }, [activeAura, auraMetadata, borderMetadata]);
+
     return (
-        <div className={cn("relative inline-block shrink-0", auraStyle)}>
+        <div className={cn("relative inline-block shrink-0", !combinedMetadata && auraStyle)}>
+            <AvatarEffects metadata={combinedMetadata} size={size} />
             <div className={cn(
                 "relative z-10 overflow-hidden shrink-0",
                 sizeClasses[size],

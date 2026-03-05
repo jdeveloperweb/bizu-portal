@@ -127,6 +127,8 @@ export function UserProfileModal({ nickname, isOpen, onClose }: UserProfileModal
                             rankLevel={profile?.level}
                             activeAura={profile?.activeAura}
                             activeBorder={profile?.activeBorder}
+                            auraMetadata={profile?.auraMetadata}
+                            borderMetadata={profile?.borderMetadata}
                         />
                     </div>
                 </div>

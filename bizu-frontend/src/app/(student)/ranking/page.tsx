@@ -30,6 +30,8 @@ interface RankedUser {
     level?: number;
     activeAura?: string | null;
     activeBorder?: string | null;
+    auraMetadata?: any;
+    borderMetadata?: any;
 }
 
 interface RankedSimulado {
@@ -43,6 +45,8 @@ interface RankedSimulado {
     level?: number;
     activeAura?: string | null;
     activeBorder?: string | null;
+    auraMetadata?: any;
+    borderMetadata?: any;
 }
 
 export default function RankingStudentPage() {
@@ -83,7 +87,9 @@ export default function RankingStudentPage() {
                         delta: u.delta || 0,
                         level: u.level,
                         activeAura: u.activeAura,
-                        activeBorder: u.activeBorder
+                        activeBorder: u.activeBorder,
+                        auraMetadata: u.auraMetadata,
+                        borderMetadata: u.borderMetadata
                     })));
                 }
 
@@ -101,7 +107,9 @@ export default function RankingStudentPage() {
                         delta: u.delta || 0,
                         level: u.level,
                         activeAura: u.activeAura,
-                        activeBorder: u.activeBorder
+                        activeBorder: u.activeBorder,
+                        auraMetadata: u.auraMetadata,
+                        borderMetadata: u.borderMetadata
                     });
                 }
 
@@ -139,7 +147,11 @@ export default function RankingStudentPage() {
                     xp: u.weekly_xp || u.xp || 0,
                     streak: u.streak || 0,
                     accuracy: u.accuracy ? Math.round(Number(u.accuracy)) : 0,
-                    level: u.level
+                    level: u.level,
+                    activeAura: u.activeAura,
+                    activeBorder: u.activeBorder,
+                    auraMetadata: u.auraMetadata,
+                    borderMetadata: u.borderMetadata
                 })));
             }
         } catch (error) {
@@ -165,7 +177,11 @@ export default function RankingStudentPage() {
                     xp: u.xp,
                     streak: u.streak || 0,
                     accuracy: u.accuracy ? Math.round(Number(u.accuracy)) : 0,
-                    level: u.level
+                    level: u.level,
+                    activeAura: u.activeAura,
+                    activeBorder: u.activeBorder,
+                    auraMetadata: u.auraMetadata,
+                    borderMetadata: u.borderMetadata
                 })));
             }
         } catch (error) {
@@ -193,7 +209,9 @@ export default function RankingStudentPage() {
                     total_simulados: Number(u.total_simulados ?? 0),
                     level: u.level,
                     activeAura: u.activeAura,
-                    activeBorder: u.activeBorder
+                    activeBorder: u.activeBorder,
+                    auraMetadata: u.auraMetadata,
+                    borderMetadata: u.borderMetadata
                 })));
             }
         } catch (error) {
@@ -456,6 +474,8 @@ export default function RankingStudentPage() {
                                                         rankLevel={user.level}
                                                         activeAura={user.activeAura}
                                                         activeBorder={user.activeBorder}
+                                                        auraMetadata={user.auraMetadata}
+                                                        borderMetadata={user.borderMetadata}
                                                     />
                                                     <div className="relative z-10 flex-1 min-w-0">
                                                         <div className="text-[13px] font-bold text-slate-800 truncate">{user.name}</div>
@@ -512,6 +532,8 @@ export default function RankingStudentPage() {
                                                         rankLevel={user.level}
                                                         activeAura={user.activeAura}
                                                         activeBorder={user.activeBorder}
+                                                        auraMetadata={user.auraMetadata}
+                                                        borderMetadata={user.borderMetadata}
                                                     />
                                                 </div>
 
@@ -584,6 +606,8 @@ export default function RankingStudentPage() {
                                                 rankLevel={user.level}
                                                 activeAura={user.activeAura}
                                                 activeBorder={user.activeBorder}
+                                                auraMetadata={user.auraMetadata}
+                                                borderMetadata={user.borderMetadata}
                                             />
 
                                             {/* Info */}
@@ -635,6 +659,8 @@ export default function RankingStudentPage() {
                                             rankLevel={myRank.level}
                                             activeAura={myRank.activeAura}
                                             activeBorder={myRank.activeBorder}
+                                            auraMetadata={myRank.auraMetadata}
+                                            borderMetadata={myRank.borderMetadata}
                                         />
                                         <div className="flex-1 min-w-0">
                                             <div className="text-[13px] font-bold text-indigo-800">Você</div>

@@ -19,6 +19,8 @@ interface RankEntry {
     level?: number;
     activeAura?: string | null;
     activeBorder?: string | null;
+    auraMetadata?: any;
+    borderMetadata?: any;
     value: number; // wins / best_score / weekly_xp
 }
 
@@ -103,6 +105,8 @@ function parseEntry(raw: any, tab: Tab): RankEntry {
         level: Number(raw.level ?? 1),
         activeAura: raw.activeAura || null,
         activeBorder: raw.activeBorder || null,
+        auraMetadata: raw.auraMetadata || null,
+        borderMetadata: raw.borderMetadata || null,
         value: Number(raw[tab.valueKey] ?? 0),
     };
 }
@@ -275,6 +279,8 @@ function RankRow({ entry, index, tab }: { entry: RankEntry; index: number; tab: 
                 rankLevel={entry.level}
                 activeAura={entry.activeAura}
                 activeBorder={entry.activeBorder}
+                auraMetadata={entry.auraMetadata}
+                borderMetadata={entry.borderMetadata}
                 className={cn("ring-2 shrink-0", medal.ring)}
             />
 

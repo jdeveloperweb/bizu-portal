@@ -13,8 +13,9 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { compressImage, getAvatarUrl } from "@/lib/imageUtils";
-import { formatPhone } from "@/lib/utils";
+import { formatPhone, cn } from "@/lib/utils";
 import SubscriptionManagementModal from "@/components/student/SubscriptionManagementModal";
+import { Avatar } from "@/components/ui/Avatar";
 
 const formatPrice = (price?: number | string, currency = "BRL") => {
     if (price === undefined || price === null || price === "") return null;
@@ -171,25 +172,25 @@ export default function ProfilePage() {
     const phoneModified = phone !== (user?.phone || "");
 
     // ─── Avatar render ───────────────────────────────────────────────────────
-    const AvatarImage = ({ size = "md" }: { size?: "sm" | "md" }) => {
-        const dim = size === "sm" ? "w-16 h-16 rounded-[18px]" : "w-24 h-24 rounded-[28px]";
-        const textSize = size === "sm" ? "text-2xl" : "text-3xl";
+    const AvatarImage = ({ size = "md" }: { size?: "sm" | "md" | "xl" }) => {
         return (
-            <div className={`${dim} overflow-hidden ring-4 ring-white/25 ring-offset-2 ring-offset-indigo-600 shadow-xl shadow-indigo-900/30 relative`}>
-                {isLoading ? (
-                    <div className="w-full h-full bg-indigo-400/40 animate-pulse" />
-                ) : avatarPreview ? (
-                    <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
-                ) : user?.avatarUrl ? (
-                    <img src={getAvatarUrl(user.avatarUrl as string)} alt={user.name as string} className="w-full h-full object-cover"
-                        onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent((user?.name as string) || "")}&background=4f46e5&color=fff&bold=true`; }} />
-                ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center">
-                        <span className={`${textSize} font-black text-white`}>{user?.name?.slice(0, 1).toUpperCase() || "?"}</span>
-                    </div>
-                )}
+            <div className="relative">
+                <Avatar
+                    src={avatarPreview || (user?.avatarUrl ? getAvatarUrl(user.avatarUrl as string) : undefined)}
+                    name={user?.name || ""}
+                    size={size}
+                    rankLevel={user?.level}
+                    activeAura={user?.activeAura}
+                    activeBorder={user?.activeBorder}
+                    auraMetadata={user?.auraMetadata}
+                    borderMetadata={user?.borderMetadata}
+                    className={cn(
+                        "ring-4 ring-white/25 ring-offset-2 ring-offset-indigo-600 shadow-xl shadow-indigo-900/30",
+                        size === "sm" ? "rounded-[18px]" : "rounded-[28px]"
+                    )}
+                />
                 {isUploading && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-[28px] z-10">
                         <Loader2 className="w-6 h-6 text-white animate-spin" />
                     </div>
                 )}
@@ -552,24 +553,23 @@ export default function ProfilePage() {
                         <div className="flex items-center gap-4">
                             {/* Avatar */}
                             <div className="relative shrink-0">
-                                <div className="w-16 h-16 rounded-[18px] overflow-hidden ring-2 ring-indigo-100 shadow-md relative">
-                                    {isLoading ? (
-                                        <div className="w-full h-full bg-slate-100 animate-pulse" />
-                                    ) : user?.avatarUrl ? (
-                                        <img src={getAvatarUrl(user.avatarUrl as string)} alt={user.name as string} className="w-full h-full object-cover"
-                                            onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent((user?.name as string) || "")}&background=4f46e5&color=fff&bold=true`; }} />
-                                    ) : (
-                                        <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
-                                            <span className="text-xl font-black text-white">{user?.name?.slice(0, 1).toUpperCase() || "?"}</span>
-                                        </div>
-                                    )}
-                                    {isUploading && (
-                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                            <Loader2 className="w-5 h-5 text-white animate-spin" />
-                                        </div>
-                                    )}
-                                </div>
-                                <label className="absolute -bottom-1 -right-1 w-6 h-6 bg-indigo-600 rounded-lg flex items-center justify-center cursor-pointer shadow-sm hover:bg-indigo-700 transition-colors active:scale-90">
+                                <Avatar
+                                    src={avatarPreview || (user?.avatarUrl ? getAvatarUrl(user.avatarUrl as string) : undefined)}
+                                    name={user?.name || ""}
+                                    size="md"
+                                    rankLevel={user?.level}
+                                    activeAura={user?.activeAura}
+                                    activeBorder={user?.activeBorder}
+                                    auraMetadata={user?.auraMetadata}
+                                    borderMetadata={user?.borderMetadata}
+                                    className="ring-2 ring-indigo-100 shadow-md !rounded-[18px]"
+                                />
+                                {isUploading && (
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-[18px] z-10">
+                                        <Loader2 className="w-5 h-5 text-white animate-spin" />
+                                    </div>
+                                )}
+                                <label className="absolute -bottom-1 -right-1 w-6 h-6 bg-indigo-600 rounded-lg flex items-center justify-center cursor-pointer shadow-sm hover:bg-indigo-700 transition-colors active:scale-90 z-20">
                                     <Camera className="w-3 h-3 text-white" />
                                     <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={isUploading} />
                                 </label>
@@ -615,8 +615,8 @@ export default function ProfilePage() {
                         {TABS.map((tab) => (
                             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-3 px-3 py-3 rounded-xl w-full font-semibold text-sm transition-all active:scale-[0.98] ${activeTab === tab.id
-                                        ? "bg-indigo-50 text-indigo-700"
-                                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                    ? "bg-indigo-50 text-indigo-700"
+                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                                     }`}>
                                 <div className={`w-8 h-8 rounded-[10px] flex items-center justify-center shrink-0 transition-colors ${activeTab === tab.id ? "bg-indigo-100" : "bg-slate-100"}`}>
                                     <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "text-indigo-600" : "text-slate-500"}`} />

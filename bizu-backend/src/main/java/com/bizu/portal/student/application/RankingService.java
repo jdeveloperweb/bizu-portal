@@ -36,7 +36,13 @@ public class RankingService {
                 LEFT JOIN student.gamification_stats g ON u.id = g.user_id
                 """ + condition + """
             )
-            SELECT * FROM RankedUsers 
+            SELECT 
+                r.*,
+                sa.metadata as "auraMetadata",
+                sb.metadata as "borderMetadata"
+            FROM RankedUsers r
+            LEFT JOIN student.store_items sa ON r."activeAura" = sa.code
+            LEFT JOIN student.store_items sb ON r."activeBorder" = sb.code
             ORDER BY rank ASC
             LIMIT ?
             """;
@@ -65,9 +71,11 @@ public class RankingService {
             FROM identity.users u
             LEFT JOIN student.gamification_stats gs ON u.id = gs.user_id
             JOIN student.duels d ON u.id = d.winner_id
+            LEFT JOIN student.store_items sa ON gs.active_aura = sa.code
+            LEFT JOIN student.store_items sb ON gs.active_border = sb.code
             """ + condition + (courseId != null ? " AND " : " WHERE ") + """
             d.status = 'COMPLETED'
-            GROUP BY u.id, u.name, u.nickname, u.avatar_url, gs.total_xp, gs.active_aura, gs.active_border
+            GROUP BY u.id, u.name, u.nickname, u.avatar_url, gs.total_xp, gs.active_aura, gs.active_border, sa.metadata, sb.metadata
             ORDER BY wins DESC
             LIMIT ?
             """;
@@ -96,8 +104,10 @@ public class RankingService {
             FROM identity.users u
             LEFT JOIN student.gamification_stats gs ON u.id = gs.user_id
             JOIN student.simulado_results sr ON u.id = sr.user_id
+            LEFT JOIN student.store_items sa ON gs.active_aura = sa.code
+            LEFT JOIN student.store_items sb ON gs.active_border = sb.code
             """ + condition + """
-            GROUP BY u.id, u.name, u.nickname, u.avatar_url, gs.total_xp, gs.active_aura, gs.active_border
+            GROUP BY u.id, u.name, u.nickname, u.avatar_url, gs.total_xp, gs.active_aura, gs.active_border, sa.metadata, sb.metadata
             ORDER BY best_score DESC
             LIMIT ?
             """;
@@ -126,9 +136,11 @@ public class RankingService {
             FROM identity.users u
             LEFT JOIN student.gamification_stats gs ON u.id = gs.user_id
             JOIN student.activity_attempts aa ON u.id = aa.user_id
+            LEFT JOIN student.store_items sa ON gs.active_aura = sa.code
+            LEFT JOIN student.store_items sb ON gs.active_border = sb.code
             """ + condition + (courseId != null ? " AND " : " WHERE ") + """
             aa.status = 'COMPLETED' AND aa.finished_at >= CURRENT_DATE - INTERVAL '7 days'
-            GROUP BY u.id, u.name, u.nickname, u.avatar_url, gs.total_xp, gs.active_aura, gs.active_border
+            GROUP BY u.id, u.name, u.nickname, u.avatar_url, gs.total_xp, gs.active_aura, gs.active_border, sa.metadata, sb.metadata
             ORDER BY weekly_xp DESC
             LIMIT ?
             """;
@@ -169,8 +181,12 @@ public class RankingService {
                 r.current_streak as "streak",
                 r.level as "level",
                 r.active_aura as "activeAura",
-                r.active_border as "activeBorder"
+                r.active_border as "activeBorder",
+                sa.metadata as "auraMetadata",
+                sb.metadata as "borderMetadata"
             FROM RankedUsers r
+            LEFT JOIN student.store_items sa ON r.active_aura = sa.code
+            LEFT JOIN student.store_items sb ON r.active_border = sb.code
             WHERE r.user_id = ?
             """;
         

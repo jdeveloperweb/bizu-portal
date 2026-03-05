@@ -19,6 +19,8 @@ import { Button } from "../../../../components/ui/button";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
+import { Avatar } from "@/components/ui/Avatar";
+import { AvatarEffects } from "@/components/ui/AvatarEffects";
 
 interface StoreItem {
     id: string;
@@ -27,6 +29,7 @@ interface StoreItem {
     description: string;
     price: number;
     category: string;
+    metadata: any;
     active: boolean;
 }
 
@@ -42,6 +45,7 @@ export default function AdminLojaPage() {
         description: "",
         price: 0,
         category: "status",
+        metadata: {} as any,
         active: true
     });
 
@@ -74,6 +78,7 @@ export default function AdminLojaPage() {
                 description: item.description,
                 price: item.price,
                 category: item.category,
+                metadata: item.metadata || {},
                 active: item.active
             });
         } else {
@@ -84,6 +89,7 @@ export default function AdminLojaPage() {
                 description: "",
                 price: 0,
                 category: "status",
+                metadata: {},
                 active: true
             });
         }
@@ -114,6 +120,19 @@ export default function AdminLojaPage() {
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const updateMetadata = (key: string, value: any) => {
+        setFormData(prev => ({
+            ...prev,
+            metadata: {
+                ...prev.metadata,
+                visual: {
+                    ...prev.metadata?.visual,
+                    [key]: value
+                }
+            }
+        }));
     };
 
     const handleDelete = async (id: string) => {
@@ -270,100 +289,210 @@ export default function AdminLojaPage() {
 
             {/* Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="bg-card w-full max-w-lg rounded-2xl p-6 shadow-xl relative border border-border">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+                    <div className="bg-card w-full max-w-4xl rounded-3xl p-8 shadow-2xl relative border border-border mt-20 mb-10">
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute top-4 right-4 rounded-xl"
+                            className="absolute top-6 right-6 rounded-xl"
                             onClick={() => setIsModalOpen(false)}
                         >
                             <X className="w-5 h-5" />
                         </Button>
-                        <div className="mb-6">
-                            <h2 className="text-xl font-bold flex items-center gap-2">
-                                <Tag className="w-5 h-5 text-primary" />
-                                {editingItem ? "Editar Item" : "Novo Item"}
+                        <div className="mb-8 border-b border-border pb-6">
+                            <h2 className="text-2xl font-black flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                    <Tag className="w-6 h-6" />
+                                </div>
+                                {editingItem ? "Configurar Item" : "Novo Item do Laboratório"}
                             </h2>
+                            <p className="text-muted-foreground mt-2 font-medium">Defina o comportamento e o visual deste item na plataforma.</p>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block mb-2">Código (ID Interno)</label>
-                                <input
-                                    required
-                                    disabled={!!editingItem}
-                                    type="text"
-                                    value={formData.code}
-                                    onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                                    className="w-full h-11 px-3 bg-background border border-border rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
-                                    placeholder="Ex: AURA_FIRE"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block mb-2">Nome do Item</label>
-                                <input
-                                    required
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full h-11 px-3 bg-background border border-border rounded-xl font-medium text-sm outline-none focus:ring-2 focus:ring-primary/20"
-                                    placeholder="Ex: Aura de Fogo"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block mb-2">Descrição</label>
-                                <textarea
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    className="w-full min-h-[80px] p-3 bg-background border border-border rounded-xl font-medium text-sm outline-none focus:ring-2 focus:ring-primary/20"
-                                    placeholder="Descrição que aparece na loja..."
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block mb-2">Preço (Axons)</label>
-                                    <input
-                                        required
-                                        type="number"
-                                        value={formData.price}
-                                        onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) })}
-                                        className="w-full h-11 px-3 bg-background border border-border rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-primary/20"
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                            {/* Form Column */}
+                            <form onSubmit={handleSubmit} className="space-y-6">
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary" /> Dados Básicos
+                                    </h3>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1.5 ml-1">ID Interno (Código)</label>
+                                            <input
+                                                required
+                                                disabled={!!editingItem}
+                                                type="text"
+                                                value={formData.code}
+                                                onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                                                className="w-full h-12 px-4 bg-muted/50 border border-border rounded-2xl font-bold text-sm outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 transition-all"
+                                                placeholder="AURA_FLAME"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1.5 ml-1">Preço (Axons)</label>
+                                            <div className="relative">
+                                                <Coins size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-500" />
+                                                <input
+                                                    required
+                                                    type="number"
+                                                    value={formData.price}
+                                                    onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) })}
+                                                    className="w-full h-12 pl-10 pr-4 bg-muted/50 border border-border rounded-2xl font-black text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1.5 ml-1">Nome de Exibição</label>
+                                        <input
+                                            required
+                                            type="text"
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            className="w-full h-12 px-4 bg-muted/50 border border-border rounded-2xl font-bold text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                                            placeholder="Ex: Aura Lendária de Fogo"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1.5 ml-1">Categoria de Uso</label>
+                                        <select
+                                            value={formData.category}
+                                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                            className="w-full h-12 px-4 bg-muted/50 border border-border rounded-2xl font-bold text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
+                                        >
+                                            <option value="consumable">⚡ Consumível (Efeito Temporário)</option>
+                                            <option value="permanent">🎒 Permanente (Inventário)</option>
+                                            <option value="status">🏷️ Status / Título (Perfil)</option>
+                                            <option value="aura">✨ Aura Visual (Avatar)</option>
+                                            <option value="border">🖼️ Moldura Decorativa (Avatar)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Visual Designer Section */}
+                                <div className="space-y-4 pt-4 border-t border-border">
+                                    <h3 className="text-xs font-black uppercase tracking-widest text-indigo-600 flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-600" /> Designer Visual
+                                    </h3>
+
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1.5 ml-1">Cor da Aura/Efeito</label>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="color"
+                                                        value={formData.metadata?.visual?.auraColor || "#6366f1"}
+                                                        onChange={(e) => updateMetadata("auraColor", e.target.value)}
+                                                        className="h-12 w-12 rounded-xl border border-border bg-white cursor-pointer"
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        value={formData.metadata?.visual?.auraColor || "#6366f1"}
+                                                        onChange={(e) => updateMetadata("auraColor", e.target.value)}
+                                                        className="flex-1 h-12 px-4 bg-muted/50 border border-border rounded-2xl font-mono text-xs uppercase"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1.5 ml-1">Estilo da Aura</label>
+                                                <select
+                                                    value={formData.metadata?.visual?.auraStyle || "steady"}
+                                                    onChange={(e) => updateMetadata("auraStyle", e.target.value)}
+                                                    className="w-full h-12 px-4 bg-muted/50 border border-border rounded-2xl font-bold text-sm"
+                                                >
+                                                    <option value="steady">Fixo (Brilho Constante)</option>
+                                                    <option value="pulse">Pulsante (Coração)</option>
+                                                    <option value="glitch">Glitch (Cibernético)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1.5 ml-1">Efeito de Partículas</label>
+                                                <select
+                                                    value={formData.metadata?.visual?.particles || ""}
+                                                    onChange={(e) => updateMetadata("particles", e.target.value || null)}
+                                                    className="w-full h-12 px-4 bg-muted/50 border border-border rounded-2xl font-bold text-sm"
+                                                >
+                                                    <option value="">Sem Partículas</option>
+                                                    <option value="snow">❄️ Neve / Névoa</option>
+                                                    <option value="sparks">✨ Faíscas Brilhantes</option>
+                                                    <option value="coins">💰 Moedas Caindo</option>
+                                                    <option value="hearts">❤️ Corações Flutuando</option>
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-1.5 ml-1">Tipo de Moldura</label>
+                                                <select
+                                                    value={formData.metadata?.visual?.borderStyle || "solid"}
+                                                    onChange={(e) => updateMetadata("borderStyle", e.target.value)}
+                                                    className="w-full h-12 px-4 bg-muted/50 border border-border rounded-2xl font-bold text-sm"
+                                                >
+                                                    <option value="solid">Borda Normal</option>
+                                                    <option value="rainbow">🌈 Arco-íris Animado</option>
+                                                    <option value="pulse">💫 Borda Pulsante</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-6 py-2">
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                id="active"
+                                                checked={formData.active}
+                                                onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+                                                className="w-5 h-5 rounded-lg text-primary border-border focus:ring-primary/20"
+                                            />
+                                            <label htmlFor="active" className="text-sm font-bold text-slate-700">Item Ativo</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4">
+                                    <Button disabled={submitting} type="submit" className="w-full h-14 rounded-2xl font-black text-lg gap-2 shadow-xl shadow-primary/20">
+                                        {submitting ? <Loader2 size={24} className="animate-spin" /> : <Save size={24} />}
+                                        {submitting ? 'PROCESSANDO...' : 'SALVAR ITEM ÉPICO'}
+                                    </Button>
+                                </div>
+                            </form>
+
+                            {/* Preview Column */}
+                            <div className="bg-muted/30 rounded-3xl p-8 flex flex-col items-center justify-center border border-dashed border-border sticky top-0 h-[600px]">
+                                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground mb-12">Preview em Tempo Real</h3>
+
+                                <div className="relative scale-150">
+                                    <Avatar
+                                        size="xl"
+                                        name="Preview Bizu"
+                                        auraMetadata={formData.metadata}
+                                        borderMetadata={formData.metadata}
                                     />
                                 </div>
-                                <div>
-                                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block mb-2">Categoria</label>
-                                    <select
-                                        value={formData.category}
-                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                        className="w-full h-11 px-3 bg-background border border-border rounded-xl font-medium text-sm outline-none focus:ring-2 focus:ring-primary/20"
-                                    >
-                                        <option value="consumable">Consumível</option>
-                                        <option value="permanent">Permanente</option>
-                                        <option value="status">Status/Título</option>
-                                        <option value="aura">Aura</option>
-                                        <option value="border">Moldura</option>
-                                    </select>
+
+                                <div className="mt-20 w-full max-w-xs bg-white rounded-3xl p-6 shadow-xl border border-border">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-muted animate-pulse" />
+                                        <div className="space-y-2">
+                                            <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+                                            <div className="h-3 w-20 bg-muted/50 rounded animate-pulse" />
+                                        </div>
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground font-medium leading-relaxed italic">
+                                        "Este é um preview de como o item será exibido no perfil e ranking dos estudantes."
+                                    </p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2 py-2">
-                                <input
-                                    type="checkbox"
-                                    id="active"
-                                    checked={formData.active}
-                                    onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                                    className="w-4 h-4 rounded text-primary border-border focus:ring-primary/20"
-                                />
-                                <label htmlFor="active" className="text-sm font-bold text-slate-700">Item Ativo na Loja</label>
-                            </div>
-
-                            <div className="pt-2">
-                                <Button disabled={submitting} type="submit" className="w-full h-14 rounded-2xl font-black gap-2">
-                                    {submitting ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                                    {submitting ? 'Salvando...' : 'Salvar Alterações'}
-                                </Button>
-                            </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
             )}

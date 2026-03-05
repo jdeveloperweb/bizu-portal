@@ -5,7 +5,7 @@ import {
     Zap, Brain, Shield, Clock, Target,
     ChevronRight, ShoppingCart, Star, Crown,
     Sparkles, ArrowUpRight, TrendingUp, Info, CreditCard, AlertCircle, X,
-    Palette, Ghost, Wand2, Fingerprint
+    Palette, Ghost, Wand2, Fingerprint, Tag
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
@@ -21,9 +21,11 @@ interface StoreItem {
     name: string;
     description: string;
     price: number;
-    icon: any;
-    color: string;
-    category: "consumable" | "permanent" | "status";
+    category: string;
+    metadata?: any;
+    // UI props assigned dynamically
+    icon?: any;
+    color?: string;
 }
 
 function AxonStoreContent() {
@@ -31,6 +33,7 @@ function AxonStoreContent() {
     const { user } = useAuth();
     const [gamification, setGamification] = useState<any>(null);
     const [inventory, setInventory] = useState<any[]>([]);
+    const [items, setItems] = useState<StoreItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isBuying, setIsBuying] = useState<string | null>(null);
     const [isRechargeModalOpen, setIsRechargeModalOpen] = useState(false);
@@ -46,110 +49,41 @@ function AxonStoreContent() {
     const PAYMENT_STORAGE_KEY = "axonsPaymentPending";
     const MAX_POLLS = 200; // ~10 minutos
 
-    const storeItems: StoreItem[] = [
-        {
-            id: "1",
-            code: "STREAK_FREEZE",
-            name: "Escudo de Ofensiva",
-            description: "Protege sua sequência de dias caso você esqueça de estudar por um dia.",
-            price: 150,
-            icon: Shield,
-            color: "from-blue-400 to-indigo-600",
-            category: "consumable"
-        },
-        {
-            id: "2",
-            code: "DOUBLE_XP_2H",
-            name: "Dobra de XP (2h)",
-            description: "Todo XP ganho em questões e simulados é dobrado por 2 horas.",
-            price: 500,
-            icon: Zap,
-            color: "from-amber-400 to-orange-600",
-            category: "consumable"
-        },
-        {
-            id: "3",
-            code: "RADAR_MATERIA_24H",
-            name: "Radar de Matéria",
-            description: "Aumenta o XP ganho em uma matéria específica durante 24 horas.",
-            price: 300,
-            icon: Target,
-            color: "from-emerald-400 to-teal-600",
-            category: "consumable"
-        },
-        {
-            id: "4",
-            code: "STATUS_ELITE",
-            name: "Título: Elite",
-            description: "Desbloqueia o título 'Elite' para aparecer no seu perfil e ranking.",
-            price: 2000,
-            icon: Crown,
-            color: "from-purple-500 to-fuchsia-600",
-            category: "status"
-        },
-        {
-            id: "5",
-            code: "STATUS_MASTER",
-            name: "Título: Mestre",
-            description: "Um título digno para quem já domina os fundamentos.",
-            price: 5000,
-            icon: Star,
-            color: "from-orange-500 to-red-600",
-            category: "status"
-        },
-        {
-            id: "6",
-            code: "STATUS_LEGEND",
-            name: "Título: Lenda",
-            description: "O título máximo para os estudantes mais dedicados do portal.",
-            price: 15000,
-            icon: Sparkles,
-            color: "from-yellow-400 via-amber-500 to-orange-600",
-            category: "status"
-        },
-        {
-            id: "7",
-            code: "AURA_GOLD",
-            name: "Aura Ancestral",
-            description: "Envolve seu avatar com uma aura dourada de sabedoria.",
-            price: 8000,
-            icon: Wand2,
-            color: "from-yellow-300 to-amber-500",
-            category: "status"
-        },
-        {
-            id: "8",
-            code: "AURA_BLUE",
-            name: "Aura Dimensional",
-            description: "Uma emanação azul futurista que destaca sua presença.",
-            price: 4000,
-            icon: Ghost,
-            color: "from-cyan-400 to-blue-600",
-            category: "status"
-        },
-        {
-            id: "9",
-            code: "BORDER_RAINBOW",
-            name: "Moldura Prismática",
-            description: "Uma moldura animada com as cores do arco-íris para seu perfil.",
-            price: 12000,
-            icon: Palette,
-            color: "from-red-400 via-green-400 to-blue-400",
-            category: "status"
-        }
-    ];
+    const getIconForCategory = (category: string, code: string) => {
+        if (code.startsWith("AURA_")) return Sparkles;
+        if (code.startsWith("BORDER_")) return Palette;
+        if (code.startsWith("STATUS_")) return Crown;
+        if (category === "consumable") return Zap;
+        return Tag;
+    };
+
+    const getColorForCategory = (category: string, code: string) => {
+        if (code.startsWith("AURA_")) return "from-indigo-400 to-violet-600";
+        if (code.startsWith("BORDER_")) return "from-emerald-400 to-teal-600";
+        if (code.startsWith("STATUS_")) return "from-amber-400 to-orange-600";
+        return "from-slate-400 to-slate-600";
+    };
 
     const fetchStoreData = async () => {
         setIsLoading(true);
         try {
-            const [gamRes, invRes, packsRes] = await Promise.all([
+            const [gamRes, invRes, packsRes, itemsRes] = await Promise.all([
                 apiFetch("/student/gamification/me"),
                 apiFetch("/student/store/inventory"),
-                apiFetch("/student/store/packs")
+                apiFetch("/student/store/packs"),
+                apiFetch("/student/store/items")
             ]);
 
             if (gamRes.ok) setGamification(await gamRes.json());
             if (invRes.ok) setInventory(await invRes.json());
+            if (itemsRes.ok) {
+                const fetchedItems = await itemsRes.json();
+                setItems(fetchedItems.map((item: any) => ({
+                    ...item,
+                    icon: getIconForCategory(item.category, item.code),
+                    color: getColorForCategory(item.category, item.code)
+                })));
+            }
             if (packsRes.ok) {
                 const packs = await packsRes.json();
                 const mappedPacks = packs.map((p: any) => {
@@ -459,11 +393,11 @@ function AxonStoreContent() {
                             Acelere sua subida de patente. Durante o evento de final de semana, o bônus de XP do item é acumulativo com as missões diárias!
                         </p>
                         <button
-                            onClick={() => handleBuy(storeItems[1])}
-                            disabled={isBuying === "2"}
+                            onClick={() => handleBuy(items.find(i => i.code === "DOUBLE_XP_2H") || items[0])}
+                            disabled={isBuying === "DOUBLE_XP_2H"}
                             className="bg-white text-slate-950 px-10 py-5 rounded-2xl font-black flex items-center gap-3 hover:scale-105 transition-all shadow-xl hover:bg-indigo-50 disabled:opacity-50"
                         >
-                            {isBuying === "2" ? "Negociando..." : <>Adquirir por 500 Axons <ArrowUpRight size={18} /></>}
+                            {isBuying === "DOUBLE_XP_2H" ? "Negociando..." : <>Adquirir por 500 Axons <ArrowUpRight size={18} /></>}
                         </button>
                     </div>
                     <div className="hidden md:flex justify-center">
@@ -481,7 +415,7 @@ function AxonStoreContent() {
 
             {/* Store Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-                {storeItems.map((item) => {
+                {items.map((item) => {
                     const invQuantity = inventory.find(i => i.itemCode === item.code)?.quantity || 0;
 
                     // Lógica de item ativo

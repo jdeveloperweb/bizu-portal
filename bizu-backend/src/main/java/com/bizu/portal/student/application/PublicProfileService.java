@@ -39,6 +39,8 @@ public class PublicProfileService {
                 r.current_streak as "streak",
                 r.active_aura as "activeAura",
                 r.active_border as "activeBorder",
+                sa.metadata as "auraMetadata",
+                sb.metadata as "borderMetadata",
                 r.rank as "rank",
                 FLOOR(POWER(COALESCE(r.total_xp, 0) / 1000.0, 2.0/3.0)) + 1 as "level",
                 (SELECT status FROM identity.friendships f 
@@ -50,6 +52,8 @@ public class PublicProfileService {
                     OR (f.requester_id = r.user_id AND f.addressee_id = ?)
                  LIMIT 1) as "friendshipId"
             FROM RankedUsers r
+            LEFT JOIN student.store_items sa ON r.active_aura = sa.code
+            LEFT JOIN student.store_items sb ON r.active_border = sb.code
             WHERE r.nickname = ?
             """;
         
