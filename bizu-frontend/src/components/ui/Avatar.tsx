@@ -154,51 +154,53 @@ export function Avatar({
 
     return (
         <div className={cn("relative inline-block shrink-0", auraEffectClass)}>
-            <AvatarEffects metadata={combinedMetadata} size={size} />
+            {/* 1. LAYER DE FUNDO: Efeitos de Borda (atrás de tudo) */}
+            <div className="absolute inset-0 z-0">
+                <AvatarEffects metadata={combinedMetadata} size={size} />
 
-            <div className={cn(
-                "relative z-10 overflow-hidden shrink-0",
-                sizeClasses[size],
-                (hasRainbow || hasAura) && "p-[3px]", // Slightly larger padding for better border visibility
-                className,
-            )}>
-                {/* 1. Animated Rainbow Background */}
+                {/* Arco-íris animado ligeiramente maior para criar a borda externa */}
                 {hasRainbow && (
-                    <div className="absolute inset-[-100%] bg-[conic-gradient(from_0deg,red,orange,yellow,green,blue,indigo,violet,red)] animate-[spin_4s_linear_infinite] z-0" />
+                    <div className="absolute inset-[-3.5px] rounded-[inherit] overflow-hidden">
+                        <div className="absolute inset-[-200%] bg-[conic-gradient(from_0deg,red,orange,yellow,green,blue,indigo,violet,red)] animate-[spin_4s_linear_infinite]" />
+                    </div>
                 )}
 
-                {/* 2. Aura Background (Solid/Pulse at the edge) */}
+                {/* Aura sólida na borda */}
                 {hasAura && !hasRainbow && (
                     <div className={cn(
-                        "absolute inset-0 animate-pulse z-0",
+                        "absolute inset-[-3.5px] rounded-[inherit] animate-pulse",
                         isGold ? "bg-yellow-400" : "bg-cyan-400"
                     )} />
                 )}
+            </div>
 
-                {/* 3. Inner Container (Hides the effects in the middle so they only show on the border) */}
-                <div className="relative z-10 w-full h-full overflow-hidden rounded-[inherit] bg-white dark:bg-slate-900 flex items-center justify-center">
-                    <div className="w-full h-full relative z-[2] flex items-center justify-center rounded-[inherit] overflow-hidden">
-                        {showImage ? (
-                            <img
-                                src={finalSrc}
-                                className="w-full h-full object-cover"
-                                alt={name || "Avatar"}
-                                onError={() => setHasError(true)}
-                            />
-                        ) : (
-                            <div
-                                className={cn(
-                                    "w-full h-full flex items-center justify-center font-extrabold text-white select-none",
-                                    fallbackClassName,
-                                )}
-                                style={{
-                                    background: `linear-gradient(135deg, ${fromColor}, ${toColor})`,
-                                }}
-                            >
-                                {initials}
-                            </div>
-                        )}
-                    </div>
+            {/* 2. LAYER DE FRENTE: Foto/Iniciais (z-10) */}
+            <div className={cn(
+                "relative z-10 shrink-0 bg-white dark:bg-slate-900 overflow-hidden",
+                sizeClasses[size],
+                className,
+            )}>
+                <div className="w-full h-full relative flex items-center justify-center overflow-hidden rounded-[inherit]">
+                    {showImage ? (
+                        <img
+                            src={finalSrc}
+                            className="w-full h-full object-cover relative z-20"
+                            alt={name || "Avatar"}
+                            onError={() => setHasError(true)}
+                        />
+                    ) : (
+                        <div
+                            className={cn(
+                                "w-full h-full flex items-center justify-center font-extrabold text-white select-none relative z-20",
+                                fallbackClassName,
+                            )}
+                            style={{
+                                background: `linear-gradient(135deg, ${fromColor}, ${toColor})`,
+                            }}
+                        >
+                            {initials}
+                        </div>
+                    )}
                 </div>
             </div>
 
