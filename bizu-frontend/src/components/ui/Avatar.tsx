@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getAvatarUrl } from "@/lib/imageUtils";
 import { cn } from "@/lib/utils";
+import { RankInsignia } from "../gamification/RankInsignia";
 
 interface AvatarProps {
     src?: string;
@@ -10,9 +11,10 @@ interface AvatarProps {
     className?: string;
     size?: "sm" | "md" | "lg" | "xl";
     fallbackClassName?: string;
+    rankLevel?: number;
 }
 
-export function Avatar({ src, name, className, size = "md", fallbackClassName }: AvatarProps) {
+export function Avatar({ src, name, className, size = "md", fallbackClassName, rankLevel }: AvatarProps) {
     const [hasError, setHasError] = useState(false);
 
     const getInitials = (n: string) => {
@@ -31,6 +33,13 @@ export function Avatar({ src, name, className, size = "md", fallbackClassName }:
         xl: "w-24 h-24 rounded-3xl text-2xl",
     };
 
+    const insigniaSize = {
+        sm: "sm",
+        md: "sm",
+        lg: "md",
+        xl: "lg",
+    } as const;
+
     const initials = name ? getInitials(name) : "?";
 
     const Fallback = () => (
@@ -46,18 +55,32 @@ export function Avatar({ src, name, className, size = "md", fallbackClassName }:
         </div>
     );
 
-    if (!src || hasError) {
-        return <Fallback />;
-    }
-
     return (
-        <div className={cn("overflow-hidden shrink-0 shadow-sm border border-transparent", sizeClasses[size], className)}>
-            <img
-                src={getAvatarUrl(src)}
-                className="w-full h-full object-cover"
-                alt={name || "Avatar"}
-                onError={() => setHasError(true)}
-            />
+        <div className="relative inline-block shrink-0">
+            {(!src || hasError) ? (
+                <Fallback />
+            ) : (
+                <div className={cn("overflow-hidden shrink-0 shadow-sm border border-transparent", sizeClasses[size], className)}>
+                    <img
+                        src={getAvatarUrl(src)}
+                        className="w-full h-full object-cover"
+                        alt={name || "Avatar"}
+                        onError={() => setHasError(true)}
+                    />
+                </div>
+            )}
+
+            {rankLevel !== undefined && (
+                <div className={cn(
+                    "absolute z-10",
+                    size === "sm" ? "-bottom-1 -right-1" :
+                        size === "md" ? "-bottom-1.5 -right-1.5" :
+                            size === "lg" ? "-bottom-2 -right-2" :
+                                "-bottom-3 -right-3"
+                )}>
+                    <RankInsignia level={rankLevel} size={insigniaSize[size]} className="bg-white rounded-full p-0.5 border border-slate-100 shadow-md ring-2 ring-white" />
+                </div>
+            )}
         </div>
     );
 }

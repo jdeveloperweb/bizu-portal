@@ -65,6 +65,7 @@ export default function StudentSidebar() {
     const [pendingFlashcardsCount, setPendingFlashcardsCount] = useState(0);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [userLevel, setUserLevel] = useState<number>(1);
 
     const fetchSidebarData = useCallback(async () => {
         if (!authenticated || isFree) return;
@@ -99,6 +100,7 @@ export default function StudentSidebar() {
                     radar: data.radarMateriaUntil ? new Date(data.radarMateriaUntil) > now : false,
                     elite: data.activeTitle === "Elite"
                 });
+                setUserLevel(data.level || 1);
             }
             if (onlineRes && onlineRes.ok) {
                 const data = await onlineRes.json();
@@ -241,6 +243,7 @@ export default function StudentSidebar() {
                     <Avatar
                         src={user?.avatarUrl}
                         name={user?.name || 'Usuário'}
+                        rankLevel={userLevel}
                     />
                     {(buffs.xpBoost || buffs.radar || buffs.elite) && (
                         <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-indigo-500 rounded-full border-2 border-card" />
@@ -316,7 +319,7 @@ export default function StudentSidebar() {
 
                         {/* User profile */}
                         <div className="px-4 pt-2 pb-3 border-b border-border flex items-center gap-3 shrink-0">
-                            <Avatar src={user?.avatarUrl} name={user?.name || 'Usuário'} />
+                            <Avatar src={user?.avatarUrl} name={user?.name || 'Usuário'} rankLevel={userLevel} />
                             <div className="flex-1 min-w-0">
                                 <p className="text-[13px] font-bold text-foreground truncate leading-none mb-1">
                                     {user?.name || 'Usuário'}
@@ -484,6 +487,7 @@ export default function StudentSidebar() {
                         <Avatar
                             src={user?.avatarUrl}
                             name={user?.name || 'Usuário'}
+                            rankLevel={userLevel}
                         />
                         {!isCollapsed && (
                             <div className="flex-1 min-w-0">

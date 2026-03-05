@@ -124,6 +124,7 @@ export function UserProfileModal({ nickname, isOpen, onClose }: UserProfileModal
                             name={profile?.name}
                             size="xl"
                             className="!w-24 !h-24 !rounded-[1.5rem]"
+                            rankLevel={profile?.level}
                         />
                     </div>
                 </div>

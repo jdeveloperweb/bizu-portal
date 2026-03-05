@@ -55,13 +55,15 @@ public class RankingService {
                 u.name as name,
                 u.nickname as nickname,
                 u.avatar_url as avatar,
+                gs.level as level,
                 COUNT(d.id) as wins,
                 RANK() OVER (ORDER BY COUNT(d.id) DESC) as rank
             FROM identity.users u
+            LEFT JOIN student.gamification_stats gs ON u.id = gs.user_id
             JOIN student.duels d ON u.id = d.winner_id
             """ + condition + (courseId != null ? " AND " : " WHERE ") + """
             d.status = 'COMPLETED'
-            GROUP BY u.id, u.name, u.nickname, u.avatar_url
+            GROUP BY u.id, u.name, u.nickname, u.avatar_url, gs.level
             ORDER BY wins DESC
             LIMIT ?
             """;
@@ -82,12 +84,14 @@ public class RankingService {
                 u.name as name,
                 u.nickname as nickname,
                 u.avatar_url as avatar,
+                gs.level as level,
                 MAX(sr.score) as best_score,
                 RANK() OVER (ORDER BY MAX(sr.score) DESC) as rank
             FROM identity.users u
+            LEFT JOIN student.gamification_stats gs ON u.id = gs.user_id
             JOIN student.simulado_results sr ON u.id = sr.user_id
             """ + condition + """
-            GROUP BY u.id, u.name, u.nickname, u.avatar_url
+            GROUP BY u.id, u.name, u.nickname, u.avatar_url, gs.level
             ORDER BY best_score DESC
             LIMIT ?
             """;
@@ -108,13 +112,15 @@ public class RankingService {
                 u.name as name,
                 u.nickname as nickname,
                 u.avatar_url as avatar,
+                gs.level as level,
                 SUM(aa.xp_earned) as weekly_xp,
                 RANK() OVER (ORDER BY SUM(aa.xp_earned) DESC) as rank
             FROM identity.users u
+            LEFT JOIN student.gamification_stats gs ON u.id = gs.user_id
             JOIN student.activity_attempts aa ON u.id = aa.user_id
             """ + condition + (courseId != null ? " AND " : " WHERE ") + """
             aa.status = 'COMPLETED' AND aa.finished_at >= CURRENT_DATE - INTERVAL '7 days'
-            GROUP BY u.id, u.name, u.nickname, u.avatar_url
+            GROUP BY u.id, u.name, u.nickname, u.avatar_url, gs.level
             ORDER BY weekly_xp DESC
             LIMIT ?
             """;
@@ -138,6 +144,7 @@ public class RankingService {
                     u.avatar_url,
                     COALESCE(g.total_xp, 0) as total_xp,
                     COALESCE(g.current_streak, 0) as current_streak,
+                    COALESCE(g.level, 1) as level,
                     RANK() OVER (ORDER BY COALESCE(g.total_xp, 0) DESC) as rank
                 FROM identity.users u
                 LEFT JOIN student.gamification_stats g ON u.id = g.user_id
@@ -149,7 +156,8 @@ public class RankingService {
                 r.name as "name",
                 r.avatar_url as "avatar",
                 r.total_xp as "xp",
-                r.current_streak as "streak"
+                r.current_streak as "streak",
+                r.level as "level"
             FROM RankedUsers r
             WHERE r.user_id = ?
             """;

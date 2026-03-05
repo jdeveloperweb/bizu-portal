@@ -16,6 +16,7 @@ interface RankEntry {
     nickname?: string;
     avatar?: string;
     rank: number;
+    level?: number;
     value: number; // wins / best_score / weekly_xp
 }
 
@@ -79,7 +80,7 @@ function buildEndpoint(tab: Tab): string {
 
 const MEDAL_CONFIG = [
     { Icon: Crown, bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-500", ring: "ring-amber-200" },
-    { Icon: Medal, bg: "bg-slate-50",  border: "border-slate-200",  text: "text-slate-400",  ring: "ring-slate-200"  },
+    { Icon: Medal, bg: "bg-slate-50", border: "border-slate-200", text: "text-slate-400", ring: "ring-slate-200" },
     { Icon: Award, bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-400", ring: "ring-orange-200" },
 ];
 
@@ -97,6 +98,7 @@ function parseEntry(raw: any, tab: Tab): RankEntry {
         nickname: raw.nickname,
         avatar: avatarUrl || initials,
         rank: Number(raw.rank ?? 0),
+        level: Number(raw.level ?? 1),
         value: Number(raw[tab.valueKey] ?? 0),
     };
 }
@@ -243,8 +245,8 @@ function RankRow({ entry, index, tab }: { entry: RankEntry; index: number; tab: 
         tab.key === "semanal"
             ? `${entry.value.toLocaleString("pt-BR")} XP`
             : tab.key === "simulados"
-            ? `${entry.value} pts`
-            : `${entry.value} vic.`;
+                ? `${entry.value} pts`
+                : `${entry.value} vic.`;
 
     return (
         <motion.div
@@ -267,6 +269,7 @@ function RankRow({ entry, index, tab }: { entry: RankEntry; index: number; tab: 
                     src={entry.avatar && entry.avatar.length > 3 ? entry.avatar : undefined}
                     name={entry.name}
                     size="sm"
+                    rankLevel={entry.level}
                 />
             </div>
 

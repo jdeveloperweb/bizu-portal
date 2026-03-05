@@ -3,10 +3,12 @@
 import React from "react";
 import { Zap, Trophy, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RankInsignia } from "./RankInsignia";
 
 interface LevelRequirement {
     level: number;
     requiredXp: number;
+    rank: string;
 }
 
 interface LevelTableProps {
@@ -33,6 +35,7 @@ export default function LevelTable({ levels, currentLevel, currentXp }: LevelTab
                     <thead className="sticky top-0 bg-slate-50/80 backdrop-blur-sm z-10 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border">
                         <tr>
                             <th className="px-6 py-3">Nível</th>
+                            <th className="px-6 py-3">Promoção</th>
                             <th className="px-6 py-3">XP Necessário</th>
                             <th className="px-6 py-3 text-right">Status</th>
                         </tr>
@@ -61,6 +64,17 @@ export default function LevelTable({ levels, currentLevel, currentXp }: LevelTab
                                             )}>
                                                 {lvl.level}
                                             </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-2">
+                                            <RankInsignia level={lvl.level} size="sm" />
+                                            <span className={cn(
+                                                "text-xs font-bold",
+                                                isReached ? "text-slate-900" : "text-slate-500"
+                                            )}>
+                                                {lvl.rank}
+                                            </span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">

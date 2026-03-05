@@ -33,6 +33,7 @@ export interface User {
     name: string;
     nickname?: string;
     avatarUrl?: string;
+    level?: number;
 }
 
 export interface Duel {

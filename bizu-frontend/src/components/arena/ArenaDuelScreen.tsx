@@ -268,6 +268,7 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                                     src={duel.challenger?.avatarUrl}
                                     name={duel.challenger?.name}
                                     size="lg"
+                                    rankLevel={duel.challenger?.level}
                                     className={`md:w-16 md:h-16 ${isChallenger ? "ring-4 ring-indigo-200" : ""}`}
                                     fallbackClassName="bg-indigo-600 text-white"
                                 />
@@ -309,6 +310,7 @@ export default function ArenaDuelScreen({ duelId, onClose, currentUserId }: Aren
                                     src={duel.opponent?.avatarUrl}
                                     name={duel.opponent?.name}
                                     size="lg"
+                                    rankLevel={duel.opponent?.level}
                                     className={`md:w-16 md:h-16 ${!isChallenger ? "ring-4 ring-indigo-200" : ""}`}
                                     fallbackClassName="bg-slate-200 text-slate-600"
                                 />
