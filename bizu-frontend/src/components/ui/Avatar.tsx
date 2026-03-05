@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { getAvatarUrl } from "@/lib/imageUtils";
 import { cn } from "@/lib/utils";
 import { RankInsignia } from "../gamification/RankInsignia";
@@ -63,6 +63,11 @@ export function Avatar({
     borderMetadata,
 }: AvatarProps) {
     const [hasError, setHasError] = useState(false);
+
+    // Reset error state when src changes (e.g. user selects a new photo for preview)
+    useEffect(() => {
+        setHasError(false);
+    }, [src]);
 
     const sizeClasses = {
         sm: "w-8 h-8 rounded-lg text-[10px]",
@@ -134,35 +139,62 @@ export function Avatar({
         return url;
     }, [validSrc]);
 
+    const hasRainbow = activeBorder === "RAINBOW" || borderMetadata?.visual?.borderStyle === "rainbow";
+    const hasAuraBorder = (activeAura === "GOLD" || activeAura === "BLUE") && !combinedMetadata;
+
+    // Outer Aura Glow (outside the box)
+    const auraEffectClass = activeAura === "GOLD"
+        ? "after:absolute after:inset-[-4px] after:rounded-[inherit] after:bg-yellow-400/40 after:blur-md after:animate-pulse before:absolute before:inset-[-8px] before:rounded-[inherit] before:bg-yellow-400/15 before:blur-xl before:animate-pulse"
+        : activeAura === "BLUE"
+            ? "after:absolute after:inset-[-4px] after:rounded-[inherit] after:bg-cyan-400/40 after:blur-md after:animate-pulse before:absolute before:inset-[-8px] before:rounded-[inherit] before:bg-cyan-400/15 before:blur-xl before:animate-pulse"
+            : "";
+
     return (
-        <div className={cn("relative inline-block shrink-0", !combinedMetadata && auraStyle)}>
+        <div className={cn("relative inline-block shrink-0", !combinedMetadata && auraEffectClass)}>
             <AvatarEffects metadata={combinedMetadata} size={size} />
+
             <div className={cn(
                 "relative z-10 overflow-hidden shrink-0",
                 sizeClasses[size],
-                borderStyle,
+                (hasRainbow || hasAuraBorder) && "p-[2.5px]", // Padding creates the "border" space
                 className,
             )}>
-                {showImage ? (
-                    <img
-                        src={finalSrc}
-                        className="w-full h-full object-cover relative z-[2]"
-                        alt={name || "Avatar"}
-                        onError={() => setHasError(true)}
-                    />
-                ) : (
-                    <div
-                        className={cn(
-                            "w-full h-full flex items-center justify-center font-extrabold text-white select-none relative z-[2]",
-                            fallbackClassName,
-                        )}
-                        style={{
-                            background: `linear-gradient(135deg, ${fromColor}, ${toColor})`,
-                        }}
-                    >
-                        {initials}
-                    </div>
+                {/* 1. Animated Rainbow Background */}
+                {hasRainbow && (
+                    <div className="absolute inset-[-100%] bg-[conic-gradient(from_0deg,red,orange,yellow,green,blue,indigo,violet,red)] animate-[spin_4s_linear_infinite] z-0" />
                 )}
+
+                {/* 2. Aura Background (Solid Pulse) */}
+                {hasAuraBorder && (
+                    <div className={cn(
+                        "absolute inset-0 animate-pulse z-0",
+                        activeAura === "GOLD" ? "bg-yellow-400" : "bg-cyan-400"
+                    )} />
+                )}
+
+                {/* 3. Inner Container (Hides the effects in the middle) */}
+                <div className="relative z-10 w-full h-full overflow-hidden rounded-[inherit] bg-white dark:bg-slate-900">
+                    {showImage ? (
+                        <img
+                            src={finalSrc}
+                            className="w-full h-full object-cover relative z-[2]"
+                            alt={name || "Avatar"}
+                            onError={() => setHasError(true)}
+                        />
+                    ) : (
+                        <div
+                            className={cn(
+                                "w-full h-full flex items-center justify-center font-extrabold text-white select-none relative z-[2]",
+                                fallbackClassName,
+                            )}
+                            style={{
+                                background: `linear-gradient(135deg, ${fromColor}, ${toColor})`,
+                            }}
+                        >
+                            {initials}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {rankLevel !== undefined && (
