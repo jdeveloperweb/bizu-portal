@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar } from "@/components/ui/Avatar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { getStoredSelectedCourseId } from "@/lib/course-selection";
 
 interface RankEntry {
     id: string;
@@ -68,6 +69,14 @@ const TABS: Tab[] = [
     },
 ];
 
+function buildEndpoint(tab: Tab): string {
+    const courseId = getStoredSelectedCourseId();
+    const base = tab.endpoint;
+    if (!courseId) return base;
+    const sep = base.includes("?") ? "&" : "?";
+    return `${base}${sep}courseId=${courseId}`;
+}
+
 const MEDAL_CONFIG = [
     { Icon: Crown, bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-500", ring: "ring-amber-200" },
     { Icon: Medal, bg: "bg-slate-50",  border: "border-slate-200",  text: "text-slate-400",  ring: "ring-slate-200"  },
@@ -110,7 +119,7 @@ export function MiniRankingWidget() {
         const tab = TABS.find(t => t.key === tabKey)!;
         setLoading(prev => ({ ...prev, [tabKey]: true }));
         try {
-            const res = await apiFetch(tab.endpoint);
+            const res = await apiFetch(buildEndpoint(tab));
             if (res.ok) {
                 const raw = await res.json();
                 const parsed = raw.map((r: any) => parseEntry(r, tab));

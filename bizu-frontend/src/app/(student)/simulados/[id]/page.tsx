@@ -445,11 +445,15 @@ export default function SimuladoExamPage() {
     const params = useParams();
     const router = useRouter();
     const simuladoId = params.id as string;
-    const [isPractice] = useState(
-        () => typeof window !== "undefined"
-            ? new URLSearchParams(window.location.search).get("modo") === "pratica"
-            : false
-    );
+    const [isPractice, setIsPractice] = useState(false);
+    const [paramsReady, setParamsReady] = useState(false);
+
+    useEffect(() => {
+        const p = new URLSearchParams(window.location.search).get("modo") === "pratica";
+        setIsPractice(p);
+        setParamsReady(true);
+    }, []);
+
     const { setFocusMode } = useDuels();
 
     const [phase, setPhase] = useState<"loading" | "starting" | "exam" | "submitting" | "result" | "cancelled" | "error">("loading");
@@ -481,8 +485,9 @@ export default function SimuladoExamPage() {
         return () => { setFocusMode(false); };
     }, [setFocusMode]);
 
-    // ── Start exam ────────────────────────────────────────────────────────
+    // ── Start exam (waits for URL params to be resolved) ──────────────────
     useEffect(() => {
+        if (!paramsReady) return;
         const startExam = async () => {
             setPhase("starting");
             const endpoint = isPractice
@@ -510,7 +515,7 @@ export default function SimuladoExamPage() {
             }
         };
         startExam();
-    }, [simuladoId, isPractice]);
+    }, [simuladoId, paramsReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ── Anti-cheat (official exams only) ─────────────────────────────────
     useEffect(() => {

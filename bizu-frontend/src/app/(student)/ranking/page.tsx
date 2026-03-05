@@ -14,7 +14,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 import { UserProfileModal } from "@/components/UserProfileModal";
 
-type RankingTab = "geral" | "semanal" | "materia";
+type RankingTab = "geral" | "semanal" | "simulado" | "materia";
 
 interface RankedUser {
     rank: number;
@@ -28,6 +28,16 @@ interface RankedUser {
     delta?: number;
 }
 
+interface RankedSimulado {
+    rank: number;
+    id: string;
+    name: string;
+    nickname?: string;
+    avatar: string;
+    best_score: number;
+    total_simulados?: number;
+}
+
 export default function RankingStudentPage() {
     const { isFree } = useAuth();
     const [activeTab, setActiveTab] = useState<RankingTab>("geral");
@@ -37,6 +47,8 @@ export default function RankingStudentPage() {
     const [loading, setLoading] = useState(true);
     const [availableModules, setAvailableModules] = useState<string[]>([]);
     const [selectedProfileNickname, setSelectedProfileNickname] = useState<string | null>(null);
+    const [simuladoRanking, setSimuladoRanking] = useState<RankedSimulado[]>([]);
+    const [simuladoLoading, setSimuladoLoading] = useState(false);
 
     useEffect(() => {
         async function fetchRanking() {
@@ -97,6 +109,37 @@ export default function RankingStudentPage() {
         }
         fetchRanking();
     }, []);
+
+    const fetchSimuladoRanking = async () => {
+        if (simuladoRanking.length > 0) return;
+        setSimuladoLoading(true);
+        try {
+            const selectedCourseId = getStoredSelectedCourseId();
+            const courseQuery = selectedCourseId ? `&courseId=${selectedCourseId}` : "";
+            const res = await apiFetch(`/student/ranking/simulados?limit=50${courseQuery}`);
+            if (res.ok) {
+                const data = await res.json();
+                setSimuladoRanking(data.map((u: any, i: number) => ({
+                    rank: Number(u.rank ?? i + 1),
+                    id: u.id,
+                    name: u.name || "Usuário",
+                    nickname: u.nickname,
+                    avatar: u.avatar || (u.name || "?").split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase(),
+                    best_score: Number(u.best_score ?? 0),
+                    total_simulados: Number(u.total_simulados ?? 0),
+                })));
+            }
+        } catch (error) {
+            console.error("Error fetching simulado ranking:", error);
+        } finally {
+            setSimuladoLoading(false);
+        }
+    };
+
+    const handleTabChange = (tab: RankingTab) => {
+        setActiveTab(tab);
+        if (tab === "simulado") fetchSimuladoRanking();
+    };
 
     const subjects = ["Todas", ...availableModules];
     const maxXP = topUsers.length > 0 ? Math.max(...topUsers.map(u => u.xp)) : 1;
@@ -248,12 +291,13 @@ export default function RankingStudentPage() {
                     {([
                         { key: "geral" as RankingTab, label: "Geral", icon: Trophy },
                         { key: "semanal" as RankingTab, label: "Semanal", icon: Flame },
+                        { key: "simulado" as RankingTab, label: "Simulado", icon: Star },
                         { key: "materia" as RankingTab, label: "Por Matéria", icon: Target },
                     ]).map(tab => {
                         const Icon = tab.icon;
                         const active = activeTab === tab.key;
                         return (
-                            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+                            <button key={tab.key} onClick={() => handleTabChange(tab.key)}
                                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[12px] font-bold transition-all ${
                                     active
                                         ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-sm"
@@ -284,8 +328,87 @@ export default function RankingStudentPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                     <div className="lg:col-span-2 space-y-5">
 
+                        {/* ── SIMULADO RANKING ── */}
+                        {activeTab === "simulado" && (
+                            <div className="card-elevated !rounded-2xl hover:!transform-none overflow-hidden">
+                                <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                                    <h3 className="text-[13px] font-black text-slate-800 flex items-center gap-2">
+                                        <Star size={13} className="text-amber-500" />
+                                        Ranking de Simulados
+                                    </h3>
+                                    <span className="text-[10px] text-slate-400 font-semibold tabular-nums">{simuladoRanking.length} participantes</span>
+                                </div>
+                                {simuladoLoading ? (
+                                    <div className="divide-y divide-slate-50">
+                                        {[1,2,3,4,5].map(i => (
+                                            <div key={i} className="flex items-center gap-3 px-5 py-3">
+                                                <div className="w-8 h-8 rounded-xl bg-slate-100 animate-pulse shrink-0" />
+                                                <div className="w-9 h-9 rounded-xl bg-slate-100 animate-pulse shrink-0" />
+                                                <div className="flex-1 space-y-1.5">
+                                                    <div className="h-3 w-32 bg-slate-100 rounded animate-pulse" />
+                                                    <div className="h-2 w-20 bg-slate-100 rounded animate-pulse" />
+                                                </div>
+                                                <div className="h-4 w-14 bg-slate-100 rounded animate-pulse" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : simuladoRanking.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-16 gap-3">
+                                        <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center">
+                                            <Trophy size={22} className="text-amber-400" />
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="text-[13px] font-bold text-slate-500">Nenhum simulado realizado ainda</p>
+                                            <p className="text-[11px] text-slate-400 mt-0.5">Seja o primeiro a pontuar!</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="divide-y divide-slate-50">
+                                        {simuladoRanking.map((user, idx) => {
+                                            const m = rankMeta(user.rank);
+                                            const maxScore = simuladoRanking[0]?.best_score || 1;
+                                            const scorePct = maxScore > 0 ? (user.best_score / maxScore) * 100 : 0;
+                                            return (
+                                                <button
+                                                    type="button"
+                                                    key={user.id}
+                                                    onClick={() => user.nickname && setSelectedProfileNickname(user.nickname)}
+                                                    className="rank-row row-slide w-full text-left relative flex items-center gap-3 px-5 py-3 hover:bg-slate-50/70 transition-colors"
+                                                    style={{ animationDelay: `${idx * 0.025}s` }}
+                                                >
+                                                    <div className={`xp-fill absolute inset-y-0 left-0 ${m.bar} pointer-events-none rounded-r-xl`} style={{ width: `${scorePct}%` }} />
+                                                    {user.rank <= 3 && <div className={`absolute left-0 inset-y-0 w-[3px] ${m.leftBorder} rounded-r`} />}
+                                                    <div className={`relative z-10 w-8 h-8 rounded-xl flex items-center justify-center font-black text-[13px] flex-shrink-0 ${m.badgeBg}`}>
+                                                        {user.rank <= 3 ? MEDALS[user.rank - 1] : user.rank}
+                                                    </div>
+                                                    <div className={`relative z-10 flex-shrink-0 rounded-xl overflow-hidden ${user.rank <= 3 ? m.ring : ""}`}>
+                                                        <Avatar src={user.avatar} name={user.name} size="sm" className="border-0" />
+                                                    </div>
+                                                    <div className="relative z-10 flex-1 min-w-0">
+                                                        <div className="text-[13px] font-bold text-slate-800 truncate">{user.name}</div>
+                                                        {user.nickname && <div className="text-[10px] text-slate-400">@{user.nickname}</div>}
+                                                        {user.total_simulados !== undefined && user.total_simulados > 0 && (
+                                                            <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-0.5">
+                                                                <Trophy size={8} />{user.total_simulados} simulado{user.total_simulados !== 1 ? "s" : ""}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="relative z-10 text-right flex-shrink-0">
+                                                        <div className={`text-[13px] font-black ${user.rank <= 3 ? m.accent : "text-slate-700"}`}>
+                                                            {user.best_score.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                                                            <span className="text-[10px] font-bold text-slate-400 ml-0.5">pts</span>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {/* ── PODIUM ── */}
-                        {podiumOrder.length > 0 && (
+                        {activeTab !== "simulado" && podiumOrder.length > 0 && (
                             <div className="card-elevated !rounded-2xl p-6 pb-0 hover:!transform-none overflow-hidden relative">
                                 {/* Subtle tinted bg */}
                                 <div className="absolute inset-0 bg-gradient-to-b from-indigo-50/40 to-transparent pointer-events-none" />
