@@ -1,9 +1,10 @@
 package com.bizu.portal.student.api;
 
-import com.bizu.portal.identity.domain.User;
+import com.bizu.portal.identity.application.UserService;
 import com.bizu.portal.student.application.QuestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,14 +15,15 @@ import java.util.List;
 public class QuestController {
 
     private final QuestService questService;
+    private final UserService userService;
 
     @GetMapping("/me")
-    public List<QuestService.QuestDTO> getMyQuests(@AuthenticationPrincipal User user) {
-        return questService.getUserQuests(user.getId());
+    public List<QuestService.QuestDTO> getMyQuests(@AuthenticationPrincipal Jwt jwt) {
+        return questService.getUserQuests(userService.resolveUserId(jwt));
     }
 
     @PostMapping("/{code}/claim")
-    public void claimQuest(@AuthenticationPrincipal User user, @PathVariable String code) {
-        questService.claimQuest(user.getId(), code);
+    public void claimQuest(@AuthenticationPrincipal Jwt jwt, @PathVariable String code) {
+        questService.claimQuest(userService.resolveUserId(jwt), code);
     }
 }
