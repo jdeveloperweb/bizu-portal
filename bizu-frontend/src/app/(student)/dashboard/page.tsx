@@ -26,6 +26,8 @@ import MaterialViewerModal from "@/components/MaterialViewerModal";
 import XPInfoModal from "@/components/gamification/XPInfoModal";
 import { BadgeInsignia } from "@/components/gamification/BadgeInsignia";
 import { MiniRankingWidget } from "@/components/gamification/MiniRankingWidget";
+import { QuestMural } from "@/components/gamification/QuestMural";
+import { RankInsignia } from "@/components/gamification/RankInsignia";
 import { HelpCircle, Info, Shield } from "lucide-react";
 
 const quickActions = [
@@ -37,16 +39,16 @@ const quickActions = [
 
 // Static color maps — defined at module level to avoid re-allocation on every render
 const statColorMap: Record<string, { iconBg: string; iconBorder: string; iconText: string }> = {
-    indigo:  { iconBg: "bg-indigo-50",  iconBorder: "border-indigo-100",  iconText: "text-indigo-600"  },
-    rose:    { iconBg: "bg-rose-50",    iconBorder: "border-rose-100",    iconText: "text-rose-600"    },
-    amber:   { iconBg: "bg-amber-50",   iconBorder: "border-amber-100",   iconText: "text-amber-600"   },
+    indigo: { iconBg: "bg-indigo-50", iconBorder: "border-indigo-100", iconText: "text-indigo-600" },
+    rose: { iconBg: "bg-rose-50", iconBorder: "border-rose-100", iconText: "text-rose-600" },
+    amber: { iconBg: "bg-amber-50", iconBorder: "border-amber-100", iconText: "text-amber-600" },
     emerald: { iconBg: "bg-emerald-50", iconBorder: "border-emerald-100", iconText: "text-emerald-600" },
 };
 const actionColorMap: Record<string, { bg: string; hoverBg: string; text: string }> = {
-    indigo:  { bg: "bg-indigo-50",  hoverBg: "group-hover:bg-indigo-600",  text: "text-indigo-600"  },
-    rose:    { bg: "bg-rose-50",    hoverBg: "group-hover:bg-rose-600",    text: "text-rose-600"    },
+    indigo: { bg: "bg-indigo-50", hoverBg: "group-hover:bg-indigo-600", text: "text-indigo-600" },
+    rose: { bg: "bg-rose-50", hoverBg: "group-hover:bg-rose-600", text: "text-rose-600" },
     emerald: { bg: "bg-emerald-50", hoverBg: "group-hover:bg-emerald-600", text: "text-emerald-600" },
-    amber:   { bg: "bg-amber-50",   hoverBg: "group-hover:bg-amber-600",   text: "text-amber-600"   },
+    amber: { bg: "bg-amber-50", hoverBg: "group-hover:bg-amber-600", text: "text-amber-600" },
 };
 
 export default function DashboardPage() {
@@ -374,8 +376,13 @@ export default function DashboardPage() {
                     { label: "Questões Resolvidas", val: (stats?.totalUniqueAttempted || 0).toString(), icon: BarChart3, color: "indigo" },
                     { label: "Taxa de Acerto", val: accuracy, icon: Target, color: "rose" },
                     {
-                        label: gamification?.rank ? `Nível (${gamification.rank})` : "Nível Atual",
-                        val: (gamification?.level || 1).toString(),
+                        label: gamification?.rank ? `Patente: ${gamification.rank}` : "Patente",
+                        val: (
+                            <div className="flex items-center gap-2">
+                                <RankInsignia level={gamification?.level || 1} rank={gamification?.rank} size="sm" />
+                                <span>{(gamification?.level || 1).toString()}</span>
+                            </div>
+                        ),
                         icon: Zap,
                         color: "amber"
                     },
@@ -605,35 +612,8 @@ export default function DashboardPage() {
                     {/* Mini Ranking Widget */}
                     <MiniRankingWidget />
 
-                    {/* Daily Goal Card */}
-                    <div className="bg-white border-2 border-indigo-100 rounded-[40px] p-8 shadow-xl shadow-indigo-100/20 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-full -mr-12 -mt-12" />
-                        <div className="relative z-10">
-                            <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white mb-6 shadow-lg shadow-indigo-200">
-                                <Target size={24} />
-                            </div>
-                            <h3 className="text-2xl font-black text-slate-900 mb-2">Meta Diária</h3>
-                            <p className="text-slate-500 text-sm font-medium mb-8">Resolva 10 questões hoje para manter sua ofensiva ativa.</p>
-
-                            <div className="space-y-4 mb-8">
-                                <div className="flex justify-between items-center text-xs font-black tracking-widest uppercase text-slate-400">
-                                    <span>Progresso</span>
-                                    <span className="text-indigo-600">{isLoading ? <Skeleton className="h-3 w-8" /> : `${stats?.dailyAttempted || 0}/10`}</span>
-                                </div>
-                                <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                                    {isLoading ? (
-                                        <Skeleton className="h-full w-full" />
-                                    ) : (
-                                        <div className="h-full bg-indigo-600 rounded-full transition-all duration-1000" style={{ width: `${Math.min((stats?.dailyAttempted || 0) * 10, 100)}%` }} />
-                                    )}
-                                </div>
-                            </div>
-
-                            <Link href="/questoes/treino" className="block w-full text-center bg-slate-900 text-white py-4 rounded-2xl font-black hover:bg-slate-800 transition-all hover:scale-[1.02]">
-                                Começar Agora
-                            </Link>
-                        </div>
-                    </div>
+                    {/* Quest Mural Widget */}
+                    <QuestMural />
 
                     {/* Level Progress Table */}
                     <div className="lg:col-span-1">

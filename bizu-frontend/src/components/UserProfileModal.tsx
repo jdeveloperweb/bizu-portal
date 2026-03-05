@@ -13,6 +13,7 @@ import { apiFetch } from "@/lib/api";
 import { Avatar } from "@/components/ui/Avatar";
 import { useAuth } from "@/components/AuthProvider";
 import { BadgeInsignia } from "@/components/gamification/BadgeInsignia";
+import { RankInsignia } from "@/components/gamification/RankInsignia";
 
 const iconMap: Record<string, any> = {
     sunrise: Sunrise,
@@ -180,13 +181,19 @@ export function UserProfileModal({ nickname, isOpen, onClose }: UserProfileModal
 
                             {/* Level & Streak Pills */}
                             <div className="flex flex-wrap gap-2">
-                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 rounded-full border border-amber-100">
-                                    <Trophy size={14} className="text-amber-500" />
-                                    <span className="text-xs font-bold text-amber-700">Nível {profile.level}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 rounded-full border border-orange-100">
-                                    <Flame size={14} className="text-orange-500" />
-                                    <span className="text-xs font-bold text-orange-700">{profile.streak} dias de ofensiva</span>
+                                <RankInsignia
+                                    level={profile.level}
+                                    rank={profile.rank}
+                                    showName={true}
+                                    size="md"
+                                    className="bg-indigo-50/50 p-3 rounded-2xl border border-indigo-100 flex-1 min-w-[200px]"
+                                />
+                                <div className="flex items-center gap-2 px-4 py-3 bg-orange-50 rounded-2xl border border-orange-100 flex-1 min-w-[150px]">
+                                    <Flame size={18} className="text-orange-500" />
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-black text-orange-400 uppercase tracking-widest leading-none mb-1">Ofensiva</span>
+                                        <span className="text-sm font-black text-orange-700 leading-none">{profile.streak} dias</span>
+                                    </div>
                                 </div>
                             </div>
 
