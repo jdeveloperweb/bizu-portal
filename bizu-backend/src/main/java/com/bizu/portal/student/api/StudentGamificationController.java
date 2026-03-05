@@ -48,6 +48,8 @@ public class StudentGamificationController {
         response.put("xpBoostUntil", stats.getXpBoostUntil());
         response.put("radarMateriaUntil", stats.getRadarMateriaUntil());
         response.put("activeTitle", stats.getActiveTitle());
+        response.put("activeAura", stats.getActiveAura());
+        response.put("activeBorder", stats.getActiveBorder());
         response.put("levelTable", levelCalculator.getAllLevelRequirements(50));
 
         return ResponseEntity.ok(response);

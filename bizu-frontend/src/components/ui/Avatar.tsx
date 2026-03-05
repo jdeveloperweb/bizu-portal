@@ -12,9 +12,11 @@ interface AvatarProps {
     size?: "sm" | "md" | "lg" | "xl";
     fallbackClassName?: string;
     rankLevel?: number;
+    activeAura?: string | null;
+    activeBorder?: string | null;
 }
 
-export function Avatar({ src, name, className, size = "md", fallbackClassName, rankLevel }: AvatarProps) {
+export function Avatar({ src, name, className, size = "md", fallbackClassName, rankLevel, activeAura, activeBorder }: AvatarProps) {
     const [hasError, setHasError] = useState(false);
 
     const getInitials = (n: string) => {
