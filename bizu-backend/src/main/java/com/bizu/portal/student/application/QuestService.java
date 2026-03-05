@@ -67,15 +67,13 @@ public class QuestService {
         
         switch (quest.getGoalType()) {
             case "QUESTIONS":
-                return jdbcTemplate.queryForObject("""
-                    SELECT 
-                        (SELECT COUNT(*) FROM student.attempts WHERE user_id = ? AND created_at """ + timeCondition + """) +
-                        (SELECT COUNT(*) FROM student.activity_attempts a WHERE a.user_id = ? AND a.status = 'COMPLETED' AND a.finished_at """ + timeCondition + """)
-                    """, Integer.class, userId, userId);
+                String sqlQuestions = "SELECT " +
+                        "(SELECT COUNT(*) FROM student.attempts WHERE user_id = ? AND created_at " + timeCondition + ") + " +
+                        "(SELECT COUNT(*) FROM student.activity_attempts a WHERE a.user_id = ? AND a.status = 'COMPLETED' AND a.finished_at " + timeCondition + ")";
+                return jdbcTemplate.queryForObject(sqlQuestions, Integer.class, userId, userId);
             case "WIN":
-                return jdbcTemplate.queryForObject("""
-                    SELECT COUNT(*) FROM student.duels WHERE winner_id = ? AND status = 'COMPLETED' AND updated_at """ + timeCondition,
-                        Integer.class, userId);
+                String sqlWin = "SELECT COUNT(*) FROM student.duels WHERE winner_id = ? AND status = 'COMPLETED' AND updated_at " + timeCondition;
+                return jdbcTemplate.queryForObject(sqlWin, Integer.class, userId);
             case "STREAK":
                 // Consecutive correct answers today
                 return jdbcTemplate.queryForObject("""

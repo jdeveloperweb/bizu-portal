@@ -1,11 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import {
-    Shield, ShieldCheck, ChevronUp, ChevronsUp,
-    Star, StarHalf, Crown, Award, Trophy, Circle,
-    LucideIcon
-} from "lucide-react";
 
 interface RankInsigniaProps {
     level: number;
@@ -15,51 +10,116 @@ interface RankInsigniaProps {
     size?: "sm" | "md" | "lg";
 }
 
+// Custom SVG Insignia Components
+const InsigniaSVG = ({ level, size = 24 }: { level: number, size?: number }) => {
+    const viewBox = "0 0 100 100";
+
+    // Praças (Soldier/Corporal/Sergeant) - Chevrons
+    if (level <= 25) {
+        let stripes = 0;
+        let color = "#94a3b8"; // Slate 400
+
+        if (level <= 2) stripes = 0; // Recruta
+        else if (level <= 6) { stripes = 1; color = "#64748b"; } // Soldado
+        else if (level <= 10) { stripes = 2; color = "#475569"; } // Cabo
+        else if (level <= 15) { stripes = 3; color = "#b45309"; } // 3º Sargento (Brown/Gold)
+        else if (level <= 20) { stripes = 4; color = "#92400e"; } // 2º Sargento
+        else { stripes = 5; color = "#78350f"; } // 1º Sargento
+
+        return (
+            <svg width={size} height={size} viewBox={viewBox} fill="none" xmlns="http://www.w3.org/2000/svg">
+                {stripes === 0 && <circle cx="50" cy="50" r="20" stroke={color} strokeWidth="8" />}
+                {[...Array(stripes)].map((_, i) => (
+                    <path key={i} d={`M20 ${20 + i * 15} L50 ${40 + i * 15} L80 ${20 + i * 15}`}
+                        stroke={color} strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" />
+                ))}
+            </svg>
+        );
+    }
+
+    // Subtenente - Lozenge/Diamond
+    if (level <= 30) {
+        return (
+            <svg width={size} height={size} viewBox={viewBox} fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 10 L90 50 L50 90 L10 50 Z" fill="#3b82f6" stroke="#1e40af" strokeWidth="4" />
+                <path d="M50 25 L75 50 L50 75 L25 50 Z" fill="white" opacity="0.5" />
+            </svg>
+        );
+    }
+
+    // Oficiais (Tenentes/Capitão) - Stars
+    if (level <= 52) {
+        let stars = 1;
+        let color = "#10b981"; // Emerald
+        if (level <= 35) { stars = 1; color = "#34d399"; } // Aspirante
+        else if (level <= 40) { stars = 1; color = "#10b981"; } // 2º Tenente
+        else if (level <= 45) { stars = 2; color = "#059669"; } // 1º Tenente
+        else { stars = 3; color = "#047857"; } // Capitão
+
+        const starPath = "M50 15 L58 38 L82 38 L63 52 L70 75 L50 61 L30 75 L37 52 L18 38 L42 38 Z";
+
+        return (
+            <svg width={size} height={size} viewBox={viewBox} fill="none" xmlns="http://www.w3.org/2000/svg">
+                {stars >= 1 && <path d={starPath} fill={color} transform={stars === 1 ? "scale(1) translate(0,0)" : "scale(0.6) translate(35, 10)"} />}
+                {stars >= 2 && <path d={starPath} fill={color} transform="scale(0.6) translate(35, 75)" />}
+                {stars >= 3 && <path d={starPath} fill={color} transform="scale(0.6) translate(-30, 42)" />}
+            </svg>
+        );
+    }
+
+    // Oficiais Superiores (Major to Coronel) - Stars with Shield
+    if (level <= 80) {
+        let color = "#8b5cf6"; // Violet
+        let fill = "#ede9fe";
+        if (level <= 60) color = "#8b5cf6"; // Major
+        else if (level <= 70) color = "#7c3aed"; // Tenente-Coronel
+        else color = "#6d28d9"; // Coronel
+
+        return (
+            <svg width={size} height={size} viewBox={viewBox} fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="15" y="15" width="70" height="70" rx="15" fill={fill} stroke={color} strokeWidth="8" />
+                <path d="M50 30 L55 45 L70 45 L58 55 L63 70 L50 60 L37 70 L42 55 L30 45 L45 45 Z" fill={color} />
+            </svg>
+        );
+    }
+
+    // Generais to Marechal - Golden Items
+    let color = "#eab308"; // Gold
+    let bg = "#1e293b"; // Slate 800
+    if (level > 95) color = "#f97316"; // Marechal (Orange/Fire)
+
+    return (
+        <svg width={size} height={size} viewBox={viewBox} fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="45" fill={bg} stroke={color} strokeWidth="4" />
+            <path d="M50 20 L55 40 L75 40 L60 52 L65 72 L50 60 L35 72 L40 52 L25 40 L45 40 Z" fill={color} />
+            <circle cx="50" cy="50" r="30" stroke={color} strokeWidth="2" strokeDasharray="4 4" />
+        </svg>
+    );
+};
+
 export function RankInsignia({ level, rank, className, showName = false, size = "md" }: RankInsigniaProps) {
-    let Icon: LucideIcon = Circle;
-    let colorClass = "text-slate-400 bg-slate-100";
-
-    // Determine Icon based on level (Military Hierarchy)
-    if (level <= 2) { Icon = Circle; colorClass = "text-slate-400 bg-slate-50"; }
-    else if (level <= 5) { Icon = Shield; colorClass = "text-slate-500 bg-slate-100"; }
-    else if (level <= 8) { Icon = ShieldCheck; colorClass = "text-slate-600 bg-slate-200"; }
-    else if (level <= 12) { Icon = ChevronUp; colorClass = "text-indigo-400 bg-indigo-50"; }
-    else if (level <= 16) { Icon = ChevronsUp; colorClass = "text-indigo-500 bg-indigo-100"; }
-    else if (level <= 20) { Icon = ChevronsUp; colorClass = "text-indigo-600 bg-indigo-100 ring-2 ring-indigo-200"; }
-    else if (level <= 25) { Icon = StarHalf; colorClass = "text-amber-500 bg-amber-50"; }
-    else if (level <= 40) { Icon = Star; colorClass = "text-amber-600 bg-amber-100"; }
-    else if (level <= 55) { Icon = Crown; colorClass = "text-purple-600 bg-purple-50"; }
-    else if (level <= 70) { Icon = Award; colorClass = "text-red-500 bg-red-50"; }
-    else if (level <= 85) { Icon = Trophy; colorClass = "text-yellow-600 bg-yellow-50 shadow-inner"; }
-    else { Icon = Crown; colorClass = "text-yellow-500 bg-slate-900 border-yellow-400 border shadow-[0_0_10px_rgba(234,179,8,0.3)]"; }
-
-    const sizeClasses = {
-        sm: "w-6 h-6 p-1",
-        md: "w-10 h-10 p-2",
-        lg: "w-16 h-16 p-3.5"
+    const sizeMap = {
+        sm: { container: "w-8 h-8 p-1", icon: 20 },
+        md: { container: "w-12 h-12 p-2", icon: 32 },
+        lg: { container: "w-20 h-20 p-3.5", icon: 56 }
     };
 
-    const iconSizes = {
-        sm: 12,
-        md: 20,
-        lg: 32
-    };
+    const currentSize = sizeMap[size];
 
     return (
         <div className={cn("flex items-center gap-3", className)}>
             <div className={cn(
-                "rounded-[14px] flex items-center justify-center transition-all duration-500",
-                sizeClasses[size],
-                colorClass
+                "rounded-2xl flex items-center justify-center transition-all duration-500 bg-white border border-slate-100 shadow-sm",
+                currentSize.container
             )}>
-                <Icon size={iconSizes[size]} className="animate-in zoom-in-50 duration-500" />
+                <InsigniaSVG level={level} size={currentSize.icon} />
             </div>
             {showName && (
                 <div className="flex flex-col">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
-                        Patente
+                        Patente Militar
                     </span>
-                    <span className="text-sm font-black text-slate-800 leading-none">
+                    <span className="text-sm font-black text-slate-900 leading-none">
                         {rank || "Recruta"}
                     </span>
                 </div>
