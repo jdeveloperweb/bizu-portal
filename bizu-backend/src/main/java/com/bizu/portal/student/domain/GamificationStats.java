@@ -66,6 +66,7 @@ public class GamificationStats implements org.springframework.data.domain.Persis
     @Column(name = "abandon_blocked_until")
     private OffsetDateTime abandonBlockedUntil;
 
+    @Builder.Default
     @Transient
     private boolean isNew = true;
 

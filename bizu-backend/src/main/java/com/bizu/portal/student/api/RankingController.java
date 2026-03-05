@@ -31,7 +31,7 @@ public class RankingController {
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getMyRanking(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = userService.resolveUserId(jwt);
-        return ResponseEntity.ok(rankingService.getUserRanking(userId));
+        return ResponseEntity.ok(rankingService.getUserRanking(userId, null));
     }
 
     @GetMapping("/duelos")

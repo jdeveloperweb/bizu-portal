@@ -116,9 +116,6 @@ public class AxonStoreService {
             case "BORDER_RAINBOW":
                 stats.setActiveBorder("RAINBOW".equals(stats.getActiveBorder()) ? null : "RAINBOW");
                 break;
-            case "STREAK_FREEZE":
-                // Escudo é passivo, mas permitimos "ativar" para feedback visual no front
-                break;
             default:
                 if (itemCode.startsWith("STATUS_")) {
                     String title = itemCode.replace("STATUS_", "");
