@@ -63,7 +63,7 @@ export default function TarefasPage() {
                 if (resSuggestions.ok) {
                     setSuggestions(await resSuggestions.json());
                 }
-                const resCourses = await apiFetch("/public/courses");
+                const resCourses = await apiFetch("/student/courses/me");
                 if (resCourses.ok) {
                     const coursesData = await resCourses.json();
                     setCourses(coursesData);

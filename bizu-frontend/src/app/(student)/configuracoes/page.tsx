@@ -120,13 +120,13 @@ export default function ConfiguracoesPage() {
     useEffect(() => {
         const fetchCourses = async () => {
             try {
-                const res = await apiFetch("/public/courses");
+                const res = await apiFetch("/student/courses/me");
                 if (res.ok) {
                     const data = await res.json();
                     setCourses(data);
 
                     // Pre-select some modules if available
-                    const allModules = data.flatMap((c: Course) => c.modules);
+                    const allModules = data.flatMap((c: Course) => c.modules || []);
                     if (allModules.length > 0) {
                         const uniqueModules = Array.from(new Map(allModules.map((m: Module) => [m.id, m])).values()) as Module[];
                         setSelectedSubjects(prev => prev.length > 0 ? prev : uniqueModules.slice(0, 5).map(m => m.id));

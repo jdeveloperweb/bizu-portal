@@ -124,7 +124,7 @@ function TreinoContent() {
     useEffect(() => {
         const fetchCourses = async () => {
             try {
-                const res = await apiFetch("/public/courses");
+                const res = await apiFetch("/student/courses/me");
                 if (res.ok) setCourses(await res.json());
             } catch (error) {
                 console.error("Failed to fetch courses", error);

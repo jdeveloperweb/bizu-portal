@@ -13,6 +13,12 @@ export default function GlobalError({
 }) {
     useEffect(() => {
         console.error("Global error:", error);
+
+        // Se for erro de carregamento de chunk (comum em deploys), recarrega a página automaticamente
+        if (error.name === "ChunkLoadError" || error.message.includes("Failed to load chunk")) {
+            console.warn("ChunkLoadError detectado! Recarregando a página...");
+            window.location.reload();
+        }
     }, [error]);
 
     return (
