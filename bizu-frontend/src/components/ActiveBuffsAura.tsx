@@ -9,10 +9,12 @@ export default function ActiveBuffsAura() {
     const [buffs, setBuffs] = useState<{
         xpBoost: boolean;
         radar: boolean;
-        eliteTitle: boolean;
+        activeTitle: string | null;
+        activeAura: string | null;
+        activeBorder: string | null;
         xpEndsAt: Date | null;
         radarEndsAt: Date | null;
-    }>({ xpBoost: false, radar: false, eliteTitle: false, xpEndsAt: null, radarEndsAt: null });
+    }>({ xpBoost: false, radar: false, activeTitle: null, activeAura: null, activeBorder: null, xpEndsAt: null, radarEndsAt: null });
 
     const [now, setNow] = useState(new Date());
 
@@ -27,7 +29,9 @@ export default function ActiveBuffsAura() {
                 setBuffs({
                     xpBoost: xpEnd ? xpEnd > currentDate : false,
                     radar: radarEnd ? radarEnd > currentDate : false,
-                    eliteTitle: data.activeTitle === "Elite",
+                    activeTitle: data.activeTitle,
+                    activeAura: data.activeAura,
+                    activeBorder: data.activeBorder,
                     xpEndsAt: xpEnd,
                     radarEndsAt: radarEnd
                 });
@@ -69,7 +73,7 @@ export default function ActiveBuffsAura() {
     // Radar base is 24 Hours
     const radarIntensity = buffs.radar ? getIntensity(buffs.radarEndsAt, 24) : 0;
 
-    if (!buffs.xpBoost && !buffs.radar && !buffs.eliteTitle) return null;
+    if (!buffs.xpBoost && !buffs.radar && !buffs.activeTitle && !buffs.activeAura && !buffs.activeBorder) return null;
 
     return (
         <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden">
@@ -126,8 +130,8 @@ export default function ActiveBuffsAura() {
                     </div>
                 )}
 
-                {/* PURPLE BORDER (ELITE TITLE) - Permanente, não sofre decaimento */}
-                {buffs.eliteTitle && (
+                {/* PURPLE BORDER (ELITE/TITLES) - Permanente, não sofre decaimento */}
+                {buffs.activeTitle && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: [0.4, 0.8, 0.4] }}
@@ -135,9 +139,55 @@ export default function ActiveBuffsAura() {
                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                         className="absolute inset-0 z-1 pointer-events-none"
                         style={{
-                            boxShadow: "inset 0 0 100px rgba(168, 85, 247, 0.3), inset 0 0 10px rgba(168, 85, 247, 0.6)",
-                            border: buffs.xpBoost ? "none" : "4px solid rgba(168, 85, 247, 0.4)"
+                            boxShadow: buffs.activeTitle === "Elite"
+                                ? "inset 0 0 100px rgba(168, 85, 247, 0.3), inset 0 0 10px rgba(168, 85, 247, 0.6)"
+                                : "inset 0 0 100px rgba(79, 70, 229, 0.2), inset 0 0 10px rgba(79, 70, 229, 0.4)",
+                            border: buffs.xpBoost ? "none" : buffs.activeTitle === "Elite"
+                                ? "4px solid rgba(168, 85, 247, 0.4)"
+                                : "4px solid rgba(79, 70, 229, 0.3)"
                         }}
+                    >
+                        <div className="absolute top-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-slate-900/80 backdrop-blur-md rounded-full border border-white/20 text-white font-black text-xs uppercase tracking-[0.2em] shadow-xl">
+                            {buffs.activeTitle}
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* GOLD AURA */}
+                {buffs.activeAura === "GOLD" && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: [0.3, 0.6, 0.3] }}
+                        transition={{ duration: 5, repeat: Infinity }}
+                        className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,191,36,0.15)_0%,transparent_70%)] mix-blend-screen"
+                    />
+                )}
+
+                {/* BLUE AURA */}
+                {buffs.activeAura === "BLUE" && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: [0.3, 0.6, 0.3] }}
+                        transition={{ duration: 5, repeat: Infinity }}
+                        className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.15)_0%,transparent_70%)] mix-blend-screen"
+                    />
+                )}
+
+                {/* RAINBOW BORDER */}
+                {buffs.activeBorder === "RAINBOW" && (
+                    <motion.div
+                        animate={{
+                            borderColor: ["#ef4444", "#3b82f6", "#10b981", "#eab308", "#ef4444"],
+                            boxShadow: [
+                                "inset 0 0 20px rgba(239, 68, 68, 0.3)",
+                                "inset 0 0 20px rgba(59, 130, 246, 0.3)",
+                                "inset 0 0 20px rgba(16, 185, 129, 0.3)",
+                                "inset 0 0 20px rgba(234, 179, 8, 0.3)",
+                                "inset 0 0 20px rgba(239, 68, 68, 0.3)"
+                            ]
+                        }}
+                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                        className="absolute inset-0 border-[6px] pointer-events-none z-10"
                     />
                 )}
 
@@ -152,7 +202,7 @@ export default function ActiveBuffsAura() {
                             className="absolute inset-0 z-2 pointer-events-none"
                             style={{
                                 boxShadow: `inset 0 0 80px rgba(16, 185, 129, 0.3), inset 0 0 10px rgba(16, 185, 129, 0.6)`,
-                                border: (buffs.xpBoost || buffs.eliteTitle) ? "none" : `4px solid rgba(16, 185, 129, 0.4)`
+                                border: (buffs.xpBoost || buffs.activeTitle) ? "none" : `4px solid rgba(16, 185, 129, 0.4)`
                             }}
                         />
                     </div>

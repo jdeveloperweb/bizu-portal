@@ -35,17 +35,17 @@ public class RankingController {
     }
 
     @GetMapping("/duelos")
-    public ResponseEntity<List<Map<String, Object>>> getDuelRanking(@RequestParam(defaultValue = "3") int limit) {
-        return ResponseEntity.ok(rankingService.getDuelRanking(limit));
+    public ResponseEntity<List<Map<String, Object>>> getDuelRanking(@RequestParam(required = false) UUID courseId, @RequestParam(defaultValue = "3") int limit) {
+        return ResponseEntity.ok(rankingService.getDuelRanking(courseId, limit));
     }
 
     @GetMapping("/simulados")
-    public ResponseEntity<List<Map<String, Object>>> getSimuladoRanking(@RequestParam(defaultValue = "3") int limit) {
-        return ResponseEntity.ok(rankingService.getSimuladoRanking(limit));
+    public ResponseEntity<List<Map<String, Object>>> getSimuladoRanking(@RequestParam(required = false) UUID courseId, @RequestParam(defaultValue = "3") int limit) {
+        return ResponseEntity.ok(rankingService.getSimuladoRanking(courseId, limit));
     }
 
     @GetMapping("/semanal")
-    public ResponseEntity<List<Map<String, Object>>> getWeeklyXpRanking(@RequestParam(defaultValue = "3") int limit) {
-        return ResponseEntity.ok(rankingService.getWeeklyXpRanking(limit));
+    public ResponseEntity<List<Map<String, Object>>> getWeeklyXpRanking(@RequestParam(required = false) UUID courseId, @RequestParam(defaultValue = "3") int limit) {
+        return ResponseEntity.ok(rankingService.getWeeklyXpRanking(courseId, limit));
     }
 }

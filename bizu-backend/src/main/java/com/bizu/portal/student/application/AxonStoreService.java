@@ -99,14 +99,38 @@ public class AxonStoreService {
                 // Escudo é passivo, mas permitimos "ativar" para feedback visual no front
                 break;
             case "STATUS_ELITE":
-                stats.setActiveTitle("Elite");
+                stats.setActiveTitle("Elite".equals(stats.getActiveTitle()) ? null : "Elite");
+                break;
+            case "STATUS_MASTER":
+                stats.setActiveTitle("Mestre".equals(stats.getActiveTitle()) ? null : "Mestre");
+                break;
+            case "STATUS_LEGEND":
+                stats.setActiveTitle("Lenda".equals(stats.getActiveTitle()) ? null : "Lenda");
+                break;
+            case "AURA_GOLD":
+                stats.setActiveAura("GOLD".equals(stats.getActiveAura()) ? null : "GOLD");
+                break;
+            case "AURA_BLUE":
+                stats.setActiveAura("BLUE".equals(stats.getActiveAura()) ? null : "BLUE");
+                break;
+            case "BORDER_RAINBOW":
+                stats.setActiveBorder("RAINBOW".equals(stats.getActiveBorder()) ? null : "RAINBOW");
+                break;
+            case "STREAK_FREEZE":
+                // Escudo é passivo, mas permitimos "ativar" para feedback visual no front
                 break;
             default:
-                throw new RuntimeException("Este item não pode ser ativado manualmente.");
+                if (itemCode.startsWith("STATUS_")) {
+                    String title = itemCode.replace("STATUS_", "");
+                    stats.setActiveTitle(title.equals(stats.getActiveTitle()) ? null : title);
+                } else {
+                    throw new RuntimeException("Este item não pode ser ativado manualmente.");
+                }
         }
 
-        // Itens de STATUS (Títulos) são permanentes e não são consumidos
-        if (!itemCode.startsWith("STATUS_")) {
+        // Itens de STATUS (Títulos), Auras e Borders são permanentes e não são consumidos
+        boolean isPermanent = itemCode.startsWith("STATUS_") || itemCode.startsWith("AURA_") || itemCode.startsWith("BORDER_");
+        if (!isPermanent) {
             inventory.setQuantity(inventory.getQuantity() - 1);
             if (inventory.getQuantity() == 0) {
                 inventoryRepository.delete(inventory);

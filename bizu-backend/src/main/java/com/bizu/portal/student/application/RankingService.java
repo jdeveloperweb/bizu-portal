@@ -46,7 +46,9 @@ public class RankingService {
         }
     }
 
-    public List<Map<String, Object>> getDuelRanking(int limit) {
+    public List<Map<String, Object>> getDuelRanking(UUID courseId, int limit) {
+        String condition = courseId != null ? "JOIN commerce.course_entitlements ce ON u.id = ce.user_id WHERE ce.course_id = ? AND ce.active = true " : "";
+        
         String sql = """
             SELECT
                 u.id as id,
@@ -57,15 +59,23 @@ public class RankingService {
                 RANK() OVER (ORDER BY COUNT(d.id) DESC) as rank
             FROM identity.users u
             JOIN student.duels d ON u.id = d.winner_id
-            WHERE d.status = 'COMPLETED'
+            """ + condition + (courseId != null ? " AND " : " WHERE ") + """
+            d.status = 'COMPLETED'
             GROUP BY u.id, u.name, u.nickname, u.avatar_url
             ORDER BY wins DESC
             LIMIT ?
             """;
-        return jdbcTemplate.queryForList(sql, limit);
+        
+        if (courseId != null) {
+            return jdbcTemplate.queryForList(sql, courseId, limit);
+        } else {
+            return jdbcTemplate.queryForList(sql, limit);
+        }
     }
 
-    public List<Map<String, Object>> getSimuladoRanking(int limit) {
+    public List<Map<String, Object>> getSimuladoRanking(UUID courseId, int limit) {
+        String condition = courseId != null ? "JOIN content.simulados s ON sr.simulado_id = s.id WHERE s.course_id = ? " : "";
+        
         String sql = """
             SELECT
                 u.id as id,
@@ -76,14 +86,22 @@ public class RankingService {
                 RANK() OVER (ORDER BY MAX(sr.score) DESC) as rank
             FROM identity.users u
             JOIN student.simulado_results sr ON u.id = sr.user_id
+            """ + condition + """
             GROUP BY u.id, u.name, u.nickname, u.avatar_url
             ORDER BY best_score DESC
             LIMIT ?
             """;
-        return jdbcTemplate.queryForList(sql, limit);
+            
+        if (courseId != null) {
+            return jdbcTemplate.queryForList(sql, courseId, limit);
+        } else {
+            return jdbcTemplate.queryForList(sql, limit);
+        }
     }
 
-    public List<Map<String, Object>> getWeeklyXpRanking(int limit) {
+    public List<Map<String, Object>> getWeeklyXpRanking(UUID courseId, int limit) {
+        String condition = courseId != null ? "JOIN commerce.course_entitlements ce ON u.id = ce.user_id WHERE ce.course_id = ? AND ce.active = true " : "";
+        
         String sql = """
             SELECT
                 u.id as id,
@@ -94,15 +112,23 @@ public class RankingService {
                 RANK() OVER (ORDER BY SUM(aa.xp_earned) DESC) as rank
             FROM identity.users u
             JOIN student.activity_attempts aa ON u.id = aa.user_id
-            WHERE aa.status = 'COMPLETED' AND aa.finished_at >= CURRENT_DATE - INTERVAL '7 days'
+            """ + condition + (courseId != null ? " AND " : " WHERE ") + """
+            aa.status = 'COMPLETED' AND aa.finished_at >= CURRENT_DATE - INTERVAL '7 days'
             GROUP BY u.id, u.name, u.nickname, u.avatar_url
             ORDER BY weekly_xp DESC
             LIMIT ?
             """;
-        return jdbcTemplate.queryForList(sql, limit);
+            
+        if (courseId != null) {
+            return jdbcTemplate.queryForList(sql, courseId, limit);
+        } else {
+            return jdbcTemplate.queryForList(sql, limit);
+        }
     }
 
-    public Map<String, Object> getUserRanking(UUID userId) {
+    public Map<String, Object> getUserRanking(UUID userId, UUID courseId) {
+        String condition = courseId != null ? "JOIN commerce.course_entitlements ce ON u.id = ce.user_id WHERE ce.course_id = ? AND ce.active = true " : "";
+        
         String sql = """
             WITH RankedUsers AS (
                 SELECT 
@@ -115,6 +141,7 @@ public class RankingService {
                     RANK() OVER (ORDER BY COALESCE(g.total_xp, 0) DESC) as rank
                 FROM identity.users u
                 LEFT JOIN student.gamification_stats g ON u.id = g.user_id
+                """ + condition + """
             )
             SELECT 
                 r.rank as "rank",
@@ -127,7 +154,12 @@ public class RankingService {
             WHERE r.user_id = ?
             """;
         
-        List<Map<String, Object>> result = jdbcTemplate.queryForList(sql, userId);
+        List<Map<String, Object>> result;
+        if (courseId != null) {
+            result = jdbcTemplate.queryForList(sql, courseId, userId);
+        } else {
+            result = jdbcTemplate.queryForList(sql, userId);
+        }
         return result.isEmpty() ? Map.of("rank", 0, "xp", 0, "streak", 0, "name", "Usuário") : result.get(0);
     }
 }

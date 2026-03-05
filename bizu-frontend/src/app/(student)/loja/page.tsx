@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     Zap, Brain, Shield, Clock, Target,
     ChevronRight, ShoppingCart, Star, Crown,
-    Sparkles, ArrowUpRight, TrendingUp, Info, CreditCard, AlertCircle, X
+    Sparkles, ArrowUpRight, TrendingUp, Info, CreditCard, AlertCircle, X,
+    Palette, Ghost, Wand2, Fingerprint
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
@@ -84,6 +85,56 @@ function AxonStoreContent() {
             price: 2000,
             icon: Crown,
             color: "from-purple-500 to-fuchsia-600",
+            category: "status"
+        },
+        {
+            id: "5",
+            code: "STATUS_MASTER",
+            name: "Título: Mestre",
+            description: "Um título digno para quem já domina os fundamentos.",
+            price: 5000,
+            icon: Star,
+            color: "from-orange-500 to-red-600",
+            category: "status"
+        },
+        {
+            id: "6",
+            code: "STATUS_LEGEND",
+            name: "Título: Lenda",
+            description: "O título máximo para os estudantes mais dedicados do portal.",
+            price: 15000,
+            icon: Sparkles,
+            color: "from-yellow-400 via-amber-500 to-orange-600",
+            category: "status"
+        },
+        {
+            id: "7",
+            code: "AURA_GOLD",
+            name: "Aura Ancestral",
+            description: "Envolve seu avatar com uma aura dourada de sabedoria.",
+            price: 8000,
+            icon: Wand2,
+            color: "from-yellow-300 to-amber-500",
+            category: "status"
+        },
+        {
+            id: "8",
+            code: "AURA_BLUE",
+            name: "Aura Dimensional",
+            description: "Uma emanação azul futurista que destaca sua presença.",
+            price: 4000,
+            icon: Ghost,
+            color: "from-cyan-400 to-blue-600",
+            category: "status"
+        },
+        {
+            id: "9",
+            code: "BORDER_RAINBOW",
+            name: "Moldura Prismática",
+            description: "Uma moldura animada com as cores do arco-íris para seu perfil.",
+            price: 12000,
+            icon: Palette,
+            color: "from-red-400 via-green-400 to-blue-400",
             category: "status"
         }
     ];
@@ -302,11 +353,10 @@ function AxonStoreContent() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -16, scale: 0.98 }}
                         transition={{ type: "spring", stiffness: 280, damping: 28 }}
-                        className={`mb-8 rounded-[24px] p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 shadow-xl ${
-                            paymentTimedOut
+                        className={`mb-8 rounded-[24px] p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 shadow-xl ${paymentTimedOut
                                 ? "bg-gradient-to-r from-red-600 to-rose-600 shadow-red-200"
                                 : "bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-700 shadow-indigo-200"
-                        }`}
+                            }`}
                     >
                         {/* Ícone animado */}
                         <div className="relative flex-shrink-0">
@@ -433,12 +483,34 @@ function AxonStoreContent() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
                 {storeItems.map((item) => {
                     const invQuantity = inventory.find(i => i.itemCode === item.code)?.quantity || 0;
+
+                    // Lógica de item ativo
+                    let isActive = false;
+                    if (item.category === "status" || item.code.startsWith("AURA_") || item.code.startsWith("BORDER_")) {
+                        if (item.code.startsWith("STATUS_")) {
+                            const titleValue = item.code.replace("STATUS_", "");
+                            // Alguns títulos tem nomes amigáveis no backend (Mestre, Lenda)
+                            const mappedTitle = titleValue === "MASTER" ? "Mestre" : titleValue === "LEGEND" ? "Lenda" : titleValue;
+                            isActive = gamification?.activeTitle === mappedTitle;
+                        } else if (item.code.startsWith("AURA_")) {
+                            isActive = gamification?.activeAura === item.code.replace("AURA_", "");
+                        } else if (item.code.startsWith("BORDER_")) {
+                            isActive = gamification?.activeBorder === item.code.replace("BORDER_", "");
+                        }
+                    }
+
                     return (
                         <motion.div
                             key={item.id}
                             whileHover={{ y: -5 }}
-                            className="bg-white border border-slate-200 rounded-[32px] p-6 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all h-full"
+                            className={`bg-white border ${isActive ? "border-indigo-500 ring-2 ring-indigo-500/20" : "border-slate-200"} rounded-[32px] p-6 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all h-full relative overflow-hidden`}
                         >
+                            {isActive && (
+                                <div className="absolute top-0 right-0 bg-indigo-600 text-white px-4 py-1 rounded-bl-2xl text-[10px] font-black uppercase tracking-widest">
+                                    Equipado
+                                </div>
+                            )}
+
                             <div className={`w-16 h-16 rounded-[24px] bg-gradient-to-br ${item.color} flex items-center justify-center text-white mb-6 shadow-lg shadow-indigo-100`}>
                                 <item.icon size={32} />
                             </div>
@@ -450,7 +522,7 @@ function AxonStoreContent() {
                                 </p>
                             </div>
 
-                            {invQuantity > 0 && (
+                            {invQuantity > 0 && !isActive && (
                                 <motion.div
                                     animate={{
                                         boxShadow: ["0px 0px 0px rgba(99,102,241,0)", "0px 0px 15px rgba(99,102,241,0.4)", "0px 0px 0px rgba(99,102,241,0)"]
@@ -458,17 +530,26 @@ function AxonStoreContent() {
                                     transition={{ duration: 2, repeat: Infinity }}
                                     className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-4 py-1.5 rounded-full mb-4 flex items-center gap-2"
                                 >
-                                    <Sparkles size={10} /> Você possui: {invQuantity}
+                                    <Sparkles size={10} /> {item.category === 'status' ? 'Disponível' : `Você possui: ${invQuantity}`}
                                 </motion.div>
                             )}
 
                             {invQuantity > 0 ? (
                                 <button
                                     onClick={() => handleUseItem(item)}
-                                    className="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-200"
+                                    className={`w-full py-4 ${isActive ? "bg-slate-900 shadow-slate-200" : "bg-indigo-600 shadow-indigo-200"} text-white font-black rounded-2xl hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg`}
                                 >
-                                    <Zap size={14} className="animate-pulse" />
-                                    Ativar Agora
+                                    {isActive ? (
+                                        <>
+                                            <X size={14} />
+                                            Desativar
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Zap size={14} className="animate-pulse" />
+                                            {item.category === 'status' ? 'Equipar Agora' : 'Ativar Agora'}
+                                        </>
+                                    )}
                                 </button>
                             ) : (
                                 <button
@@ -477,7 +558,7 @@ function AxonStoreContent() {
                                     className="w-full py-4 bg-slate-50 border border-slate-200 text-slate-900 font-bold rounded-2xl hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
                                 >
                                     <Brain size={14} className="group-hover:animate-bounce" />
-                                    {isBuying === item.id ? "Comprando..." : `${item.price} Axons`}
+                                    {isBuying === item.id ? "Comprando..." : `${item.price.toLocaleString('pt-BR')} Axons`}
                                 </button>
                             )}
                         </motion.div>
