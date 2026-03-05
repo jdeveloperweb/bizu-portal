@@ -87,9 +87,9 @@ export function Avatar({
 
     // Aura glow effect
     const auraStyle = activeAura === "GOLD"
-        ? "after:absolute after:inset-[-4px] after:rounded-[inherit] after:bg-yellow-400/20 after:blur-md after:animate-pulse"
+        ? "after:absolute after:inset-[-6px] after:rounded-[inherit] after:bg-yellow-400/40 after:blur-lg after:animate-pulse before:absolute before:inset-[-12px] before:rounded-[inherit] before:bg-yellow-400/10 before:blur-xl before:animate-pulse"
         : activeAura === "BLUE"
-            ? "after:absolute after:inset-[-4px] after:rounded-[inherit] after:bg-cyan-400/20 after:blur-md after:animate-pulse"
+            ? "after:absolute after:inset-[-6px] after:rounded-[inherit] after:bg-cyan-400/40 after:blur-lg after:animate-pulse before:absolute before:inset-[-12px] before:rounded-[inherit] before:bg-cyan-400/10 before:blur-xl before:animate-pulse"
             : "";
 
     // Animated rainbow border

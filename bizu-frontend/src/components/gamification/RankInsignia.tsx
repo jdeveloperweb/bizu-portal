@@ -114,7 +114,7 @@ export function RankInsignia({ level, rank, className, showName = false, size = 
     return (
         <div className={cn("flex items-center gap-3", className)}>
             <div className={cn(
-                "rounded-2xl flex items-center justify-center transition-all duration-500 bg-white border border-slate-100 shadow-sm",
+                "rounded-full flex items-center justify-center transition-all duration-500 bg-white border border-slate-100 shadow-sm",
                 currentSize.container
             )}>
                 <InsigniaSVG level={level} size={currentSize.icon} />

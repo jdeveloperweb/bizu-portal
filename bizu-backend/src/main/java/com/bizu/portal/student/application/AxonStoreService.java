@@ -22,17 +22,21 @@ public class AxonStoreService {
     private final InventoryRepository inventoryRepository;
     private final GamificationRepository gamificationRepository;
     private final UserRepository userRepository;
+    private final com.bizu.portal.student.infrastructure.StoreItemRepository storeItemRepository;
 
     @Transactional
-    public void buyItem(UUID userId, String itemCode, int price) {
+    public void buyItem(UUID userId, String itemCode) {
+        com.bizu.portal.student.domain.StoreItem item = storeItemRepository.findByCode(itemCode)
+                .orElseThrow(() -> new RuntimeException("Item não encontrado: " + itemCode));
+
         GamificationStats stats = gamificationRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Stats not found"));
 
-        if (stats.getAxonCoins() < price) {
+        if (stats.getAxonCoins() < item.getPrice()) {
             throw new RuntimeException("Axons insuficientes");
         }
 
-        stats.setAxonCoins(stats.getAxonCoins() - price);
+        stats.setAxonCoins(stats.getAxonCoins() - item.getPrice());
         gamificationRepository.save(stats);
 
         addItemToInventory(userId, itemCode, 1);
@@ -60,6 +64,10 @@ public class AxonStoreService {
 
     public List<Inventory> getInventory(UUID userId) {
         return inventoryRepository.findAllByUserId(userId);
+    }
+
+    public List<com.bizu.portal.student.domain.StoreItem> getActiveStoreItems() {
+        return storeItemRepository.findAllByActiveTrue();
     }
 
     @Transactional

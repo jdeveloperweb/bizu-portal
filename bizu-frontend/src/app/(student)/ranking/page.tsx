@@ -7,6 +7,7 @@ import {
     ArrowUp, ArrowDown, Minus, Zap,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getStoredSelectedCourseId } from "@/lib/course-selection";
 import { useAuth } from "@/components/AuthProvider";
@@ -447,9 +448,15 @@ export default function RankingStudentPage() {
                                                     <div className={`relative z-10 w-8 h-8 rounded-xl flex items-center justify-center font-black text-[13px] flex-shrink-0 ${m.badgeBg}`}>
                                                         {user.rank <= 3 ? MEDALS[user.rank - 1] : user.rank}
                                                     </div>
-                                                    <div className={`relative z-10 flex-shrink-0 rounded-xl overflow-hidden ${user.rank <= 3 ? m.ring : ""}`}>
-                                                        <Avatar src={user.avatar} name={user.name} size="sm" className="border-0" rankLevel={user.level} activeAura={user.activeAura} activeBorder={user.activeBorder} />
-                                                    </div>
+                                                    <Avatar
+                                                        src={user.avatar}
+                                                        name={user.name}
+                                                        size="md"
+                                                        className={cn("relative z-10 flex-shrink-0", user.rank <= 3 ? m.ring : "")}
+                                                        rankLevel={user.level}
+                                                        activeAura={user.activeAura}
+                                                        activeBorder={user.activeBorder}
+                                                    />
                                                     <div className="relative z-10 flex-1 min-w-0">
                                                         <div className="text-[13px] font-bold text-slate-800 truncate">{user.name}</div>
                                                         {user.nickname && <div className="text-[10px] text-slate-400">@{user.nickname}</div>}
@@ -496,12 +503,12 @@ export default function RankingStudentPage() {
                                                 )}
 
                                                 {/* Avatar */}
-                                                <div className={`rounded-full group-hover:scale-105 transition-transform mb-3 ${m.avatarBg}`}>
+                                                <div className="group-hover:scale-105 transition-transform mb-3">
                                                     <Avatar
                                                         src={user.avatar}
                                                         name={user.name}
-                                                        size={user.rank === 1 ? "lg" : "md"}
-                                                        className={`border-2 border-white ${m.ring}`}
+                                                        size={user.rank === 1 ? "xl" : "lg"}
+                                                        className={`border-2 border-white !rounded-full ${m.ring} ${m.avatarBg}`}
                                                         rankLevel={user.level}
                                                         activeAura={user.activeAura}
                                                         activeBorder={user.activeBorder}
@@ -569,9 +576,15 @@ export default function RankingStudentPage() {
                                             </div>
 
                                             {/* Avatar */}
-                                            <div className={`relative z-10 flex-shrink-0 rounded-xl overflow-hidden ${user.rank <= 3 ? m.ring : ""}`}>
-                                                <Avatar src={user.avatar} name={user.name} size="sm" className="border-0" rankLevel={user.level} activeAura={user.activeAura} activeBorder={user.activeBorder} />
-                                            </div>
+                                            <Avatar
+                                                src={user.avatar}
+                                                name={user.name}
+                                                size="md"
+                                                className={cn("relative z-10 flex-shrink-0", user.rank <= 3 ? m.ring : "")}
+                                                rankLevel={user.level}
+                                                activeAura={user.activeAura}
+                                                activeBorder={user.activeBorder}
+                                            />
 
                                             {/* Info */}
                                             <div className="relative z-10 flex-1 min-w-0">
@@ -613,18 +626,16 @@ export default function RankingStudentPage() {
                                         <div className="w-8 h-8 rounded-xl bg-indigo-100 border border-indigo-200 flex items-center justify-center font-black text-[11px] text-indigo-700 flex-shrink-0">
                                             {myRank.rank > 0 ? myRank.rank : "–"}
                                         </div>
-                                        <div className="flex-shrink-0 rounded-xl overflow-hidden ring-2 ring-indigo-400">
-                                            <Avatar
-                                                src={myRank.avatar}
-                                                name={myRank.name}
-                                                size="sm"
-                                                className="border-0"
-                                                fallbackClassName="bg-indigo-600 text-white"
-                                                rankLevel={myRank.level}
-                                                activeAura={myRank.activeAura}
-                                                activeBorder={myRank.activeBorder}
-                                            />
-                                        </div>
+                                        <Avatar
+                                            src={myRank.avatar}
+                                            name={myRank.name}
+                                            size="md"
+                                            className="flex-shrink-0 ring-2 ring-indigo-400"
+                                            fallbackClassName="bg-indigo-600 text-white"
+                                            rankLevel={myRank.level}
+                                            activeAura={myRank.activeAura}
+                                            activeBorder={myRank.activeBorder}
+                                        />
                                         <div className="flex-1 min-w-0">
                                             <div className="text-[13px] font-bold text-indigo-800">Você</div>
                                             <div className="text-[10px] text-indigo-400 flex items-center gap-2">

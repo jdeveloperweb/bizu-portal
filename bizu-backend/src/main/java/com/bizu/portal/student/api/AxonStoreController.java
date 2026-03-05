@@ -29,6 +29,11 @@ public class AxonStoreController {
         return ResponseEntity.ok(planRepository.findByCodeStartingWithAndActiveTrueOrderBySortOrderAsc("AXON_PACK_"));
     }
 
+    @GetMapping("/items")
+    public ResponseEntity<List<com.bizu.portal.student.domain.StoreItem>> getItems() {
+        return ResponseEntity.ok(axonStoreService.getActiveStoreItems());
+    }
+
     @GetMapping("/inventory")
     public ResponseEntity<List<Inventory>> getInventory(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = userService.resolveUserId(jwt);
@@ -36,13 +41,12 @@ public class AxonStoreController {
     }
 
     @PostMapping("/buy")
-    public ResponseEntity<?> buyItem(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> buyItem(@AuthenticationPrincipal Jwt jwt, @RequestBody Map<String, String> body) {
         UUID userId = userService.resolveUserId(jwt);
-        String itemCode = (String) body.get("itemCode");
-        int price = (int) body.get("price");
+        String itemCode = body.get("itemCode");
 
         try {
-            axonStoreService.buyItem(userId, itemCode, price);
+            axonStoreService.buyItem(userId, itemCode);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

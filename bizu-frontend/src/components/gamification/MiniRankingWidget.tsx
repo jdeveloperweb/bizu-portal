@@ -268,16 +268,15 @@ function RankRow({ entry, index, tab }: { entry: RankEntry; index: number; tab: 
             </div>
 
             {/* Avatar */}
-            <div className={cn("rounded-2xl overflow-hidden shrink-0 ring-2", medal.ring)}>
-                <Avatar
-                    src={entry.avatar && entry.avatar.length > 3 ? entry.avatar : undefined}
-                    name={entry.name}
-                    size="sm"
-                    rankLevel={entry.level}
-                    activeAura={entry.activeAura}
-                    activeBorder={entry.activeBorder}
-                />
-            </div>
+            <Avatar
+                src={entry.avatar && entry.avatar.length > 3 ? entry.avatar : undefined}
+                name={entry.name}
+                size="sm"
+                rankLevel={entry.level}
+                activeAura={entry.activeAura}
+                activeBorder={entry.activeBorder}
+                className={cn("ring-2 shrink-0", medal.ring)}
+            />
 
             {/* Name */}
             <div className="flex-1 min-w-0">
