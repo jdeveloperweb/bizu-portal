@@ -39,21 +39,21 @@ public class LevelCalculator {
 
     public String calculateRank(int level) {
         if (level <= 2) return "Recruta";
-        if (level <= 5) return "Soldado";
-        if (level <= 8) return "Cabo";
-        if (level <= 12) return "3º Sargento";
-        if (level <= 16) return "2º Sargento";
-        if (level <= 20) return "1º Sargento";
-        if (level <= 25) return "Subtenente";
-        if (level <= 30) return "Aspirante";
-        if (level <= 35) return "2º Tenente";
-        if (level <= 40) return "1º Tenente";
-        if (level <= 45) return "Capitão";
-        if (level <= 50) return "Major";
-        if (level <= 60) return "Tenente-Coronel";
-        if (level <= 70) return "Coronel";
-        if (level <= 80) return "General de Brigada";
-        if (level <= 85) return "General de Divisão";
+        if (level <= 6) return "Soldado";
+        if (level <= 10) return "Cabo";
+        if (level <= 15) return "3º Sargento";
+        if (level <= 20) return "2º Sargento";
+        if (level <= 25) return "1º Sargento";
+        if (level <= 30) return "Subtenente";
+        if (level <= 35) return "Aspirante";
+        if (level <= 40) return "2º Tenente";
+        if (level <= 45) return "1º Tenente";
+        if (level <= 52) return "Capitão";
+        if (level <= 60) return "Major";
+        if (level <= 70) return "Tenente-Coronel";
+        if (level <= 80) return "Coronel";
+        if (level <= 85) return "General de Brigada";
+        if (level <= 90) return "General de Divisão";
         if (level <= 95) return "General de Exército";
         return "Marechal";
     }
