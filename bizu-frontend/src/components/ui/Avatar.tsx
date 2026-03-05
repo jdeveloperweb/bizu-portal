@@ -139,24 +139,27 @@ export function Avatar({
         return url;
     }, [validSrc]);
 
-    const hasRainbow = activeBorder === "RAINBOW" || borderMetadata?.visual?.borderStyle === "rainbow";
-    const hasAuraBorder = (activeAura === "GOLD" || activeAura === "BLUE") && !combinedMetadata;
+    const hasRainbow = activeBorder?.toUpperCase() === "RAINBOW" || borderMetadata?.visual?.borderStyle === "rainbow";
+    const hasAura = activeAura?.toUpperCase() === "GOLD" || activeAura?.toUpperCase() === "BLUE" || !!combinedMetadata?.auraColor;
 
     // Outer Aura Glow (outside the box)
-    const auraEffectClass = activeAura === "GOLD"
+    const isGold = activeAura?.toUpperCase() === "GOLD" || combinedMetadata?.auraColor?.toLowerCase() === "#fbbf24";
+    const isBlue = activeAura?.toUpperCase() === "BLUE" || combinedMetadata?.auraColor?.toLowerCase() === "#22d3ee";
+
+    const auraEffectClass = isGold
         ? "after:absolute after:inset-[-4px] after:rounded-[inherit] after:bg-yellow-400/40 after:blur-md after:animate-pulse before:absolute before:inset-[-8px] before:rounded-[inherit] before:bg-yellow-400/15 before:blur-xl before:animate-pulse"
-        : activeAura === "BLUE"
+        : isBlue
             ? "after:absolute after:inset-[-4px] after:rounded-[inherit] after:bg-cyan-400/40 after:blur-md after:animate-pulse before:absolute before:inset-[-8px] before:rounded-[inherit] before:bg-cyan-400/15 before:blur-xl before:animate-pulse"
             : "";
 
     return (
-        <div className={cn("relative inline-block shrink-0", !combinedMetadata && auraEffectClass)}>
+        <div className={cn("relative inline-block shrink-0", auraEffectClass)}>
             <AvatarEffects metadata={combinedMetadata} size={size} />
 
             <div className={cn(
                 "relative z-10 overflow-hidden shrink-0",
                 sizeClasses[size],
-                (hasRainbow || hasAuraBorder) && "p-[2.5px]", // Padding creates the "border" space
+                (hasRainbow || hasAura) && "p-[3px]", // Slightly larger padding for better border visibility
                 className,
             )}>
                 {/* 1. Animated Rainbow Background */}
@@ -164,36 +167,38 @@ export function Avatar({
                     <div className="absolute inset-[-100%] bg-[conic-gradient(from_0deg,red,orange,yellow,green,blue,indigo,violet,red)] animate-[spin_4s_linear_infinite] z-0" />
                 )}
 
-                {/* 2. Aura Background (Solid Pulse) */}
-                {hasAuraBorder && (
+                {/* 2. Aura Background (Solid/Pulse at the edge) */}
+                {hasAura && !hasRainbow && (
                     <div className={cn(
                         "absolute inset-0 animate-pulse z-0",
-                        activeAura === "GOLD" ? "bg-yellow-400" : "bg-cyan-400"
+                        isGold ? "bg-yellow-400" : "bg-cyan-400"
                     )} />
                 )}
 
-                {/* 3. Inner Container (Hides the effects in the middle) */}
-                <div className="relative z-10 w-full h-full overflow-hidden rounded-[inherit] bg-white dark:bg-slate-900">
-                    {showImage ? (
-                        <img
-                            src={finalSrc}
-                            className="w-full h-full object-cover relative z-[2]"
-                            alt={name || "Avatar"}
-                            onError={() => setHasError(true)}
-                        />
-                    ) : (
-                        <div
-                            className={cn(
-                                "w-full h-full flex items-center justify-center font-extrabold text-white select-none relative z-[2]",
-                                fallbackClassName,
-                            )}
-                            style={{
-                                background: `linear-gradient(135deg, ${fromColor}, ${toColor})`,
-                            }}
-                        >
-                            {initials}
-                        </div>
-                    )}
+                {/* 3. Inner Container (Hides the effects in the middle so they only show on the border) */}
+                <div className="relative z-10 w-full h-full overflow-hidden rounded-[inherit] bg-white dark:bg-slate-900 flex items-center justify-center">
+                    <div className="w-full h-full relative z-[2] flex items-center justify-center rounded-[inherit] overflow-hidden">
+                        {showImage ? (
+                            <img
+                                src={finalSrc}
+                                className="w-full h-full object-cover"
+                                alt={name || "Avatar"}
+                                onError={() => setHasError(true)}
+                            />
+                        ) : (
+                            <div
+                                className={cn(
+                                    "w-full h-full flex items-center justify-center font-extrabold text-white select-none",
+                                    fallbackClassName,
+                                )}
+                                style={{
+                                    background: `linear-gradient(135deg, ${fromColor}, ${toColor})`,
+                                }}
+                            >
+                                {initials}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
