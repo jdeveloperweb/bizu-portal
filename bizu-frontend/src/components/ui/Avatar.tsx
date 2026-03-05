@@ -36,10 +36,10 @@ export function Avatar({ src, name, className, size = "md", fallbackClassName, r
     };
 
     const insigniaSize = {
-        sm: "sm",
-        md: "sm",
-        lg: "md",
-        xl: "lg",
+        sm: "xxs",
+        md: "xs",
+        lg: "sm",
+        xl: "md",
     } as const;
 
     const initials = name ? getInitials(name) : "?";
@@ -99,12 +99,12 @@ export function Avatar({ src, name, className, size = "md", fallbackClassName, r
             {rankLevel !== undefined && (
                 <div className={cn(
                     "absolute z-[20]",
-                    size === "sm" ? "-bottom-1 -right-1" :
-                        size === "md" ? "-bottom-1.5 -right-1.5" :
-                            size === "lg" ? "-bottom-2 -right-2" :
-                                "-bottom-3 -right-3"
+                    size === "sm" ? "-bottom-0.5 -right-0.5" :
+                        size === "md" ? "-bottom-1 -right-1" :
+                            size === "lg" ? "-bottom-1 -right-1" :
+                                "-bottom-2 -right-2"
                 )}>
-                    <RankInsignia level={rankLevel} size={insigniaSize[size]} className="bg-white rounded-full p-0.5 border border-slate-100 shadow-md ring-2 ring-white" />
+                    <RankInsignia level={rankLevel} size={insigniaSize[size]} className="bg-white rounded-xl shadow-md ring-1 ring-white" />
                 </div>
             )}
 

@@ -7,7 +7,7 @@ interface RankInsigniaProps {
     rank?: string;
     className?: string;
     showName?: boolean;
-    size?: "xs" | "sm" | "md" | "lg";
+    size?: "xxs" | "xs" | "sm" | "md" | "lg";
 }
 
 // Custom SVG Insignia Components
@@ -102,7 +102,8 @@ const InsigniaSVG = ({ level, size = 24 }: { level: number, size?: number }) => 
 
 export function RankInsignia({ level, rank, className, showName = false, size = "md" }: RankInsigniaProps) {
     const sizeMap = {
-        xs: { container: "w-6 h-6 p-0.5", icon: 16 },
+        xxs: { container: "w-4 h-4 p-px", icon: 10 },
+        xs: { container: "w-5 h-5 p-0.5", icon: 12 },
         sm: { container: "w-8 h-8 p-1", icon: 20 },
         md: { container: "w-12 h-12 p-2", icon: 32 },
         lg: { container: "w-20 h-20 p-3.5", icon: 56 }
