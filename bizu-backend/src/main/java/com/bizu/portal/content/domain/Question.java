@@ -54,7 +54,7 @@ public class Question {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "module_id")
-    @com.fasterxml.jackson.annotation.JsonBackReference
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"questions", "materials", "course", "hibernateLazyInitializer", "handler"})
     private Module module;
 
     @com.fasterxml.jackson.annotation.JsonProperty("moduleId")
