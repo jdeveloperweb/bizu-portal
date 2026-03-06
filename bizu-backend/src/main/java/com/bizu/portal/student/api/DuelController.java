@@ -62,9 +62,15 @@ public class DuelController {
                      WHERE (d.challenger_id = u.id OR d.opponent_id = u.id) 
                      AND d.status = 'IN_PROGRESS' LIMIT 1),
                     CASE WHEN u.duel_focus_mode THEN 'focado' ELSE 'online' END
-                ) as "status"
+                ) as "status",
+                g.active_aura as "activeAura",
+                g.active_border as "activeBorder",
+                sa.metadata as "auraMetadata",
+                sb.metadata as "borderMetadata"
             FROM identity.users u
             LEFT JOIN student.gamification_stats g ON u.id = g.user_id
+            LEFT JOIN student.store_items sa ON sa.code = 'AURA_' || g.active_aura
+            LEFT JOIN student.store_items sb ON sb.code = 'BORDER_' || g.active_border
             """ + condition + """
             ORDER BY u.last_seen_at DESC
             LIMIT ? OFFSET ?
@@ -170,7 +176,11 @@ public class DuelController {
             "name", r[1],
             "nickname", r[2] != null ? r[2] : "",
             "avatar", r[3] != null ? r[3] : "",
-            "wins", r[4]
+            "wins", r[4],
+            "activeAura", r[5],
+            "activeBorder", r[6],
+            "auraMetadata", r[7],
+            "borderMetadata", r[8]
         )).collect(java.util.stream.Collectors.toList());
 
         return ResponseEntity.ok(new com.bizu.portal.shared.pagination.PageResponse<>(

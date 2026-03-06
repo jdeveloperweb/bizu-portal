@@ -35,6 +35,10 @@ interface OnlineUser {
     xp: number;
     winRate: number;
     status: "online" | "em_duelo" | "focado";
+    activeAura?: string | null;
+    activeBorder?: string | null;
+    auraMetadata?: any;
+    borderMetadata?: any;
 }
 
 interface RankingUser {
@@ -43,6 +47,10 @@ interface RankingUser {
     nickname: string;
     avatar: string;
     wins: number;
+    activeAura?: string | null;
+    activeBorder?: string | null;
+    auraMetadata?: any;
+    borderMetadata?: any;
 }
 
 
@@ -141,7 +149,11 @@ function ArenaPageContent() {
                 level: parseInt(Math.floor(Number(u.level) || 1).toString()),
                 xp: Number(u.xp) || 0,
                 winRate: Number(u.winRate) || 0,
-                status: u.status || "online"
+                status: u.status || "online",
+                activeAura: u.activeAura,
+                activeBorder: u.activeBorder,
+                auraMetadata: u.auraMetadata,
+                borderMetadata: u.borderMetadata
             }));
 
             if (append) {
@@ -557,6 +569,10 @@ function ArenaPageContent() {
                                                         name={user.name}
                                                         size="md"
                                                         className="md:w-11 md:h-11 border border-indigo-200/50"
+                                                        activeAura={user.activeAura}
+                                                        activeBorder={user.activeBorder}
+                                                        auraMetadata={user.auraMetadata}
+                                                        borderMetadata={user.borderMetadata}
                                                     />
                                                     <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${user.status === "online" ? "bg-emerald-400" : "bg-amber-400"
                                                         }`} />
@@ -635,6 +651,10 @@ function ArenaPageContent() {
                                                 size="md"
                                                 className="bg-indigo-50"
                                                 fallbackClassName="text-indigo-600"
+                                                activeAura={r.activeAura}
+                                                activeBorder={r.activeBorder}
+                                                auraMetadata={r.auraMetadata}
+                                                borderMetadata={r.borderMetadata}
                                             />
                                             <div className="flex-1 min-w-0">
                                                 <div

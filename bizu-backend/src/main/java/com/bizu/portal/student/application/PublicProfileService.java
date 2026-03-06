@@ -52,8 +52,8 @@ public class PublicProfileService {
                     OR (f.requester_id = r.user_id AND f.addressee_id = ?)
                  LIMIT 1) as "friendshipId"
             FROM RankedUsers r
-            LEFT JOIN student.store_items sa ON r.active_aura = sa.code
-            LEFT JOIN student.store_items sb ON r.active_border = sb.code
+            LEFT JOIN student.store_items sa ON sa.code = 'AURA_' || r.active_aura
+            LEFT JOIN student.store_items sb ON sb.code = 'BORDER_' || r.active_border
             WHERE r.nickname = ?
             """;
         

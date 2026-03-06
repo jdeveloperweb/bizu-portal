@@ -13,13 +13,18 @@ public interface DuelRepository extends JpaRepository<Duel, UUID> {
     @org.springframework.data.jpa.repository.Query("SELECT d FROM Duel d JOIN FETCH d.challenger JOIN FETCH d.opponent WHERE d.opponent.id = :opponentId AND d.status = :status")
     List<Duel> findAllByOpponentIdAndStatus(@org.springframework.data.repository.query.Param("opponentId") UUID opponentId, @org.springframework.data.repository.query.Param("status") String status);
 
-    @Query(value = "SELECT u.id, u.name as name, u.nickname, u.avatar_url as avatar, COUNT(d.id) as wins " +
+    @Query(value = "SELECT u.id, u.name as name, u.nickname, u.avatar_url as avatar, COUNT(d.id) as wins, " +
+                   "gs.active_aura as \"activeAura\", gs.active_border as \"activeBorder\", " +
+                   "sa.metadata as \"auraMetadata\", sb.metadata as \"borderMetadata\" " +
                    "FROM identity.users u " +
                    "JOIN student.duels d ON u.id = d.winner_id " +
                    "JOIN commerce.course_entitlements ce ON u.id = ce.user_id " +
+                   "LEFT JOIN student.gamification_stats gs ON u.id = gs.user_id " +
+                   "LEFT JOIN student.store_items sa ON sa.code = 'AURA_' || gs.active_aura " +
+                   "LEFT JOIN student.store_items sb ON sb.code = 'BORDER_' || gs.active_border " +
                    "WHERE d.status = 'COMPLETED' AND d.completed_at >= CURRENT_DATE - INTERVAL '7 days' " +
                    "AND ce.course_id = :courseId AND ce.active = true " +
-                   "GROUP BY u.id, u.name, u.nickname, u.avatar_url " +
+                   "GROUP BY u.id, u.name, u.nickname, u.avatar_url, gs.active_aura, gs.active_border, sa.metadata, sb.metadata " +
                    "ORDER BY wins DESC", 
             countQuery = "SELECT COUNT(DISTINCT u.id) FROM identity.users u " +
                          "JOIN student.duels d ON u.id = d.winner_id " +

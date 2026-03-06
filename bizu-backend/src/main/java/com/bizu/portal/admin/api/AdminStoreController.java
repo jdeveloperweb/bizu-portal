@@ -36,6 +36,7 @@ public class AdminStoreController {
         item.setPrice(itemDetails.getPrice());
         item.setCategory(itemDetails.getCategory());
         item.setActive(itemDetails.isActive());
+        item.setMetadata(itemDetails.getMetadata());
         
         return ResponseEntity.ok(storeItemRepository.save(item));
     }
