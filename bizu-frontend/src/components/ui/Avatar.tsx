@@ -70,10 +70,17 @@ export function Avatar({
     }, [src]);
 
     const sizeClasses = {
-        sm: "w-8 h-8 rounded-lg text-[10px]",
-        md: "w-10 h-10 rounded-xl text-[11px]",
-        lg: "w-12 h-12 rounded-2xl text-sm",
-        xl: "w-24 h-24 rounded-3xl text-xl",
+        sm: "w-8 h-8 text-[10px]",
+        md: "w-10 h-10 text-[11px]",
+        lg: "w-12 h-12 text-sm",
+        xl: "w-24 h-24 text-xl",
+    };
+
+    const roundingClasses = {
+        sm: "rounded-lg",
+        md: "rounded-xl",
+        lg: "rounded-2xl",
+        xl: "rounded-3xl",
     };
 
     const badgeSize = {
@@ -152,10 +159,12 @@ export function Avatar({
             ? "after:absolute after:inset-[-4px] after:rounded-[inherit] after:bg-cyan-400/40 after:blur-md after:animate-pulse before:absolute before:inset-[-8px] before:rounded-[inherit] before:bg-cyan-400/15 before:blur-xl before:animate-pulse"
             : "";
 
+    const roundingClass = className?.includes("rounded-full") ? "rounded-full" : roundingClasses[size];
+
     return (
-        <div className={cn("relative inline-block shrink-0", auraEffectClass)}>
+        <div className={cn("relative inline-block shrink-0", roundingClass, auraEffectClass)}>
             {/* 1. LAYER DE FUNDO: Efeitos de Borda (atrás de tudo) */}
-            <div className="absolute inset-0 z-0">
+            <div className="absolute inset-0 z-0 rounded-[inherit]">
                 <AvatarEffects metadata={combinedMetadata} size={size} />
 
                 {/* Arco-íris animado ligeiramente maior para criar a borda externa */}
@@ -176,7 +185,7 @@ export function Avatar({
 
             {/* 2. LAYER DE FRENTE: Foto/Iniciais (z-10) */}
             <div className={cn(
-                "relative z-10 shrink-0 bg-white dark:bg-slate-900 overflow-hidden",
+                "relative z-10 shrink-0 bg-white dark:bg-slate-900 overflow-hidden rounded-[inherit]",
                 sizeClasses[size],
                 className,
             )}>
