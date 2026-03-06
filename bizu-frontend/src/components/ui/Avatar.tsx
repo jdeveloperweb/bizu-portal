@@ -146,23 +146,43 @@ export function Avatar({
         return url;
     }, [validSrc]);
 
-    const hasRainbow = activeBorder?.toUpperCase() === "RAINBOW" || borderMetadata?.visual?.borderStyle === "rainbow";
-    const hasAura = activeAura?.toUpperCase() === "GOLD" || activeAura?.toUpperCase() === "BLUE" || !!combinedMetadata?.auraColor;
+    const auraColor = activeAura === "GOLD" ? "#fbbf24" :
+        activeAura === "BLUE" ? "#22d3ee" :
+            activeAura === "RED" ? "#ef4444" :
+                activeAura === "GREEN" ? "#10b981" :
+                    activeAura === "PURPLE" ? "#a855f7" :
+                        activeAura === "PINK" ? "#ec4899" :
+                            combinedMetadata?.auraColor;
 
-    // Outer Aura Glow (outside the box)
-    const isGold = activeAura?.toUpperCase() === "GOLD" || combinedMetadata?.auraColor?.toLowerCase() === "#fbbf24";
-    const isBlue = activeAura?.toUpperCase() === "BLUE" || combinedMetadata?.auraColor?.toLowerCase() === "#22d3ee";
+    const hasRainbow = activeBorder === "RAINBOW" || borderMetadata?.visual?.borderStyle === "rainbow";
+    const hasAura = !!auraColor;
 
-    const auraEffectClass = isGold
-        ? "after:absolute after:inset-[-4px] after:rounded-[inherit] after:bg-yellow-400/40 after:blur-md after:animate-pulse before:absolute before:inset-[-8px] before:rounded-[inherit] before:bg-yellow-400/15 before:blur-xl before:animate-pulse"
-        : isBlue
-            ? "after:absolute after:inset-[-4px] after:rounded-[inherit] after:bg-cyan-400/40 after:blur-md after:animate-pulse before:absolute before:inset-[-8px] before:rounded-[inherit] before:bg-cyan-400/15 before:blur-xl before:animate-pulse"
-            : "";
+    const auraEffectClass = auraColor ? "after:absolute after:inset-[-4px] after:rounded-[inherit] after:blur-md after:animate-pulse before:absolute before:inset-[-8px] before:rounded-[inherit] before:blur-xl before:animate-pulse" : "";
+
+    // Inline styles for calculated aura colors
+    const auraStyles = auraColor ? {
+        '--aura-rgb': auraColor === "#fbbf24" ? '251, 191, 36' :
+            auraColor === "#22d3ee" ? '34, 211, 238' :
+                auraColor === "#ef4444" ? '239, 68, 68' :
+                    auraColor === "#10b981" ? '16, 185, 129' :
+                        auraColor === "#a855f7" ? '168, 85, 247' : '99, 102, 241'
+    } as React.CSSProperties : {};
 
     const roundingClass = className?.includes("rounded-full") ? "rounded-full" : roundingClasses[size];
 
     return (
-        <div className={cn("relative inline-block shrink-0", roundingClass, auraEffectClass)}>
+        <div
+            className={cn("relative inline-block shrink-0", roundingClass, auraEffectClass)}
+            style={auraStyles}
+        >
+            {/* Inject dynamic aura colors via CSS variables if needed, or stick to simple classes for common ones */}
+            {auraColor && (
+                <style jsx>{`
+                    .relative.inline-block::after { background-color: rgba(var(--aura-rgb), 0.4); }
+                    .relative.inline-block::before { background-color: rgba(var(--aura-rgb), 0.15); }
+                `}</style>
+            )}
+
             {/* 1. LAYER DE FUNDO: Efeitos de Borda (atrás de tudo) */}
             <div className="absolute inset-0 z-0 rounded-[inherit]">
                 <AvatarEffects metadata={combinedMetadata} size={size} />
@@ -176,10 +196,10 @@ export function Avatar({
 
                 {/* Aura sólida na borda */}
                 {hasAura && !hasRainbow && (
-                    <div className={cn(
-                        "absolute inset-[-3.5px] rounded-[inherit] animate-pulse",
-                        isGold ? "bg-yellow-400" : "bg-cyan-400"
-                    )} />
+                    <div
+                        className="absolute inset-[-3.5px] rounded-[inherit] animate-pulse"
+                        style={{ backgroundColor: auraColor || '#6366f1' }}
+                    />
                 )}
             </div>
 

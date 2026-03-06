@@ -35,6 +35,7 @@ public class SimuladoExamService {
     private final SimuladoPracticeSessionRepository practiceSessionRepository;
     private final SimuladoResultRepository resultRepository;
     private final UserRepository userRepository;
+    private final GamificationService gamificationService;
 
     /** Default session window if simulado has no durationMinutes configured */
     private static final int DEFAULT_DURATION_MINUTES = 240;
@@ -251,6 +252,12 @@ public class SimuladoExamService {
                 .completedAt(now)
                 .build();
         resultRepository.save(result);
+
+        // Award XP via GamificationService (15 XP per correct question in official simulado)
+        int xpReward = (int) (correctCount * 15);
+        if (xpReward > 0) {
+            gamificationService.addXp(userId, xpReward);
+        }
 
         double percent = total > 0 ? (correctCount * 100.0 / total) : 0;
 
@@ -527,6 +534,12 @@ public class SimuladoExamService {
         session.setStatus("COMPLETED");
         session.setSubmittedAt(now);
         practiceSessionRepository.save(session);
+
+        // Award XP for Practice (5 XP per correct question in practice mode)
+        int xpReward = (int) (correctCount * 5);
+        if (xpReward > 0) {
+            gamificationService.addXp(userId, xpReward);
+        }
 
         // ✦ No SimuladoResult saved — practice sessions never affect the ranking ✦
 

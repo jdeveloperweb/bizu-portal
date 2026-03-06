@@ -139,12 +139,8 @@ export default function ActiveBuffsAura() {
                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                         className="absolute inset-0 z-1 pointer-events-none"
                         style={{
-                            boxShadow: buffs.activeTitle === "Elite"
-                                ? "inset 0 0 100px rgba(168, 85, 247, 0.3), inset 0 0 10px rgba(168, 85, 247, 0.6)"
-                                : "inset 0 0 100px rgba(79, 70, 229, 0.2), inset 0 0 10px rgba(79, 70, 229, 0.4)",
-                            border: buffs.xpBoost ? "none" : buffs.activeTitle === "Elite"
-                                ? "4px solid rgba(168, 85, 247, 0.4)"
-                                : "4px solid rgba(79, 70, 229, 0.3)"
+                            boxShadow: "inset 0 0 100px rgba(99, 102, 241, 0.2), inset 0 0 10px rgba(99, 102, 241, 0.4)",
+                            border: buffs.xpBoost ? "none" : "4px solid rgba(99, 102, 241, 0.3)"
                         }}
                     >
                         <div className="absolute top-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-slate-900/80 backdrop-blur-md rounded-full border border-white/20 text-white font-black text-xs uppercase tracking-[0.2em] shadow-xl">
@@ -153,30 +149,29 @@ export default function ActiveBuffsAura() {
                     </motion.div>
                 )}
 
-                {/* GOLD AURA */}
-                {buffs.activeAura === "GOLD" && (
+                {/* AURA DINÂMICA (GOLD, BLUE, RED, etc) */}
+                {buffs.activeAura && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: [0.3, 0.6, 0.3] }}
                         transition={{ duration: 5, repeat: Infinity }}
-                        className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,191,36,0.15)_0%,transparent_70%)] mix-blend-screen"
+                        className="absolute inset-0 mix-blend-screen"
+                        style={{
+                            background: `radial-gradient(circle at center, rgba(${buffs.activeAura === "GOLD" ? "251,191,36" :
+                                buffs.activeAura === "BLUE" ? "34,211,238" :
+                                    buffs.activeAura === "RED" ? "239,68,68" :
+                                        buffs.activeAura === "GREEN" ? "16,185,129" :
+                                            buffs.activeAura === "PURPLE" ? "168,85,247" :
+                                                "99,102,241" // Indigo default
+                                }, 0.15) 0%, transparent 70%)`
+                        }}
                     />
                 )}
 
-                {/* BLUE AURA */}
-                {buffs.activeAura === "BLUE" && (
+                {/* BORDER DINÂMICA (RAINBOW ou SÓLIDA) */}
+                {buffs.activeBorder && (
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: [0.3, 0.6, 0.3] }}
-                        transition={{ duration: 5, repeat: Infinity }}
-                        className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.15)_0%,transparent_70%)] mix-blend-screen"
-                    />
-                )}
-
-                {/* RAINBOW BORDER */}
-                {buffs.activeBorder === "RAINBOW" && (
-                    <motion.div
-                        animate={{
+                        animate={buffs.activeBorder === "RAINBOW" ? {
                             borderColor: ["#ef4444", "#3b82f6", "#10b981", "#eab308", "#ef4444"],
                             boxShadow: [
                                 "inset 0 0 20px rgba(239, 68, 68, 0.3)",
@@ -185,8 +180,16 @@ export default function ActiveBuffsAura() {
                                 "inset 0 0 20px rgba(234, 179, 8, 0.3)",
                                 "inset 0 0 20px rgba(239, 68, 68, 0.3)"
                             ]
+                        } : {
+                            borderColor: buffs.activeBorder === "GOLD" ? "#fbbf24" :
+                                buffs.activeBorder === "BLUE" ? "#22d3ee" :
+                                    buffs.activeBorder === "RED" ? "#ef4444" :
+                                        buffs.activeBorder === "GREEN" ? "#10b981" :
+                                            buffs.activeBorder === "PURPLE" ? "#a855f7" :
+                                                buffs.activeBorder === "PINK" ? "#ec4899" : "#6366f1",
+                            boxShadow: `inset 0 0 20px rgba(99,102,241,0.3)`
                         }}
-                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                        transition={{ duration: buffs.activeBorder === "RAINBOW" ? 8 : 4, repeat: Infinity, ease: "linear" }}
                         className="absolute inset-0 border-[6px] pointer-events-none z-10"
                     />
                 )}
