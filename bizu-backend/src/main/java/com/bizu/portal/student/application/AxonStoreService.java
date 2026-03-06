@@ -93,44 +93,36 @@ public class AxonStoreService {
 
         OffsetDateTime now = OffsetDateTime.now();
 
-        switch (itemCode) {
-            case "DOUBLE_XP_2H":
-                OffsetDateTime currentBoost = stats.getXpBoostUntil();
-                OffsetDateTime baseTime = (currentBoost != null && currentBoost.isAfter(now)) ? currentBoost : now;
-                stats.setXpBoostUntil(baseTime.plusHours(2));
-                break;
-            case "RADAR_MATERIA_24H":
-                stats.setRadarMateriaUntil(now.plusDays(1));
-                // Lógica de qual matéria será definida no front ou via subtipo, por enquanto fixamos uma ou deixamos pra definir
-                break;
-            case "STREAK_FREEZE":
-                // Escudo é passivo, mas permitimos "ativar" para feedback visual no front
-                break;
-            case "STATUS_ELITE":
-                stats.setActiveTitle("Elite".equals(stats.getActiveTitle()) ? null : "Elite");
-                break;
-            case "STATUS_MASTER":
-                stats.setActiveTitle("Mestre".equals(stats.getActiveTitle()) ? null : "Mestre");
-                break;
-            case "STATUS_LEGEND":
-                stats.setActiveTitle("Lenda".equals(stats.getActiveTitle()) ? null : "Lenda");
-                break;
-            case "AURA_GOLD":
-                stats.setActiveAura("GOLD".equals(stats.getActiveAura()) ? null : "GOLD");
-                break;
-            case "AURA_BLUE":
-                stats.setActiveAura("BLUE".equals(stats.getActiveAura()) ? null : "BLUE");
-                break;
-            case "BORDER_RAINBOW":
-                stats.setActiveBorder("RAINBOW".equals(stats.getActiveBorder()) ? null : "RAINBOW");
-                break;
-            default:
-                if (itemCode.startsWith("STATUS_")) {
-                    String title = itemCode.replace("STATUS_", "");
-                    stats.setActiveTitle(title.equals(stats.getActiveTitle()) ? null : title);
-                } else {
+        if (itemCode.startsWith("STATUS_")) {
+            String titleValue = itemCode.replace("STATUS_", "");
+            // Mapeamento de nomes amigáveis para títulos hardcoded
+            String title = "MASTER".equals(titleValue) ? "Mestre" :
+                         "LEGEND".equals(titleValue) ? "Lenda" :
+                         "ELITE".equals(titleValue) ? "Elite" : titleValue;
+            stats.setActiveTitle(title.equals(stats.getActiveTitle()) ? null : title);
+        } else if (itemCode.startsWith("AURA_")) {
+            String aura = itemCode.replace("AURA_", "");
+            stats.setActiveAura(aura.equals(stats.getActiveAura()) ? null : aura);
+        } else if (itemCode.startsWith("BORDER_")) {
+            String border = itemCode.replace("BORDER_", "");
+            stats.setActiveBorder(border.equals(stats.getActiveBorder()) ? null : border);
+        } else {
+            switch (itemCode) {
+                case "DOUBLE_XP_2H":
+                    OffsetDateTime currentBoost = stats.getXpBoostUntil();
+                    OffsetDateTime baseTime = (currentBoost != null && currentBoost.isAfter(now)) ? currentBoost : now;
+                    stats.setXpBoostUntil(baseTime.plusHours(2));
+                    break;
+                case "RADAR_MATERIA_24H":
+                    stats.setRadarMateriaUntil(now.plusDays(1));
+                    // Lógica de qual matéria será definida no front ou via subtipo, por enquanto fixamos uma ou deixamos pra definir
+                    break;
+                case "STREAK_FREEZE":
+                    // Escudo é passivo, mas permitimos "ativar" para feedback visual no front
+                    break;
+                default:
                     throw new RuntimeException("Este item não pode ser ativado manualmente.");
-                }
+            }
         }
 
         // Itens de STATUS (Títulos), Auras e Borders são permanentes e não são consumidos
