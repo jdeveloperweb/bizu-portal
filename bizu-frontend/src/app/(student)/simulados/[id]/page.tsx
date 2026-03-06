@@ -530,14 +530,8 @@ export default function SimuladoExamPage() {
         return () => document.removeEventListener("visibilitychange", handleHidden);
     }, [phase, simuladoId, isPractice]);
 
-    // ── Timer expire → auto submit ─────────────────────────────────────────
-    const handleTimerExpire = useCallback(async () => {
-        if (cancelledRef.current || phase !== "exam") return;
-        await doSubmit();
-    }, [phase, doSubmit]); // eslint-disable-line
-
     // ── Submit ────────────────────────────────────────────────────────────
-    const doSubmit = async () => {
+    const doSubmit = useCallback(async () => {
         if (cancelledRef.current) return;
         setShowSubmitModal(false);
         setPhase("submitting");
@@ -568,7 +562,13 @@ export default function SimuladoExamPage() {
             setErrorMsg("Erro de conexão ao enviar respostas.");
             setPhase("error");
         }
-    };
+    }, [isPractice, simuladoId, answers]);
+
+    // ── Timer expire → auto submit ─────────────────────────────────────────
+    const handleTimerExpire = useCallback(async () => {
+        if (cancelledRef.current || phase !== "exam") return;
+        await doSubmit();
+    }, [phase, doSubmit]);
 
     // ── Navigate ──────────────────────────────────────────────────────────
     const goTo = (i: number) => {
