@@ -24,6 +24,7 @@ public class StudentGamificationController {
     private final GamificationService gamificationService;
     private final GamificationRepository gamificationRepository;
     private final LevelCalculator levelCalculator;
+    private final com.bizu.portal.student.infrastructure.StoreItemRepository storeItemRepository;
     private final com.bizu.portal.identity.application.UserService userService;
 
     @GetMapping("/me")
@@ -50,6 +51,17 @@ public class StudentGamificationController {
         response.put("activeTitle", stats.getActiveTitle());
         response.put("activeAura", stats.getActiveAura());
         response.put("activeBorder", stats.getActiveBorder());
+
+        // Dynamic metadata for cosmetics
+        if (stats.getActiveAura() != null) {
+            storeItemRepository.findByCode("AURA_" + stats.getActiveAura())
+                .ifPresent(item -> response.put("activeAuraMetadata", item.getMetadata()));
+        }
+        if (stats.getActiveBorder() != null) {
+            storeItemRepository.findByCode("BORDER_" + stats.getActiveBorder())
+                .ifPresent(item -> response.put("activeBorderMetadata", item.getMetadata()));
+        }
+
         response.put("levelTable", levelCalculator.getAllLevelRequirements(50));
 
         return ResponseEntity.ok(response);

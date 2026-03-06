@@ -12,9 +12,11 @@ export default function ActiveBuffsAura() {
         activeTitle: string | null;
         activeAura: string | null;
         activeBorder: string | null;
+        activeAuraMetadata: any | null;
+        activeBorderMetadata: any | null;
         xpEndsAt: Date | null;
         radarEndsAt: Date | null;
-    }>({ xpBoost: false, radar: false, activeTitle: null, activeAura: null, activeBorder: null, xpEndsAt: null, radarEndsAt: null });
+    }>({ xpBoost: false, radar: false, activeTitle: null, activeAura: null, activeBorder: null, activeAuraMetadata: null, activeBorderMetadata: null, xpEndsAt: null, radarEndsAt: null });
 
     const [now, setNow] = useState(new Date());
 
@@ -32,6 +34,8 @@ export default function ActiveBuffsAura() {
                     activeTitle: data.activeTitle,
                     activeAura: data.activeAura,
                     activeBorder: data.activeBorder,
+                    activeAuraMetadata: data.activeAuraMetadata,
+                    activeBorderMetadata: data.activeBorderMetadata,
                     xpEndsAt: xpEnd,
                     radarEndsAt: radarEnd
                 });
@@ -72,6 +76,42 @@ export default function ActiveBuffsAura() {
     const xpIntensity = buffs.xpBoost ? getIntensity(buffs.xpEndsAt, 2) : 0;
     // Radar base is 24 Hours
     const radarIntensity = buffs.radar ? getIntensity(buffs.radarEndsAt, 24) : 0;
+
+    const getCleanCode = (code?: string | null) => {
+        if (!code) return "";
+        return code.replace("AURA_", "").replace("BORDER_", "").toUpperCase();
+    };
+
+    const cleanAura = getCleanCode(buffs.activeAura);
+    const cleanBorder = getCleanCode(buffs.activeBorder);
+
+    const hexToRgb = (hex: string) => {
+        if (!hex) return "99, 102, 241";
+        let fullHex = hex;
+        if (hex.length === 4) {
+            fullHex = "#" + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+        }
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(fullHex);
+        return result
+            ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
+            : "99, 102, 241";
+    };
+
+    const auraColor = cleanAura === "GOLD" ? "#fbbf24" :
+        cleanAura === "BLUE" ? "#22d3ee" :
+            cleanAura === "RED" ? "#ef4444" :
+                cleanAura === "GREEN" ? "#10b981" :
+                    cleanAura === "PURPLE" ? "#a855f7" :
+                        cleanAura === "PINK" ? "#ec4899" :
+                            buffs.activeAuraMetadata?.visual?.auraColor;
+
+    const borderColor = cleanBorder === "GOLD" ? "#fbbf24" :
+        cleanBorder === "BLUE" ? "#22d3ee" :
+            cleanBorder === "RED" ? "#ef4444" :
+                cleanBorder === "GREEN" ? "#10b981" :
+                    cleanBorder === "PURPLE" ? "#a855f7" :
+                        cleanBorder === "PINK" ? "#ec4899" :
+                            buffs.activeBorderMetadata?.visual?.auraColor || buffs.activeBorderMetadata?.visual?.borderColor || "#6366f1";
 
     if (!buffs.xpBoost && !buffs.radar && !buffs.activeTitle && !buffs.activeAura && !buffs.activeBorder) return null;
 
@@ -150,28 +190,22 @@ export default function ActiveBuffsAura() {
                 )}
 
                 {/* AURA DINÂMICA (GOLD, BLUE, RED, etc) */}
-                {buffs.activeAura && (
+                {auraColor && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: [0.3, 0.6, 0.3] }}
                         transition={{ duration: 5, repeat: Infinity }}
                         className="absolute inset-0 mix-blend-screen"
                         style={{
-                            background: `radial-gradient(circle at center, rgba(${buffs.activeAura === "GOLD" ? "251,191,36" :
-                                buffs.activeAura === "BLUE" ? "34,211,238" :
-                                    buffs.activeAura === "RED" ? "239,68,68" :
-                                        buffs.activeAura === "GREEN" ? "16,185,129" :
-                                            buffs.activeAura === "PURPLE" ? "168,85,247" :
-                                                "99,102,241" // Indigo default
-                                }, 0.15) 0%, transparent 70%)`
+                            background: `radial-gradient(circle at center, rgba(${hexToRgb(auraColor)}, 0.15) 0%, transparent 70%)`
                         }}
                     />
                 )}
 
-                {/* BORDER DINÂMICA (RAINBOW ou SÓLIDA) */}
-                {buffs.activeBorder && (
+                {/* BORDER DINÂMICA (SÓLIDA) */}
+                {cleanBorder && (
                     <motion.div
-                        animate={buffs.activeBorder === "RAINBOW" ? {
+                        animate={cleanBorder === "RAINBOW" ? {
                             borderColor: ["#ef4444", "#3b82f6", "#10b981", "#eab308", "#ef4444"],
                             boxShadow: [
                                 "inset 0 0 20px rgba(239, 68, 68, 0.3)",
@@ -181,15 +215,10 @@ export default function ActiveBuffsAura() {
                                 "inset 0 0 20px rgba(239, 68, 68, 0.3)"
                             ]
                         } : {
-                            borderColor: buffs.activeBorder === "GOLD" ? "#fbbf24" :
-                                buffs.activeBorder === "BLUE" ? "#22d3ee" :
-                                    buffs.activeBorder === "RED" ? "#ef4444" :
-                                        buffs.activeBorder === "GREEN" ? "#10b981" :
-                                            buffs.activeBorder === "PURPLE" ? "#a855f7" :
-                                                buffs.activeBorder === "PINK" ? "#ec4899" : "#6366f1",
-                            boxShadow: `inset 0 0 20px rgba(99,102,241,0.3)`
+                            borderColor: borderColor,
+                            boxShadow: `inset 0 0 20px rgba(${hexToRgb(borderColor)}, 0.3)`
                         }}
-                        transition={{ duration: buffs.activeBorder === "RAINBOW" ? 8 : 4, repeat: Infinity, ease: "linear" }}
+                        transition={{ duration: cleanBorder === "RAINBOW" ? 8 : 4, repeat: Infinity, ease: "linear" }}
                         className="absolute inset-0 border-[6px] pointer-events-none z-10"
                     />
                 )}

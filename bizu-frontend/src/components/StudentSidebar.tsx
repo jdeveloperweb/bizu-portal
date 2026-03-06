@@ -68,6 +68,8 @@ export default function StudentSidebar() {
     const [userLevel, setUserLevel] = useState<number>(1);
     const [activeAura, setActiveAura] = useState<string | null>(null);
     const [activeBorder, setActiveBorder] = useState<string | null>(null);
+    const [activeAuraMetadata, setActiveAuraMetadata] = useState<any>(null);
+    const [activeBorderMetadata, setActiveBorderMetadata] = useState<any>(null);
 
     const fetchSidebarData = useCallback(async () => {
         if (!authenticated || isFree) return;
@@ -105,6 +107,8 @@ export default function StudentSidebar() {
                 setUserLevel(data.level || 1);
                 setActiveAura(data.activeAura || null);
                 setActiveBorder(data.activeBorder || null);
+                setActiveAuraMetadata(data.activeAuraMetadata || null);
+                setActiveBorderMetadata(data.activeBorderMetadata || null);
             }
             if (onlineRes && onlineRes.ok) {
                 const data = await onlineRes.json();
@@ -250,6 +254,8 @@ export default function StudentSidebar() {
                         rankLevel={userLevel}
                         activeAura={activeAura}
                         activeBorder={activeBorder}
+                        auraMetadata={activeAuraMetadata}
+                        borderMetadata={activeBorderMetadata}
                     />
                     {(buffs.xpBoost || buffs.radar || buffs.elite) && (
                         <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-indigo-500 rounded-full border-2 border-card" />
@@ -496,6 +502,8 @@ export default function StudentSidebar() {
                             rankLevel={userLevel}
                             activeAura={activeAura}
                             activeBorder={activeBorder}
+                            auraMetadata={activeAuraMetadata}
+                            borderMetadata={activeBorderMetadata}
                         />
                         {!isCollapsed && (
                             <div className="flex-1 min-w-0">

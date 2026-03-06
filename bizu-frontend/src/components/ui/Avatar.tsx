@@ -103,12 +103,21 @@ export function Avatar({
     const validSrc = isImageUrl(src) ? src : undefined;
     const showImage = !!validSrc && !hasError;
 
-    // Aura glow effect - Improved to look more like a glowing border
-    const auraStyle = activeAura === "GOLD"
-        ? "after:absolute after:inset-[-3px] after:rounded-[inherit] after:bg-yellow-400 after:blur-[4px] after:animate-pulse before:absolute before:inset-[-6px] before:rounded-[inherit] before:bg-yellow-400/20 before:blur-xl before:animate-pulse"
-        : activeAura === "BLUE"
-            ? "after:absolute after:inset-[-3px] after:rounded-[inherit] after:bg-cyan-400 after:blur-[4px] after:animate-pulse before:absolute before:inset-[-6px] before:rounded-[inherit] before:bg-cyan-400/20 before:blur-xl before:animate-pulse"
-            : "";
+    const getCleanCode = (code?: string | null) => {
+        if (!code) return "";
+        return code.replace("AURA_", "").replace("BORDER_", "").toUpperCase();
+    };
+
+    const hexToRgb = (hex: string) => {
+        let fullHex = hex;
+        if (hex.length === 4) {
+            fullHex = "#" + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+        }
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(fullHex);
+        return result
+            ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
+            : "99, 102, 241";
+    };
 
     // Animated rainbow border
     const borderStyle = activeBorder === "RAINBOW" || borderMetadata?.visual?.borderStyle === "rainbow"
@@ -118,12 +127,12 @@ export function Avatar({
     // Merge metadata if available
     const combinedMetadata = useMemo(() => {
         const meta = { ...auraMetadata?.visual, ...borderMetadata?.visual };
-        if (activeAura === "GOLD" && !auraMetadata) {
+        const cleanAura = getCleanCode(activeAura);
+        if (cleanAura === "GOLD" && !auraMetadata) {
             meta.auraColor = "#fbbf24";
             meta.auraStyle = "pulse";
             meta.glowSize = 4;
-        }
-        if (activeAura === "BLUE" && !auraMetadata) {
+        } else if (cleanAura === "BLUE" && !auraMetadata) {
             meta.auraColor = "#22d3ee";
             meta.auraStyle = "pulse";
             meta.glowSize = 4;
@@ -146,27 +155,29 @@ export function Avatar({
         return url;
     }, [validSrc]);
 
-    const auraColor = activeAura === "GOLD" ? "#fbbf24" :
-        activeAura === "BLUE" ? "#22d3ee" :
-            activeAura === "RED" ? "#ef4444" :
-                activeAura === "GREEN" ? "#10b981" :
-                    activeAura === "PURPLE" ? "#a855f7" :
-                        activeAura === "PINK" ? "#ec4899" :
-                            combinedMetadata?.auraColor;
+    const auraColor = useMemo(() => {
+        const cleanAura = getCleanCode(activeAura);
+        if (cleanAura === "GOLD") return "#fbbf24";
+        if (cleanAura === "BLUE") return "#22d3ee";
+        if (cleanAura === "RED") return "#ef4444";
+        if (cleanAura === "GREEN") return "#10b981";
+        if (cleanAura === "PURPLE") return "#a855f7";
+        if (cleanAura === "PINK") return "#ec4899";
+        return combinedMetadata?.auraColor;
+    }, [activeAura, combinedMetadata]);
 
-    const hasRainbow = activeBorder === "RAINBOW" || borderMetadata?.visual?.borderStyle === "rainbow";
+    const hasRainbow = getCleanCode(activeBorder) === "RAINBOW" || borderMetadata?.visual?.borderStyle === "rainbow";
     const hasAura = !!auraColor;
 
     const auraEffectClass = auraColor ? "after:absolute after:inset-[-4px] after:rounded-[inherit] after:blur-md after:animate-pulse before:absolute before:inset-[-8px] before:rounded-[inherit] before:blur-xl before:animate-pulse" : "";
 
     // Inline styles for calculated aura colors
-    const auraStyles = auraColor ? {
-        '--aura-rgb': auraColor === "#fbbf24" ? '251, 191, 36' :
-            auraColor === "#22d3ee" ? '34, 211, 238' :
-                auraColor === "#ef4444" ? '239, 68, 68' :
-                    auraColor === "#10b981" ? '16, 185, 129' :
-                        auraColor === "#a855f7" ? '168, 85, 247' : '99, 102, 241'
-    } as React.CSSProperties : {};
+    const auraStyles = useMemo(() => {
+        if (!auraColor) return {};
+        return {
+            '--aura-rgb': hexToRgb(auraColor)
+        } as React.CSSProperties;
+    }, [auraColor]);
 
     const roundingClass = className?.includes("rounded-full") ? "rounded-full" : roundingClasses[size];
 
