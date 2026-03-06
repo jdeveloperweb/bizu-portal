@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .bearerTokenResolver(bearerTokenResolver())
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .addFilterAfter(deviceValidationFilter, org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.class)
             .addFilterAfter(courseContextFilter, DeviceValidationFilter.class);
 

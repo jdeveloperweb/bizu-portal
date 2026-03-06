@@ -34,7 +34,7 @@ public class AdminSimuladoService {
     }
 
     public Simulado findById(UUID id) {
-        return simuladoRepository.findById(id)
+        return simuladoRepository.findByIdWithQuestions(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Simulado not found"));
     }
 
