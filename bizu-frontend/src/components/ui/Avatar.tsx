@@ -175,14 +175,6 @@ export function Avatar({
             className={cn("relative inline-block shrink-0", roundingClass, auraEffectClass)}
             style={auraStyles}
         >
-            {/* Inject dynamic aura colors via CSS variables if needed, or stick to simple classes for common ones */}
-            {auraColor && (
-                <style jsx>{`
-                    .relative.inline-block::after { background-color: rgba(var(--aura-rgb), 0.4); }
-                    .relative.inline-block::before { background-color: rgba(var(--aura-rgb), 0.15); }
-                `}</style>
-            )}
-
             {/* 1. LAYER DE FUNDO: Efeitos de Borda (atrás de tudo) */}
             <div className="absolute inset-0 z-0 rounded-[inherit]">
                 <AvatarEffects metadata={combinedMetadata} size={size} />
@@ -244,6 +236,8 @@ export function Avatar({
             )}
 
             <style jsx>{`
+                .relative.inline-block::after { background-color: rgba(var(--aura-rgb), 0.4); }
+                .relative.inline-block::before { background-color: rgba(var(--aura-rgb), 0.15); }
                 @keyframes spin {
                     from { transform: rotate(0deg); }
                     to { transform: rotate(360deg); }
