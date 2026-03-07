@@ -248,16 +248,15 @@ export function GuildBadge({
   return (
     <div
       onClick={onClick}
-      className={`relative flex items-center justify-center rounded-2xl bg-gradient-to-br ${config.gradient} cursor-pointer transition-all duration-300 ${
-        selected ? "scale-110 ring-2" : "hover:scale-105"
-      } ${className}`}
+      className={`relative flex items-center justify-center rounded-2xl bg-gradient-to-br ${config.gradient} cursor-pointer transition-all duration-300 ${selected ? "scale-110 border-2" : "hover:scale-105"
+        } ${className}`}
       style={{
         width: container,
         height: container,
         boxShadow: showGlow || selected
           ? `0 0 20px ${config.glow}, 0 0 40px ${config.glow}40`
           : undefined,
-        ringColor: selected ? config.border : undefined,
+        borderColor: selected ? config.border : undefined,
       }}
     >
       {/* Inner shine */}
@@ -267,8 +266,8 @@ export function GuildBadge({
       {/* Selected ring */}
       {selected && (
         <div
-          className="absolute inset-0 rounded-2xl ring-2"
-          style={{ ringColor: config.border }}
+          className="absolute inset-0 rounded-2xl border-2"
+          style={{ borderColor: config.border }}
         />
       )}
     </div>

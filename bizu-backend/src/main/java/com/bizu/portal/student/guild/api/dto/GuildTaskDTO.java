@@ -1,0 +1,17 @@
+package com.bizu.portal.student.guild.api.dto;
+
+import lombok.Builder;
+import lombok.Data;
+import java.util.UUID;
+
+@Data
+@Builder
+public class GuildTaskDTO {
+    private UUID id;
+    private String title;
+    private String description;
+    private String priority;
+    private String status;
+    private String assignee;
+    private String dueDate;
+}

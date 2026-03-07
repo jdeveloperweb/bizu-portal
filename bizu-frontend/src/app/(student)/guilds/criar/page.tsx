@@ -1,35 +1,32 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft, Globe, Lock, Search, X, Upload, Camera,
-  Check, Users, ChevronRight, Info, Sparkles,
+  ArrowLeft, Globe, Lock, Search, X, Check,
+  ChevronRight, Info, Sparkles, Coins,
 } from "lucide-react";
 import { GuildBadge, GuildBadgeSelector, GuildBadgeType, GUILD_BADGES } from "@/components/guilds/GuildBadge";
-
-// ─── Mock user search ─────────────────────────────────────────────────────────
-
-const MOCK_USERS = [
-  { id: "u1", name: "Ana Clara Souza",     nickname: "anaclara",   avatar: null, level: 24 },
-  { id: "u2", name: "Bruno Mendes",        nickname: "brunomds",   avatar: null, level: 31 },
-  { id: "u3", name: "Carla Figueiredo",    nickname: "carlafig",   avatar: null, level: 18 },
-  { id: "u4", name: "Diego Alves",         nickname: "diegoalv",   avatar: null, level: 42 },
-  { id: "u5", name: "Eduarda Lima",        nickname: "edalima",    avatar: null, level: 15 },
-  { id: "u6", name: "Felipe Torres",       nickname: "felipt",     avatar: null, level: 27 },
-  { id: "u7", name: "Gabriela Nunes",      nickname: "gabinunes",  avatar: null, level: 33 },
-  { id: "u8", name: "Henrique Costa",      nickname: "henricosta", avatar: null, level: 20 },
-];
+import { GuildService } from "@/lib/guildService";
+import { useAuth } from "@/components/AuthProvider";
+import { useNotification } from "@/components/NotificationProvider";
 
 // ─── Steps ────────────────────────────────────────────────────────────────────
 
 const STEPS = ["Identidade", "Privacidade", "Convidar", "Confirmar"] as const;
 type Step = 0 | 1 | 2 | 3;
 
-// ─── UserInviteChip ───────────────────────────────────────────────────────────
+// ─── UserChip ─────────────────────────────────────────────────────────────────
 
-function UserChip({ user, onRemove }: { user: typeof MOCK_USERS[0]; onRemove: () => void }) {
+interface InviteUser {
+  id: string;
+  name: string;
+  nickname: string;
+  level: number;
+}
+
+function UserChip({ user, onRemove }: { user: InviteUser; onRemove: () => void }) {
   return (
     <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
@@ -40,7 +37,7 @@ function UserChip({ user, onRemove }: { user: typeof MOCK_USERS[0]; onRemove: ()
       <div className="w-5 h-5 rounded-full bg-indigo-700 flex items-center justify-center text-[10px] font-bold text-white">
         {user.name.charAt(0)}
       </div>
-      <span className="text-indigo-200 font-medium">{user.nickname}</span>
+      <span className="text-indigo-200 font-medium">@{user.nickname}</span>
       <button onClick={onRemove} className="text-indigo-400 hover:text-white transition-colors ml-1">
         <X size={12} />
       </button>
@@ -52,6 +49,9 @@ function UserChip({ user, onRemove }: { user: typeof MOCK_USERS[0]; onRemove: ()
 
 export default function CriarGuildPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const { notify } = useNotification();
+
   const [step, setStep] = useState<Step>(0);
 
   // Form state
@@ -63,31 +63,42 @@ export default function CriarGuildPage() {
 
   // Invite state
   const [inviteSearch, setInviteSearch] = useState("");
-  const [invitedUsers, setInvitedUsers] = useState<typeof MOCK_USERS>([]);
-  const [searchResults, setSearchResults] = useState<typeof MOCK_USERS>([]);
+  const [invitedUsers, setInvitedUsers] = useState<InviteUser[]>([]);
+  const [searchResults, setSearchResults] = useState<InviteUser[]>([]);
+  const [searching, setSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(false);
+  const [createdId, setCreatedId] = useState<string | null>(null);
 
   const selectedBadgeConfig = GUILD_BADGES.find(b => b.id === selectedBadge)!;
 
-  // ── Search autocomplete ──
-  useEffect(() => {
-    if (inviteSearch.length < 2) {
+  // ── User search (debounced) ──
+  const searchUsers = useCallback(async (q: string) => {
+    if (q.length < 2) {
       setSearchResults([]);
       setShowDropdown(false);
       return;
     }
-    const q = inviteSearch.toLowerCase();
-    const results = MOCK_USERS.filter(u =>
-      !invitedUsers.find(i => i.id === u.id) &&
-      (u.name.toLowerCase().includes(q) || u.nickname.toLowerCase().includes(q))
-    ).slice(0, 5);
-    setSearchResults(results);
-    setShowDropdown(results.length > 0);
-  }, [inviteSearch, invitedUsers]);
+    setSearching(true);
+    try {
+      const results = await GuildService.searchUsers(q);
+      const filtered = results.filter(u => !invitedUsers.find(i => i.id === u.id));
+      setSearchResults(filtered.slice(0, 6));
+      setShowDropdown(filtered.length > 0);
+    } catch {
+      setSearchResults([]);
+      setShowDropdown(false);
+    } finally {
+      setSearching(false);
+    }
+  }, [invitedUsers]);
+
+  useEffect(() => {
+    const t = setTimeout(() => searchUsers(inviteSearch), 350);
+    return () => clearTimeout(t);
+  }, [inviteSearch, searchUsers]);
 
   // ── Click outside ──
   useEffect(() => {
@@ -100,8 +111,8 @@ export default function CriarGuildPage() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  function inviteUser(user: typeof MOCK_USERS[0]) {
-    setInvitedUsers(p => [...p, user]);
+  function inviteUser(u: InviteUser) {
+    setInvitedUsers(p => [...p, u]);
     setInviteSearch("");
     setShowDropdown(false);
   }
@@ -112,9 +123,23 @@ export default function CriarGuildPage() {
 
   async function handleSubmit() {
     setSubmitting(true);
-    await new Promise(r => setTimeout(r, 1800));
-    setDone(true);
-    setTimeout(() => router.push("/guilds/1"), 1200);
+    try {
+      const guild = await GuildService.createGuild({
+        name: name.trim(),
+        description: description.trim(),
+        badge: selectedBadge,
+        isPublic,
+        maxMembers,
+        invitedUserIds: invitedUsers.map(u => u.id),
+      });
+      setCreatedId(guild.id);
+      notify("Guild criada!", `"${guild.name}" está pronta. Bem-vindo, fundador!`, "achievement");
+      setTimeout(() => router.push(`/guilds/${guild.id}`), 1400);
+    } catch (err: any) {
+      notify("Erro", err.message ?? "Não foi possível criar a guild.", "error");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const canAdvance = [
@@ -126,7 +151,7 @@ export default function CriarGuildPage() {
 
   // ─────────────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#020617] p-6 lg:p-10">
+    <div className="min-h-screen p-6 lg:p-10">
       <div className="max-w-2xl mx-auto">
 
         {/* Back */}
@@ -140,8 +165,13 @@ export default function CriarGuildPage() {
 
         {/* Title */}
         <div className="mb-8">
-          <h1 className="text-3xl font-black text-white mb-2">Criar Nova Guild</h1>
-          <p className="text-slate-400 text-sm">Monte seu grupo de estudos e lidere o ranking.</p>
+          <h1 className="text-3xl font-black text-white mb-1">Criar Nova Guild</h1>
+          <div className="flex items-center gap-2 text-sm text-slate-400">
+            <p>Monte seu grupo de estudos e lidere o ranking.</p>
+            <span className="flex items-center gap-1 text-yellow-400 font-semibold">
+              <Coins size={13} /> Custa 5.000 Axons
+            </span>
+          </div>
         </div>
 
         {/* Step indicator */}
@@ -151,9 +181,11 @@ export default function CriarGuildPage() {
               <div className="flex flex-col items-center gap-1.5">
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
-                    i < step ? "bg-indigo-600 text-white" :
-                    i === step ? "bg-indigo-600 text-white ring-4 ring-indigo-600/30" :
-                    "bg-slate-800 text-slate-500"
+                    i < step
+                      ? "bg-indigo-600 text-white"
+                      : i === step
+                      ? "bg-indigo-600 text-white ring-4 ring-indigo-600/30"
+                      : "bg-slate-800 text-slate-500"
                   }`}
                 >
                   {i < step ? <Check size={14} /> : i + 1}
@@ -163,36 +195,30 @@ export default function CriarGuildPage() {
                 </span>
               </div>
               {i < STEPS.length - 1 && (
-                <div className={`flex-1 h-px mx-3 mt-[-12px] transition-colors ${i < step ? "bg-indigo-600" : "bg-slate-800"}`} />
+                <div
+                  className={`flex-1 h-px mx-3 mt-[-12px] transition-colors ${i < step ? "bg-indigo-600" : "bg-slate-800"}`}
+                />
               )}
             </div>
           ))}
         </div>
 
-        {/* ── Step 0: Identidade ── */}
+        {/* ── Step content ── */}
         <AnimatePresence mode="wait">
+
+          {/* Step 0 – Identidade */}
           {step === 0 && (
-            <motion.div
-              key="step0"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6"
-            >
-              {/* Badge selector */}
+            <motion.div key="s0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-4">
-                  Escolha a Insígnia da sua Guild
-                </label>
+                <label className="block text-sm font-semibold text-slate-300 mb-4">Escolha a Insígnia</label>
                 <GuildBadgeSelector value={selectedBadge} onChange={setSelectedBadge} />
                 <p className="mt-3 text-xs text-slate-500 flex items-center gap-1.5">
                   <Sparkles size={11} className="text-indigo-400" />
-                  Selecionada: <span className="text-indigo-300 font-medium">{selectedBadgeConfig.name}</span>
-                  — {selectedBadgeConfig.description}
+                  <span className="text-indigo-300 font-medium">{selectedBadgeConfig.name}</span> — {selectedBadgeConfig.description}
                 </p>
               </div>
 
-              {/* Preview */}
+              {/* Live preview */}
               <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
                 <GuildBadge type={selectedBadge} size="lg" showGlow />
                 <div>
@@ -201,7 +227,6 @@ export default function CriarGuildPage() {
                 </div>
               </div>
 
-              {/* Name */}
               <div>
                 <label className="block text-sm font-semibold text-slate-300 mb-2">
                   Nome da Guild <span className="text-red-400">*</span>
@@ -216,7 +241,6 @@ export default function CriarGuildPage() {
                 <div className="mt-1 text-right text-[11px] text-slate-600">{name.length}/40</div>
               </div>
 
-              {/* Description */}
               <div>
                 <label className="block text-sm font-semibold text-slate-300 mb-2">
                   Descrição <span className="text-red-400">*</span>
@@ -234,111 +258,79 @@ export default function CriarGuildPage() {
             </motion.div>
           )}
 
-          {/* ── Step 1: Privacidade ── */}
+          {/* Step 1 – Privacidade */}
           {step === 1 && (
-            <motion.div
-              key="step1"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6"
-            >
+            <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-4">
-                  Tipo de Guild
-                </label>
+                <label className="block text-sm font-semibold text-slate-300 mb-4">Tipo de Guild</label>
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Public */}
-                  <button
-                    onClick={() => setIsPublic(true)}
-                    className={`relative p-5 rounded-2xl border text-left transition-all duration-200 ${
-                      isPublic
-                        ? "border-indigo-500/60 bg-indigo-600/10 shadow-[0_0_20px_rgba(99,102,241,0.1)]"
-                        : "border-slate-800 bg-slate-900 hover:border-slate-700"
-                    }`}
-                  >
-                    {isPublic && (
-                      <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center">
-                        <Check size={11} className="text-white" />
-                      </div>
-                    )}
-                    <Globe size={24} className={isPublic ? "text-indigo-400 mb-3" : "text-slate-500 mb-3"} />
-                    <div className="font-bold text-white mb-1">Pública</div>
-                    <div className="text-xs text-slate-500">Qualquer usuário pode entrar ou pedir para participar.</div>
-                  </button>
-
-                  {/* Private */}
-                  <button
-                    onClick={() => setIsPublic(false)}
-                    className={`relative p-5 rounded-2xl border text-left transition-all duration-200 ${
-                      !isPublic
-                        ? "border-indigo-500/60 bg-indigo-600/10 shadow-[0_0_20px_rgba(99,102,241,0.1)]"
-                        : "border-slate-800 bg-slate-900 hover:border-slate-700"
-                    }`}
-                  >
-                    {!isPublic && (
-                      <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center">
-                        <Check size={11} className="text-white" />
-                      </div>
-                    )}
-                    <Lock size={24} className={!isPublic ? "text-indigo-400 mb-3" : "text-slate-500 mb-3"} />
-                    <div className="font-bold text-white mb-1">Fechada</div>
-                    <div className="text-xs text-slate-500">Somente por convite. Pedidos precisam de aprovação do admin.</div>
-                  </button>
+                  {[
+                    { value: true,  icon: Globe, title: "Pública",  desc: "Qualquer usuário pode entrar ou pedir para participar." },
+                    { value: false, icon: Lock,  title: "Fechada", desc: "Somente por convite. Pedidos precisam de aprovação do admin." },
+                  ].map(opt => {
+                    const Icon = opt.icon;
+                    const active = isPublic === opt.value;
+                    return (
+                      <button
+                        key={String(opt.value)}
+                        onClick={() => setIsPublic(opt.value)}
+                        className={`relative p-5 rounded-2xl border text-left transition-all duration-200 ${
+                          active ? "border-indigo-500/60 bg-indigo-600/10 shadow-[0_0_20px_rgba(99,102,241,0.1)]"
+                                 : "border-slate-800 bg-slate-900 hover:border-slate-700"
+                        }`}
+                      >
+                        {active && (
+                          <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center">
+                            <Check size={11} className="text-white" />
+                          </div>
+                        )}
+                        <Icon size={24} className={`${active ? "text-indigo-400" : "text-slate-500"} mb-3`} />
+                        <div className="font-bold text-white mb-1">{opt.title}</div>
+                        <div className="text-xs text-slate-500">{opt.desc}</div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Max members */}
               <div>
                 <label className="block text-sm font-semibold text-slate-300 mb-2">
-                  Limite de membros
-                  <span className="ml-2 text-indigo-400 font-bold">{maxMembers}</span>
+                  Limite de membros — <span className="text-indigo-400 font-bold">{maxMembers}</span>
                 </label>
                 <input
-                  type="range"
-                  min={5}
-                  max={50}
-                  step={5}
+                  type="range" min={5} max={50} step={5}
                   value={maxMembers}
                   onChange={e => setMaxMembers(Number(e.target.value))}
                   className="w-full accent-indigo-500"
                 />
                 <div className="flex justify-between text-[11px] text-slate-600 mt-1">
-                  <span>5 membros</span>
-                  <span>50 membros</span>
+                  <span>5 membros</span><span>50 membros</span>
                 </div>
               </div>
 
-              {/* Info note */}
               <div className="flex gap-3 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
                 <Info size={16} className="text-indigo-400 shrink-0 mt-0.5" />
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Você será automaticamente o <span className="text-white font-semibold">Fundador</span> da guild e terá
-                  permissões de administrador. Você pode promover outros membros a administradores depois.
+                  Você será automaticamente o <span className="text-white font-semibold">Fundador</span> e terá
+                  permissões de administrador. A criação custa{" "}
+                  <span className="text-yellow-400 font-semibold">5.000 Axons</span>.
                 </p>
               </div>
             </motion.div>
           )}
 
-          {/* ── Step 2: Convidar ── */}
+          {/* Step 2 – Convidar */}
           {step === 2 && (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6"
-            >
+            <motion.div key="s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">
+                <label className="block text-sm font-semibold text-slate-300 mb-1">
                   Convidar Membros
                   <span className="ml-2 text-slate-500 font-normal text-xs">(opcional)</span>
                 </label>
                 <p className="text-xs text-slate-500 mb-4">
-                  Os usuários convidados receberão uma notificação e poderão aceitar ou recusar.
+                  Os convidados receberão uma notificação e poderão aceitar ou recusar.
                 </p>
 
-                {/* Invited chips */}
                 {invitedUsers.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
                     <AnimatePresence>
@@ -349,9 +341,8 @@ export default function CriarGuildPage() {
                   </div>
                 )}
 
-                {/* Search input */}
                 <div ref={searchRef} className="relative">
-                  <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <Search size={15} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${searching ? "text-indigo-400 animate-pulse" : "text-slate-500"}`} />
                   <input
                     value={inviteSearch}
                     onChange={e => setInviteSearch(e.target.value)}
@@ -359,7 +350,6 @@ export default function CriarGuildPage() {
                     className="w-full pl-9 pr-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors text-sm"
                   />
 
-                  {/* Dropdown */}
                   <AnimatePresence>
                     {showDropdown && (
                       <motion.div
@@ -368,18 +358,18 @@ export default function CriarGuildPage() {
                         exit={{ opacity: 0, y: -8 }}
                         className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden z-50 shadow-2xl"
                       >
-                        {searchResults.map(user => (
+                        {searchResults.map(u => (
                           <button
-                            key={user.id}
-                            onClick={() => inviteUser(user)}
+                            key={u.id}
+                            onClick={() => inviteUser(u)}
                             className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-800 transition-colors text-left"
                           >
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center text-sm font-bold text-white shrink-0">
-                              {user.name.charAt(0)}
+                              {u.name.charAt(0)}
                             </div>
                             <div>
-                              <div className="text-sm font-medium text-white">{user.name}</div>
-                              <div className="text-xs text-slate-500">@{user.nickname} · Nível {user.level}</div>
+                              <div className="text-sm font-medium text-white">{u.name}</div>
+                              <div className="text-xs text-slate-500">@{u.nickname} · Nível {u.level}</div>
                             </div>
                             <div className="ml-auto text-xs text-indigo-400">Convidar</div>
                           </button>
@@ -391,22 +381,16 @@ export default function CriarGuildPage() {
 
                 {invitedUsers.length > 0 && (
                   <p className="mt-3 text-xs text-slate-500">
-                    <span className="text-indigo-400 font-semibold">{invitedUsers.length}</span> usuário(s) serão convidados.
+                    <span className="text-indigo-400 font-semibold">{invitedUsers.length}</span> usuário(s) serão convidados após a criação.
                   </p>
                 )}
               </div>
             </motion.div>
           )}
 
-          {/* ── Step 3: Confirmar ── */}
+          {/* Step 3 – Confirmar */}
           {step === 3 && (
-            <motion.div
-              key="step3"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-5"
-            >
+            <motion.div key="s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
               <h2 className="text-lg font-bold text-white">Resumo da Guild</h2>
 
               {/* Preview card */}
@@ -419,40 +403,43 @@ export default function CriarGuildPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="text-xl font-black text-white">{name}</h3>
-                      {isPublic
-                        ? <Globe size={14} className="text-green-400" />
-                        : <Lock size={14} className="text-orange-400" />}
+                      {isPublic ? <Globe size={14} className="text-green-400" /> : <Lock size={14} className="text-orange-400" />}
                     </div>
                     <p className="text-sm text-slate-400 mb-4">{description}</p>
                     <div className="flex items-center gap-4 text-xs text-slate-500">
-                      <span className="flex items-center gap-1"><Users size={11} /> Até {maxMembers} membros</span>
+                      <span>Até {maxMembers} membros</span>
                       <span className="text-indigo-400">{selectedBadgeConfig.name}</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Invite list */}
               {invitedUsers.length > 0 && (
                 <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
-                  <div className="text-sm font-semibold text-slate-300 mb-3">
-                    {invitedUsers.length} convite(s) serão enviados
-                  </div>
+                  <div className="text-sm font-semibold text-slate-300 mb-3">{invitedUsers.length} convite(s) serão enviados</div>
                   <div className="space-y-2">
                     {invitedUsers.map(u => (
                       <div key={u.id} className="flex items-center gap-2 text-sm text-slate-400">
                         <div className="w-6 h-6 rounded-full bg-indigo-700 flex items-center justify-center text-[10px] font-bold text-white">
                           {u.name.charAt(0)}
                         </div>
-                        <span>@{u.nickname}</span>
+                        @{u.nickname}
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Done state */}
-              {done && (
+              {/* Axon cost warning */}
+              <div className="flex gap-3 p-4 rounded-xl bg-yellow-950/30 border border-yellow-500/20">
+                <Coins size={16} className="text-yellow-400 shrink-0 mt-0.5" />
+                <p className="text-xs text-yellow-200/80 leading-relaxed">
+                  Confirmar criará a guild e deduzirá{" "}
+                  <span className="text-yellow-400 font-bold">5.000 Axons</span> do seu saldo.
+                </p>
+              </div>
+
+              {createdId && (
                 <motion.div
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -466,7 +453,7 @@ export default function CriarGuildPage() {
           )}
         </AnimatePresence>
 
-        {/* ── Navigation ── */}
+        {/* Navigation */}
         <div className="flex items-center justify-between mt-10 pt-6 border-t border-slate-800">
           <button
             onClick={() => step > 0 ? setStep(s => (s - 1) as Step) : router.push("/guilds")}
@@ -490,18 +477,18 @@ export default function CriarGuildPage() {
           ) : (
             <button
               onClick={handleSubmit}
-              disabled={submitting || done}
+              disabled={submitting || !!createdId}
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-all shadow-lg shadow-indigo-600/25 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {submitting ? (
-                <span className="flex items-center gap-2">
+                <>
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   Criando...
-                </span>
+                </>
               ) : (
-                <span className="flex items-center gap-2">
+                <>
                   <Sparkles size={15} /> Criar Guild
-                </span>
+                </>
               )}
             </button>
           )}

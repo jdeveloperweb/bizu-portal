@@ -8,6 +8,7 @@ import com.bizu.portal.content.infrastructure.FlashcardDeckRepository;
 import com.bizu.portal.content.infrastructure.FlashcardRepository;
 import com.bizu.portal.identity.infrastructure.UserRepository;
 import com.bizu.portal.student.infrastructure.FlashcardProgressRepository;
+import com.bizu.portal.student.guild.repository.GuildRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,7 @@ public class StudentFlashcardService {
     private final FlashcardRepository flashcardRepository;
     private final FlashcardProgressRepository progressRepository;
     private final UserRepository userRepository;
+    private final GuildRepository guildRepository;
 
     public List<StudentFlashcardDeckDTO> getDecksForUser(UUID userId) {
         OffsetDateTime now = OffsetDateTime.now();
@@ -154,5 +156,101 @@ public class StudentFlashcardService {
         progress.setNextReviewAt(OffsetDateTime.now().plusDays(progress.getIntervalDays()));
         
         progressRepository.save(progress);
+    }
+
+    @Transactional
+    public void shareDeck(UUID deckId, UUID userId, String targetType, UUID targetId) {
+        FlashcardDeck sourceDeck = deckRepository.findById(deckId)
+            .orElseThrow(() -> new RuntimeException("Deck not found"));
+        
+        // Verifica permissão (apenas dono ou deck público/global - mas aqui focamos no dono)
+        if (sourceDeck.getUserId() != null && !sourceDeck.getUserId().equals(userId)) {
+            throw new RuntimeException("Você não tem permissão para compartilhar este deck");
+        }
+
+        User owner = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if ("FRIEND".equalsIgnoreCase(targetType)) {
+            // Ao compartilhar com um amigo, criamos uma CÓPIA do deck para ele
+            User friend = userRepository.findById(targetId)
+                .orElseThrow(() -> new RuntimeException("Amigo não encontrado"));
+            
+            FlashcardDeck sharedDeck = FlashcardDeck.builder()
+                .userId(friend.getId())
+                .title(sourceDeck.getTitle() + " (Compartilhado)")
+                .description(sourceDeck.getDescription())
+                .icon(sourceDeck.getIcon())
+                .color(sourceDeck.getColor())
+                .build();
+                
+            FlashcardDeck savedSharedDeck = deckRepository.save(sharedDeck);
+            
+            List<Flashcard> copiedCards = sourceDeck.getCards().stream()
+                .map(card -> Flashcard.builder()
+                    .deck(savedSharedDeck)
+                    .front(card.getFront())
+                    .back(card.getBack())
+                    .build()
+                ).collect(Collectors.toList());
+                
+            flashcardRepository.saveAll(copiedCards);
+
+        } else if ("GUILD".equalsIgnoreCase(targetType)) {
+            // Ao compartilhar com uma guilda, usamos a mesma entidade FlashcardDeck mas com guildId
+            if (!guildRepository.existsById(targetId)) {
+                throw new RuntimeException("Guilda não encontrada");
+            }
+
+            FlashcardDeck guildDeck = FlashcardDeck.builder()
+                .guildId(targetId)
+                .title(sourceDeck.getTitle())
+                .description(sourceDeck.getDescription())
+                .icon(sourceDeck.getIcon())
+                .color(sourceDeck.getColor())
+                .build();
+
+            FlashcardDeck savedGuildDeck = deckRepository.save(guildDeck);
+
+            List<Flashcard> guildCards = sourceDeck.getCards().stream()
+                .map(card -> Flashcard.builder()
+                    .deck(savedGuildDeck)
+                    .front(card.getFront())
+                    .back(card.getBack())
+                    .build()
+                ).collect(Collectors.toList());
+
+            flashcardRepository.saveAll(guildCards);
+            
+        } else {
+            throw new RuntimeException("Tipo de destino inválido");
+        }
+    }
+
+    @Transactional
+    public FlashcardDeck cloneGuildDeck(UUID guildDeckId, UUID userId) {
+        FlashcardDeck guildDeck = deckRepository.findById(guildDeckId)
+            .orElseThrow(() -> new RuntimeException("Deck da guilda não encontrado"));
+
+        FlashcardDeck personalDeck = FlashcardDeck.builder()
+            .userId(userId)
+            .title(guildDeck.getTitle() + " (Clonado)")
+            .description(guildDeck.getDescription())
+            .icon(guildDeck.getIcon())
+            .color(guildDeck.getColor())
+            .build();
+            
+        FlashcardDeck savedPersonalDeck = deckRepository.save(personalDeck);
+
+        List<Flashcard> personalCards = guildDeck.getCards().stream()
+            .map(gc -> Flashcard.builder()
+                .deck(savedPersonalDeck)
+                .front(gc.getFront())
+                .back(gc.getBack())
+                .build())
+            .collect(Collectors.toList());
+
+        flashcardRepository.saveAll(personalCards);
+        return savedPersonalDeck;
     }
 }

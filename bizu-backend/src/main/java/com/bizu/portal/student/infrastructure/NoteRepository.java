@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface NoteRepository extends JpaRepository<Note, UUID> {
     List<Note> findByUserIdOrderByPinnedDescUpdatedAtDesc(UUID userId);
+    List<Note> findAllByGuildIdOrderByUpdatedAtDesc(UUID guildId);
 }

@@ -101,4 +101,25 @@ public class StudentFlashcardController {
             body.get("back")
         ));
     }
+
+    @PostMapping("/decks/{deckId}/share")
+    public ResponseEntity<Void> shareDeck(
+            @PathVariable UUID deckId,
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = resolveUserId(jwt);
+        String targetType = body.get("targetType"); // "FRIEND" ou "GUILD"
+        UUID targetId = UUID.fromString(body.get("targetId"));
+        
+        studentFlashcardService.shareDeck(deckId, userId, targetType, targetId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/guild-decks/{guildDeckId}/clone")
+    public ResponseEntity<FlashcardDeck> cloneGuildDeck(
+            @PathVariable UUID guildDeckId,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = resolveUserId(jwt);
+        return ResponseEntity.ok(studentFlashcardService.cloneGuildDeck(guildDeckId, userId));
+    }
 }

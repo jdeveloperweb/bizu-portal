@@ -24,6 +24,9 @@ public class StudentTask {
     @JoinColumn(name = "student_id", nullable = false)
     private User student;
 
+    @Column(name = "guild_id")
+    private UUID guildId;
+
     @Column(nullable = false)
     private String title;
 
