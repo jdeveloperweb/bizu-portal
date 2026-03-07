@@ -151,7 +151,7 @@ export default function CriarGuildPage() {
 
   // ─────────────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen p-6 lg:p-10">
+    <div className="min-h-screen p-6 lg:p-10 bg-[#1e293b]">
       <div className="max-w-2xl mx-auto">
 
         {/* Back */}
@@ -164,41 +164,33 @@ export default function CriarGuildPage() {
         </button>
 
         {/* Title */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-black text-white mb-1">Criar Nova Guild</h1>
-          <div className="flex items-center gap-2 text-sm text-slate-400">
-            <p>Monte seu grupo de estudos e lidere o ranking.</p>
-            <span className="flex items-center gap-1 text-yellow-400 font-semibold">
-              <Coins size={13} /> Custa 5.000 Axons
+        <div className="mb-10">
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-[#94a3b8] text-lg font-medium">Monte seu grupo de estudos e lidere o ranking.</h1>
+            <span className="flex items-center gap-1.5 text-[#f59e0b] font-bold text-lg">
+              <Sparkles size={18} className="rotate-12" /> Custa 5.000 Axons
             </span>
           </div>
         </div>
 
         {/* Step indicator */}
-        <div className="flex items-center gap-0 mb-10">
+        <div className="flex items-center justify-between mb-16 relative px-4">
+          {/* Connector Line */}
+          <div className="absolute top-4 left-10 right-10 h-[2px] bg-slate-700 -z-10" />
+
           {STEPS.map((label, i) => (
-            <div key={label} className="flex items-center flex-1">
-              <div className="flex flex-col items-center gap-1.5">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
-                    i < step
-                      ? "bg-indigo-600 text-white"
-                      : i === step
-                      ? "bg-indigo-600 text-white ring-4 ring-indigo-600/30"
-                      : "bg-slate-800 text-slate-500"
+            <div key={label} className="flex flex-col items-center gap-3">
+              <div
+                className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${i <= step
+                  ? "bg-[#4f46e5] text-white"
+                  : "bg-[#1e1b4b] text-[#4f46e5]"
                   }`}
-                >
-                  {i < step ? <Check size={14} /> : i + 1}
-                </div>
-                <span className={`text-[10px] font-medium ${i === step ? "text-indigo-400" : "text-slate-600"}`}>
-                  {label}
-                </span>
+              >
+                {i < step ? <Check size={18} /> : i + 1}
               </div>
-              {i < STEPS.length - 1 && (
-                <div
-                  className={`flex-1 h-px mx-3 mt-[-12px] transition-colors ${i < step ? "bg-indigo-600" : "bg-slate-800"}`}
-                />
-              )}
+              <span className={`text-sm font-medium transition-colors ${i === step ? "text-[#818cf8]" : "text-[#64748b]"}`}>
+                {label}
+              </span>
             </div>
           ))}
         </div>
@@ -208,65 +200,74 @@ export default function CriarGuildPage() {
 
           {/* Step 0 – Identidade */}
           {step === 0 && (
-            <motion.div key="s0" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+            <motion.div key="s0" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-10">
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-4">Escolha a Insígnia</label>
+                <label className="block text-lg font-semibold text-[#94a3b8] mb-6">Escolha a Insígnia</label>
                 <GuildBadgeSelector value={selectedBadge} onChange={setSelectedBadge} />
-                <p className="mt-3 text-xs text-slate-500 flex items-center gap-1.5">
-                  <Sparkles size={11} className="text-indigo-400" />
-                  <span className="text-indigo-300 font-medium">{selectedBadgeConfig.name}</span> — {selectedBadgeConfig.description}
-                </p>
-              </div>
-
-              {/* Live preview */}
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
-                <GuildBadge type={selectedBadge} size="lg" showGlow />
-                <div>
-                  <div className="text-white font-bold">{name || "Nome da Guild"}</div>
-                  <div className="text-slate-500 text-sm">{description || "Descrição da guild..."}</div>
+                <div className="mt-6 flex items-center gap-2">
+                  <Sparkles size={16} className="text-[#818cf8]" />
+                  <span className="text-[#818cf8] font-semibold">{selectedBadgeConfig.name}</span>
+                  <span className="text-[#64748b]"> — {selectedBadgeConfig.description}</span>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">
-                  Nome da Guild <span className="text-red-400">*</span>
-                </label>
-                <input
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  maxLength={40}
-                  placeholder="Ex: Espadas do Saber"
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors text-sm"
-                />
-                <div className="mt-1 text-right text-[11px] text-slate-600">{name.length}/40</div>
+              {/* Live preview - Design System Card */}
+              <div className="bg-[#334155] rounded-2xl p-8 border border-slate-700/50 flex items-center gap-8 shadow-xl">
+                <GuildBadge type={selectedBadge} size="xl" showGlow />
+                <div className="flex-1">
+                  <h3 className="text-2xl font-black text-white mb-1">{name || "Nome da Guild"}</h3>
+                  <p className="text-[#94a3b8] text-sm overflow-hidden text-ellipsis line-clamp-2">
+                    {description || "Descrição da guild..."}
+                  </p>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">
-                  Descrição <span className="text-red-400">*</span>
-                </label>
-                <textarea
-                  value={description}
-                  onChange={e => setDescription(e.target.value)}
-                  maxLength={200}
-                  rows={3}
-                  placeholder="Descreva o foco e objetivos da sua guild..."
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors text-sm resize-none"
-                />
-                <div className="mt-1 text-right text-[11px] text-slate-600">{description.length}/200</div>
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-[#64748b] mb-3 uppercase tracking-wider">
+                    Nome da Guild <span className="text-red-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      value={name}
+                      onChange={e => setName(e.target.value)}
+                      maxLength={40}
+                      placeholder="Ex: Espadas do Saber"
+                      className="w-full px-5 py-4 rounded-xl bg-[#0f172a] border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/40 transition-all text-base"
+                    />
+                    <div className="absolute right-4 bottom-[-24px] text-right text-[12px] text-slate-500">{name.length}/40</div>
+                  </div>
+                </div>
+
+                <div className="pt-4">
+                  <label className="block text-sm font-semibold text-[#64748b] mb-3 uppercase tracking-wider">
+                    Descrição <span className="text-red-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <textarea
+                      value={description}
+                      onChange={e => setDescription(e.target.value)}
+                      maxLength={200}
+                      rows={4}
+                      placeholder="Descreva o foco e objetivos da sua guild..."
+                      className="w-full px-5 py-4 rounded-xl bg-[#0f172a] border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/40 transition-all text-base resize-none"
+                    />
+                    <div className="absolute right-4 bottom-[-24px] text-right text-[12px] text-slate-500">{description.length}/200</div>
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
 
           {/* Step 1 – Privacidade */}
           {step === 1 && (
-            <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+            <motion.div key="s1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-10">
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-4">Tipo de Guild</label>
-                <div className="grid grid-cols-2 gap-4">
+                <label className="block text-lg font-semibold text-[#94a3b8] mb-6">Tipo de Guild</label>
+                <div className="grid grid-cols-2 gap-6">
                   {[
-                    { value: true,  icon: Globe, title: "Pública",  desc: "Qualquer usuário pode entrar ou pedir para participar." },
-                    { value: false, icon: Lock,  title: "Fechada", desc: "Somente por convite. Pedidos precisam de aprovação do admin." },
+                    { value: true, icon: Globe, title: "Pública", desc: "Qualquer usuário pode entrar ou pedir para participar." },
+                    { value: false, icon: Lock, title: "Fechada", desc: "Somente por convite. Pedidos precisam de aprovação do admin." },
                   ].map(opt => {
                     const Icon = opt.icon;
                     const active = isPublic === opt.value;
@@ -274,19 +275,18 @@ export default function CriarGuildPage() {
                       <button
                         key={String(opt.value)}
                         onClick={() => setIsPublic(opt.value)}
-                        className={`relative p-5 rounded-2xl border text-left transition-all duration-200 ${
-                          active ? "border-indigo-500/60 bg-indigo-600/10 shadow-[0_0_20px_rgba(99,102,241,0.1)]"
-                                 : "border-slate-800 bg-slate-900 hover:border-slate-700"
-                        }`}
+                        className={`relative p-8 rounded-2xl border text-left transition-all duration-300 ${active ? "border-indigo-500 bg-indigo-600/10 shadow-[0_0_30px_rgba(79,70,229,0.15)]"
+                            : "border-slate-800 bg-[#0f172a] hover:border-slate-700"
+                          }`}
                       >
                         {active && (
-                          <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center">
-                            <Check size={11} className="text-white" />
+                          <div className="absolute top-4 right-4 w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center">
+                            <Check size={14} className="text-white" />
                           </div>
                         )}
-                        <Icon size={24} className={`${active ? "text-indigo-400" : "text-slate-500"} mb-3`} />
-                        <div className="font-bold text-white mb-1">{opt.title}</div>
-                        <div className="text-xs text-slate-500">{opt.desc}</div>
+                        <Icon size={32} className={`${active ? "text-indigo-400" : "text-slate-500"} mb-4`} />
+                        <div className="font-bold text-xl text-white mb-2">{opt.title}</div>
+                        <div className="text-sm text-slate-400 group-hover:text-slate-300">{opt.desc}</div>
                       </button>
                     );
                   })}
@@ -294,26 +294,25 @@ export default function CriarGuildPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">
-                  Limite de membros — <span className="text-indigo-400 font-bold">{maxMembers}</span>
+                <label className="block text-[#94a3b8] mb-4">
+                  Limite de membros — <span className="text-indigo-400 font-bold text-lg">{maxMembers}</span>
                 </label>
                 <input
-                  type="range" min={5} max={50} step={5}
+                  type="range" min={5} max={100} step={5}
                   value={maxMembers}
                   onChange={e => setMaxMembers(Number(e.target.value))}
-                  className="w-full accent-indigo-500"
+                  className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
                 />
-                <div className="flex justify-between text-[11px] text-slate-600 mt-1">
-                  <span>5 membros</span><span>50 membros</span>
+                <div className="flex justify-between text-sm text-slate-500 mt-3 font-medium">
+                  <span>5 membros</span><span>100 membros</span>
                 </div>
               </div>
 
-              <div className="flex gap-3 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
-                <Info size={16} className="text-indigo-400 shrink-0 mt-0.5" />
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Você será automaticamente o <span className="text-white font-semibold">Fundador</span> e terá
-                  permissões de administrador. A criação custa{" "}
-                  <span className="text-yellow-400 font-semibold">5.000 Axons</span>.
+              <div className="flex gap-4 p-5 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 items-center">
+                <Info size={20} className="text-indigo-400 shrink-0" />
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  Você será automaticamente o <span className="text-indigo-400 font-semibold">Fundador</span>.
+                  A criação consome <span className="text-[#f59e0b] font-bold">5.000 Axons</span> do seu saldo.
                 </p>
               </div>
             </motion.div>
@@ -321,18 +320,15 @@ export default function CriarGuildPage() {
 
           {/* Step 2 – Convidar */}
           {step === 2 && (
-            <motion.div key="s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
+            <motion.div key="s2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-1">
-                  Convidar Membros
-                  <span className="ml-2 text-slate-500 font-normal text-xs">(opcional)</span>
-                </label>
-                <p className="text-xs text-slate-500 mb-4">
-                  Os convidados receberão uma notificação e poderão aceitar ou recusar.
+                <label className="block text-lg font-semibold text-[#94a3b8] mb-2">Convidar Membros</label>
+                <p className="text-[#64748b] text-sm mb-6">
+                  Comece sua jornada com aliados. Os convidados serão notificados imediatamente.
                 </p>
 
                 {invitedUsers.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-3">
+                  <div className="flex flex-wrap gap-2 mb-6 p-4 rounded-xl bg-slate-800/20 border border-slate-800">
                     <AnimatePresence>
                       {invitedUsers.map(u => (
                         <UserChip key={u.id} user={u} onRemove={() => removeUser(u.id)} />
@@ -342,122 +338,105 @@ export default function CriarGuildPage() {
                 )}
 
                 <div ref={searchRef} className="relative">
-                  <Search size={15} className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${searching ? "text-indigo-400 animate-pulse" : "text-slate-500"}`} />
+                  <Search size={20} className={`absolute left-4 top-1/2 -translate-y-1/2 ${searching ? "text-indigo-400 animate-pulse" : "text-[#64748b]"}`} />
                   <input
                     value={inviteSearch}
                     onChange={e => setInviteSearch(e.target.value)}
                     placeholder="Buscar por nome ou @usuario..."
-                    className="w-full pl-9 pr-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/60 transition-colors text-sm"
+                    className="w-full pl-12 pr-5 py-4 rounded-xl bg-[#0f172a] border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                   />
 
                   <AnimatePresence>
-                    {showDropdown && (
+                    {showDropdown && searchResults.length > 0 && (
                       <motion.div
-                        initial={{ opacity: 0, y: -8 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden z-50 shadow-2xl"
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute top-full left-0 right-0 mt-3 bg-[#0f172a] border border-slate-800 rounded-2xl overflow-hidden z-50 shadow-2xl"
                       >
                         {searchResults.map(u => (
                           <button
                             key={u.id}
                             onClick={() => inviteUser(u)}
-                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-800 transition-colors text-left"
+                            className="w-full flex items-center gap-4 px-5 py-4 hover:bg-slate-800/40 transition-colors text-left group"
                           >
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center text-sm font-bold text-white shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-sm font-bold text-white shadow-lg">
                               {u.name.charAt(0)}
                             </div>
                             <div>
-                              <div className="text-sm font-medium text-white">{u.name}</div>
-                              <div className="text-xs text-slate-500">@{u.nickname} · Nível {u.level}</div>
+                              <div className="font-semibold text-white group-hover:text-indigo-300 transition-colors">{u.name}</div>
+                              <div className="text-xs text-[#64748b]">@{u.nickname} · Nível {u.level}</div>
                             </div>
-                            <div className="ml-auto text-xs text-indigo-400">Convidar</div>
+                            <div className="ml-auto flex items-center gap-1.5 text-xs font-bold text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Check size={14} /> ADICIONAR
+                            </div>
                           </button>
                         ))}
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
-
-                {invitedUsers.length > 0 && (
-                  <p className="mt-3 text-xs text-slate-500">
-                    <span className="text-indigo-400 font-semibold">{invitedUsers.length}</span> usuário(s) serão convidados após a criação.
-                  </p>
-                )}
               </div>
             </motion.div>
           )}
 
           {/* Step 3 – Confirmar */}
           {step === 3 && (
-            <motion.div key="s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
-              <h2 className="text-lg font-bold text-white">Resumo da Guild</h2>
+            <motion.div key="s3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
+              <h2 className="text-lg font-semibold text-[#94a3b8]">Quase lá! Confira os detalhes de sua futura Guild.</h2>
 
-              {/* Preview card */}
-              <div
-                className="relative rounded-2xl overflow-hidden border border-slate-700 p-6"
-                style={{ background: `linear-gradient(135deg, ${selectedBadgeConfig.glow}15, #0F172A)` }}
-              >
-                <div className="flex items-start gap-5">
+              <div className="bg-[#334155] rounded-3xl p-10 border border-slate-700/50 shadow-2xl relative overflow-hidden">
+                <div
+                  className="absolute inset-0 opacity-10 pointer-events-none"
+                  style={{ background: `radial-gradient(circle at top right, ${selectedBadgeConfig.glow}, transparent)` }}
+                />
+
+                <div className="flex items-center gap-10 relative z-10">
                   <GuildBadge type={selectedBadge} size="xl" showGlow />
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-xl font-black text-white">{name}</h3>
-                      {isPublic ? <Globe size={14} className="text-green-400" /> : <Lock size={14} className="text-orange-400" />}
-                    </div>
-                    <p className="text-sm text-slate-400 mb-4">{description}</p>
-                    <div className="flex items-center gap-4 text-xs text-slate-500">
-                      <span>Até {maxMembers} membros</span>
-                      <span className="text-indigo-400">{selectedBadgeConfig.name}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {invitedUsers.length > 0 && (
-                <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
-                  <div className="text-sm font-semibold text-slate-300 mb-3">{invitedUsers.length} convite(s) serão enviados</div>
-                  <div className="space-y-2">
-                    {invitedUsers.map(u => (
-                      <div key={u.id} className="flex items-center gap-2 text-sm text-slate-400">
-                        <div className="w-6 h-6 rounded-full bg-indigo-700 flex items-center justify-center text-[10px] font-bold text-white">
-                          {u.name.charAt(0)}
-                        </div>
-                        @{u.nickname}
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-3xl font-black text-white">{name}</h3>
+                      <div className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-tighter ${isPublic ? 'bg-emerald-500/20 text-emerald-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                        {isPublic ? 'Pública' : 'Privada'}
                       </div>
-                    ))}
+                    </div>
+                    <p className="text-[#94a3b8] text-lg mb-6 leading-relaxed">{description}</p>
+                    <div className="flex items-center gap-6">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] uppercase font-bold text-[#64748b]">Capacidade</span>
+                        <span className="text-white font-bold">{maxMembers} Membros</span>
+                      </div>
+                      <div className="w-px h-8 bg-slate-700" />
+                      <div className="flex flex-col">
+                        <span className="text-[10px] uppercase font-bold text-[#64748b]">Insígnia</span>
+                        <span className="text-indigo-400 font-bold">{selectedBadgeConfig.name}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              )}
-
-              {/* Axon cost warning */}
-              <div className="flex gap-3 p-4 rounded-xl bg-yellow-950/30 border border-yellow-500/20">
-                <Coins size={16} className="text-yellow-400 shrink-0 mt-0.5" />
-                <p className="text-xs text-yellow-200/80 leading-relaxed">
-                  Confirmar criará a guild e deduzirá{" "}
-                  <span className="text-yellow-400 font-bold">5.000 Axons</span> do seu saldo.
-                </p>
               </div>
 
-              {createdId && (
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-green-600/10 border border-green-500/30"
-                >
-                  <Check size={18} className="text-green-400" />
-                  <span className="text-green-300 text-sm font-medium">Guild criada! Redirecionando...</span>
-                </motion.div>
-              )}
+              <div className="flex items-center justify-between p-6 rounded-2xl bg-[#f59e0b]/5 border border-[#f59e0b]/20">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-[#f59e0b]/10 flex items-center justify-center text-[#f59e0b]">
+                    <Sparkles size={24} />
+                  </div>
+                  <div>
+                    <div className="text-white font-bold">Investimento de Fundação</div>
+                    <div className="text-[#f59e0b] text-sm">A taxa será deduzida após a confirmação.</div>
+                  </div>
+                </div>
+                <div className="text-2xl font-black text-[#f59e0b]">5.000 AXONS</div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between mt-10 pt-6 border-t border-slate-800">
+        <div className="flex items-center justify-between mt-12 pt-8 border-t border-slate-800">
           <button
             onClick={() => step > 0 ? setStep(s => (s - 1) as Step) : router.push("/guilds")}
-            className="px-5 py-2.5 rounded-xl border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 text-sm font-medium transition-colors"
+            className="px-8 py-4 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-all font-semibold"
           >
             {step === 0 ? "Cancelar" : "Voltar"}
           </button>
@@ -466,28 +445,27 @@ export default function CriarGuildPage() {
             <button
               onClick={() => canAdvance && setStep(s => (s + 1) as Step)}
               disabled={!canAdvance}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                canAdvance
-                  ? "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/25"
-                  : "bg-slate-800 text-slate-600 cursor-not-allowed"
-              }`}
+              className={`flex items-center gap-2 px-10 py-4 rounded-xl text-base font-bold transition-all ${canAdvance
+                ? "bg-[#4f46e5] hover:bg-[#4338ca] text-white shadow-xl shadow-indigo-600/20 active:scale-95"
+                : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                }`}
             >
-              Próximo <ChevronRight size={15} />
+              PRÓXIMO PASSO <ChevronRight size={20} />
             </button>
           ) : (
             <button
               onClick={handleSubmit}
               disabled={submitting || !!createdId}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-all shadow-lg shadow-indigo-600/25 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="group relative flex items-center gap-2 px-12 py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-base font-black transition-all shadow-2xl shadow-indigo-600/30 disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden"
             >
               {submitting ? (
                 <>
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Criando...
+                  <span className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                  CRIANDO GUILD...
                 </>
               ) : (
                 <>
-                  <Sparkles size={15} /> Criar Guild
+                  CONFIRMAR E CRIAR <Sparkles size={20} className="group-hover:rotate-12 transition-transform" />
                 </>
               )}
             </button>

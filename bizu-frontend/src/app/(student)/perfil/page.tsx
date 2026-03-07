@@ -493,8 +493,8 @@ export default function ProfilePage() {
                     </div>
                     <div className="relative flex flex-col items-center text-center pb-6">
                         <div className="relative mb-4">
-                            <AvatarImage size="md" />
-                            <AvatarOverlay />
+                            {AvatarImage({ size: "md" })}
+                            {AvatarOverlay()}
                         </div>
                         {isLoading ? (
                             <div className="space-y-2">
@@ -533,7 +533,7 @@ export default function ProfilePage() {
                 </div>
                 {/* Content */}
                 <div className="flex-1 px-4 pt-5 pb-10 space-y-3">
-                    <TabContent />
+                    {TabContent()}
                     <button onClick={logout} className="w-full py-4 rounded-2xl bg-red-50 border border-red-100 text-red-500 font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:bg-red-100/60 mt-1">
                         <LogOut className="w-4 h-4" />
                         Sair da Conta
@@ -645,7 +645,7 @@ export default function ProfilePage() {
                                 {activeTab === "security" && "Dispositivos com acesso à sua conta."}
                             </p>
                         </div>
-                        <TabContent />
+                        {TabContent()}
                     </div>
                 </main>
             </div>

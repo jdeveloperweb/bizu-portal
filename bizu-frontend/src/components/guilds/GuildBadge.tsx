@@ -26,7 +26,7 @@ export interface GuildBadgeConfig {
 export const GUILD_BADGES: GuildBadgeConfig[] = [
   {
     id: "espada",
-    name: "Espada Dourada",
+    name: "Dourada",
     description: "Para guerreiros do conhecimento",
     gradient: "from-yellow-600 via-amber-500 to-yellow-400",
     glow: "rgba(245,158,11,0.6)",
@@ -34,7 +34,7 @@ export const GUILD_BADGES: GuildBadgeConfig[] = [
   },
   {
     id: "escudo",
-    name: "Escudo de Ferro",
+    name: "Ferro",
     description: "Defensores da verdade",
     gradient: "from-slate-600 via-blue-500 to-slate-400",
     glow: "rgba(100,149,237,0.6)",
@@ -42,7 +42,7 @@ export const GUILD_BADGES: GuildBadgeConfig[] = [
   },
   {
     id: "coroa",
-    name: "Coroa Real",
+    name: "Real",
     description: "A elite do saber",
     gradient: "from-purple-700 via-violet-500 to-purple-400",
     glow: "rgba(139,92,246,0.6)",
@@ -50,7 +50,7 @@ export const GUILD_BADGES: GuildBadgeConfig[] = [
   },
   {
     id: "chama",
-    name: "Chama Eterna",
+    name: "Eterna",
     description: "Paixão que nunca se apaga",
     gradient: "from-red-700 via-orange-500 to-red-400",
     glow: "rgba(249,115,22,0.6)",
@@ -58,7 +58,7 @@ export const GUILD_BADGES: GuildBadgeConfig[] = [
   },
   {
     id: "cristal",
-    name: "Cristal Arcano",
+    name: "Arcano",
     description: "Mestres do arcano",
     gradient: "from-cyan-700 via-sky-400 to-cyan-300",
     glow: "rgba(34,211,238,0.6)",
@@ -82,7 +82,7 @@ export const GUILD_BADGES: GuildBadgeConfig[] = [
   },
   {
     id: "olho",
-    name: "Olho Místico",
+    name: "Místico",
     description: "Visão além do ordinário",
     gradient: "from-violet-800 via-purple-500 to-fuchsia-400",
     glow: "rgba(168,85,247,0.6)",
@@ -293,7 +293,7 @@ export function GuildBadgeSelector({
             onClick={() => onChange(badge.id)}
           />
           <span className="text-[10px] text-slate-400 text-center leading-tight">
-            {badge.name.split(" ").slice(-1)[0]}
+            {badge.name}
           </span>
         </div>
       ))}
