@@ -11,4 +11,3 @@ public class GuildFlashcardDTO {
     private String front;
     private String back;
 }
-创新 DTO for deck/note/task creation too.

@@ -13,4 +13,3 @@ public class GuildMessageDTO {
     private String time;
     private boolean isMe;
 }
-创新 DTO for message creation too.
