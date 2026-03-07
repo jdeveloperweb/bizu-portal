@@ -10,7 +10,7 @@ import {
     Swords, TrendingUp, User, Trophy, LogOut,
     ChevronRight, ChevronLeft, Search, Timer, CheckSquare,
     StickyNote, Settings, BarChart3, Menu, X, FileText, PlayCircle, CreditCard, Users, Lock, Brain,
-    Zap, Target, Crown
+    Zap, Target, Crown, Shield
 } from "lucide-react";
 import { getAvatarUrl } from "@/lib/imageUtils";
 import { Avatar } from "@/components/ui/Avatar";
@@ -40,6 +40,7 @@ const trackNav = [
     { href: "/ranking", icon: BarChart3, label: "Ranking" },
     { href: "/conquistas", icon: Trophy, label: "Conquistas" },
     { href: "/amigos", icon: Users, label: "Amigos" },
+    { href: "/guilds", icon: Shield, label: "Guilds" },
 ];
 
 const bottomNav = [
