@@ -5,10 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Users, Zap, Trophy, Crown, Flame,
   Shield, Lock, Globe, Settings, UserPlus,
-  MessageSquare, BookOpen, Layers, Target, Star,
-  TrendingUp, Check, MoreVertical, ChevronRight,
+  MessageSquare, BookOpen, Layers, Target,
+  Check, MoreVertical, ChevronRight, ChevronLeft,
   Upload, FileText, Video, Link2, Clock, Award,
-  Bell, Sparkles, Calendar, Send,
+  Bell, Sparkles, Calendar, Send, PenLine,
+  CheckSquare, AlertCircle, RotateCcw, Eye, EyeOff,
+  ListTodo, StickyNote,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -22,6 +24,10 @@ import {
   GuildMissionDTO,
   GuildActivityDTO,
   GuildMessageDTO,
+  GuildNoteDTO,
+  GuildTaskDTO,
+  GuildFlashcardDeckDTO,
+  GuildFlashcardDTO,
 } from "@/lib/guildService";
 import { useAuth } from "@/components/AuthProvider";
 import { useNotification } from "@/components/NotificationProvider";
@@ -29,14 +35,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type GuildTab = "inicio" | "membros" | "materiais" | "flashcards" | "anotacoes" | "ranking" | "missoes";
+type GuildTab = "inicio" | "membros" | "materiais" | "flashcards" | "anotacoes" | "tarefas" | "ranking" | "missoes";
 
 const TABS: { id: GuildTab; label: string; icon: React.ElementType }[] = [
   { id: "inicio",     label: "Início",      icon: Shield },
   { id: "membros",    label: "Membros",     icon: Users },
   { id: "materiais",  label: "Materiais",   icon: BookOpen },
   { id: "flashcards", label: "Flash Cards", icon: Layers },
-  { id: "anotacoes",  label: "Anotações",   icon: FileText },
+  { id: "anotacoes",  label: "Anotações",   icon: StickyNote },
+  { id: "tarefas",    label: "Tarefas",     icon: ListTodo },
   { id: "ranking",    label: "Rankings",    icon: Trophy },
   { id: "missoes",    label: "Missões",     icon: Target },
 ];
@@ -588,6 +595,331 @@ function MissoesTab({ missions }: { missions: GuildMissionDTO[] }) {
   );
 }
 
+// ─── Tab: Anotações ───────────────────────────────────────────────────────────
+
+function AnotacoesTab({ notes }: { notes: GuildNoteDTO[] }) {
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  if (notes.length === 0) {
+    return (
+      <div className="text-center py-20 text-slate-500">
+        <StickyNote size={36} className="mx-auto mb-3 opacity-30" />
+        <p className="font-medium text-white">Nenhuma anotação ainda.</p>
+        <p className="text-sm mt-1">Membros podem compartilhar anotações de estudo com a guild.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {notes.map((note, i) => (
+        <motion.div
+          key={note.id}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.04 }}
+          className="group bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden hover:border-indigo-500/30 transition-all cursor-pointer"
+          onClick={() => setExpanded(expanded === note.id ? null : note.id)}
+        >
+          {/* Color accent top */}
+          <div className="h-1 bg-gradient-to-r from-indigo-500/60 via-purple-500/40 to-transparent" />
+          <div className="p-5">
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <h4 className="font-bold text-white text-sm leading-snug">{note.title}</h4>
+              <ChevronRight
+                size={14}
+                className={`text-slate-500 shrink-0 transition-transform mt-0.5 ${expanded === note.id ? "rotate-90" : ""}`}
+              />
+            </div>
+            <AnimatePresence initial={false}>
+              {expanded === note.id ? (
+                <motion.div
+                  key="expanded"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap mb-3">
+                    {note.content}
+                  </p>
+                </motion.div>
+              ) : (
+                <p className="text-xs text-slate-400 line-clamp-2 mb-3">{note.content}</p>
+              )}
+            </AnimatePresence>
+            <div className="flex items-center justify-between text-[11px] text-slate-600">
+              <span className="flex items-center gap-1">
+                <PenLine size={10} /> {note.author}
+              </span>
+              <span>{note.updatedAt}</span>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Tab: Tarefas ─────────────────────────────────────────────────────────────
+
+function TarefasTab({ tasks }: { tasks: GuildTaskDTO[] }) {
+  const cols: { status: string; label: string; color: string; icon: React.ElementType }[] = [
+    { status: "TODO",        label: "A Fazer",      color: "text-slate-400",  icon: ListTodo },
+    { status: "IN_PROGRESS", label: "Em Progresso", color: "text-indigo-400", icon: RotateCcw },
+    { status: "DONE",        label: "Concluído",    color: "text-green-400",  icon: CheckSquare },
+  ];
+
+  const priorityStyle: Record<string, string> = {
+    LOW:    "text-slate-400 bg-slate-800 border-slate-700",
+    MEDIUM: "text-yellow-400 bg-yellow-900/20 border-yellow-700/30",
+    HIGH:   "text-red-400 bg-red-900/20 border-red-700/30",
+  };
+  const priorityLabel: Record<string, string> = { LOW: "Baixa", MEDIUM: "Média", HIGH: "Alta" };
+
+  if (tasks.length === 0) {
+    return (
+      <div className="text-center py-20 text-slate-500">
+        <ListTodo size={36} className="mx-auto mb-3 opacity-30" />
+        <p className="font-medium text-white">Nenhuma tarefa criada.</p>
+        <p className="text-sm mt-1">Organize o grupo com tarefas e prazos compartilhados.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {cols.map(col => {
+        const Icon = col.icon;
+        const colTasks = tasks.filter(t => t.status === col.status);
+        return (
+          <div key={col.status} className="bg-slate-900/40 border border-slate-800 rounded-2xl p-4">
+            <div className={`flex items-center gap-2 mb-4 ${col.color}`}>
+              <Icon size={14} />
+              <span className="text-sm font-semibold">{col.label}</span>
+              <span className="ml-auto text-[11px] bg-slate-800 px-2 py-0.5 rounded-full text-slate-400">
+                {colTasks.length}
+              </span>
+            </div>
+            <div className="space-y-3">
+              {colTasks.length === 0 ? (
+                <p className="text-xs text-slate-600 text-center py-4">Vazio</p>
+              ) : (
+                colTasks.map((task, i) => (
+                  <motion.div
+                    key={task.id}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className="p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <p className="text-sm text-white font-medium leading-snug">{task.title}</p>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded border font-semibold shrink-0 ${priorityStyle[task.priority] ?? priorityStyle.LOW}`}>
+                        {priorityLabel[task.priority] ?? task.priority}
+                      </span>
+                    </div>
+                    {task.description && (
+                      <p className="text-xs text-slate-500 mb-2 line-clamp-2">{task.description}</p>
+                    )}
+                    <div className="flex items-center justify-between text-[11px] text-slate-600">
+                      <span>{task.assignee}</span>
+                      {task.dueDate && (
+                        <span className="flex items-center gap-1">
+                          <Clock size={10} /> {task.dueDate}
+                        </span>
+                      )}
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Tab: Flash Cards ─────────────────────────────────────────────────────────
+
+function FlashCardsTab({ guildId, decks }: { guildId: string; decks: GuildFlashcardDeckDTO[] }) {
+  const { notify } = useNotification();
+  const [selectedDeck, setSelectedDeck] = useState<GuildFlashcardDeckDTO | null>(null);
+  const [cards, setCards] = useState<GuildFlashcardDTO[]>([]);
+  const [loadingCards, setLoadingCards] = useState(false);
+  const [cardIndex, setCardIndex] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+
+  async function openDeck(deck: GuildFlashcardDeckDTO) {
+    setSelectedDeck(deck);
+    setCardIndex(0);
+    setFlipped(false);
+    setLoadingCards(true);
+    try {
+      const data = await GuildService.getFlashcardCards(guildId, deck.id);
+      setCards(data);
+    } catch {
+      notify("Erro", "Não foi possível carregar os cards.", "error");
+    } finally {
+      setLoadingCards(false);
+    }
+  }
+
+  function next() { setCardIndex(i => Math.min(i + 1, cards.length - 1)); setFlipped(false); }
+  function prev() { setCardIndex(i => Math.max(i - 1, 0)); setFlipped(false); }
+
+  if (decks.length === 0) {
+    return (
+      <div className="text-center py-20 text-slate-500">
+        <Layers size={36} className="mx-auto mb-3 opacity-30" />
+        <p className="font-medium text-white">Nenhum deck compartilhado.</p>
+        <p className="text-sm mt-1">Membros podem compartilhar decks de flash cards com a guild.</p>
+      </div>
+    );
+  }
+
+  // Card viewer
+  if (selectedDeck) {
+    const card = cards[cardIndex];
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => { setSelectedDeck(null); setCards([]); }}
+            className="flex items-center gap-1.5 text-slate-400 hover:text-white text-sm transition-colors group"
+          >
+            <ChevronLeft size={15} className="group-hover:-translate-x-0.5 transition-transform" />
+            Decks
+          </button>
+          <span className="text-slate-600">/</span>
+          <span className="text-white font-semibold text-sm">{selectedDeck.title}</span>
+          <span className="ml-auto text-xs text-slate-500">{cardIndex + 1} / {cards.length}</span>
+        </div>
+
+        {loadingCards ? (
+          <div className="h-64 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+          </div>
+        ) : cards.length === 0 ? (
+          <div className="h-64 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 text-sm">
+            Nenhum card neste deck.
+          </div>
+        ) : card ? (
+          <>
+            {/* Flip card */}
+            <div
+              className="relative h-64 cursor-pointer select-none"
+              style={{ perspective: "1200px" }}
+              onClick={() => setFlipped(f => !f)}
+            >
+              <motion.div
+                animate={{ rotateY: flipped ? 180 : 0 }}
+                transition={{ duration: 0.45, ease: "easeInOut" }}
+                style={{ transformStyle: "preserve-3d" }}
+                className="relative w-full h-full"
+              >
+                {/* Front */}
+                <div
+                  className="absolute inset-0 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 flex flex-col items-center justify-center p-8 text-center"
+                  style={{ backfaceVisibility: "hidden" }}
+                >
+                  <div className="text-[10px] text-slate-500 uppercase tracking-widest mb-4">Pergunta</div>
+                  <p className="text-white text-lg font-semibold leading-relaxed">{card.front}</p>
+                  <div className="absolute bottom-4 text-xs text-slate-600 flex items-center gap-1">
+                    <Eye size={11} /> Clique para revelar
+                  </div>
+                </div>
+                {/* Back */}
+                <div
+                  className="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-950 to-slate-900 border border-indigo-500/30 flex flex-col items-center justify-center p-8 text-center"
+                  style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+                >
+                  <div className="text-[10px] text-indigo-400 uppercase tracking-widest mb-4">Resposta</div>
+                  <p className="text-white text-lg font-semibold leading-relaxed">{card.back}</p>
+                  <div className="absolute bottom-4 text-xs text-slate-600 flex items-center gap-1">
+                    <EyeOff size={11} /> Clique para ocultar
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Navigation */}
+            <div className="flex items-center justify-between gap-4">
+              <button
+                onClick={prev}
+                disabled={cardIndex === 0}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-sm transition-colors"
+              >
+                <ChevronLeft size={14} /> Anterior
+              </button>
+              {/* Progress dots */}
+              <div className="flex gap-1.5">
+                {cards.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { setCardIndex(i); setFlipped(false); }}
+                    className={`rounded-full transition-all ${
+                      i === cardIndex
+                        ? "w-4 h-2 bg-indigo-500"
+                        : "w-2 h-2 bg-slate-700 hover:bg-slate-600"
+                    }`}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={next}
+                disabled={cardIndex === cards.length - 1}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-sm transition-colors"
+              >
+                Próximo <ChevronRight size={14} />
+              </button>
+            </div>
+          </>
+        ) : null}
+      </div>
+    );
+  }
+
+  // Deck list
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {decks.map((deck, i) => (
+        <motion.button
+          key={deck.id}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.05 }}
+          onClick={() => openDeck(deck)}
+          className="group text-left p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-indigo-500/40 hover:shadow-[0_0_20px_rgba(99,102,241,0.1)] transition-all duration-300"
+        >
+          {/* Icon / Color badge */}
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4"
+            style={{ background: deck.color ? `${deck.color}30` : "#1e293b", border: `1px solid ${deck.color ?? "#334155"}40` }}
+          >
+            {deck.icon ?? "📚"}
+          </div>
+          <h4 className="font-bold text-white mb-1">{deck.title}</h4>
+          {deck.description && (
+            <p className="text-xs text-slate-500 mb-3 line-clamp-2">{deck.description}</p>
+          )}
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-500">
+              {deck.cardCount} {deck.cardCount === 1 ? "card" : "cards"}
+            </span>
+            <span className="text-xs text-indigo-400 flex items-center gap-1 group-hover:gap-2 transition-all">
+              Estudar <ChevronRight size={12} />
+            </span>
+          </div>
+        </motion.button>
+      ))}
+    </div>
+  );
+}
+
 // ─── Page skeleton ────────────────────────────────────────────────────────────
 
 function PageSkeleton() {
@@ -638,6 +970,9 @@ export default function GuildDetailPage() {
   const [missions, setMissions] = useState<GuildMissionDTO[]>([]);
   const [activity, setActivity] = useState<GuildActivityDTO[]>([]);
   const [messages, setMessages] = useState<GuildMessageDTO[]>([]);
+  const [notes, setNotes] = useState<GuildNoteDTO[]>([]);
+  const [tasks, setTasks] = useState<GuildTaskDTO[]>([]);
+  const [decks, setDecks] = useState<GuildFlashcardDeckDTO[]>([]);
   const [loading, setLoading] = useState(true);
 
   // ── Initial data load ──
@@ -647,16 +982,21 @@ export default function GuildDetailPage() {
     const load = async () => {
       setLoading(true);
       try {
-        // Load guild header + all tab data in parallel
-        const [guildData, membersData, materialsData, missionsData, activityData, chatData] =
-          await Promise.allSettled([
-            GuildService.getGuild(guildId),
-            GuildService.getMembers(guildId),
-            GuildService.getMaterials(guildId),
-            GuildService.getMissions(guildId),
-            GuildService.getActivity(guildId),
-            GuildService.getChatMessages(guildId),
-          ]);
+        // Load all data in parallel
+        const [
+          guildData, membersData, materialsData, missionsData,
+          activityData, chatData, notesData, tasksData, decksData,
+        ] = await Promise.allSettled([
+          GuildService.getGuild(guildId),
+          GuildService.getMembers(guildId),
+          GuildService.getMaterials(guildId),
+          GuildService.getMissions(guildId),
+          GuildService.getActivity(guildId),
+          GuildService.getChatMessages(guildId),
+          GuildService.getNotes(guildId),
+          GuildService.getTasks(guildId),
+          GuildService.getFlashcardDecks(guildId),
+        ]);
 
         if (guildData.status === "fulfilled") setGuild(guildData.value);
         else { notify("Erro", "Guild não encontrada.", "error"); return; }
@@ -668,7 +1008,10 @@ export default function GuildDetailPage() {
         if (materialsData.status === "fulfilled") setMaterials(materialsData.value);
         if (missionsData.status === "fulfilled")  setMissions(missionsData.value);
         if (activityData.status === "fulfilled")  setActivity(activityData.value);
-        if (chatData.status === "fulfilled")       setMessages(chatData.value);
+        if (chatData.status === "fulfilled")      setMessages(chatData.value);
+        if (notesData.status === "fulfilled")     setNotes(notesData.value);
+        if (tasksData.status === "fulfilled")     setTasks(tasksData.value);
+        if (decksData.status === "fulfilled")     setDecks(decksData.value);
       } finally {
         setLoading(false);
       }
@@ -856,14 +1199,10 @@ export default function GuildDetailPage() {
           {tab === "missoes" && (
             <MissoesTab missions={missions} />
           )}
-          {(tab === "flashcards" || tab === "anotacoes") && (
-            <div className="text-center py-20 text-slate-500">
-              <Sparkles size={36} className="mx-auto mb-3 opacity-30" />
-              <p className="font-medium text-white">
-                {tab === "flashcards" ? "Flash Cards" : "Anotações"} da Guild
-              </p>
-              <p className="text-sm mt-1">Em breve — compartilhe seus decks e anotações com o grupo</p>
-            </div>
+          {tab === "anotacoes" && <AnotacoesTab notes={notes} />}
+          {tab === "tarefas"   && <TarefasTab tasks={tasks} />}
+          {tab === "flashcards" && (
+            <FlashCardsTab guildId={guildId} decks={decks} />
           )}
         </motion.div>
       </AnimatePresence>

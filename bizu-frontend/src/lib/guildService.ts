@@ -95,6 +95,39 @@ export interface GuildCreateRequestDTO {
   invitedUserIds: string[];
 }
 
+export interface GuildNoteDTO {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+  updatedAt: string;
+}
+
+export interface GuildTaskDTO {
+  id: string;
+  title: string;
+  description: string | null;
+  priority: string; // LOW | MEDIUM | HIGH
+  status: string;   // TODO | IN_PROGRESS | DONE
+  assignee: string;
+  dueDate: string | null;
+}
+
+export interface GuildFlashcardDeckDTO {
+  id: string;
+  title: string;
+  description: string | null;
+  icon: string | null;
+  color: string | null;
+  cardCount: number;
+}
+
+export interface GuildFlashcardDTO {
+  id: string;
+  front: string;
+  back: string;
+}
+
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 export const GuildService = {
@@ -168,6 +201,34 @@ export const GuildService = {
       body: JSON.stringify({ text }),
     });
     if (!res.ok) throw new Error("Erro ao enviar mensagem");
+    return res.json();
+  },
+
+  /** GET /student/guilds/{id}/notes */
+  async getNotes(id: string): Promise<GuildNoteDTO[]> {
+    const res = await apiFetch(`/student/guilds/${id}/notes`);
+    if (!res.ok) throw new Error("Erro ao buscar anotações");
+    return res.json();
+  },
+
+  /** GET /student/guilds/{id}/tasks */
+  async getTasks(id: string): Promise<GuildTaskDTO[]> {
+    const res = await apiFetch(`/student/guilds/${id}/tasks`);
+    if (!res.ok) throw new Error("Erro ao buscar tarefas");
+    return res.json();
+  },
+
+  /** GET /student/guilds/{id}/flashcards */
+  async getFlashcardDecks(id: string): Promise<GuildFlashcardDeckDTO[]> {
+    const res = await apiFetch(`/student/guilds/${id}/flashcards`);
+    if (!res.ok) throw new Error("Erro ao buscar decks");
+    return res.json();
+  },
+
+  /** GET /student/guilds/{id}/flashcards/{deckId}/cards */
+  async getFlashcardCards(guildId: string, deckId: string): Promise<GuildFlashcardDTO[]> {
+    const res = await apiFetch(`/student/guilds/${guildId}/flashcards/${deckId}/cards`);
+    if (!res.ok) throw new Error("Erro ao buscar flashcards");
     return res.json();
   },
 
