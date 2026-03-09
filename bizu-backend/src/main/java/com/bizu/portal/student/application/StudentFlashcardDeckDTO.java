@@ -19,4 +19,12 @@ public class StudentFlashcardDeckDTO {
     private int progress;
     private String lastStudied; // Relative string or date
     private String sharedWithGuildName; // Nome da guild se compartilhado
+    private UUID userId;
+    private UUID originalCreatorId;
+    private String originalCreatorName;
+    private boolean isForSale;
+    private Integer price;
+    private Double rating;
+    private Integer ratingCount;
+    private boolean isPurchased;
 }

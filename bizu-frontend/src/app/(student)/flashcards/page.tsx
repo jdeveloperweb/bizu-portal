@@ -26,6 +26,14 @@ interface Deck {
     lastStudied: string;
     color: string;
     sharedWithGuildName?: string;
+    userId?: string;
+    originalCreatorId?: string;
+    originalCreatorName?: string;
+    isForSale?: boolean;
+    price?: number;
+    rating?: number;
+    ratingCount?: number;
+    isPurchased?: boolean;
 }
 
 interface Summary {
@@ -50,7 +58,12 @@ export default function FlashcardsPage() {
     const [myGuilds, setMyGuilds] = useState<GuildResponseDTO[]>([]);
     const [sharingDeckId, setSharingDeckId] = useState<string | null>(null);
     const [isSharing, setIsSharing] = useState(false);
-    const { alert } = useCustomDialog();
+    const [activeTab, setActiveTab] = useState<"my" | "store">("my");
+    const [storeDecks, setStoreDecks] = useState<Deck[]>([]);
+    const [searchUser, setSearchUser] = useState("");
+    const [foundUsers, setFoundUsers] = useState<any[]>([]);
+    const [sharingType, setSharingType] = useState<"GUILD" | "USER">("GUILD");
+    const { alert, confirm } = useCustomDialog();
 
     const fetchData = async () => {
         try {
@@ -74,6 +87,23 @@ export default function FlashcardsPage() {
             setLoading(false);
         }
     };
+
+    const fetchStoreDecks = async () => {
+        try {
+            const res = await apiFetch("/student/flashcards/store");
+            if (res.ok) {
+                setStoreDecks(await res.json());
+            }
+        } catch (error) {
+            console.error("Error fetching store decks:", error);
+        }
+    };
+
+    useEffect(() => {
+        if (activeTab === "store") {
+            fetchStoreDecks();
+        }
+    }, [activeTab]);
 
     useEffect(() => {
         fetchData();
@@ -100,16 +130,16 @@ export default function FlashcardsPage() {
         }
     };
 
-    const handleShareDeck = async (deckId: string, guildId: string) => {
+    const handleShareDeck = async (deckId: string, targetId: string, type: "GUILD" | "USER") => {
         setIsSharing(true);
         try {
             const res = await apiFetch(`/student/flashcards/decks/${deckId}/share`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ targetType: "GUILD", targetId: guildId })
+                body: JSON.stringify({ targetType: type, targetId })
             });
             if (res.ok) {
-                alert("Deck compartilhado com a guilda!");
+                alert(type === "GUILD" ? "Deck compartilhado com a guilda!" : "Deck compartilhado com o usuário!");
                 setSharingDeckId(null);
             } else {
                 throw new Error("Erro ao compartilhar");
@@ -119,6 +149,51 @@ export default function FlashcardsPage() {
             alert("Erro ao compartilhar deck.", { type: "danger" });
         } finally {
             setIsSharing(false);
+        }
+    };
+
+    const handleDeleteDeck = async (deckId: string) => {
+        if (await confirm("Tem certeza que deseja excluir esta coleção? Esta ação não pode ser desfeita.")) {
+            try {
+                const res = await apiFetch(`/student/flashcards/decks/${deckId}`, { method: "DELETE" });
+                if (res.ok) {
+                    alert("Coleção excluída com sucesso!");
+                    fetchData();
+                }
+            } catch (error) {
+                alert("Erro ao excluir coleção.", { type: "danger" });
+            }
+        }
+    };
+
+    const handleBuyDeck = async (deckId: string, price: number) => {
+        if (await confirm(`Deseja comprar este deck por ${price} Axons?`)) {
+            try {
+                const res = await apiFetch(`/student/flashcards/store/decks/${deckId}/buy`, { method: "POST" });
+                if (res.ok) {
+                    alert("Deck comprado com sucesso!");
+                    setActiveTab("my");
+                    fetchData();
+                } else {
+                    const err = await res.json();
+                    alert(err.message || "Erro ao comprar deck.", { type: "danger" });
+                }
+            } catch (error) {
+                alert("Erro ao comprar deck.", { type: "danger" });
+            }
+        }
+    };
+
+    const searchUsersToShare = async (nickname: string) => {
+        setSearchUser(nickname);
+        if (nickname.length < 3) return;
+        try {
+            const res = await apiFetch(`/friends/search?nickname=${nickname}`);
+            if (res.ok) {
+                setFoundUsers(await res.json());
+            }
+        } catch (error) {
+            console.error(error);
         }
     };
 
@@ -167,6 +242,15 @@ export default function FlashcardsPage() {
                     <button onClick={() => setIsModalOpen(true)} className="btn-primary !h-10 !text-[12px] !px-5 whitespace-nowrap">
                         <Plus size={15} /> Nova Coleção
                     </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab(activeTab === "my" ? "store" : "my");
+                        }}
+                        className={`btn-outline !h-10 !text-[12px] !px-5 whitespace-nowrap ${activeTab === "store" ? "!bg-indigo-600 !text-white" : ""}`}
+                    >
+                        {activeTab === "my" ? <Target size={15} /> : <Layers size={15} />}
+                        {activeTab === "my" ? "Loja de Decks" : "Meus Decks"}
+                    </button>
                 </div>
             </div>
 
@@ -196,80 +280,168 @@ export default function FlashcardsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-3">
                     {/* Deck List */}
-                    {decks.length > 0 ? (
-                        decks.map(deck => {
+                    {(activeTab === "my" ? decks : storeDecks).length > 0 ? (
+                        (activeTab === "my" ? decks : storeDecks).map(deck => {
                             const Icon = ICON_MAP[deck.icon] || BookOpen;
                             const colorClass = deck.color || "from-indigo-500 to-violet-600";
                             return (
-                                <div key={deck.id} className="card-elevated !rounded-2xl p-5 hover:!transform-none group">
-                                    <div className="flex items-start gap-4">
-                                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorClass} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-sm`}>
-                                            <Icon size={20} className="text-white" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-0.5">
-                                                <h3 className="text-[14px] font-bold text-slate-800">{deck.title}</h3>
-                                                {deck.newCards > 0 && (
-                                                    <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
-                                                        {deck.newCards} novas
-                                                    </span>
-                                                )}
-                                                {deck.sharedWithGuildName && (
-                                                    <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full flex items-center gap-1">
-                                                        <Users size={9} /> {deck.sharedWithGuildName}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <p className="text-[11px] text-slate-400 mb-3 line-clamp-1">{deck.description}</p>
+                                <div key={deck.id} className="relative group">
+                                    {/* Camadas decorativas para efeito de deck */}
+                                    <div className="absolute inset-0 bg-white border border-slate-200 rounded-2xl transform translate-x-1.5 translate-y-1.5 -z-10 opacity-60 transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
+                                    <div className="absolute inset-0 bg-white border border-slate-200 rounded-2xl transform translate-x-3 translate-y-3 -z-20 opacity-30 transition-transform duration-300 group-hover:translate-x-4 group-hover:translate-y-4" />
 
-                                            {/* Progress bar */}
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                    <div className={`h-full rounded-full bg-gradient-to-r ${colorClass} transition-all duration-700`}
-                                                        style={{ width: `${deck.progress}%` }} />
+                                    <div className="card-elevated !rounded-2xl p-5 hover:!transform-none bg-white relative">
+                                        <div className="flex items-start gap-4">
+                                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorClass} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-sm`}>
+                                                <Icon size={20} className="text-white" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-0.5">
+                                                    <h3 className="text-[14px] font-bold text-slate-800">{deck.title}</h3>
+                                                    {deck.newCards > 0 && activeTab === "my" && (
+                                                        <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
+                                                            {deck.newCards} novas
+                                                        </span>
+                                                    )}
+                                                    {deck.sharedWithGuildName && activeTab === "my" && (
+                                                        <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                                                            <Users size={9} /> {deck.sharedWithGuildName}
+                                                        </span>
+                                                    )}
+                                                    {deck.originalCreatorName && (
+                                                        <span className="text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full">
+                                                            Criador: {deck.originalCreatorName}
+                                                        </span>
+                                                    )}
+                                                    {activeTab === "store" && deck.rating !== undefined && (
+                                                        <span className="flex items-center gap-0.5 text-[10px] font-bold text-amber-500">
+                                                            <Star size={10} fill="currentColor" /> {deck.rating?.toFixed(1)} ({deck.ratingCount})
+                                                        </span>
+                                                    )}
                                                 </div>
-                                                <span className="text-[11px] font-bold text-slate-600">{deck.progress}%</span>
-                                            </div>
+                                                <p className="text-[11px] text-slate-400 mb-3 line-clamp-1">{deck.description}</p>
 
-                                            <div className="flex items-center gap-4 text-[10px] text-slate-400">
-                                                <span className="flex items-center gap-1"><Layers size={10} /> {deck.totalCards} cartas</span>
-                                                <span className="flex items-center gap-1"><Clock size={10} /> {deck.dueCards} pendentes</span>
-                                                <span>{deck.lastStudied}</span>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col gap-2 shrink-0">
-                                            <Link href={`/flashcards/estudar?deckId=${deck.id}`}
-                                                className="btn-primary !h-9 !text-[11px] !px-4 whitespace-nowrap">
-                                                <PlayCircle size={13} /> Revisar
-                                            </Link>
-                                            <Link href={`/flashcards/gerenciar?deckId=${deck.id}`}
-                                                className="btn-outline !h-9 !text-[11px] !px-4 !border-slate-200 !text-slate-600 hover:!bg-slate-50 whitespace-nowrap flex items-center justify-center gap-1.5 rounded-xl font-bold">
-                                                <Plus size={12} /> Cartas
-                                            </Link>
+                                                {/* Progress bar (only for my decks) */}
+                                                {activeTab === "my" && (
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                            <div className={`h-full rounded-full bg-gradient-to-r ${colorClass} transition-all duration-700`}
+                                                                style={{ width: `${deck.progress}%` }} />
+                                                        </div>
+                                                        <span className="text-[11px] font-bold text-slate-600">{deck.progress}%</span>
+                                                    </div>
+                                                )}
 
-                                            <div className="relative">
-                                                <button
-                                                    onClick={() => setSharingDeckId(sharingDeckId === deck.id ? null : deck.id)}
-                                                    className={`btn-outline !h-9 !text-[11px] !px-4 !border-slate-200 !text-slate-600 hover:!bg-slate-50 whitespace-nowrap flex items-center justify-center gap-1.5 rounded-xl font-bold ${sharingDeckId === deck.id ? "!bg-indigo-50 !text-indigo-600 !border-indigo-200" : ""}`}>
-                                                    <Share2 size={12} /> Compartilhar
-                                                </button>
-                                                {sharingDeckId === deck.id && (
-                                                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 p-2 z-10 animate-in fade-in zoom-in-95 duration-150">
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 py-2">Compartilhar com Guilda</p>
-                                                        <div className="space-y-1 max-h-48 overflow-y-auto">
-                                                            {myGuilds.length > 0 ? myGuilds.map(guild => (
-                                                                <button key={guild.id}
-                                                                    disabled={isSharing}
-                                                                    onClick={() => handleShareDeck(deck.id, guild.id)}
-                                                                    className="w-full text-left px-3 py-2 rounded-lg text-[12px] font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center justify-between">
-                                                                    <span className="truncate">{guild.name}</span>
-                                                                    {isSharing && <Loader2 size={10} className="animate-spin" />}
-                                                                </button>
-                                                            )) : (
-                                                                <p className="px-3 py-2 text-[11px] text-slate-400 italic">Você não participa de nenhuma guilda.</p>
+                                                <div className="flex items-center gap-4 text-[10px] text-slate-400">
+                                                    <span className="flex items-center gap-1"><Layers size={10} /> {deck.totalCards} cartas</span>
+                                                    {activeTab === "my" && (
+                                                        <>
+                                                            <span className="flex items-center gap-1"><Clock size={10} /> {deck.dueCards} pendentes</span>
+                                                            <span>{deck.lastStudied}</span>
+                                                        </>
+                                                    )}
+                                                    {activeTab === "store" && (
+                                                        <span className="font-bold text-indigo-600 flex items-center gap-1">
+                                                            <Zap size={10} /> {deck.price} axons
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col gap-2 shrink-0">
+                                                {activeTab === "my" ? (
+                                                    <>
+                                                        <Link href={`/flashcards/estudar?deckId=${deck.id}`}
+                                                            className="btn-primary !h-9 !text-[11px] !px-4 whitespace-nowrap">
+                                                            <PlayCircle size={13} /> Revisar
+                                                        </Link>
+                                                        <Link href={`/flashcards/gerenciar?deckId=${deck.id}`}
+                                                            className="btn-outline !h-9 !text-[11px] !px-4 !border-slate-200 !text-slate-600 hover:!bg-slate-50 whitespace-nowrap flex items-center justify-center gap-1.5 rounded-xl font-bold">
+                                                            <Plus size={12} /> Cartas
+                                                        </Link>
+
+                                                        <div className="relative">
+                                                            <button
+                                                                onClick={() => setSharingDeckId(sharingDeckId === deck.id ? null : deck.id)}
+                                                                className={`btn-outline w-full !h-9 !text-[11px] !px-4 !border-slate-200 !text-slate-600 hover:!bg-slate-50 whitespace-nowrap flex items-center justify-center gap-1.5 rounded-xl font-bold ${sharingDeckId === deck.id ? "!bg-indigo-50 !text-indigo-600 !border-indigo-200" : ""}`}>
+                                                                <Share2 size={12} /> Share
+                                                            </button>
+                                                            {sharingDeckId === deck.id && (
+                                                                <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 p-2 z-10 animate-in fade-in zoom-in-95 duration-150">
+                                                                    <div className="flex gap-2 mb-2 p-1 bg-slate-50 rounded-lg">
+                                                                        <button onClick={() => setSharingType("GUILD")} className={`flex-1 text-[10px] font-bold py-1 rounded ${sharingType === "GUILD" ? "bg-white shadow text-indigo-600" : "text-slate-400"}`}>GUILDA</button>
+                                                                        <button onClick={() => setSharingType("USER")} className={`flex-1 text-[10px] font-bold py-1 rounded ${sharingType === "USER" ? "bg-white shadow text-indigo-600" : "text-slate-400"}`}>USUÁRIO</button>
+                                                                    </div>
+
+                                                                    <div className="space-y-1 max-h-48 overflow-y-auto">
+                                                                        {sharingType === "GUILD" ? (
+                                                                            myGuilds.length > 0 ? myGuilds.map(guild => (
+                                                                                <button key={guild.id}
+                                                                                    disabled={isSharing}
+                                                                                    onClick={() => handleShareDeck(deck.id, guild.id, "GUILD")}
+                                                                                    className="w-full text-left px-3 py-2 rounded-lg text-[12px] font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center justify-between">
+                                                                                    <span className="truncate">{guild.name}</span>
+                                                                                    {isSharing && <Loader2 size={10} className="animate-spin" />}
+                                                                                </button>
+                                                                            )) : (
+                                                                                <p className="px-3 py-2 text-[11px] text-slate-400 italic">Nenhuma guilda.</p>
+                                                                            )
+                                                                        ) : (
+                                                                            <div className="p-2 space-y-2">
+                                                                                <input
+                                                                                    type="text"
+                                                                                    className="w-full text-[12px] px-2 py-1 border rounded"
+                                                                                    placeholder="Apelido..."
+                                                                                    value={searchUser}
+                                                                                    onChange={e => searchUsersToShare(e.target.value)}
+                                                                                />
+                                                                                {foundUsers.map(user => (
+                                                                                    <button key={user.id}
+                                                                                        onClick={() => handleShareDeck(deck.id, user.id, "USER")}
+                                                                                        className="w-full text-left px-2 py-1.5 rounded hover:bg-indigo-50 text-[11px] font-bold text-slate-600 flex items-center gap-2">
+                                                                                        <div className="w-5 h-5 rounded-full bg-slate-200 bg-cover" style={{ backgroundImage: `url(${user.avatarUrl})` }} />
+                                                                                        {user.nickname}
+                                                                                    </button>
+                                                                                ))}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
                                                             )}
                                                         </div>
-                                                    </div>
+                                                        <button
+                                                            onClick={() => handleDeleteDeck(deck.id)}
+                                                            className="text-[10px] font-bold text-rose-500 hover:text-rose-600 p-1 opacity-60 hover:opacity-100 transition-all flex items-center justify-center gap-1"
+                                                        >
+                                                            <XCircle size={12} /> Excluir
+                                                        </button>
+                                                        {deck.originalCreatorId !== deck.userId && (
+                                                            <button
+                                                                onClick={async () => {
+                                                                    const val = window.prompt("Qual a nota (1 a 5)?");
+                                                                    if (val) {
+                                                                        await apiFetch(`/student/flashcards/decks/${deck.id}/rate`, {
+                                                                            method: "POST",
+                                                                            headers: { "Content-Type": "application/json" },
+                                                                            body: JSON.stringify({ rating: parseInt(val), comment: "" })
+                                                                        });
+                                                                        alert("Obrigado pela avaliação!");
+                                                                        fetchData();
+                                                                    }
+                                                                }}
+                                                                className="text-[10px] font-bold text-amber-500 hover:text-amber-600 p-1 opacity-60 hover:opacity-100 transition-all flex items-center justify-center gap-1"
+                                                            >
+                                                                <Star size={12} /> Avaliar
+                                                            </button>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handleBuyDeck(deck.id, deck.price || 0)}
+                                                        disabled={deck.isPurchased}
+                                                        className={`btn-primary !h-10 !text-[12px] !px-6 ${deck.isPurchased ? "!bg-slate-100 !text-slate-400 !border-slate-200" : ""}`}
+                                                    >
+                                                        {deck.isPurchased ? "Comprado" : "Comprar"}
+                                                    </button>
                                                 )}
                                             </div>
                                         </div>

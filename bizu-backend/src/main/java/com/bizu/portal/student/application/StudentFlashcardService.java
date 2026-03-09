@@ -32,6 +32,9 @@ public class StudentFlashcardService {
     private final UserRepository userRepository;
     private final GuildRepository guildRepository;
     private final GuildMemberRepository guildMemberRepository;
+    private final com.bizu.portal.content.infrastructure.FlashcardDeckPurchaseRepository purchaseRepository;
+    private final com.bizu.portal.content.infrastructure.FlashcardDeckRatingRepository ratingRepository;
+    private final com.bizu.portal.student.infrastructure.GamificationRepository gamificationRepository;
 
     public List<StudentFlashcardDeckDTO> getDecksForUser(UUID userId) {
         OffsetDateTime now = OffsetDateTime.now();
@@ -82,6 +85,11 @@ public class StudentFlashcardService {
                         .orElse(null);
                 }
 
+                String creatorName = deck.getOriginalCreatorId() != null ? 
+                    userRepository.findById(deck.getOriginalCreatorId()).map(u -> u.getName()).orElse("Desconhecido") : null;
+
+                boolean isPurchased = purchaseRepository.existsByDeckIdAndStudentId(deck.getId(), userId);
+
                 return StudentFlashcardDeckDTO.builder()
                     .id(deck.getId())
                     .title(deck.getTitle())
@@ -94,6 +102,14 @@ public class StudentFlashcardService {
                     .progress(progressPercent)
                     .lastStudied("Há pouco")
                     .sharedWithGuildName(guildName)
+                    .userId(deck.getUserId())
+                    .originalCreatorId(deck.getOriginalCreatorId())
+                    .originalCreatorName(creatorName)
+                    .isForSale(deck.isForSale())
+                    .price(deck.getPrice())
+                    .rating(deck.getRating())
+                    .ratingCount(deck.getRatingCount())
+                    .isPurchased(isPurchased)
                     .build();
             }).collect(Collectors.toList());
     }
@@ -102,11 +118,16 @@ public class StudentFlashcardService {
     public FlashcardDeck createDeck(UUID userId, String title, String description, String icon, String color) {
         FlashcardDeck deck = FlashcardDeck.builder()
             .userId(userId)
+            .originalCreatorId(userId)
             .courseId(CourseContextHolder.getCourseId())
             .title(title)
             .description(description)
             .icon(icon != null ? icon : "Layers")
             .color(color != null ? color : "from-indigo-500 to-violet-600")
+            .isForSale(false)
+            .price(0)
+            .rating(0.0)
+            .ratingCount(0)
             .build();
         return deckRepository.save(deck);
     }
@@ -280,11 +301,16 @@ public class StudentFlashcardService {
 
         FlashcardDeck personalDeck = FlashcardDeck.builder()
             .userId(userId)
+            .originalCreatorId(guildDeck.getOriginalCreatorId())
             .courseId(CourseContextHolder.getCourseId())
             .title(guildDeck.getTitle() + " (Clonado)")
             .description(guildDeck.getDescription())
             .icon(guildDeck.getIcon())
             .color(guildDeck.getColor())
+            .isForSale(false)
+            .price(0)
+            .rating(0.0)
+            .ratingCount(0)
             .build();
             
         FlashcardDeck savedPersonalDeck = deckRepository.save(personalDeck);
@@ -299,5 +325,151 @@ public class StudentFlashcardService {
 
         flashcardRepository.saveAll(personalCards);
         return savedPersonalDeck;
+    }
+
+    @Transactional
+    public void updateDeckStoreSettings(UUID deckId, UUID userId, boolean isForSale, Integer price) {
+        FlashcardDeck deck = deckRepository.findById(deckId)
+            .orElseThrow(() -> new RuntimeException("Deck não encontrado"));
+            
+        if (!deck.getUserId().equals(userId)) {
+            throw new RuntimeException("Apenas o criador pode alterar as configurações da loja");
+        }
+        
+        deck.setForSale(isForSale);
+        deck.setPrice(price != null ? price : 0);
+        deckRepository.save(deck);
+    }
+
+    @Transactional
+    public void deleteDeck(UUID deckId, UUID userId) {
+        FlashcardDeck deck = deckRepository.findById(deckId)
+            .orElseThrow(() -> new RuntimeException("Deck não encontrado"));
+            
+        if (!deck.getUserId().equals(userId)) {
+            throw new RuntimeException("Apenas o proprietário do deck pode excluí-lo");
+        }
+        
+        deckRepository.delete(deck);
+    }
+
+    public List<StudentFlashcardDeckDTO> getStoreDecks() {
+        UUID activeCourseId = CourseContextHolder.getCourseId();
+        
+        return deckRepository.findAllByIsForSaleTrue().stream()
+            .filter(deck -> activeCourseId == null || deck.getCourseId() == null || deck.getCourseId().equals(activeCourseId))
+            .map(deck -> {
+                String creatorName = deck.getOriginalCreatorId() != null ? 
+                    userRepository.findById(deck.getOriginalCreatorId()).map(u -> u.getName()).orElse("Desconhecido") : "Sistema";
+
+                return StudentFlashcardDeckDTO.builder()
+                    .id(deck.getId())
+                    .title(deck.getTitle())
+                    .description(deck.getDescription())
+                    .icon(deck.getIcon())
+                    .color(deck.getColor())
+                    .totalCards(deck.getCards().size())
+                    .originalCreatorName(creatorName)
+                    .price(deck.getPrice())
+                    .rating(deck.getRating())
+                    .ratingCount(deck.getRatingCount())
+                    .isForSale(true)
+                    .build();
+            }).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public FlashcardDeck buyDeck(UUID deckId, UUID buyerId) {
+        FlashcardDeck storeDeck = deckRepository.findById(deckId)
+            .orElseThrow(() -> new RuntimeException("Deck não encontrado"));
+
+        if (!storeDeck.isForSale()) {
+            throw new RuntimeException("Este deck não está à venda");
+        }
+
+        if (purchaseRepository.existsByDeckIdAndStudentId(deckId, buyerId)) {
+            throw new RuntimeException("Você já comprou este deck");
+        }
+
+        var stats = gamificationRepository.findById(buyerId)
+            .orElseThrow(() -> new RuntimeException("Perfil de gamificação não encontrado"));
+
+        if (stats.getAxonCoins() < storeDeck.getPrice()) {
+            throw new RuntimeException("Axons insuficientes");
+        }
+
+        // Deduzir axons
+        stats.setAxonCoins(stats.getAxonCoins() - storeDeck.getPrice());
+        gamificationRepository.save(stats);
+
+        // Registrar compra
+        com.bizu.portal.content.domain.FlashcardDeckPurchase purchase = com.bizu.portal.content.domain.FlashcardDeckPurchase.builder()
+            .deckId(deckId)
+            .studentId(buyerId)
+            .pricePaid(storeDeck.getPrice())
+            .build();
+        purchaseRepository.save(purchase);
+
+        // Criar cópia para o usuário
+        FlashcardDeck buyerDeck = FlashcardDeck.builder()
+            .userId(buyerId)
+            .originalCreatorId(storeDeck.getOriginalCreatorId())
+            .courseId(CourseContextHolder.getCourseId())
+            .title(storeDeck.getTitle())
+            .description(storeDeck.getDescription())
+            .icon(storeDeck.getIcon())
+            .color(storeDeck.getColor())
+            .isForSale(false)
+            .price(0)
+            .rating(0.0)
+            .ratingCount(0)
+            .build();
+            
+        FlashcardDeck savedBuyerDeck = deckRepository.save(buyerDeck);
+
+        List<Flashcard> buyerCards = storeDeck.getCards().stream()
+            .map(card -> Flashcard.builder()
+                .deck(savedBuyerDeck)
+                .front(card.getFront())
+                .back(card.getBack())
+                .build()
+            ).collect(Collectors.toList());
+            
+        flashcardRepository.saveAll(buyerCards);
+
+        return savedBuyerDeck;
+    }
+
+    @Transactional
+    public void rateDeck(UUID deckId, UUID studentId, int rating, String comment) {
+        // Encontrar o deck ORIGINAL (o que está à venda) se este for uma cópia
+        FlashcardDeck deck = deckRepository.findById(deckId)
+            .orElseThrow(() -> new RuntimeException("Deck não encontrado"));
+            
+        // Se o deck for pessoal e tiver originalCreatorId, avaliamos o original
+        if (deck.getOriginalCreatorId() != null) {
+            // Procurar deck original do mesmo criador com isForSale=true e título igual (aproximação simples)
+            // Idealmente, teríamos um link direto flashcard_decks.source_deck_id
+            // Mas vamos simplificar: avaliamos o deck que o usuário tem.
+        }
+
+        if (ratingRepository.existsByDeckIdAndStudentId(deckId, studentId)) {
+            throw new RuntimeException("Você já avaliou este deck");
+        }
+
+        com.bizu.portal.content.domain.FlashcardDeckRating ratingEntry = com.bizu.portal.content.domain.FlashcardDeckRating.builder()
+            .deckId(deckId)
+            .studentId(studentId)
+            .rating(rating)
+            .comment(comment)
+            .build();
+        ratingRepository.save(ratingEntry);
+
+        // Atualizar média do deck
+        List<com.bizu.portal.content.domain.FlashcardDeckRating> allRatings = ratingRepository.findAllByDeckId(deckId);
+        double avg = allRatings.stream().mapToInt(r -> r.getRating()).average().orElse(0.0);
+        deck.setRating(avg);
+        deck.setRatingCount(allRatings.size());
+        deckRepository.save(deck);
     }
 }

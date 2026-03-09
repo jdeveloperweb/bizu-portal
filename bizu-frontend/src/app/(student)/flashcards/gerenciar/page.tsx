@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import {
     ChevronLeft, Plus, Trash2, Save,
     Layers, BookOpen, Loader2, XCircle,
-    CheckCircle2
+    CheckCircle2, Target, Star
 } from "lucide-react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
@@ -19,6 +19,8 @@ interface Flashcard {
 interface Deck {
     id: string;
     title: string;
+    isForSale?: boolean;
+    price?: number;
 }
 
 function GerenciarContent() {
@@ -38,7 +40,7 @@ function GerenciarContent() {
         const fetchData = async () => {
             if (!deckId) return;
             try {
-                // Fetch deck info (using the decks list endpoint for now or a specific one)
+                // Fetch deck info
                 const [decksRes, cardsRes] = await Promise.all([
                     apiFetch("/student/flashcards/decks"),
                     apiFetch(`/student/flashcards/decks/${deckId}/all-cards`)
@@ -81,6 +83,28 @@ function GerenciarContent() {
             }
         } catch (error) {
             console.error("Error adding card:", error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleUpdateStoreSettings = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSaving(true);
+        try {
+            const res = await apiFetch(`/student/flashcards/decks/${deckId}/store-settings`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    isForSale: deck?.isForSale || false,
+                    price: deck?.price || 0
+                })
+            });
+            if (res.ok) {
+                // Success
+            }
+        } catch (error) {
+            console.error("Error updating store settings:", error);
         } finally {
             setIsSaving(false);
         }
@@ -155,6 +179,50 @@ function GerenciarContent() {
                             </button>
                         </form>
                     </div>
+
+                    {/* Store Settings */}
+                    <div className="card-elevated p-6 mt-6">
+                        <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                            <Target size={18} className="text-amber-500" /> Loja de Decks
+                        </h2>
+
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                                <div>
+                                    <p className="text-[12px] font-bold text-slate-700">Disponível na Loja</p>
+                                    <p className="text-[10px] text-slate-500">Outros usuários podem comprar</p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    className="w-5 h-5 accent-indigo-600"
+                                    checked={deck?.isForSale || false}
+                                    onChange={e => setDeck(deck ? { ...deck, isForSale: e.target.checked } : null)}
+                                />
+                            </div>
+
+                            {deck?.isForSale && (
+                                <div>
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Preço (Axons)</label>
+                                    <input
+                                        type="number"
+                                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-indigo-500 transition-all"
+                                        placeholder="0"
+                                        value={deck?.price || 0}
+                                        onChange={e => setDeck(deck ? { ...deck, price: parseInt(e.target.value) } : null)}
+                                    />
+                                </div>
+                            )}
+
+                            <button
+                                onClick={handleUpdateStoreSettings}
+                                disabled={isSaving}
+                                className="w-full btn-outline !h-10 text-[12px] font-bold gap-2"
+                            >
+                                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save size={15} />}
+                                Atualizar Loja
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Cards List */}
@@ -180,7 +248,6 @@ function GerenciarContent() {
                                                 <p className="text-sm text-slate-500 whitespace-pre-wrap">{card.back}</p>
                                             </div>
                                         </div>
-                                        {/* Optional delete button could go here */}
                                     </div>
                                 </div>
                             ))

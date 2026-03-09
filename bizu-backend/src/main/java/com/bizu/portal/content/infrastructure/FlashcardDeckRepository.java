@@ -10,4 +10,6 @@ import java.util.UUID;
 @Repository
 public interface FlashcardDeckRepository extends JpaRepository<FlashcardDeck, UUID> {
     List<FlashcardDeck> findAllByGuildIdOrderByCreatedAtDesc(UUID guildId);
+    List<FlashcardDeck> findAllByIsForSaleTrue();
+    List<FlashcardDeck> findAllByUserId(UUID userId);
 }

@@ -34,6 +34,9 @@ public class FlashcardDeck {
     @Column(name = "user_id")
     private UUID userId;
 
+    @Column(name = "original_creator_id")
+    private UUID originalCreatorId;
+
     @Column(name = "guild_id")
     private UUID guildId;
 
@@ -42,6 +45,16 @@ public class FlashcardDeck {
 
     @Column(name = "course_id")
     private UUID courseId;
+
+    @Column(name = "is_for_sale")
+    private boolean isForSale;
+
+    private Integer price;
+
+    private Double rating;
+
+    @Column(name = "rating_count")
+    private Integer ratingCount;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

@@ -122,4 +122,52 @@ public class StudentFlashcardController {
         UUID userId = resolveUserId(jwt);
         return ResponseEntity.ok(studentFlashcardService.cloneGuildDeck(guildDeckId, userId));
     }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/decks/{id}")
+    public ResponseEntity<Void> deleteDeck(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = resolveUserId(jwt);
+        studentFlashcardService.deleteDeck(id, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/decks/{id}/store-settings")
+    public ResponseEntity<Void> updateStoreSettings(
+            @PathVariable UUID id,
+            @RequestBody Map<String, Object> body,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = resolveUserId(jwt);
+        studentFlashcardService.updateDeckStoreSettings(
+            id, 
+            userId, 
+            (Boolean) body.get("isForSale"), 
+            (Integer) body.get("price")
+        );
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/store")
+    public ResponseEntity<List<StudentFlashcardDeckDTO>> getStoreDecks() {
+        return ResponseEntity.ok(studentFlashcardService.getStoreDecks());
+    }
+
+    @PostMapping("/store/decks/{id}/buy")
+    public ResponseEntity<FlashcardDeck> buyDeck(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = resolveUserId(jwt);
+        return ResponseEntity.ok(studentFlashcardService.buyDeck(id, userId));
+    }
+
+    @PostMapping("/decks/{id}/rate")
+    public ResponseEntity<Void> rateDeck(
+            @PathVariable UUID id,
+            @RequestBody Map<String, Object> body,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = resolveUserId(jwt);
+        studentFlashcardService.rateDeck(
+            id, 
+            userId, 
+            (Integer) body.get("rating"), 
+            (String) body.get("comment")
+        );
+        return ResponseEntity.ok().build();
+    }
 }
