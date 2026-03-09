@@ -16,6 +16,7 @@ import com.bizu.portal.student.infrastructure.NoteRepository;
 import com.bizu.portal.student.infrastructure.StudentTaskRepository;
 import com.bizu.portal.student.infrastructure.GamificationRepository;
 import com.bizu.portal.shared.application.FileStorageService;
+import com.bizu.portal.shared.security.CourseContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -77,6 +78,7 @@ public class GuildService {
                 .badge(request.getBadge())
                 .isPublic(request.isPublic())
                 .maxMembers(request.getMaxMembers())
+                .courseId(CourseContextHolder.getCourseId())
                 .build();
 
         Guild savedGuild = guildRepository.save(guild);
@@ -226,7 +228,9 @@ public class GuildService {
 
     @Transactional(readOnly = true)
     public List<GuildInviteDTO> getPendingInvites(UUID userId) {
+        UUID activeCourseId = CourseContextHolder.getCourseId();
         return guildInviteRepository.findAllByInviteeIdAndStatus(userId, GuildInvite.Status.PENDING).stream()
+                .filter(i -> activeCourseId == null || activeCourseId.equals(i.getGuild().getCourseId()))
                 .map(i -> GuildInviteDTO.builder()
                         .id(i.getId())
                         .guildId(i.getGuild().getId())
@@ -289,6 +293,10 @@ public class GuildService {
         Guild guild = guildRepository.findById(guildId)
                 .orElseThrow(() -> new RuntimeException("Guild não encontrada"));
 
+        if (guild.getCourseId() != null && !entitlementService.hasAccess(userId, guild.getCourseId())) {
+            throw new RuntimeException("Você não tem acesso ao curso desta guilda.");
+        }
+
         if (guild.isPublic()) {
             throw new RuntimeException("Esta guilda é pública, você pode entrar diretamente.");
         }
@@ -320,6 +328,10 @@ public class GuildService {
 
         Guild guild = guildRepository.findById(guildId)
                 .orElseThrow(() -> new RuntimeException("Guild não encontrada"));
+
+        if (guild.getCourseId() != null && !entitlementService.hasAccess(userId, guild.getCourseId())) {
+            throw new RuntimeException("Você não tem acesso ao curso desta guilda.");
+        }
 
         if (!guild.isPublic()) {
             throw new RuntimeException("Esta guilda é privada. Peça acesso para entrar.");
@@ -498,6 +510,10 @@ public class GuildService {
         Guild guild = guildRepository.findById(guildId)
                 .orElseThrow(() -> new RuntimeException("Guild não encontrada"));
 
+        if (guild.getCourseId() != null && !entitlementService.hasAccess(userId, guild.getCourseId())) {
+            throw new RuntimeException("O usuário convidado não tem acesso ao curso desta guilda.");
+        }
+
         if (guildMemberRepository.findByGuildIdAndUserId(guildId, userId).isPresent()) {
             throw new RuntimeException("Este usuário já é membro da guilda");
         }
@@ -618,21 +634,29 @@ public class GuildService {
     }
 
     public List<GuildResponseDTO> searchGuilds(UUID userId, String query) {
-        return guildRepository.findAll().stream()
+        UUID activeCourseId = CourseContextHolder.getCourseId();
+        return guildRepository.findAllByCourseId(activeCourseId).stream()
                 .filter(g -> query == null || g.getName().toLowerCase().contains(query.toLowerCase()))
                 .map(g -> mapToResponseDTO(g, userId))
                 .collect(Collectors.toList());
     }
 
     public List<GuildResponseDTO> getMyGuilds(UUID userId) {
+        UUID activeCourseId = CourseContextHolder.getCourseId();
         return guildMemberRepository.findAllByUserId(userId).stream()
-                .map(m -> mapToResponseDTO(m.getGuild(), userId))
+                .map(GuildMember::getGuild)
+                .filter(g -> activeCourseId == null || activeCourseId.equals(g.getCourseId()))
+                .map(g -> mapToResponseDTO(g, userId))
                 .collect(Collectors.toList());
     }
 
     public GuildResponseDTO getGuildDetails(UUID guildId, UUID userId) {
         Guild guild = guildRepository.findById(guildId)
-                .orElseThrow(() -> new RuntimeException("Guild not found"));
+                .filter(g -> {
+                    UUID activeCourseId = CourseContextHolder.getCourseId();
+                    return activeCourseId == null || activeCourseId.equals(g.getCourseId());
+                })
+                .orElseThrow(() -> new RuntimeException("Guild not found or access denied for this course"));
         return mapToResponseDTO(guild, userId);
     }
 

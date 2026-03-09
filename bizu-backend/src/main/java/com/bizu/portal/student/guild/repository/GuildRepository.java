@@ -7,4 +7,5 @@ import java.util.UUID;
 
 @Repository
 public interface GuildRepository extends JpaRepository<Guild, UUID> {
+    java.util.List<Guild> findAllByCourseId(UUID courseId);
 }

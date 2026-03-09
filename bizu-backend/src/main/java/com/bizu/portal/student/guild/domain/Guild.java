@@ -17,6 +17,9 @@ public class Guild {
     @Id
     private UUID id;
 
+    @Column(name = "course_id")
+    private UUID courseId;
+
     @Column(nullable = false, unique = true)
     private String name;
 
