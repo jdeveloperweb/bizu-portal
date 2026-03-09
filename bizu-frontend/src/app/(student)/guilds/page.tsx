@@ -204,30 +204,30 @@ function FeaturedCard({ guild }: { guild: GuildResponseDTO }) {
       {/* Top league color accent */}
       <div className="h-1 w-full" style={{ background: leagueCfg.color }} />
 
-      <div className="p-5">
-        <div className="flex items-start justify-between mb-4">
-          <GuildBadge type={badgeType} size="lg" showGlow />
+      <div className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <GuildBadge type={badgeType} size="md" showGlow />
           <div className="text-right">
-            <div className="text-[10px] text-[var(--muted-foreground)] mb-0.5">Ranking Global</div>
-            <div className="text-xl font-black text-[var(--foreground)]">#{guild.rankPosition}</div>
+            <div className="text-[9px] text-[var(--muted-foreground)] uppercase tracking-tight">Ranking Global</div>
+            <div className="text-lg font-black text-[var(--foreground)] leading-none">#{guild.rankPosition}</div>
           </div>
         </div>
 
-        <h3 className="text-lg font-black text-[var(--foreground)] mb-1 leading-tight">{guild.name}</h3>
-        <p className="text-xs text-[var(--muted-foreground)] line-clamp-2 mb-4 leading-relaxed">{guild.description}</p>
+        <h3 className="text-base font-black text-[var(--foreground)] mb-0.5 leading-tight">{guild.name}</h3>
+        <p className="text-[11px] text-[var(--muted-foreground)] line-clamp-1 mb-3">{guild.description}</p>
 
-        <div className="flex items-center gap-3 pt-3 border-t border-[var(--border)]">
-          <div className="text-center">
-            <div className="text-base font-bold text-[var(--foreground)]">{guild.memberCount}</div>
-            <div className="text-[9px] text-[var(--muted-foreground)] uppercase tracking-wider">membros</div>
+        <div className="flex items-center gap-2 pt-3 border-t border-[var(--border)]">
+          <div className="text-center px-1">
+            <div className="text-sm font-bold text-[var(--foreground)]">{guild.memberCount}</div>
+            <div className="text-[8px] text-[var(--muted-foreground)] uppercase tracking-tighter">Membros</div>
           </div>
-          <div className="text-center border-l border-[var(--border)] pl-3">
-            <div className="text-base font-bold text-amber-600">{(guild.totalXp / 1000).toFixed(0)}k</div>
-            <div className="text-[9px] text-[var(--muted-foreground)] uppercase tracking-wider">XP total</div>
+          <div className="text-center border-l border-[var(--border)] px-2">
+            <div className="text-sm font-bold text-amber-600">{(guild.totalXp / 1000).toFixed(0)}k</div>
+            <div className="text-[8px] text-[var(--muted-foreground)] uppercase tracking-tighter">XP</div>
           </div>
-          <div className="text-center border-l border-[var(--border)] pl-3">
-            <div className="text-base font-bold text-orange-500">{guild.streak}d</div>
-            <div className="text-[9px] text-[var(--muted-foreground)] uppercase tracking-wider">streak</div>
+          <div className="text-center border-l border-[var(--border)] px-2">
+            <div className="text-sm font-bold text-orange-500">{guild.streak}d</div>
+            <div className="text-[8px] text-[var(--muted-foreground)] uppercase tracking-tighter">Streak</div>
           </div>
           <div className="ml-auto">
             <LeagueBadge league={guild.league} />

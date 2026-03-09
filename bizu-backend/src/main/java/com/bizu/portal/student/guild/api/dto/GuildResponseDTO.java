@@ -26,6 +26,7 @@ public class GuildResponseDTO {
     private boolean isPublic;
     private boolean isAdmin;
     private boolean isMember;
+    private boolean isFounder;
     private List<String> tags;
     private String createdAt;
     private long weeklyGoal;

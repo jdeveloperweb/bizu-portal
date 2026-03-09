@@ -465,6 +465,8 @@ public class GuildService {
         List<GuildMember> members = guildMemberRepository.findAllByGuildId(guild.getId());
         boolean isMember = members.stream()
                 .anyMatch(m -> m.getUser().getId().equals(userId));
+        boolean isFounder = members.stream()
+                .anyMatch(m -> m.getUser().getId().equals(userId) && m.getRole() == GuildRole.FOUNDER);
         boolean isAdmin = members.stream()
                 .anyMatch(m -> m.getUser().getId().equals(userId) && 
                          (m.getRole() == GuildRole.FOUNDER || m.getRole() == GuildRole.ADMIN));
@@ -484,6 +486,7 @@ public class GuildService {
                 .isPublic(guild.isPublic())
                 .isAdmin(isAdmin)
                 .isMember(isMember)
+                .isFounder(isFounder)
                 .tags(new ArrayList<>())
                 .createdAt(guild.getCreatedAt().format(DateTimeFormatter.ofPattern("MMMM yyyy")))
                 .weeklyGoal(guild.getWeeklyGoal())

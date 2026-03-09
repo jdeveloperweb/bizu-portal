@@ -37,14 +37,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 type GuildTab = "inicio" | "membros" | "materiais" | "flashcards" | "anotacoes" | "tarefas" | "ranking" | "missoes";
 
 const TABS: { id: GuildTab; label: string; icon: React.ElementType }[] = [
-  { id: "inicio",     label: "Início",      icon: Shield },
-  { id: "membros",    label: "Membros",     icon: Users },
-  { id: "materiais",  label: "Materiais",   icon: BookOpen },
+  { id: "inicio", label: "Início", icon: Shield },
+  { id: "membros", label: "Membros", icon: Users },
+  { id: "materiais", label: "Materiais", icon: BookOpen },
   { id: "flashcards", label: "Flash Cards", icon: Layers },
-  { id: "anotacoes",  label: "Anotações",   icon: StickyNote },
-  { id: "tarefas",    label: "Tarefas",     icon: ListTodo },
-  { id: "ranking",    label: "Rankings",    icon: Trophy },
-  { id: "missoes",    label: "Missões",     icon: Target },
+  { id: "anotacoes", label: "Anotações", icon: StickyNote },
+  { id: "tarefas", label: "Tarefas", icon: ListTodo },
+  { id: "ranking", label: "Rankings", icon: Trophy },
+  { id: "missoes", label: "Missões", icon: Target },
 ];
 
 const leagueColors: Record<string, string> = {
@@ -300,9 +300,9 @@ function InicioTab({
         {/* Stats */}
         <div className="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] shadow-sm grid grid-cols-2 gap-3">
           {[
-            { label: "Membros",  value: String(guild.memberCount),              color: "text-[var(--foreground)]" },
-            { label: "Streak",   value: `${guild.streak}d`,                     color: "text-orange-500" },
-            { label: "Ranking",  value: `#${guild.rankPosition}`,               color: "text-amber-600" },
+            { label: "Membros", value: String(guild.memberCount), color: "text-[var(--foreground)]" },
+            { label: "Streak", value: `${guild.streak}d`, color: "text-orange-500" },
+            { label: "Ranking", value: `#${guild.rankPosition}`, color: "text-amber-600" },
             { label: "XP Total", value: `${(guild.totalXp / 1000).toFixed(0)}k`, color: "text-indigo-600" },
           ].map(s => (
             <div key={s.label} className="text-center p-3 rounded-xl bg-[var(--muted)]">
@@ -602,12 +602,11 @@ function RankingTab({ guild, members }: { guild: GuildResponseDTO; members: Guil
         <div className="space-y-2">
           {members.map((m, i) => (
             <div key={m.id} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:border-indigo-200 transition-all">
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
-                i === 0 ? "bg-amber-400 text-white" :
-                i === 1 ? "bg-slate-300 text-slate-700" :
-                i === 2 ? "bg-amber-700 text-white" :
-                "bg-[var(--muted)] text-[var(--muted-foreground)]"
-              }`}>{i + 1}</div>
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${i === 0 ? "bg-amber-400 text-white" :
+                  i === 1 ? "bg-slate-300 text-slate-700" :
+                    i === 2 ? "bg-amber-700 text-white" :
+                      "bg-[var(--muted)] text-[var(--muted-foreground)]"
+                }`}>{i + 1}</div>
               <MemberAvatar name={m.name} size="sm" />
               <div className="flex-1 text-sm text-[var(--foreground)] font-medium truncate">{m.name}</div>
               <div className="text-right shrink-0">
@@ -627,9 +626,9 @@ function RankingTab({ guild, members }: { guild: GuildResponseDTO; members: Guil
 
 function MissoesTab({ missions }: { missions: GuildMissionDTO[] }) {
   const typeCfg: Record<string, { label: string; color: string; border: string; bg: string }> = {
-    daily:   { label: "Diária",  color: "text-green-700",  border: "border-green-200",  bg: "bg-green-50" },
-    weekly:  { label: "Semanal", color: "text-indigo-700", border: "border-indigo-200", bg: "bg-indigo-50" },
-    monthly: { label: "Mensal",  color: "text-purple-700", border: "border-purple-200", bg: "bg-purple-50" },
+    daily: { label: "Diária", color: "text-green-700", border: "border-green-200", bg: "bg-green-50" },
+    weekly: { label: "Semanal", color: "text-indigo-700", border: "border-indigo-200", bg: "bg-indigo-50" },
+    monthly: { label: "Mensal", color: "text-purple-700", border: "border-purple-200", bg: "bg-purple-50" },
   };
 
   if (missions.length === 0) {
@@ -761,15 +760,15 @@ function AnotacoesTab({ notes }: { notes: GuildNoteDTO[] }) {
 
 function TarefasTab({ tasks }: { tasks: GuildTaskDTO[] }) {
   const cols: { status: string; label: string; color: string; icon: React.ElementType }[] = [
-    { status: "TODO",        label: "A Fazer",      color: "text-slate-500",  icon: ListTodo },
+    { status: "TODO", label: "A Fazer", color: "text-slate-500", icon: ListTodo },
     { status: "IN_PROGRESS", label: "Em Progresso", color: "text-indigo-600", icon: RotateCcw },
-    { status: "DONE",        label: "Concluído",    color: "text-green-600",  icon: CheckSquare },
+    { status: "DONE", label: "Concluído", color: "text-green-600", icon: CheckSquare },
   ];
 
   const priorityStyle: Record<string, string> = {
-    LOW:    "text-slate-500 bg-slate-50 border-slate-200",
+    LOW: "text-slate-500 bg-slate-50 border-slate-200",
     MEDIUM: "text-amber-700 bg-amber-50 border-amber-200",
-    HIGH:   "text-red-600 bg-red-50 border-red-200",
+    HIGH: "text-red-600 bg-red-50 border-red-200",
   };
   const priorityLabel: Record<string, string> = { LOW: "Baixa", MEDIUM: "Média", HIGH: "Alta" };
 
@@ -956,11 +955,10 @@ function FlashCardsTab({ guildId, decks }: { guildId: string; decks: GuildFlashc
                   <button
                     key={i}
                     onClick={() => { setCardIndex(i); setFlipped(false); }}
-                    className={`rounded-full transition-all ${
-                      i === cardIndex
+                    className={`rounded-full transition-all ${i === cardIndex
                         ? "w-4 h-2 bg-indigo-600"
                         : "w-2 h-2 bg-slate-200 hover:bg-slate-300"
-                    }`}
+                      }`}
                   />
                 ))}
               </div>
@@ -1100,12 +1098,12 @@ export default function GuildDetailPage() {
           setPending(membersData.value.pendingRequests ?? []);
         }
         if (materialsData.status === "fulfilled") setMaterials(materialsData.value);
-        if (missionsData.status === "fulfilled")  setMissions(missionsData.value);
-        if (activityData.status === "fulfilled")  setActivity(activityData.value);
-        if (chatData.status === "fulfilled")      setMessages(chatData.value);
-        if (notesData.status === "fulfilled")     setNotes(notesData.value);
-        if (tasksData.status === "fulfilled")     setTasks(tasksData.value);
-        if (decksData.status === "fulfilled")     setDecks(decksData.value);
+        if (missionsData.status === "fulfilled") setMissions(missionsData.value);
+        if (activityData.status === "fulfilled") setActivity(activityData.value);
+        if (chatData.status === "fulfilled") setMessages(chatData.value);
+        if (notesData.status === "fulfilled") setNotes(notesData.value);
+        if (tasksData.status === "fulfilled") setTasks(tasksData.value);
+        if (decksData.status === "fulfilled") setDecks(decksData.value);
       } finally {
         setLoading(false);
       }
@@ -1216,6 +1214,18 @@ export default function GuildDetailPage() {
     }
   }, [guildId, members, notify]);
 
+  const handleLeave = useCallback(async () => {
+    if (!guild) return;
+    if (!window.confirm(`Tem certeza que deseja sair da guild "${guild.name}"?`)) return;
+    try {
+      await GuildService.leaveGuild(guild.id);
+      notify("Sucesso", "Você saiu da guilda.", "info");
+      window.location.href = "/guilds";
+    } catch (err: any) {
+      notify("Erro", err.message || "Erro ao sair da guilda", "error");
+    }
+  }, [guild, notify]);
+
   if (loading) return <PageSkeleton />;
   if (!guild) return (
     <div className="p-8 text-center text-[var(--muted-foreground)]">
@@ -1299,11 +1309,22 @@ export default function GuildDetailPage() {
             </div>
           </div>
 
-          {guild.isAdmin && (
-            <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--muted)] hover:bg-slate-200 border border-[var(--border)] text-[var(--foreground)] text-sm font-medium transition-colors shrink-0">
-              <Settings size={14} /> Gerenciar
-            </button>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            {guild.isMember && !guild.isFounder && (
+              <button
+                onClick={handleLeave}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-red-500 hover:bg-red-50 border border-transparent hover:border-red-100 text-sm font-medium transition-colors"
+              >
+                <UserMinus size={14} /> Sair
+              </button>
+            )}
+
+            {guild.isAdmin && (
+              <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--muted)] hover:bg-slate-200 border border-[var(--border)] text-[var(--foreground)] text-sm font-medium transition-colors">
+                <Settings size={14} /> Gerenciar
+              </button>
+            )}
+          </div>
         </div>
       </motion.div>
 
@@ -1315,11 +1336,10 @@ export default function GuildDetailPage() {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-t-lg text-sm font-medium whitespace-nowrap transition-all ${
-                tab === t.id
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-t-lg text-sm font-medium whitespace-nowrap transition-all ${tab === t.id
                   ? "bg-indigo-600 text-white shadow-sm"
                   : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
-              }`}
+                }`}
             >
               <Icon size={14} />
               {t.label}
@@ -1370,7 +1390,7 @@ export default function GuildDetailPage() {
             <MissoesTab missions={missions} />
           )}
           {tab === "anotacoes" && <AnotacoesTab notes={notes} />}
-          {tab === "tarefas"   && <TarefasTab tasks={tasks} />}
+          {tab === "tarefas" && <TarefasTab tasks={tasks} />}
           {tab === "flashcards" && (
             <FlashCardsTab guildId={guildId} decks={decks} />
           )}
