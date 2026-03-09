@@ -28,6 +28,7 @@ public class PublicSettingsController {
         publicSettings.put("preferredPaymentGateway", settings.getPreferredPaymentGateway());
         publicSettings.put("maintenanceMode", settings.getMaintenanceMode());
         publicSettings.put("timezone", settings.getTimezone());
+        publicSettings.put("guildCreationCost", settings.getGuildCreationCost());
         
         return ResponseEntity.ok(publicSettings);
     }

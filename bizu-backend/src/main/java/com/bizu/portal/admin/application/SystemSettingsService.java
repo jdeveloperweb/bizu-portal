@@ -51,6 +51,7 @@ public class SystemSettingsService {
         
         settings.setInfinitePayHandle(updatedSettings.getInfinitePayHandle());
         settings.setPreferredPaymentGateway(updatedSettings.getPreferredPaymentGateway());
+        settings.setGuildCreationCost(updatedSettings.getGuildCreationCost());
         
         settings.setUpdatedAt(OffsetDateTime.now());
         settings.setUpdatedBy(username);

@@ -79,8 +79,11 @@ public class FriendshipController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<UserProfileDto>> searchUsers(@RequestParam String nickname) {
-        List<UserProfileDto> users = friendshipService.searchUsersByNickname(nickname)
+    public ResponseEntity<List<UserProfileDto>> searchUsers(@AuthenticationPrincipal Jwt jwt, @RequestParam String nickname) {
+        UUID courseId = com.bizu.portal.shared.security.CourseContextHolder.getCourseId();
+        UUID userId = getCurrentUserId(jwt);
+
+        List<UserProfileDto> users = friendshipService.searchUsersByNicknameAndCourse(nickname, courseId, userId)
             .stream()
             .map(this::toUserProfileDto)
             .collect(Collectors.toList());

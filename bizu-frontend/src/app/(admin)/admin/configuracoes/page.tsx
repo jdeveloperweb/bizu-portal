@@ -43,7 +43,8 @@ export default function AdminConfiguracoesPage() {
         maintenanceMode: false,
         infinitePayHandle: "",
         preferredPaymentGateway: "MERCADO_PAGO",
-        uniquePhoneEnforced: false
+        uniquePhoneEnforced: false,
+        guildCreationCost: 5000
     });
 
     const tabs = [
@@ -421,6 +422,16 @@ export default function AdminConfiguracoesPage() {
                                             type="number"
                                             value={settings.sessionTimeout}
                                             onChange={e => updateSetting("sessionTimeout", parseInt(e.target.value))}
+                                            className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-semibold text-sm text-foreground"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Custo de Criação de Guild (Axons)</label>
+                                        <input
+                                            type="number"
+                                            value={settings.guildCreationCost}
+                                            onChange={e => updateSetting("guildCreationCost", parseInt(e.target.value))}
                                             className="w-full h-11 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-semibold text-sm text-foreground"
                                         />
                                     </div>

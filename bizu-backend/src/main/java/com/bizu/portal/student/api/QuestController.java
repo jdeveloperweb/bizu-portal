@@ -23,7 +23,7 @@ public class QuestController {
     }
 
     @PostMapping("/{code}/claim")
-    public void claimQuest(@AuthenticationPrincipal Jwt jwt, @PathVariable String code) {
-        questService.claimQuest(userService.resolveUserId(jwt), code);
+    public QuestService.ClaimResultDTO claimQuest(@AuthenticationPrincipal Jwt jwt, @PathVariable String code) {
+        return questService.claimQuest(userService.resolveUserId(jwt), code);
     }
 }

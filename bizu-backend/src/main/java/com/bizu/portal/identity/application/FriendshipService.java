@@ -94,6 +94,14 @@ public class FriendshipService {
     }
 
     @Transactional(readOnly = true)
+    public List<User> searchUsersByNicknameAndCourse(String nickname, UUID courseId, UUID currentUserId) {
+        if (courseId == null) {
+            return userRepository.findByNicknameContainingIgnoreCase(nickname);
+        }
+        return userRepository.searchByNicknameAndCourse(nickname, courseId, currentUserId);
+    }
+
+    @Transactional(readOnly = true)
     public List<User> getSuggestedFriends(UUID courseId, UUID currentUserId) {
         if (courseId == null) {
             return List.of();

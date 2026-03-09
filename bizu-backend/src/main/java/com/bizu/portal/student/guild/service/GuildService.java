@@ -44,8 +44,8 @@ public class GuildService {
     private final GamificationRepository gamificationRepository;
     private final LevelCalculator levelCalculator;
     private final UserService userService;
-
-    private static final int GUILD_CREATION_COST = 5000;
+    private final com.bizu.portal.admin.application.SystemSettingsService systemSettingsService;
+    private final com.bizu.portal.commerce.application.EntitlementService entitlementService;
 
     @Transactional
     public GuildResponseDTO createGuild(UUID creatorId, GuildCreateRequestDTO request) {
@@ -55,11 +55,13 @@ public class GuildService {
         GamificationStats stats = gamificationRepository.findById(creatorId)
                 .orElseThrow(() -> new RuntimeException("Dados de gamificação não encontrados"));
 
-        if (stats.getAxonCoins() == null || stats.getAxonCoins() < GUILD_CREATION_COST) {
-            throw new RuntimeException("Saldo insuficiente! Criar uma guilda custa " + GUILD_CREATION_COST + " Axons.");
-        }
+        int creationCost = systemSettingsService.getSettings().getGuildCreationCost();
 
-        stats.setAxonCoins(stats.getAxonCoins() - GUILD_CREATION_COST);
+        if (stats.getAxonCoins() == null || stats.getAxonCoins() < creationCost) {
+            throw new RuntimeException("Saldo insuficiente! Criar uma guilda custa " + creationCost + " Axons.");
+        }
+        
+        stats.setAxonCoins(stats.getAxonCoins() - creationCost);
         gamificationRepository.save(stats);
 
         Guild guild = Guild.builder()
@@ -79,6 +81,28 @@ public class GuildService {
                 .build();
 
         guildMemberRepository.save(founder);
+
+        // Process invites if any
+        if (request.getInvitedUserIds() != null && !request.getInvitedUserIds().isEmpty()) {
+            UUID activeCourseId = com.bizu.portal.shared.security.CourseContextHolder.getCourseId();
+            for (UUID inviteeId : request.getInvitedUserIds()) {
+                // If course context is present, only invite if they have access to the same course
+                if (activeCourseId != null && !entitlementService.hasAccess(inviteeId, activeCourseId)) {
+                    continue; // Skip if not in the same course
+                }
+
+                userService.findById(inviteeId).ifPresent(invitee -> {
+                    GuildInvite invite = GuildInvite.builder()
+                            .guild(guild)
+                            .inviter(creator)
+                            .invitee(invitee)
+                            .status(GuildInvite.Status.PENDING)
+                            .build();
+                    guildInviteRepository.save(invite);
+                });
+            }
+        }
+
         recordActivity(guild, creator, "criou a guild", 0);
 
         return mapToResponseDTO(guild, creatorId);

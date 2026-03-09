@@ -276,6 +276,17 @@ public class GamificationService {
     }
 
     @Transactional
+    public void adjustAxonCoins(UUID userId, int delta) {
+        if (delta == 0) return;
+        GamificationStats stats = gamificationRepository.findById(userId).orElse(null);
+        if (stats != null) {
+            int current = stats.getAxonCoins() != null ? stats.getAxonCoins() : 0;
+            stats.setAxonCoins(Math.max(0, current + delta));
+            gamificationRepository.save(stats);
+        }
+    }
+
+    @Transactional
     public void awardBadge(UUID userId, String badgeCode) {
         Optional<Badge> badgeOpt = badgeRepository.findByCode(badgeCode);
         if (badgeOpt.isPresent()) {

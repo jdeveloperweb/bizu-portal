@@ -74,6 +74,10 @@ public class SystemSettings {
     @Column(name = "unique_phone_enforced")
     private Boolean uniquePhoneEnforced;
 
+    @Column(name = "guild_creation_cost")
+    @Builder.Default
+    private Integer guildCreationCost = 5000;
+
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 

@@ -11,6 +11,7 @@ import { GuildBadge, GuildBadgeSelector, GuildBadgeType, GUILD_BADGES } from "@/
 import { GuildService } from "@/lib/guildService";
 import { useAuth } from "@/components/AuthProvider";
 import { useNotification } from "@/components/NotificationProvider";
+import { apiFetch } from "@/lib/api";
 
 // ─── Steps ────────────────────────────────────────────────────────────────────
 
@@ -60,6 +61,7 @@ export default function CriarGuildPage() {
   const [selectedBadge, setSelectedBadge] = useState<GuildBadgeType>("espada");
   const [isPublic, setIsPublic] = useState(true);
   const [maxMembers, setMaxMembers] = useState(20);
+  const [guildCreationCost, setGuildCreationCost] = useState<number>(5000);
 
   // Invite state
   const [inviteSearch, setInviteSearch] = useState("");
@@ -142,6 +144,27 @@ export default function CriarGuildPage() {
     }
   }
 
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await apiFetch("/public/settings");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.guildCreationCost) {
+            setGuildCreationCost(data.guildCreationCost);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch public settings", err);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR').format(value);
+  };
+
   const canAdvance = [
     name.trim().length >= 3 && description.trim().length >= 10,
     true,
@@ -175,7 +198,7 @@ export default function CriarGuildPage() {
           <div className="flex items-center gap-2">
             <p className="text-slate-500 text-sm">Monte seu grupo de estudos e lidere o ranking.</p>
             <span className="flex items-center gap-1.5 text-amber-600 font-bold ml-2 text-sm">
-              <Sparkles size={14} /> Custa 5.000 Axons
+              <Sparkles size={14} /> Custa {formatCurrency(guildCreationCost)} Axons
             </span>
           </div>
         </div>
@@ -321,7 +344,7 @@ export default function CriarGuildPage() {
                 </div>
                 <p className="text-sm text-indigo-900/80 leading-relaxed">
                   Você será automaticamente o <span className="text-indigo-600 font-bold">Fundador</span>.
-                  A criação consome <span className="text-amber-700 font-bold">5.000 Axons</span> do seu saldo.
+                  A criação consome <span className="text-amber-700 font-bold">{formatCurrency(guildCreationCost)} Axons</span> do seu saldo.
                 </p>
               </div>
             </motion.div>
@@ -430,7 +453,7 @@ export default function CriarGuildPage() {
                     <div className="text-slate-500 text-sm">A taxa será deduzida após a confirmação.</div>
                   </div>
                 </div>
-                <div className="text-2xl font-black text-amber-700">5.000 AXONS</div>
+                <div className="text-2xl font-black text-amber-700 uppercase">{formatCurrency(guildCreationCost)} AXONS</div>
               </div>
             </motion.div>
           )}
