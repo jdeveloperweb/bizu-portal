@@ -72,10 +72,10 @@ public class GuildService {
                 .maxMembers(request.getMaxMembers())
                 .build();
 
-        guild = guildRepository.save(guild);
+        Guild savedGuild = guildRepository.save(guild);
 
         GuildMember founder = GuildMember.builder()
-                .guild(guild)
+                .guild(savedGuild)
                 .user(creator)
                 .role(GuildRole.FOUNDER)
                 .build();
@@ -93,7 +93,7 @@ public class GuildService {
 
                 userService.findById(inviteeId).ifPresent(invitee -> {
                     GuildInvite invite = GuildInvite.builder()
-                            .guild(guild)
+                            .guild(savedGuild)
                             .inviter(creator)
                             .invitee(invitee)
                             .status(GuildInvite.Status.PENDING)
@@ -103,9 +103,9 @@ public class GuildService {
             }
         }
 
-        recordActivity(guild, creator, "criou a guild", 0);
+        recordActivity(savedGuild, creator, "criou a guild", 0);
 
-        return mapToResponseDTO(guild, creatorId);
+        return mapToResponseDTO(savedGuild, creatorId);
     }
 
     // --- Resources ---
