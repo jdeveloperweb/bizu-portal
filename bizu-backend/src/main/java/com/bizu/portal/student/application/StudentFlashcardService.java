@@ -266,9 +266,6 @@ public class StudentFlashcardService {
             throw new RuntimeException("Você não tem permissão para compartilhar este deck");
         }
 
-        // Se for uma cópia recebida, permitimos compartilhar se o usuário for o dono atual (regra: comprado pode fazer tudo menos vender)
-        // Removido o bloqueio de sourceDeckId != null para permitir re-compartilhamento conforme "pode fazer TUDO como o dono"
-
         User owner = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
@@ -413,11 +410,16 @@ public class StudentFlashcardService {
     public void deleteDeck(UUID deckId, UUID userId) {
         FlashcardDeck deck = deckRepository.findById(deckId)
             .orElseThrow(() -> new RuntimeException("Deck não encontrado"));
-            
+
         if (deck.getUserId() == null || !deck.getUserId().equals(userId)) {
             throw new RuntimeException("Apenas o proprietário do deck pode excluí-lo");
         }
-        
+
+        // Se é uma cópia comprada, remover o registro de compra para permitir recompra
+        if (deck.getSourceDeckId() != null) {
+            purchaseRepository.deleteByDeckIdAndStudentId(deck.getSourceDeckId(), userId);
+        }
+
         deckRepository.delete(deck);
     }
 
