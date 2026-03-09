@@ -21,6 +21,8 @@ interface Deck {
     title: string;
     isForSale?: boolean;
     price?: number;
+    userId?: string;
+    originalCreatorId?: string;
 }
 
 function GerenciarContent() {
@@ -180,49 +182,51 @@ function GerenciarContent() {
                         </form>
                     </div>
 
-                    {/* Store Settings */}
-                    <div className="card-elevated p-6 mt-6">
-                        <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                            <Target size={18} className="text-amber-500" /> Loja de Decks
-                        </h2>
+                    {/* Store Settings - Only for original creator */}
+                    {deck && deck.userId === deck.originalCreatorId && (
+                        <div className="card-elevated p-6 mt-6">
+                            <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <Target size={18} className="text-amber-500" /> Loja de Decks
+                            </h2>
 
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                                <div>
-                                    <p className="text-[12px] font-bold text-slate-700">Disponível na Loja</p>
-                                    <p className="text-[10px] text-slate-500">Outros usuários podem comprar</p>
-                                </div>
-                                <input
-                                    type="checkbox"
-                                    className="w-5 h-5 accent-indigo-600"
-                                    checked={deck?.isForSale || false}
-                                    onChange={e => setDeck(deck ? { ...deck, isForSale: e.target.checked } : null)}
-                                />
-                            </div>
-
-                            {deck?.isForSale && (
-                                <div>
-                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Preço (Axons)</label>
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                                    <div>
+                                        <p className="text-[12px] font-bold text-slate-700">Disponível na Loja</p>
+                                        <p className="text-[10px] text-slate-500">Outros usuários podem comprar</p>
+                                    </div>
                                     <input
-                                        type="number"
-                                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-indigo-500 transition-all"
-                                        placeholder="0"
-                                        value={deck?.price || 0}
-                                        onChange={e => setDeck(deck ? { ...deck, price: parseInt(e.target.value) } : null)}
+                                        type="checkbox"
+                                        className="w-5 h-5 accent-indigo-600"
+                                        checked={deck?.isForSale || false}
+                                        onChange={e => setDeck(deck ? { ...deck, isForSale: e.target.checked } : null)}
                                     />
                                 </div>
-                            )}
 
-                            <button
-                                onClick={handleUpdateStoreSettings}
-                                disabled={isSaving}
-                                className="w-full btn-outline !h-10 text-[12px] font-bold gap-2"
-                            >
-                                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save size={15} />}
-                                Atualizar Loja
-                            </button>
+                                {deck?.isForSale && (
+                                    <div>
+                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Preço (Axons)</label>
+                                        <input
+                                            type="number"
+                                            className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-indigo-500 transition-all"
+                                            placeholder="0"
+                                            value={deck?.price || 0}
+                                            onChange={e => setDeck(deck ? { ...deck, price: parseInt(e.target.value) } : null)}
+                                        />
+                                    </div>
+                                )}
+
+                                <button
+                                    onClick={handleUpdateStoreSettings}
+                                    disabled={isSaving}
+                                    className="w-full btn-outline !h-10 text-[12px] font-bold gap-2"
+                                >
+                                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save size={15} />}
+                                    Atualizar Loja
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* Cards List */}

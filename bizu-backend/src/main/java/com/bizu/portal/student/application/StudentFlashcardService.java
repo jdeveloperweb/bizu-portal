@@ -144,6 +144,7 @@ public class StudentFlashcardService {
                     .rating(deck.getRating())
                     .ratingCount(deck.getRatingCount())
                     .isPurchased(isPurchased)
+                    .isOwner(deck.getUserId() != null && deck.getUserId().equals(userId))
                     .guildId(deck.getGuildId())
                     .sharedWith(shares)
                     .build();
@@ -265,10 +266,8 @@ public class StudentFlashcardService {
             throw new RuntimeException("Você não tem permissão para compartilhar este deck");
         }
 
-        // Se for uma cópia recebida, também não pode compartilhar (opcional, dependendo da regra, mas sugerido pelo user)
-        if (sourceDeck.getSourceDeckId() != null) {
-            throw new RuntimeException("Você não pode compartilhar um deck que foi compartilhado com você");
-        }
+        // Se for uma cópia recebida, permitimos compartilhar se o usuário for o dono atual (regra: comprado pode fazer tudo menos vender)
+        // Removido o bloqueio de sourceDeckId != null para permitir re-compartilhamento conforme "pode fazer TUDO como o dono"
 
         User owner = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
@@ -380,7 +379,12 @@ public class StudentFlashcardService {
             .orElseThrow(() -> new RuntimeException("Deck não encontrado"));
             
         if (!deck.getUserId().equals(userId)) {
-            throw new RuntimeException("Apenas o criador pode alterar as configurações da loja");
+            throw new RuntimeException("Apenas o proprietário pode alterar as configurações da loja");
+        }
+        
+        // Regra: se o deck foi comprado ou compartilhado (não é o criador original), não pode vender
+        if (deck.getOriginalCreatorId() != null && !deck.getOriginalCreatorId().equals(userId)) {
+            throw new RuntimeException("Você não pode vender um deck que foi comprado ou compartilhado com você");
         }
         
         deck.setForSale(isForSale);
@@ -510,6 +514,7 @@ public class StudentFlashcardService {
         // Criar cópia para o usuário
         FlashcardDeck buyerDeck = FlashcardDeck.builder()
             .userId(buyerId)
+            .sourceDeckId(deckId) // Link para o deck original da loja
             .originalCreatorId(storeDeck.getOriginalCreatorId())
             .courseId(CourseContextHolder.getCourseId())
             .title(storeDeck.getTitle())
