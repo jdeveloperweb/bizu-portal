@@ -34,6 +34,7 @@ interface Deck {
     rating?: number;
     ratingCount?: number;
     isPurchased?: boolean;
+    guildId?: string;
     sharedWith?: Array<{ deckId: string; name: string; avatarUrl?: string; type: "GUILD" | "USER" }>;
 }
 
@@ -66,6 +67,8 @@ export default function FlashcardsPage() {
     const [searchUser, setSearchUser] = useState("");
     const [foundUsers, setFoundUsers] = useState<any[]>([]);
     const [sharingType, setSharingType] = useState<"GUILD" | "USER">("GUILD");
+    const [ratingDeckId, setRatingDeckId] = useState<string | null>(null);
+    const [hoverRating, setHoverRating] = useState(0);
     const { alert, confirm } = useCustomDialog();
 
     const fetchData = async () => {
@@ -184,6 +187,24 @@ export default function FlashcardsPage() {
                 }
             } catch (error) {
                 alert("Erro ao excluir coleção.", { type: "danger" });
+            }
+        }
+    };
+
+    const handleRemoveFromGuild = async (deckId: string) => {
+        if (await confirm("Deseja remover este deck da guilda? Ele não aparecerá mais para os membros, mas o proprietário original continuará com ele.")) {
+            try {
+                const res = await apiFetch(`/student/flashcards/guild-decks/${deckId}`, { method: "DELETE" });
+                if (res.ok) {
+                    setDecks(prev => prev.filter(d => d.id !== deckId));
+                    alert("Deck removido da guilda com sucesso!");
+                    fetchData();
+                } else {
+                    const err = await res.json();
+                    alert(err.message || "Erro ao remover deck da guilda.", { type: "danger" });
+                }
+            } catch (error) {
+                alert("Erro ao remover deck da guilda.", { type: "danger" });
             }
         }
     };
@@ -511,24 +532,62 @@ export default function FlashcardsPage() {
                                                                 </button>
                                                             </>
                                                         )}
-                                                        {deck.originalCreatorId && deck.originalCreatorId !== deck.userId && (
+
+                                                        {/* Guild Admin Action: Remove from Guild */}
+                                                        {deck.guildId && deck.userId !== user?.id && myGuilds.some(g => g.id === deck.guildId && (g.isAdmin || g.isFounder)) && (
                                                             <button
-                                                                onClick={async () => {
-                                                                    const val = window.prompt("Qual a nota (1 a 5)?");
-                                                                    if (val) {
-                                                                        await apiFetch(`/student/flashcards/decks/${deck.id}/rate`, {
-                                                                            method: "POST",
-                                                                            headers: { "Content-Type": "application/json" },
-                                                                            body: JSON.stringify({ rating: parseInt(val), comment: "" })
-                                                                        });
-                                                                        alert("Obrigado pela avaliação!");
-                                                                        fetchData();
-                                                                    }
-                                                                }}
-                                                                className="text-[10px] font-bold text-amber-500 hover:text-amber-600 p-1 opacity-60 hover:opacity-100 transition-all flex items-center justify-center gap-1"
+                                                                onClick={() => handleRemoveFromGuild(deck.id)}
+                                                                className="text-[10px] font-bold text-rose-400 hover:text-rose-600 p-1 opacity-50 hover:opacity-100 transition-all flex items-center justify-center gap-1"
+                                                                title="Remover da Guilda"
                                                             >
-                                                                <Star size={12} /> Avaliar
+                                                                <Users size={12} /> Remover da Guilda
                                                             </button>
+                                                        )}
+
+                                                        {deck.originalCreatorId && deck.originalCreatorId !== deck.userId && (
+                                                            <div className="relative">
+                                                                <button
+                                                                    onClick={() => setRatingDeckId(ratingDeckId === deck.id ? null : deck.id)}
+                                                                    className={`w-full text-[10px] font-bold p-1 transition-all flex items-center justify-center gap-1 rounded-lg
+                                                                        ${ratingDeckId === deck.id
+                                                                            ? "text-amber-600 bg-amber-50"
+                                                                            : "text-amber-500 hover:text-amber-600 opacity-60 hover:opacity-100"
+                                                                        }`}
+                                                                >
+                                                                    <Star size={12} fill={ratingDeckId === deck.id ? "currentColor" : "none"} /> Avaliar
+                                                                </button>
+                                                                {ratingDeckId === deck.id && (
+                                                                    <div className="absolute right-0 top-full mt-1.5 bg-white rounded-xl shadow-xl border border-slate-100 p-3 z-[200] animate-in fade-in zoom-in-95 duration-150 whitespace-nowrap">
+                                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 text-center">Sua avaliação</p>
+                                                                        <div className="flex items-center gap-1">
+                                                                            {[1, 2, 3, 4, 5].map(s => (
+                                                                                <button
+                                                                                    key={s}
+                                                                                    onMouseEnter={() => setHoverRating(s)}
+                                                                                    onMouseLeave={() => setHoverRating(0)}
+                                                                                    onClick={async () => {
+                                                                                        await apiFetch(`/student/flashcards/decks/${deck.id}/rate`, {
+                                                                                            method: "POST",
+                                                                                            headers: { "Content-Type": "application/json" },
+                                                                                            body: JSON.stringify({ rating: s, comment: "" })
+                                                                                        });
+                                                                                        setRatingDeckId(null);
+                                                                                        setHoverRating(0);
+                                                                                        alert("Obrigado pela avaliação!");
+                                                                                        fetchData();
+                                                                                    }}
+                                                                                    className="transition-transform hover:scale-125 duration-100"
+                                                                                >
+                                                                                    <Star
+                                                                                        size={22}
+                                                                                        className={`transition-colors duration-100 ${s <= hoverRating ? "text-amber-400 fill-amber-400" : "text-slate-200 fill-slate-200"}`}
+                                                                                    />
+                                                                                </button>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         )}
                                                     </div>
                                                 </div>

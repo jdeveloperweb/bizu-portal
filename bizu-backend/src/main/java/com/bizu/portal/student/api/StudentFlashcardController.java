@@ -195,4 +195,13 @@ public class StudentFlashcardController {
         studentFlashcardService.unshareDeck(sharedDeckId, userId);
         return ResponseEntity.ok().build();
     }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/guild-decks/{deckId}")
+    public ResponseEntity<Void> removeDeckFromGuild(
+            @PathVariable UUID deckId,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = resolveUserId(jwt);
+        studentFlashcardService.removeDeckFromGuild(deckId, userId);
+        return ResponseEntity.ok().build();
+    }
 }

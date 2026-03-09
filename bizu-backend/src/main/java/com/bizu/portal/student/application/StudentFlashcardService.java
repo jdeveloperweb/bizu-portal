@@ -144,6 +144,7 @@ public class StudentFlashcardService {
                     .rating(deck.getRating())
                     .ratingCount(deck.getRatingCount())
                     .isPurchased(isPurchased)
+                    .guildId(deck.getGuildId())
                     .sharedWith(shares)
                     .build();
             })
@@ -561,5 +562,37 @@ public class StudentFlashcardService {
         deck.setRating(avg);
         deck.setRatingCount(allRatings.size());
         deckRepository.save(deck);
+    }
+    
+    @Transactional
+    public void removeDeckFromGuild(UUID deckId, UUID requesterId) {
+        FlashcardDeck deck = deckRepository.findById(deckId)
+            .orElseThrow(() -> new RuntimeException("Deck não encontrado"));
+
+        if (deck.getGuildId() == null) {
+            throw new RuntimeException("Este deck não pertence a uma guilda");
+        }
+
+        UUID guildId = deck.getGuildId();
+        
+        // Verificar se o solicitante é ADMIN ou FOUNDER da guilda
+        GuildMember member = guildMemberRepository.findByGuildIdAndUserId(guildId, requesterId)
+            .orElseThrow(() -> new RuntimeException("Você não é membro desta guilda"));
+
+        if (member.getRole() != GuildMember.GuildRole.ADMIN && member.getRole() != GuildMember.GuildRole.FOUNDER) {
+            throw new RuntimeException("Apenas administradores da guilda podem remover decks");
+        }
+
+        // Se o deck tiver um sourceDeckId, limpar a referência no original
+        if (deck.getSourceDeckId() != null) {
+            deckRepository.findById(deck.getSourceDeckId()).ifPresent(sourceDeck -> {
+                if (guildId.equals(sourceDeck.getSharedWithGuildId())) {
+                    sourceDeck.setSharedWithGuildId(null);
+                    deckRepository.save(sourceDeck);
+                }
+            });
+        }
+
+        deckRepository.delete(deck);
     }
 }
