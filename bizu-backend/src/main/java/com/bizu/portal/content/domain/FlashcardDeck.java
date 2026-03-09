@@ -50,6 +50,7 @@ public class FlashcardDeck {
     private UUID courseId;
 
     @Column(name = "is_for_sale")
+    @com.fasterxml.jackson.annotation.JsonProperty("isForSale")
     private boolean isForSale;
 
     private Integer price;

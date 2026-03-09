@@ -467,7 +467,7 @@ public class StudentFlashcardService {
                     .price(deck.getPrice())
                     .rating(deck.getRating())
                     .ratingCount(deck.getRatingCount())
-                    .isForSale(true)
+                    .isForSale(deck.isForSale())
                     .isPurchased(isPurchased || isOwner)
                     .build();
             }).collect(Collectors.toList());

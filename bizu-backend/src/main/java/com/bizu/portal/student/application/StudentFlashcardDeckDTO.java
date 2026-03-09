@@ -22,10 +22,12 @@ public class StudentFlashcardDeckDTO {
     private UUID userId;
     private UUID originalCreatorId;
     private String originalCreatorName;
+    @com.fasterxml.jackson.annotation.JsonProperty("isForSale")
     private boolean isForSale;
     private Integer price;
     private Double rating;
     private Integer ratingCount;
+    @com.fasterxml.jackson.annotation.JsonProperty("isPurchased")
     private boolean isPurchased;
     private UUID guildId;
     private java.util.List<ShareInfoDTO> sharedWith;
