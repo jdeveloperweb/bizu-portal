@@ -216,8 +216,17 @@ public class DuelService {
         Duel duel = duelRepository.findById(duelId).orElseThrow();
         DuelQuestion currentRoundQuestion = duelQuestionRepository.findByDuelIdAndRoundNumber(duelId, duel.getCurrentRound());
 
+        if (currentRoundQuestion == null) {
+            log.error("Round question not found for duel {} and round {}", duelId, duel.getCurrentRound());
+            return duel;
+        }
+
         boolean isChallenger = duel.getChallenger().getId().equals(userId);
         
+        // Prevent multiple answers for the same round
+        if (isChallenger && currentRoundQuestion.getChallengerAnswerIndex() != null) return duel;
+        if (!isChallenger && currentRoundQuestion.getOpponentAnswerIndex() != null) return duel;
+
         // Convert integer index (0, 1, 2) to ('A', 'B', 'C') to match correctOption
         String answerStr = String.valueOf((char) ('A' + answerIndex));
         boolean isCorrect = answerStr.equals(currentRoundQuestion.getQuestion().getCorrectOption());
@@ -225,14 +234,24 @@ public class DuelService {
         if (isChallenger) {
             currentRoundQuestion.setChallengerAnswerIndex(answerIndex);
             currentRoundQuestion.setChallengerCorrect(isCorrect);
-            if (isCorrect) duel.setChallengerScore(duel.getChallengerScore() + 1);
         } else {
             currentRoundQuestion.setOpponentAnswerIndex(answerIndex);
             currentRoundQuestion.setOpponentCorrect(isCorrect);
-            if (isCorrect) duel.setOpponentScore(duel.getOpponentScore() + 1);
         }
 
-        duelQuestionRepository.save(currentRoundQuestion);
+        duelQuestionRepository.saveAndFlush(currentRoundQuestion);
+
+        // Recalculate scores from all round questions to ensure accuracy and handle race conditions
+        List<DuelQuestion> allDuelQuestions = duelQuestionRepository.findByDuelId(duelId);
+        int challengerScore = 0;
+        int opponentScore = 0;
+        for (DuelQuestion dq : allDuelQuestions) {
+            if (Boolean.TRUE.equals(dq.getChallengerCorrect())) challengerScore++;
+            if (Boolean.TRUE.equals(dq.getOpponentCorrect())) opponentScore++;
+        }
+        
+        duel.setChallengerScore(challengerScore);
+        duel.setOpponentScore(opponentScore);
 
         // Check if both have answered the current round
         if (currentRoundQuestion.getChallengerAnswerIndex() != null && currentRoundQuestion.getOpponentAnswerIndex() != null) {
@@ -310,26 +329,38 @@ public class DuelService {
 
     private void checkRoundResult(Duel duel, DuelQuestion dq) {
         int round = duel.getCurrentRound();
-        boolean cCorrect = dq.getChallengerCorrect();
-        boolean oCorrect = dq.getOpponentCorrect();
+        int cScore = duel.getChallengerScore();
+        int oScore = duel.getOpponentScore();
 
         if (round < 10) {
             // Standard rounds: just advance
             duel.setCurrentRound(round + 1);
-        } else {
-            // Shootout phase (from round 10 onwards)
-            if (cCorrect && !oCorrect) {
-                // Challenger wins
+        } else if (round == 10) {
+            // End of regular rounds: check if there is a winner
+            if (cScore > oScore) {
                 finishDuel(duel, duel.getChallenger());
-            } else if (!cCorrect && oCorrect) {
-                // Opponent wins
+            } else if (oScore > cScore) {
                 finishDuel(duel, duel.getOpponent());
             } else {
-                // Both correct or both wrong: continue to next round with higher difficulty
-                duel.setCurrentRound(round + 1);
+                // TIE: Start sudden death
                 duel.setSuddenDeath(true);
-                
-                // Generate next question for sudden death
+                duel.setCurrentRound(round + 1);
+                generateSuddenDeathQuestion(duel, round + 1);
+            }
+        } else {
+            // Shootout phase (from round 11 onwards)
+            boolean cCorrect = Boolean.TRUE.equals(dq.getChallengerCorrect());
+            boolean oCorrect = Boolean.TRUE.equals(dq.getOpponentCorrect());
+
+            if (cCorrect && !oCorrect) {
+                // Challenger wins in sudden death
+                finishDuel(duel, duel.getChallenger());
+            } else if (!cCorrect && oCorrect) {
+                // Opponent wins in sudden death
+                finishDuel(duel, duel.getOpponent());
+            } else {
+                // Both correct or both wrong: continue to next round of sudden death
+                duel.setCurrentRound(round + 1);
                 generateSuddenDeathQuestion(duel, round + 1);
             }
         }
@@ -337,7 +368,11 @@ public class DuelService {
 
     private void generateSuddenDeathQuestion(Duel duel, int roundNumber) {
         // Pick a HARD question for sudden death
-        List<Question> questions = questionRepository.findAll(); // Filter by hard difficulty
+        List<Question> questions = getPool(duel.getSubject(), "HARD");
+        if (questions.isEmpty()) {
+            questions = questionRepository.findAll();
+        }
+        
         Question q = questions.get(new Random().nextInt(questions.size()));
         DuelQuestion dq = DuelQuestion.builder()
                 .duel(duel)
@@ -346,6 +381,10 @@ public class DuelService {
                 .difficulty("HARD")
                 .build();
         duelQuestionRepository.save(dq);
+        
+        if (duel.getQuestions() != null) {
+            duel.getQuestions().add(dq);
+        }
     }
 
     private void finishDuel(Duel duel, User winner) {

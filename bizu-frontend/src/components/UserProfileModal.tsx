@@ -14,6 +14,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { useAuth } from "@/components/AuthProvider";
 import { BadgeInsignia } from "@/components/gamification/BadgeInsignia";
 import { RankInsignia } from "@/components/gamification/RankInsignia";
+import { GuildInsignia } from "@/components/guilds/GuildInsignia";
 
 const iconMap: Record<string, any> = {
     sunrise: Sunrise,
@@ -150,9 +151,12 @@ export function UserProfileModal({ nickname, isOpen, onClose }: UserProfileModal
                             {/* User Info & Actions */}
                             <div className="flex justify-between items-start gap-4">
                                 <div>
-                                    <h2 className="text-2xl font-extrabold text-slate-900 leading-tight">
-                                        {profile.name}
-                                    </h2>
+                                    <div className="flex items-center gap-2 leading-tight mb-0.5">
+                                        <h2 className="text-2xl font-extrabold text-slate-900">
+                                            {profile.name}
+                                        </h2>
+                                        <GuildInsignia badge={profile.guildBadge} guildName={profile.guildName} size={20} />
+                                    </div>
                                     <p className="text-indigo-600 font-bold">@{profile.nickname}</p>
                                 </div>
                                 {!isMe && (

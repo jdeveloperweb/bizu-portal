@@ -28,6 +28,12 @@ public class StudentGuildController {
         return ResponseEntity.ok(guildService.searchGuilds(userId, search));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<List<GuildResponseDTO>> getMyGuilds(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        return ResponseEntity.ok(guildService.getMyGuilds(userId));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<GuildResponseDTO> getGuildDetails(
             @PathVariable UUID id,

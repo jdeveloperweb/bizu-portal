@@ -5,9 +5,10 @@ import {
     StickyNote, Plus, Search, Filter, BookOpen,
     Tag, Clock, Trash2, Edit3, ChevronRight,
     Star, Pin, Target, CheckSquare, FileText,
-    X, Highlighter
+    X, Highlighter, Share2, Loader2, Flame, PlayCircle, XCircle
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { GuildService, GuildResponseDTO } from "@/lib/guildService";
 import { useAuth } from "@/components/AuthProvider";
 import { useCustomDialog } from "@/components/CustomDialogProvider";
 
@@ -46,6 +47,9 @@ export default function AnotacoesPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedNote, setSelectedNote] = useState<Note | null>(null);
     const [isEditing, setIsEditing] = useState(false);
+    const [myGuilds, setMyGuilds] = useState<GuildResponseDTO[]>([]);
+    const [showShareMenu, setShowShareMenu] = useState(false);
+    const [isSharing, setIsSharing] = useState(false);
 
     const { selectedCourseId } = useAuth();
     const { alert, confirm } = useCustomDialog();
@@ -66,9 +70,10 @@ export default function AnotacoesPage() {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const [notesRes, coursesRes] = await Promise.all([
+            const [notesRes, coursesRes, guilds] = await Promise.all([
                 apiFetch("/student/notes"),
-                apiFetch("/student/courses/me")
+                apiFetch("/student/courses/me"),
+                GuildService.getMyGuilds()
             ]);
             if (notesRes.ok) {
                 const data = await notesRes.json();
@@ -78,6 +83,7 @@ export default function AnotacoesPage() {
                 const data = await coursesRes.json();
                 setCourses(Array.isArray(data) ? data : []);
             }
+            setMyGuilds(guilds);
         } catch (e) {
             console.error(e);
         } finally {
@@ -211,6 +217,20 @@ export default function AnotacoesPage() {
         assunto: BookOpen,
     };
 
+    const handleShare = async (guildId: string) => {
+        if (!selectedNote || selectedNote.id === "new") return;
+        setIsSharing(true);
+        try {
+            await GuildService.shareNote(selectedNote.id, "GUILD", guildId);
+            alert("Anotação compartilhada com a guilda!");
+            setShowShareMenu(false);
+        } catch (error: any) {
+            alert(error.message || "Erro ao compartilhar", { type: "danger" });
+        } finally {
+            setIsSharing(false);
+        }
+    };
+
     return (
         <div className="p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
             {/* Header */}
@@ -342,6 +362,32 @@ export default function AnotacoesPage() {
                                                     }`}>
                                                 <Star size={14} className={selectedNote.starred ? "fill-amber-500" : ""} />
                                             </button>
+
+                                            <div className="relative">
+                                                <button onClick={() => setShowShareMenu(!showShareMenu)}
+                                                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${showShareMenu ? "bg-indigo-50 text-indigo-600" : "text-slate-400 hover:bg-slate-50"}`}>
+                                                    <Share2 size={14} />
+                                                </button>
+                                                {showShareMenu && (
+                                                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 p-2 z-10 animate-in fade-in zoom-in-95 duration-150">
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 py-2">Compartilhar com Guilda</p>
+                                                        <div className="space-y-1 max-h-48 overflow-y-auto">
+                                                            {myGuilds.length > 0 ? myGuilds.map(guild => (
+                                                                <button key={guild.id}
+                                                                    disabled={isSharing}
+                                                                    onClick={() => handleShare(guild.id)}
+                                                                    className="w-full text-left px-3 py-2 rounded-lg text-[12px] font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center justify-between">
+                                                                    <span className="truncate">{guild.name}</span>
+                                                                    {isSharing && <Loader2 size={10} className="animate-spin" />}
+                                                                </button>
+                                                            )) : (
+                                                                <p className="px-3 py-2 text-[11px] text-slate-400 italic">Você não participa de nenhuma guilda.</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
                                             <button onClick={() => startEditing(selectedNote)}
                                                 className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-all">
                                                 <Edit3 size={14} />

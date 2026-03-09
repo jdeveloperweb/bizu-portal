@@ -25,6 +25,7 @@ public class GuildResponseDTO {
     private int streak;
     private boolean isPublic;
     private boolean isAdmin;
+    private boolean isMember;
     private List<String> tags;
     private String createdAt;
     private long weeklyGoal;

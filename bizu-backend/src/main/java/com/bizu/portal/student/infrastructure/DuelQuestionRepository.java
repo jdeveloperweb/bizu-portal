@@ -7,4 +7,5 @@ import java.util.UUID;
 
 public interface DuelQuestionRepository extends JpaRepository<DuelQuestion, UUID> {
     DuelQuestion findByDuelIdAndRoundNumber(UUID duelId, int roundNumber);
+    java.util.List<DuelQuestion> findByDuelId(UUID duelId);
 }

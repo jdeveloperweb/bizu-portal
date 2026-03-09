@@ -59,6 +59,18 @@ public class NoteController {
         return ResponseEntity.ok(noteService.toggleStar(id, userId));
     }
 
+    @PostMapping("/{id}/share")
+    public ResponseEntity<Void> shareNote(
+            @PathVariable UUID id,
+            @RequestBody java.util.Map<String, String> body,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = syncUser(jwt);
+        String targetType = body.get("targetType");
+        UUID targetId = UUID.fromString(body.get("targetId"));
+        noteService.shareNote(id, userId, targetType, targetId);
+        return ResponseEntity.ok().build();
+    }
+
     private UUID syncUser(Jwt jwt) {
         return userService.resolveUserId(jwt);
     }

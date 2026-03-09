@@ -36,13 +36,20 @@ public class RankingService {
                 LEFT JOIN student.gamification_stats g ON u.id = g.user_id
                 """ + condition + """
             )
-            SELECT 
+            SELECT
                 r.*,
                 sa.metadata as "auraMetadata",
-                sb.metadata as "borderMetadata"
+                sb.metadata as "borderMetadata",
+                ginfo.guild_name as "guildName",
+                ginfo.guild_badge as "guildBadge"
             FROM RankedUsers r
             LEFT JOIN student.store_items sa ON sa.code = 'AURA_' || r."activeAura"
             LEFT JOIN student.store_items sb ON sb.code = 'BORDER_' || r."activeBorder"
+            LEFT JOIN (
+                SELECT gm.user_id, g.name as guild_name, g.badge as guild_badge
+                FROM student.guild_members gm
+                JOIN student.guilds g ON gm.guild_id = g.id
+            ) ginfo ON r.id = ginfo.user_id
             ORDER BY rank ASC
             LIMIT ?
             """;
@@ -69,15 +76,22 @@ public class RankingService {
                 sa.metadata as "auraMetadata",
                 sb.metadata as "borderMetadata",
                 COUNT(d.id) as wins,
-                RANK() OVER (ORDER BY COUNT(d.id) DESC) as rank
+                RANK() OVER (ORDER BY COUNT(d.id) DESC) as rank,
+                ginfo.guild_name as "guildName",
+                ginfo.guild_badge as "guildBadge"
             FROM identity.users u
             LEFT JOIN student.gamification_stats gs ON u.id = gs.user_id
             JOIN student.duels d ON u.id = d.winner_id
             LEFT JOIN student.store_items sa ON sa.code = 'AURA_' || gs.active_aura
             LEFT JOIN student.store_items sb ON sb.code = 'BORDER_' || gs.active_border
+            LEFT JOIN (
+                SELECT gm.user_id, g.name as guild_name, g.badge as guild_badge
+                FROM student.guild_members gm
+                JOIN student.guilds g ON gm.guild_id = g.id
+            ) ginfo ON u.id = ginfo.user_id
             """ + condition + (courseId != null ? " AND " : " WHERE ") + """
             d.status = 'COMPLETED'
-            GROUP BY u.id, u.name, u.nickname, u.avatar_url, gs.total_xp, gs.active_aura, gs.active_border, sa.metadata, sb.metadata
+            GROUP BY u.id, u.name, u.nickname, u.avatar_url, gs.total_xp, gs.active_aura, gs.active_border, sa.metadata, sb.metadata, ginfo.guild_name, ginfo.guild_badge
             ORDER BY wins DESC
             LIMIT ?
             """;
@@ -104,14 +118,21 @@ public class RankingService {
                 sa.metadata as "auraMetadata",
                 sb.metadata as "borderMetadata",
                 MAX(sr.score) as best_score,
-                RANK() OVER (ORDER BY MAX(sr.score) DESC) as rank
+                RANK() OVER (ORDER BY MAX(sr.score) DESC) as rank,
+                ginfo.guild_name as "guildName",
+                ginfo.guild_badge as "guildBadge"
             FROM identity.users u
             LEFT JOIN student.gamification_stats gs ON u.id = gs.user_id
             JOIN student.simulado_results sr ON u.id = sr.user_id
             LEFT JOIN student.store_items sa ON sa.code = 'AURA_' || gs.active_aura
             LEFT JOIN student.store_items sb ON sb.code = 'BORDER_' || gs.active_border
+            LEFT JOIN (
+                SELECT gm.user_id, g.name as guild_name, g.badge as guild_badge
+                FROM student.guild_members gm
+                JOIN student.guilds g ON gm.guild_id = g.id
+            ) ginfo ON u.id = ginfo.user_id
             """ + condition + """
-            GROUP BY u.id, u.name, u.nickname, u.avatar_url, gs.total_xp, gs.active_aura, gs.active_border, sa.metadata, sb.metadata
+            GROUP BY u.id, u.name, u.nickname, u.avatar_url, gs.total_xp, gs.active_aura, gs.active_border, sa.metadata, sb.metadata, ginfo.guild_name, ginfo.guild_badge
             ORDER BY best_score DESC
             LIMIT ?
             """;
@@ -138,15 +159,22 @@ public class RankingService {
                 sa.metadata as "auraMetadata",
                 sb.metadata as "borderMetadata",
                 SUM(aa.xp_earned) as weekly_xp,
-                RANK() OVER (ORDER BY SUM(aa.xp_earned) DESC) as rank
+                RANK() OVER (ORDER BY SUM(aa.xp_earned) DESC) as rank,
+                ginfo.guild_name as "guildName",
+                ginfo.guild_badge as "guildBadge"
             FROM identity.users u
             LEFT JOIN student.gamification_stats gs ON u.id = gs.user_id
             JOIN student.activity_attempts aa ON u.id = aa.user_id
             LEFT JOIN student.store_items sa ON sa.code = 'AURA_' || gs.active_aura
             LEFT JOIN student.store_items sb ON sb.code = 'BORDER_' || gs.active_border
+            LEFT JOIN (
+                SELECT gm.user_id, g.name as guild_name, g.badge as guild_badge
+                FROM student.guild_members gm
+                JOIN student.guilds g ON gm.guild_id = g.id
+            ) ginfo ON u.id = ginfo.user_id
             """ + condition + (courseId != null ? " AND " : " WHERE ") + """
             aa.status = 'COMPLETED' AND aa.finished_at >= CURRENT_DATE - INTERVAL '7 days'
-            GROUP BY u.id, u.name, u.nickname, u.avatar_url, gs.total_xp, gs.active_aura, gs.active_border, sa.metadata, sb.metadata
+            GROUP BY u.id, u.name, u.nickname, u.avatar_url, gs.total_xp, gs.active_aura, gs.active_border, sa.metadata, sb.metadata, ginfo.guild_name, ginfo.guild_badge
             ORDER BY weekly_xp DESC
             LIMIT ?
             """;
@@ -178,7 +206,7 @@ public class RankingService {
                 LEFT JOIN student.gamification_stats g ON u.id = g.user_id
                 """ + condition + """
             )
-            SELECT 
+            SELECT
                 r.rank as "rank",
                 r.nickname as "nickname",
                 r.name as "name",
@@ -189,10 +217,17 @@ public class RankingService {
                 r.active_aura as "activeAura",
                 r.active_border as "activeBorder",
                 sa.metadata as "auraMetadata",
-                sb.metadata as "borderMetadata"
+                sb.metadata as "borderMetadata",
+                ginfo.guild_name as "guildName",
+                ginfo.guild_badge as "guildBadge"
             FROM RankedUsers r
             LEFT JOIN student.store_items sa ON sa.code = 'AURA_' || r.active_aura
             LEFT JOIN student.store_items sb ON sb.code = 'BORDER_' || r.active_border
+            LEFT JOIN (
+                SELECT gm.user_id, g.name as guild_name, g.badge as guild_badge
+                FROM student.guild_members gm
+                JOIN student.guilds g ON gm.guild_id = g.id
+            ) ginfo ON r.user_id = ginfo.user_id
             WHERE r.user_id = ?
             """;
         

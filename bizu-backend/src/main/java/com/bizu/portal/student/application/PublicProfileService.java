@@ -30,7 +30,7 @@ public class PublicProfileService {
                 FROM identity.users u
                 LEFT JOIN student.gamification_stats g ON u.id = g.user_id
             )
-            SELECT 
+            SELECT
                 r.user_id as "id",
                 r.nickname as "nickname",
                 r.name as "name",
@@ -43,17 +43,24 @@ public class PublicProfileService {
                 sb.metadata as "borderMetadata",
                 r.rank as "rank",
                 FLOOR(POWER(COALESCE(r.total_xp, 0) / 1000.0, 2.0/3.0)) + 1 as "level",
-                (SELECT status FROM identity.friendships f 
-                 WHERE (f.requester_id = ? AND f.addressee_id = r.user_id) 
+                (SELECT status FROM identity.friendships f
+                 WHERE (f.requester_id = ? AND f.addressee_id = r.user_id)
                     OR (f.requester_id = r.user_id AND f.addressee_id = ?)
                  LIMIT 1) as "friendshipStatus",
-                (SELECT id FROM identity.friendships f 
-                 WHERE (f.requester_id = ? AND f.addressee_id = r.user_id) 
+                (SELECT id FROM identity.friendships f
+                 WHERE (f.requester_id = ? AND f.addressee_id = r.user_id)
                     OR (f.requester_id = r.user_id AND f.addressee_id = ?)
-                 LIMIT 1) as "friendshipId"
+                 LIMIT 1) as "friendshipId",
+                ginfo.guild_name as "guildName",
+                ginfo.guild_badge as "guildBadge"
             FROM RankedUsers r
             LEFT JOIN student.store_items sa ON sa.code = 'AURA_' || r.active_aura
             LEFT JOIN student.store_items sb ON sb.code = 'BORDER_' || r.active_border
+            LEFT JOIN (
+                SELECT gm.user_id, g.name as guild_name, g.badge as guild_badge
+                FROM student.guild_members gm
+                JOIN student.guilds g ON gm.guild_id = g.id
+            ) ginfo ON r.user_id = ginfo.user_id
             WHERE r.nickname = ?
             """;
         

@@ -16,6 +16,7 @@ export interface GuildResponseDTO {
   streak: number;
   isPublic: boolean;
   isAdmin: boolean;
+  isMember: boolean;
   tags: string[];
   createdAt: string;
   weeklyGoal: number;
@@ -276,5 +277,21 @@ export const GuildService = {
       method: "POST",
     });
     if (!res.ok) throw new Error("Erro ao recusar convite");
+  },
+
+  /** GET /student/guilds/me */
+  async getMyGuilds(): Promise<GuildResponseDTO[]> {
+    const res = await apiFetch("/student/guilds/me");
+    if (!res.ok) throw new Error("Erro ao buscar minhas guilds");
+    return res.json();
+  },
+
+  /** POST /student/notes/{id}/share */
+  async shareNote(noteId: string, targetType: "GUILD", targetId: string): Promise<void> {
+    const res = await apiFetch(`/student/notes/${noteId}/share`, {
+      method: "POST",
+      body: JSON.stringify({ targetType, targetId }),
+    });
+    if (!res.ok) throw new Error("Erro ao compartilhar anotação");
   },
 };

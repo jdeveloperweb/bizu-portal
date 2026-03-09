@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Loader2, ArrowLeft, Trophy, Flame, UserPlus, UserCheck, UserMinus, ShieldAlert } from "lucide-react";
+import { GuildInsignia } from "@/components/guilds/GuildInsignia";
 import { apiFetch } from "@/lib/api";
 
 export default function PublicProfilePage() {
@@ -86,7 +87,10 @@ export default function PublicProfilePage() {
                     </div>
 
                     <div className="flex-1 text-center md:text-left">
-                        <h1 className="text-2xl font-extrabold text-slate-900">{profile.name}</h1>
+                        <div className="flex items-center justify-center md:justify-start gap-2 mb-0.5">
+                            <h1 className="text-2xl font-extrabold text-slate-900">{profile.name}</h1>
+                            <GuildInsignia badge={profile.guildBadge} guildName={profile.guildName} size={20} />
+                        </div>
                         <p className="text-indigo-600 font-medium mb-4">@{profile.nickname}</p>
 
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">

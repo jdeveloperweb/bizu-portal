@@ -6,11 +6,13 @@ import {
     Layers, Plus, BookOpen, Shield, Scale, Gavel,
     ChevronRight, Target, Brain, Zap, Clock,
     Star, TrendingUp, CheckCircle2, BarChart3,
-    Flame, PlayCircle, Loader2, XCircle
+    Flame, PlayCircle, Loader2, XCircle, Share2
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
+import { GuildService, GuildResponseDTO } from "@/lib/guildService";
+import { useCustomDialog } from "@/components/CustomDialogProvider";
 
 interface Deck {
     id: string;
@@ -44,13 +46,20 @@ export default function FlashcardsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newDeck, setNewDeck] = useState({ title: "", description: "", icon: "Layers", color: "from-indigo-500 to-violet-600" });
     const [isSaving, setIsSaving] = useState(false);
+    const [myGuilds, setMyGuilds] = useState<GuildResponseDTO[]>([]);
+    const [sharingDeckId, setSharingDeckId] = useState<string | null>(null);
+    const [isSharing, setIsSharing] = useState(false);
+    const { alert } = useCustomDialog();
 
     const fetchData = async () => {
         try {
-            const [decksRes, summaryRes] = await Promise.all([
+            const [decksRes, summaryRes, guilds] = await Promise.all([
                 apiFetch("/student/flashcards/decks"),
-                apiFetch("/student/flashcards/summary")
+                apiFetch("/student/flashcards/summary"),
+                GuildService.getMyGuilds()
             ]);
+
+            setMyGuilds(guilds);
 
             if (decksRes.ok && summaryRes.ok) {
                 const decksData = await decksRes.json();
@@ -87,6 +96,28 @@ export default function FlashcardsPage() {
             console.error("Error creating deck:", error);
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleShareDeck = async (deckId: string, guildId: string) => {
+        setIsSharing(true);
+        try {
+            const res = await apiFetch(`/student/flashcards/decks/${deckId}/share`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ targetType: "GUILD", targetId: guildId })
+            });
+            if (res.ok) {
+                alert("Deck compartilhado com a guilda!");
+                setSharingDeckId(null);
+            } else {
+                throw new Error("Erro ao compartilhar");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao compartilhar deck.", { type: "danger" });
+        } finally {
+            setIsSharing(false);
         }
     };
 
@@ -209,6 +240,32 @@ export default function FlashcardsPage() {
                                                 className="btn-outline !h-9 !text-[11px] !px-4 !border-slate-200 !text-slate-600 hover:!bg-slate-50 whitespace-nowrap flex items-center justify-center gap-1.5 rounded-xl font-bold">
                                                 <Plus size={12} /> Cartas
                                             </Link>
+
+                                            <div className="relative">
+                                                <button
+                                                    onClick={() => setSharingDeckId(sharingDeckId === deck.id ? null : deck.id)}
+                                                    className={`btn-outline !h-9 !text-[11px] !px-4 !border-slate-200 !text-slate-600 hover:!bg-slate-50 whitespace-nowrap flex items-center justify-center gap-1.5 rounded-xl font-bold ${sharingDeckId === deck.id ? "!bg-indigo-50 !text-indigo-600 !border-indigo-200" : ""}`}>
+                                                    <Share2 size={12} /> Compartilhar
+                                                </button>
+                                                {sharingDeckId === deck.id && (
+                                                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 p-2 z-10 animate-in fade-in zoom-in-95 duration-150">
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 py-2">Compartilhar com Guilda</p>
+                                                        <div className="space-y-1 max-h-48 overflow-y-auto">
+                                                            {myGuilds.length > 0 ? myGuilds.map(guild => (
+                                                                <button key={guild.id}
+                                                                    disabled={isSharing}
+                                                                    onClick={() => handleShareDeck(deck.id, guild.id)}
+                                                                    className="w-full text-left px-3 py-2 rounded-lg text-[12px] font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center justify-between">
+                                                                    <span className="truncate">{guild.name}</span>
+                                                                    {isSharing && <Loader2 size={10} className="animate-spin" />}
+                                                                </button>
+                                                            )) : (
+                                                                <p className="px-3 py-2 text-[11px] text-slate-400 italic">Você não participa de nenhuma guilda.</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -122,7 +122,7 @@ export const GUILD_BADGES: GuildBadgeConfig[] = [
   },
 ];
 
-const BadgeSVGs: Record<GuildBadgeType, React.FC<{ size?: number }>> = {
+export const BadgeSVGs: Record<GuildBadgeType, React.FC<{ size?: number }>> = {
   espada: ({ size = 32 }) => (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
       <path d="M8 24L16 4L24 24" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />

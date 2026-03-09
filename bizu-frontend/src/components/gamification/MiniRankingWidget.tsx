@@ -9,6 +9,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { getStoredSelectedCourseId } from "@/lib/course-selection";
+import { GuildInsignia } from "@/components/guilds/GuildInsignia";
 
 interface RankEntry {
     id: string;
@@ -21,6 +22,8 @@ interface RankEntry {
     activeBorder?: string | null;
     auraMetadata?: any;
     borderMetadata?: any;
+    guildName?: string | null;
+    guildBadge?: string | null;
     value: number; // wins / best_score / weekly_xp
 }
 
@@ -107,6 +110,8 @@ function parseEntry(raw: any, tab: Tab): RankEntry {
         activeBorder: raw.activeBorder || null,
         auraMetadata: raw.auraMetadata || null,
         borderMetadata: raw.borderMetadata || null,
+        guildName: raw.guildName || null,
+        guildBadge: raw.guildBadge || null,
         value: Number(raw[tab.valueKey] ?? 0),
     };
 }
@@ -286,8 +291,11 @@ function RankRow({ entry, index, tab }: { entry: RankEntry; index: number; tab: 
 
             {/* Name */}
             <div className="flex-1 min-w-0">
-                <div className="text-[13px] font-bold text-slate-800 truncate leading-tight">
-                    {entry.nickname || entry.name.split(" ")[0]}
+                <div className="flex items-center gap-1.5 leading-tight">
+                    <span className="text-[13px] font-bold text-slate-800 truncate">
+                        {entry.nickname || entry.name.split(" ")[0]}
+                    </span>
+                    <GuildInsignia badge={entry.guildBadge} guildName={entry.guildName} size={16} />
                 </div>
                 {entry.nickname && (
                     <div className="text-[10px] text-slate-400 font-medium truncate">{entry.name.split(" ")[0]}</div>

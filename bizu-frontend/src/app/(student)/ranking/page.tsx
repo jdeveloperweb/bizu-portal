@@ -14,6 +14,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { Avatar } from "@/components/ui/Avatar";
 import { PremiumFeatureCard } from "@/components/PremiumFeatureCard";
 import { UserProfileModal } from "@/components/UserProfileModal";
+import { GuildInsignia } from "@/components/guilds/GuildInsignia";
 
 type RankingTab = "geral" | "semanal" | "simulado" | "materia";
 
@@ -32,6 +33,8 @@ interface RankedUser {
     activeBorder?: string | null;
     auraMetadata?: any;
     borderMetadata?: any;
+    guildName?: string | null;
+    guildBadge?: string | null;
 }
 
 interface RankedSimulado {
@@ -47,6 +50,8 @@ interface RankedSimulado {
     activeBorder?: string | null;
     auraMetadata?: any;
     borderMetadata?: any;
+    guildName?: string | null;
+    guildBadge?: string | null;
 }
 
 export default function RankingStudentPage() {
@@ -89,7 +94,9 @@ export default function RankingStudentPage() {
                         activeAura: u.activeAura,
                         activeBorder: u.activeBorder,
                         auraMetadata: u.auraMetadata,
-                        borderMetadata: u.borderMetadata
+                        borderMetadata: u.borderMetadata,
+                        guildName: u.guildName || null,
+                        guildBadge: u.guildBadge || null,
                     })));
                 }
 
@@ -109,7 +116,9 @@ export default function RankingStudentPage() {
                         activeAura: u.activeAura,
                         activeBorder: u.activeBorder,
                         auraMetadata: u.auraMetadata,
-                        borderMetadata: u.borderMetadata
+                        borderMetadata: u.borderMetadata,
+                        guildName: u.guildName || null,
+                        guildBadge: u.guildBadge || null,
                     });
                 }
 
@@ -151,7 +160,9 @@ export default function RankingStudentPage() {
                     activeAura: u.activeAura,
                     activeBorder: u.activeBorder,
                     auraMetadata: u.auraMetadata,
-                    borderMetadata: u.borderMetadata
+                    borderMetadata: u.borderMetadata,
+                    guildName: u.guildName || null,
+                    guildBadge: u.guildBadge || null,
                 })));
             }
         } catch (error) {
@@ -181,7 +192,9 @@ export default function RankingStudentPage() {
                     activeAura: u.activeAura,
                     activeBorder: u.activeBorder,
                     auraMetadata: u.auraMetadata,
-                    borderMetadata: u.borderMetadata
+                    borderMetadata: u.borderMetadata,
+                    guildName: u.guildName || null,
+                    guildBadge: u.guildBadge || null,
                 })));
             }
         } catch (error) {
@@ -211,7 +224,9 @@ export default function RankingStudentPage() {
                     activeAura: u.activeAura,
                     activeBorder: u.activeBorder,
                     auraMetadata: u.auraMetadata,
-                    borderMetadata: u.borderMetadata
+                    borderMetadata: u.borderMetadata,
+                    guildName: u.guildName || null,
+                    guildBadge: u.guildBadge || null,
                 })));
             }
         } catch (error) {
@@ -478,7 +493,10 @@ export default function RankingStudentPage() {
                                                         borderMetadata={user.borderMetadata}
                                                     />
                                                     <div className="relative z-10 flex-1 min-w-0">
-                                                        <div className="text-[13px] font-bold text-slate-800 truncate">{user.name}</div>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="text-[13px] font-bold text-slate-800 truncate">{user.name}</span>
+                                                            <GuildInsignia badge={user.guildBadge} guildName={user.guildName} size={15} />
+                                                        </div>
                                                         {user.nickname && <div className="text-[10px] text-slate-400">@{user.nickname}</div>}
                                                         {user.total_simulados !== undefined && user.total_simulados > 0 && (
                                                             <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-0.5">
@@ -538,9 +556,12 @@ export default function RankingStudentPage() {
                                                 </div>
 
                                                 {/* Name + XP */}
-                                                <span className="text-[12px] font-black text-slate-800 mb-0.5 max-w-[80px] truncate text-center">
-                                                    {user.name.split(" ")[0]}
-                                                </span>
+                                                <div className="flex items-center justify-center gap-1 mb-0.5">
+                                                    <span className="text-[12px] font-black text-slate-800 max-w-[70px] truncate text-center">
+                                                        {user.name.split(" ")[0]}
+                                                    </span>
+                                                    <GuildInsignia badge={user.guildBadge} guildName={user.guildName} size={14} />
+                                                </div>
                                                 <span className="text-[10px] text-slate-400 font-semibold mb-3">
                                                     {user.xp.toLocaleString()} XP
                                                 </span>
@@ -612,7 +633,10 @@ export default function RankingStudentPage() {
 
                                             {/* Info */}
                                             <div className="relative z-10 flex-1 min-w-0">
-                                                <div className="text-[13px] font-bold text-slate-800 truncate">{user.name}</div>
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="text-[13px] font-bold text-slate-800 truncate">{user.name}</span>
+                                                    <GuildInsignia badge={user.guildBadge} guildName={user.guildName} size={15} />
+                                                </div>
                                                 {user.nickname && (
                                                     <div className="text-[10px] text-slate-400">@{user.nickname}</div>
                                                 )}

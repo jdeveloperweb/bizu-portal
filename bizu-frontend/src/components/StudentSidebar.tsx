@@ -17,6 +17,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { usePomodoro } from "@/contexts/PomodoroContext";
 import { useDuels } from "@/contexts/DuelContext";
 import { apiFetch } from "@/lib/api";
+import { GuildInsignia } from "@/components/guilds/GuildInsignia";
 
 const studyNav = [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -71,6 +72,8 @@ export default function StudentSidebar() {
     const [activeBorder, setActiveBorder] = useState<string | null>(null);
     const [activeAuraMetadata, setActiveAuraMetadata] = useState<any>(null);
     const [activeBorderMetadata, setActiveBorderMetadata] = useState<any>(null);
+    const [userGuildName, setUserGuildName] = useState<string | null>(null);
+    const [userGuildBadge, setUserGuildBadge] = useState<string | null>(null);
 
     const fetchSidebarData = useCallback(async () => {
         if (!authenticated || isFree) return;
@@ -95,7 +98,9 @@ export default function StudentSidebar() {
             }
             if (rankingRes && rankingRes.ok) {
                 const data = await rankingRes.json();
-                if (data.position) setRankingPosition(data.position);
+                if (data.rank) setRankingPosition(data.rank);
+                setUserGuildName(data.guildName || null);
+                setUserGuildBadge(data.guildBadge || null);
             }
             if (gamRes && gamRes.ok) {
                 const data = await gamRes.json();
@@ -334,9 +339,12 @@ export default function StudentSidebar() {
                         <div className="px-4 pt-2 pb-3 border-b border-border flex items-center gap-3 shrink-0">
                             <Avatar src={user?.avatarUrl} name={user?.name || 'Usuário'} rankLevel={userLevel} activeAura={activeAura} activeBorder={activeBorder} />
                             <div className="flex-1 min-w-0">
-                                <p className="text-[13px] font-bold text-foreground truncate leading-none mb-1">
-                                    {user?.name || 'Usuário'}
-                                </p>
+                                <div className="flex items-center gap-1.5 leading-none mb-1">
+                                    <p className="text-[13px] font-bold text-foreground truncate">
+                                        {user?.name || 'Usuário'}
+                                    </p>
+                                    <GuildInsignia badge={userGuildBadge} guildName={userGuildName} size={15} />
+                                </div>
                                 <p className="text-[11px] text-indigo-500 truncate leading-none">
                                     @{user?.nickname || 'nickname'}
                                 </p>
@@ -508,9 +516,12 @@ export default function StudentSidebar() {
                         />
                         {!isCollapsed && (
                             <div className="flex-1 min-w-0">
-                                <p className="text-[13px] font-bold text-slate-900 truncate leading-none mb-1">
-                                    {user?.name || 'Usuário'}
-                                </p>
+                                <div className="flex items-center gap-1.5 leading-none mb-1">
+                                    <p className="text-[13px] font-bold text-slate-900 truncate">
+                                        {user?.name || 'Usuário'}
+                                    </p>
+                                    <GuildInsignia badge={userGuildBadge} guildName={userGuildName} size={15} />
+                                </div>
                                 <p className="text-[10px] font-medium text-indigo-500 truncate leading-none mb-2">
                                     @{user?.nickname || 'nickname'}
                                 </p>

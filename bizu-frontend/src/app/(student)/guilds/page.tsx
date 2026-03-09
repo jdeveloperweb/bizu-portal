@@ -16,11 +16,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 // ─── League config ────────────────────────────────────────────────────────────
 
 const leagueConfig: Record<string, { label: string; color: string }> = {
-  BRONZE:   { label: "Bronze",   color: "#CD7F32" },
-  PRATA:    { label: "Prata",    color: "#94A3B8" },
-  OURO:     { label: "Ouro",     color: "#D97706" },
+  BRONZE: { label: "Bronze", color: "#CD7F32" },
+  PRATA: { label: "Prata", color: "#94A3B8" },
+  OURO: { label: "Ouro", color: "#D97706" },
   DIAMANTE: { label: "Diamante", color: "#0EA5E9" },
-  MESTRE:   { label: "Mestre",   color: "#A855F7" },
+  MESTRE: { label: "Mestre", color: "#A855F7" },
 };
 
 // ─── Components ───────────────────────────────────────────────────────────────
@@ -144,7 +144,7 @@ function GuildCard({ guild, index, onJoin }: {
             Ver guild <ChevronRight size={12} />
           </Link>
 
-          {guild.isAdmin ? (
+          {(guild.isAdmin || guild.isMember) ? (
             <Link
               href={`/guilds/${guild.id}`}
               className="text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors"
@@ -188,30 +188,30 @@ function FeaturedCard({ guild }: { guild: GuildResponseDTO }) {
       {/* Top league color accent */}
       <div className="h-1 w-full" style={{ background: leagueCfg.color }} />
 
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-5">
-          <GuildBadge type={badgeType} size="xl" showGlow />
+      <div className="p-5">
+        <div className="flex items-start justify-between mb-4">
+          <GuildBadge type={badgeType} size="lg" showGlow />
           <div className="text-right">
-            <div className="text-xs text-[var(--muted-foreground)] mb-0.5">Ranking Global</div>
-            <div className="text-3xl font-black text-[var(--foreground)]">#{guild.rankPosition}</div>
+            <div className="text-[10px] text-[var(--muted-foreground)] mb-0.5">Ranking Global</div>
+            <div className="text-xl font-black text-[var(--foreground)]">#{guild.rankPosition}</div>
           </div>
         </div>
 
-        <h3 className="text-xl font-black text-[var(--foreground)] mb-1">{guild.name}</h3>
-        <p className="text-sm text-[var(--muted-foreground)] line-clamp-2 mb-5">{guild.description}</p>
+        <h3 className="text-lg font-black text-[var(--foreground)] mb-1 leading-tight">{guild.name}</h3>
+        <p className="text-xs text-[var(--muted-foreground)] line-clamp-2 mb-4 leading-relaxed">{guild.description}</p>
 
-        <div className="flex items-center gap-4 pt-4 border-t border-[var(--border)]">
+        <div className="flex items-center gap-3 pt-3 border-t border-[var(--border)]">
           <div className="text-center">
-            <div className="text-lg font-bold text-[var(--foreground)]">{guild.memberCount}</div>
-            <div className="text-[10px] text-[var(--muted-foreground)]">membros</div>
+            <div className="text-base font-bold text-[var(--foreground)]">{guild.memberCount}</div>
+            <div className="text-[9px] text-[var(--muted-foreground)] uppercase tracking-wider">membros</div>
           </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-amber-600">{(guild.totalXp / 1000).toFixed(0)}k</div>
-            <div className="text-[10px] text-[var(--muted-foreground)]">XP total</div>
+          <div className="text-center border-l border-[var(--border)] pl-3">
+            <div className="text-base font-bold text-amber-600">{(guild.totalXp / 1000).toFixed(0)}k</div>
+            <div className="text-[9px] text-[var(--muted-foreground)] uppercase tracking-wider">XP total</div>
           </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-orange-500">{guild.streak}d</div>
-            <div className="text-[10px] text-[var(--muted-foreground)]">streak</div>
+          <div className="text-center border-l border-[var(--border)] pl-3">
+            <div className="text-base font-bold text-orange-500">{guild.streak}d</div>
+            <div className="text-[9px] text-[var(--muted-foreground)] uppercase tracking-wider">streak</div>
           </div>
           <div className="ml-auto">
             <LeagueBadge league={guild.league} />
@@ -292,7 +292,7 @@ export default function GuildsPage() {
     }
   }
 
-  const myGuilds = guilds.filter(g => g.isAdmin);
+  const myGuilds = guilds.filter(g => g.isAdmin || g.isMember);
   const featured = [...guilds].sort((a, b) => a.rankPosition - b.rankPosition).slice(0, 3);
 
   const filtered = guilds.filter(g => {
@@ -419,11 +419,10 @@ export default function GuildsPage() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`text-xs px-3 py-2 rounded-lg font-medium transition-colors flex items-center gap-1 ${
-                filter === f
-                  ? "bg-indigo-600 text-white"
-                  : "bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-              }`}
+              className={`text-xs px-3 py-2 rounded-lg font-medium transition-colors flex items-center gap-1 ${filter === f
+                ? "bg-indigo-600 text-white"
+                : "bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                }`}
             >
               {f === "all" ? "Todas" : f === "public" ? <><Globe size={11} />Públicas</> : <><Lock size={11} />Fechadas</>}
             </button>

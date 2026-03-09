@@ -278,6 +278,12 @@ public class GuildService {
                 .collect(Collectors.toList());
     }
 
+    public List<GuildResponseDTO> getMyGuilds(UUID userId) {
+        return guildMemberRepository.findAllByUserId(userId).stream()
+                .map(m -> mapToResponseDTO(m.getGuild(), userId))
+                .collect(Collectors.toList());
+    }
+
     public GuildResponseDTO getGuildDetails(UUID guildId, UUID userId) {
         Guild guild = guildRepository.findById(guildId)
                 .orElseThrow(() -> new RuntimeException("Guild not found"));
@@ -388,6 +394,8 @@ public class GuildService {
 
     private GuildResponseDTO mapToResponseDTO(Guild guild, UUID userId) {
         List<GuildMember> members = guildMemberRepository.findAllByGuildId(guild.getId());
+        boolean isMember = members.stream()
+                .anyMatch(m -> m.getUser().getId().equals(userId));
         boolean isAdmin = members.stream()
                 .anyMatch(m -> m.getUser().getId().equals(userId) && 
                          (m.getRole() == GuildRole.FOUNDER || m.getRole() == GuildRole.ADMIN));
@@ -406,6 +414,7 @@ public class GuildService {
                 .streak(guild.getStreak())
                 .isPublic(guild.isPublic())
                 .isAdmin(isAdmin)
+                .isMember(isMember)
                 .tags(new ArrayList<>())
                 .createdAt(guild.getCreatedAt().format(DateTimeFormatter.ofPattern("MMMM yyyy")))
                 .weeklyGoal(guild.getWeeklyGoal())

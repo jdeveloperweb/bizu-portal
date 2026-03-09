@@ -146,6 +146,36 @@ public class NoteService {
         return toDTO(note);
     }
 
+    @Transactional
+    public void shareNote(UUID noteId, UUID userId, String targetType, UUID targetId) {
+        Note sourceNote = noteRepository.findById(noteId)
+                .orElseThrow(() -> new RuntimeException("Note not found"));
+
+        if (!sourceNote.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Você não tem permissão para compartilhar esta anotação");
+        }
+
+        if ("GUILD".equalsIgnoreCase(targetType)) {
+            Note guildNote = Note.builder()
+                    .user(sourceNote.getUser())
+                    .guildId(targetId)
+                    .title(sourceNote.getTitle())
+                    .content(sourceNote.getContent())
+                    .module(sourceNote.getModule())
+                    .tags(sourceNote.getTags())
+                    .material(sourceNote.getMaterial())
+                    .highlightedText(sourceNote.getHighlightedText())
+                    .highlightColor(sourceNote.getHighlightColor())
+                    .pinned(false)
+                    .starred(false)
+                    .build();
+
+            noteRepository.save(guildNote);
+        } else {
+            throw new RuntimeException("Tipo de destino inválido ou não suportado");
+        }
+    }
+
     private NoteDTO toDTO(Note note) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM");
         String subjectName = note.getModule() != null ? note.getModule().getTitle() : "Geral";
