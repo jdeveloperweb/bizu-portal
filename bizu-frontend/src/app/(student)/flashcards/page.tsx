@@ -6,7 +6,7 @@ import {
     Layers, Plus, BookOpen, Shield, Scale, Gavel,
     ChevronRight, Target, Brain, Zap, Clock,
     Star, TrendingUp, CheckCircle2, BarChart3,
-    Flame, PlayCircle, Loader2, XCircle, Share2
+    Flame, PlayCircle, Loader2, XCircle, Share2, Users
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
@@ -25,6 +25,7 @@ interface Deck {
     progress: number;
     lastStudied: string;
     color: string;
+    sharedWithGuildName?: string;
 }
 
 interface Summary {
@@ -211,6 +212,11 @@ export default function FlashcardsPage() {
                                                 {deck.newCards > 0 && (
                                                     <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
                                                         {deck.newCards} novas
+                                                    </span>
+                                                )}
+                                                {deck.sharedWithGuildName && (
+                                                    <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                                                        <Users size={9} /> {deck.sharedWithGuildName}
                                                     </span>
                                                 )}
                                             </div>

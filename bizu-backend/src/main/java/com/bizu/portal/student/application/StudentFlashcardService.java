@@ -32,8 +32,9 @@ public class StudentFlashcardService {
     public List<StudentFlashcardDeckDTO> getDecksForUser(UUID userId) {
         OffsetDateTime now = OffsetDateTime.now();
         
-        // Show global decks (userId is null) and user's own decks
+        // Show global decks (userId is null) and user's own decks, but NOT guild decks
         return deckRepository.findAll().stream()
+            .filter(deck -> deck.getGuildId() == null) // exclui decks de guild da listagem pessoal
             .filter(deck -> deck.getUserId() == null || deck.getUserId().equals(userId))
             .map(deck -> {
                 long total = deck.getCards().size();
@@ -44,6 +45,14 @@ public class StudentFlashcardService {
                 // Studied cards are those that have a progress entry
                 long studied = total - newCards;
                 int progressPercent = total > 0 ? (int) ((studied * 100) / total) : 0;
+
+                // Verifica se foi compartilhado com alguma guild
+                String guildName = null;
+                if (deck.getSharedWithGuildId() != null) {
+                    guildName = guildRepository.findById(deck.getSharedWithGuildId())
+                        .map(g -> g.getName())
+                        .orElse(null);
+                }
 
                 return StudentFlashcardDeckDTO.builder()
                     .id(deck.getId())
@@ -56,6 +65,7 @@ public class StudentFlashcardService {
                     .newCards(newCards)
                     .progress(progressPercent)
                     .lastStudied("Há pouco")
+                    .sharedWithGuildName(guildName)
                     .build();
             }).collect(Collectors.toList());
     }
@@ -221,6 +231,10 @@ public class StudentFlashcardService {
                 ).collect(Collectors.toList());
 
             flashcardRepository.saveAll(guildCards);
+
+            // Marca o deck original como compartilhado com esta guild
+            sourceDeck.setSharedWithGuildId(targetId);
+            deckRepository.save(sourceDeck);
             
         } else {
             throw new RuntimeException("Tipo de destino inválido");

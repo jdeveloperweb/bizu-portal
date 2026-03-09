@@ -18,4 +18,5 @@ public class StudentFlashcardDeckDTO {
     private long dueCards;
     private int progress;
     private String lastStudied; // Relative string or date
+    private String sharedWithGuildName; // Nome da guild se compartilhado
 }

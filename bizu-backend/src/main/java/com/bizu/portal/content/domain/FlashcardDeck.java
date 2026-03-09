@@ -37,6 +37,9 @@ public class FlashcardDeck {
     @Column(name = "guild_id")
     private UUID guildId;
 
+    @Column(name = "shared_with_guild_id")
+    private UUID sharedWithGuildId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
