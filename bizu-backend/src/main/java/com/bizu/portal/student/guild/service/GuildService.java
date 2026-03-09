@@ -204,6 +204,7 @@ public class GuildService {
 
     public List<GuildMessageDTO> getChatMessages(UUID guildId, UUID userId) {
         return guildMessageRepository.findAllByGuildIdOrderByCreatedAtDesc(guildId, PageRequest.of(0, 50)).stream()
+                .sorted(java.util.Comparator.comparing(GuildMessage::getCreatedAt))
                 .map(m -> GuildMessageDTO.builder()
                         .id(m.getId())
                         .user(m.getUser().getName())
@@ -211,7 +212,6 @@ public class GuildService {
                         .time(m.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                         .isMe(m.getUser().getId().equals(userId))
                         .build())
-                .sorted((a, b) -> a.getTime().compareTo(b.getTime()))
                 .collect(Collectors.toList());
     }
 
@@ -459,6 +459,43 @@ public class GuildService {
                 .xpGained(xp)
                 .build();
         guildActivityRepository.save(activity);
+    }
+
+    @Transactional
+    public GuildResponseDTO updateGuild(UUID guildId, UUID userId, GuildUpdateRequestDTO request) {
+        Guild guild = guildRepository.findById(guildId)
+                .orElseThrow(() -> new RuntimeException("Guild não encontrada"));
+
+        GuildMember member = guildMemberRepository.findByGuildIdAndUserId(guildId, userId)
+                .orElseThrow(() -> new RuntimeException("Acesso negado: Você não é membro desta guild"));
+
+        if (member.getRole() != GuildRole.FOUNDER && member.getRole() != GuildRole.ADMIN) {
+            throw new RuntimeException("Acesso negado: Somente administradores podem alterar as configurações da guild");
+        }
+
+        if (request.getName() != null && !request.getName().isBlank()) {
+            guild.setName(request.getName());
+        }
+        if (request.getDescription() != null && !request.getDescription().isBlank()) {
+            guild.setDescription(request.getDescription());
+        }
+        if (request.getBadge() != null && !request.getBadge().isBlank()) {
+            guild.setBadge(request.getBadge());
+        }
+        if (request.getIsPublic() != null) {
+            guild.setPublic(request.getIsPublic());
+        }
+        if (request.getMaxMembers() != null) {
+            guild.setMaxMembers(request.getMaxMembers());
+        }
+        if (request.getWeeklyGoal() != null) {
+            guild.setWeeklyGoal(request.getWeeklyGoal());
+        }
+
+        guild = guildRepository.save(guild);
+        recordActivity(guild, member.getUser(), "atualizou as configurações da guild", 0);
+
+        return mapToResponseDTO(guild, userId);
     }
 
     private GuildResponseDTO mapToResponseDTO(Guild guild, UUID userId) {

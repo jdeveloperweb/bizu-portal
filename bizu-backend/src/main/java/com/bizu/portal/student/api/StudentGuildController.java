@@ -42,6 +42,15 @@ public class StudentGuildController {
         return ResponseEntity.ok(guildService.getGuildDetails(id, userId));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<GuildResponseDTO> updateGuild(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody GuildUpdateRequestDTO request) {
+        UUID userId = userService.resolveUserId(jwt);
+        return ResponseEntity.ok(guildService.updateGuild(id, userId, request));
+    }
+
     @PostMapping
     public ResponseEntity<GuildResponseDTO> createGuild(
             @AuthenticationPrincipal Jwt jwt,

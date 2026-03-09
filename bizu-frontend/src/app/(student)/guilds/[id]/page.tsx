@@ -10,11 +10,11 @@ import {
   Upload, FileText, Video, Link2, Clock, Award,
   Bell, Calendar, Send, PenLine,
   CheckSquare, RotateCcw, Eye, EyeOff,
-  ListTodo, StickyNote, ShieldCheck, ShieldOff, UserMinus,
+  ListTodo, StickyNote, ShieldCheck, ShieldOff, UserMinus, X
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { GuildBadge, GuildBadgeType } from "@/components/guilds/GuildBadge";
+import { GuildBadge, GuildBadgeSelector, GuildBadgeType, GUILD_BADGES } from "@/components/guilds/GuildBadge";
 import {
   GuildService,
   GuildResponseDTO,
@@ -36,6 +36,142 @@ import { Skeleton } from "@/components/ui/skeleton";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type GuildTab = "inicio" | "membros" | "materiais" | "flashcards" | "anotacoes" | "tarefas" | "ranking" | "missoes";
+
+// ─── Settings Modal ───────────────────────────────────────────────────────────
+
+function SettingsModal({
+  guild, onClose, onUpdate
+}: {
+  guild: GuildResponseDTO;
+  onClose: () => void;
+  onUpdate: (data: Partial<GuildResponseDTO>) => Promise<void>;
+}) {
+  const [name, setName] = useState(guild.name);
+  const [description, setDescription] = useState(guild.description);
+  const [badge, setBadge] = useState<GuildBadgeType>(guild.badge as GuildBadgeType);
+  const [isPublic, setIsPublic] = useState(guild.isPublic);
+  const [weeklyGoal, setWeeklyGoal] = useState(guild.weeklyGoal);
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    if (!name.trim()) return;
+    setSaving(true);
+    try {
+      await onUpdate({
+        name: name.trim(),
+        description: description.trim(),
+        badge,
+        isPublic,
+        weeklyGoal
+      });
+      onClose();
+    } catch {
+      // notification handled by parent
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl"
+      >
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Settings size={18} className="text-indigo-600" />
+            <h2 className="text-lg font-bold text-slate-900">Configurações da Guild</h2>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 transition-colors">
+            <X size={18} className="text-slate-400" />
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto max-h-[70vh] space-y-6">
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Insígnia</label>
+            <GuildBadgeSelector value={badge} onChange={setBadge} />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nome</label>
+              <input
+                value={name}
+                onChange={e => setName(e.target.value)}
+                maxLength={40}
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium text-sm text-slate-900"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Meta Semanal (XP)</label>
+              <input
+                type="number"
+                value={weeklyGoal}
+                onChange={e => setWeeklyGoal(Number(e.target.value))}
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium text-sm text-slate-900"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Descrição</label>
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              rows={3}
+              maxLength={200}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium text-sm text-slate-900 resize-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Privacidade</label>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => setIsPublic(true)}
+                className={`p-4 rounded-xl border text-left transition-all ${isPublic ? "border-indigo-500 bg-indigo-50" : "border-slate-200 hover:border-slate-300"}`}
+              >
+                <div className={`font-bold text-sm mb-1 flex items-center gap-2 ${isPublic ? "text-indigo-900" : "text-slate-900"}`}>
+                  <Globe size={14} className={isPublic ? "text-indigo-600" : "text-slate-400"} /> Pública
+                </div>
+                <div className="text-[10px] text-slate-500 leading-tight">Sugestão de entrada livre ou por pedido.</div>
+              </button>
+              <button
+                onClick={() => setIsPublic(false)}
+                className={`p-4 rounded-xl border text-left transition-all ${!isPublic ? "border-indigo-500 bg-indigo-50" : "border-slate-200 hover:border-slate-300"}`}
+              >
+                <div className={`font-bold text-sm mb-1 flex items-center gap-2 ${!isPublic ? "text-indigo-900" : "text-slate-900"}`}>
+                  <Lock size={14} className={!isPublic ? "text-indigo-600" : "text-slate-400"} /> Fechada
+                </div>
+                <div className="text-[10px] text-slate-500 leading-tight">Somente convidados podem entrar.</div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-5 py-2 rounded-xl text-slate-500 font-bold text-sm hover:text-slate-900 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving || !name.trim()}
+            className="px-8 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/20 active:scale-95 transition-all disabled:opacity-50"
+          >
+            {saving ? "Salvando..." : "Salvar Alterações"}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
 
 const TABS: { id: GuildTab; label: string; icon: React.ElementType }[] = [
   { id: "inicio", label: "Início", icon: Shield },
@@ -604,9 +740,9 @@ function RankingTab({ guild, members }: { guild: GuildResponseDTO; members: Guil
           {members.map((m, i) => (
             <div key={m.id} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:border-indigo-200 transition-all">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${i === 0 ? "bg-amber-400 text-white" :
-                  i === 1 ? "bg-slate-300 text-slate-700" :
-                    i === 2 ? "bg-amber-700 text-white" :
-                      "bg-[var(--muted)] text-[var(--muted-foreground)]"
+                i === 1 ? "bg-slate-300 text-slate-700" :
+                  i === 2 ? "bg-amber-700 text-white" :
+                    "bg-[var(--muted)] text-[var(--muted-foreground)]"
                 }`}>{i + 1}</div>
               <MemberAvatar name={m.name} size="sm" />
               <div className="flex-1 text-sm text-[var(--foreground)] font-medium truncate">{m.name}</div>
@@ -957,8 +1093,8 @@ function FlashCardsTab({ guildId, decks }: { guildId: string; decks: GuildFlashc
                     key={i}
                     onClick={() => { setCardIndex(i); setFlipped(false); }}
                     className={`rounded-full transition-all ${i === cardIndex
-                        ? "w-4 h-2 bg-indigo-600"
-                        : "w-2 h-2 bg-slate-200 hover:bg-slate-300"
+                      ? "w-4 h-2 bg-indigo-600"
+                      : "w-2 h-2 bg-slate-200 hover:bg-slate-300"
                       }`}
                   />
                 ))}
@@ -1069,6 +1205,7 @@ export default function GuildDetailPage() {
   const [tasks, setTasks] = useState<GuildTaskDTO[]>([]);
   const [decks, setDecks] = useState<GuildFlashcardDeckDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // ── Initial data load ──
   useEffect(() => {
@@ -1216,6 +1353,17 @@ export default function GuildDetailPage() {
     }
   }, [guildId, members, notify]);
 
+  const handleUpdateGuild = useCallback(async (data: Partial<GuildResponseDTO>) => {
+    try {
+      const updated = await GuildService.updateGuild(guildId, data);
+      setGuild(updated);
+      notify("Sucesso", "Configurações da guilda atualizadas.", "success");
+    } catch (err: any) {
+      notify("Erro", err.message || "Erro ao atualizar guilda", "error");
+      throw err;
+    }
+  }, [guildId, notify]);
+
   const handleLeave = useCallback(async () => {
     if (!guild) return;
     if (!window.confirm(`Tem certeza que deseja sair da guild "${guild.name}"?`)) return;
@@ -1247,7 +1395,7 @@ export default function GuildDetailPage() {
     (user?.preferred_username && m.nickname === user.preferred_username)
   );
   const isFounder = guild.isFounder || myMember?.role === "founder";
-  const isAdmin   = guild.isAdmin   || myMember?.role === "admin" || myMember?.role === "founder";
+  const isAdmin = guild.isAdmin || myMember?.role === "admin" || myMember?.role === "founder";
 
   const leagueColor = leagueColors[guild.league?.toUpperCase()] ?? "#CD7F32";
   const leagueLabel = guild.league
@@ -1332,7 +1480,10 @@ export default function GuildDetailPage() {
             )}
 
             {isAdmin && (
-              <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--muted)] hover:bg-slate-200 border border-[var(--border)] text-[var(--foreground)] text-sm font-medium transition-colors">
+              <button
+                onClick={() => setIsSettingsOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--muted)] hover:bg-slate-200 border border-[var(--border)] text-[var(--foreground)] text-sm font-medium transition-colors"
+              >
                 <Settings size={14} /> Gerenciar
               </button>
             )}
@@ -1349,8 +1500,8 @@ export default function GuildDetailPage() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-1.5 px-4 py-2.5 rounded-t-lg text-sm font-medium whitespace-nowrap transition-all ${tab === t.id
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
+                ? "bg-indigo-600 text-white shadow-sm"
+                : "text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]"
                 }`}
             >
               <Icon size={14} />
@@ -1407,6 +1558,16 @@ export default function GuildDetailPage() {
             <FlashCardsTab guildId={guildId} decks={decks} />
           )}
         </motion.div>
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isSettingsOpen && guild && (
+          <SettingsModal
+            guild={guild}
+            onClose={() => setIsSettingsOpen(false)}
+            onUpdate={handleUpdateGuild}
+          />
+        )}
       </AnimatePresence>
     </div>
   );

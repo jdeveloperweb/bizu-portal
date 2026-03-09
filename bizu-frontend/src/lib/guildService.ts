@@ -157,6 +157,19 @@ export const GuildService = {
     return res.json();
   },
 
+  /** PUT /student/guilds/{id} */
+  async updateGuild(id: string, request: Partial<GuildCreateRequestDTO> & { weeklyGoal?: number }): Promise<GuildResponseDTO> {
+    const res = await apiFetch(`/student/guilds/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(request),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || "Erro ao atualizar guild");
+    }
+    return res.json();
+  },
+
   /** POST /student/guilds */
   async createGuild(request: GuildCreateRequestDTO): Promise<GuildResponseDTO> {
     const res = await apiFetch("/student/guilds", {
