@@ -411,7 +411,7 @@ function MembrosTab({
 }) {
   return (
     <div className="space-y-6">
-      {isAdmin && pending.length > 0 && (
+      {(isAdmin || isFounder) && pending.length > 0 && (
         <div className="p-5 rounded-xl bg-amber-50 border border-amber-200">
           <div className="flex items-center gap-2 mb-4">
             <Bell size={14} className="text-amber-600" />
@@ -481,7 +481,7 @@ function MembrosTab({
                 <Flame size={11} /> {m.streak}d
               </div>
             )}
-            {isAdmin && m.role !== "founder" && (
+            {(isAdmin || isFounder) && m.role !== "founder" && (
               <MemberActionsMenu
                 member={m}
                 isFounder={isFounder}
@@ -494,7 +494,7 @@ function MembrosTab({
         ))}
       </div>
 
-      {isAdmin && (
+      {(isAdmin || isFounder) && (
         <button className="w-full py-3 rounded-xl border border-dashed border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:border-indigo-300 text-sm flex items-center justify-center gap-2 transition-colors">
           <UserPlus size={14} /> Convidar Membros
         </button>
