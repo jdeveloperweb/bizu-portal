@@ -1580,6 +1580,22 @@ export default function GuildDetailPage() {
     </div>
   );
 
+  if (!guild.isMember && !guild.isAdmin && !guild.isFounder) {
+    return (
+      <div className="p-8 text-center text-[var(--muted-foreground)] flex flex-col items-center justify-center min-h-[60vh]">
+        <Lock size={64} className="mx-auto mb-6 text-indigo-300 opacity-50" />
+        <h2 className="text-2xl font-black text-[var(--foreground)] mb-3">Acesso Restrito</h2>
+        <p className="max-w-md mb-6 leading-relaxed">
+          Os detalhes, materiais e membros da guilda <strong>{guild.name}</strong> só podem ser visualizados por membros.
+          Peça acesso para entrar nesta guilda.
+        </p>
+        <Link href="/guilds" className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition-colors shadow-lg shadow-indigo-600/20 flex items-center gap-2">
+          <ArrowLeft size={16} /> Voltar para Guilds
+        </Link>
+      </div>
+    );
+  }
+
   // Derive the current user's guild role from the members list — fallback when
   // backend doesn't return isAdmin/isFounder correctly in the guild DTO.
   const myMember = members.find(m =>

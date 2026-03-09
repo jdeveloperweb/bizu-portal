@@ -138,12 +138,16 @@ function GuildCard({ guild, index, onJoin, onLeave }: {
 
         {/* CTA */}
         <div className="flex items-center justify-between">
-          <Link
-            href={`/guilds/${guild.id}`}
-            className="text-xs text-indigo-600 hover:text-indigo-700 transition-colors flex items-center gap-1 font-medium"
-          >
-            Ver guild <ChevronRight size={12} />
-          </Link>
+          {(guild.isMember || guild.isAdmin || guild.isFounder) ? (
+            <Link
+              href={`/guilds/${guild.id}`}
+              className="text-xs text-indigo-600 hover:text-indigo-700 transition-colors flex items-center gap-1 font-medium"
+            >
+              Ver guild <ChevronRight size={12} />
+            </Link>
+          ) : (
+            <div />
+          )}
 
           <div className="flex items-center gap-2">
             {guild.isMember && (
@@ -169,6 +173,10 @@ function GuildCard({ guild, index, onJoin, onLeave }: {
             ) : guild.memberCount >= guild.maxMembers ? (
               <span className="text-xs px-3 py-1.5 rounded-lg bg-[var(--muted)] text-[var(--muted-foreground)] border border-[var(--border)] cursor-not-allowed">
                 Cheia
+              </span>
+            ) : guild.hasPendingRequest ? (
+              <span className="text-xs px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 border border-amber-200 flex items-center gap-1 cursor-default">
+                Pendente
               </span>
             ) : guild.isPublic ? (
               <button
@@ -310,7 +318,13 @@ export default function GuildsPage() {
         notify("Erro", err.message || "Erro ao entrar na guilda", "error");
       }
     } else {
-      notify("Em breve", `Pedido de entrada na guild "${guild.name}" será liberado em breve. Para entrar agora peça um convite para algum membro.`, "info");
+      try {
+        await GuildService.requestAccess(guild.id);
+        notify("Sucesso", `Pedido de acesso para "${guild.name}" enviado! Aguarde a aprovação dos administradores.`, "success");
+        fetchGuilds();
+      } catch (err: any) {
+        notify("Erro", err.message || "Erro ao pedir acesso", "error");
+      }
     }
   }
 

@@ -277,6 +277,38 @@ public class GuildService {
     }
 
     @Transactional
+    public void requestAccess(UUID guildId, UUID userId) {
+        if (!guildMemberRepository.findAllByUserId(userId).isEmpty()) {
+            throw new RuntimeException("Você já faz parte de uma guilda!");
+        }
+
+        Guild guild = guildRepository.findById(guildId)
+                .orElseThrow(() -> new RuntimeException("Guild não encontrada"));
+
+        if (guild.isPublic()) {
+            throw new RuntimeException("Esta guilda é pública, você pode entrar diretamente.");
+        }
+
+        User user = userService.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        boolean alreadyRequested = !guildRequestRepository
+                .findAllByGuildIdAndUserIdAndStatus(guildId, userId, GuildRequest.Status.PENDING).isEmpty();
+
+        if (alreadyRequested) {
+            throw new RuntimeException("Você já solicitou acesso a esta guilda.");
+        }
+
+        GuildRequest request = GuildRequest.builder()
+                .guild(guild)
+                .user(user)
+                .status(GuildRequest.Status.PENDING)
+                .build();
+
+        guildRequestRepository.save(request);
+    }
+
+    @Transactional
     public void joinGuild(UUID guildId, UUID userId) {
         if (!guildMemberRepository.findAllByUserId(userId).isEmpty()) {
             throw new RuntimeException("Você já faz parte de uma guilda!");
@@ -286,10 +318,7 @@ public class GuildService {
                 .orElseThrow(() -> new RuntimeException("Guild não encontrada"));
 
         if (!guild.isPublic()) {
-            // Should probably create a request instead of joining directly, 
-            // but for now I'll follow the "entrance" logic if it's public.
-            // If it's private, we should use the Request system (if it exists).
-            throw new RuntimeException("Esta guilda é privada. Peça acesso ou seja convidado.");
+            throw new RuntimeException("Esta guilda é privada. Peça acesso para entrar.");
         }
 
         if (guildMemberRepository.findAllByGuildId(guildId).size() >= guild.getMaxMembers()) {
@@ -768,6 +797,7 @@ public class GuildService {
                 .isAdmin(isAdmin)
                 .isMember(isMember)
                 .isFounder(isFounder)
+            .hasPendingRequest(!isMember && !guildRequestRepository.findAllByGuildIdAndUserIdAndStatus(guild.getId(), userId, GuildRequest.Status.PENDING).isEmpty())
                 .tags(new ArrayList<>())
                 .createdAt(guild.getCreatedAt().format(DateTimeFormatter.ofPattern("MMMM yyyy")))
                 .weeklyGoal(guild.getWeeklyGoal())

@@ -160,6 +160,15 @@ public class StudentGuildController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/{id}/request-access")
+    public ResponseEntity<Void> requestAccess(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        guildService.requestAccess(id, userId);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/{id}/leave")
     public ResponseEntity<Void> leaveGuild(
             @PathVariable UUID id,

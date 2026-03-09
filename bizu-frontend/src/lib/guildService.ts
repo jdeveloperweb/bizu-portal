@@ -22,6 +22,7 @@ export interface GuildResponseDTO {
   createdAt: string;
   weeklyGoal: number;
   weeklyProgress: number;
+  hasPendingRequest?: boolean;
 }
 
 export interface GuildMemberDTO {
@@ -301,6 +302,17 @@ export const GuildService = {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || "Erro ao entrar na guild");
+    }
+  },
+
+  /** POST /student/guilds/{id}/request-access */
+  async requestAccess(guildId: string): Promise<void> {
+    const res = await apiFetch(`/student/guilds/${guildId}/request-access`, {
+      method: "POST",
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || "Erro ao pedir acesso");
     }
   },
 

@@ -35,6 +35,10 @@ public class GuildResponseDTO {
 
     @JsonProperty("isFounder")
     private boolean isFounder;
+
+    @JsonProperty("hasPendingRequest")
+    private boolean hasPendingRequest;
+    
     private List<String> tags;
     private String createdAt;
     private long weeklyGoal;
