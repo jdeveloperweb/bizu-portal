@@ -60,10 +60,11 @@ function GuildCardSkeleton() {
   );
 }
 
-function GuildCard({ guild, index, onJoin }: {
+function GuildCard({ guild, index, onJoin, onLeave }: {
   guild: GuildResponseDTO;
   index: number;
   onJoin: (guild: GuildResponseDTO) => void;
+  onLeave?: (guild: GuildResponseDTO) => void;
 }) {
   const badgeType = guild.badge as GuildBadgeType;
 
@@ -144,32 +145,47 @@ function GuildCard({ guild, index, onJoin }: {
             Ver guild <ChevronRight size={12} />
           </Link>
 
-          {(guild.isAdmin || guild.isMember) ? (
-            <Link
-              href={`/guilds/${guild.id}`}
-              className="text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors"
-            >
-              Entrar
-            </Link>
-          ) : guild.memberCount >= guild.maxMembers ? (
-            <span className="text-xs px-3 py-1.5 rounded-lg bg-[var(--muted)] text-[var(--muted-foreground)] border border-[var(--border)] cursor-not-allowed">
-              Cheia
-            </span>
-          ) : guild.isPublic ? (
-            <button
-              onClick={() => onJoin(guild)}
-              className="text-xs px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 font-medium transition-colors"
-            >
-              Entrar
-            </button>
-          ) : (
-            <button
-              onClick={() => onJoin(guild)}
-              className="text-xs px-3 py-1.5 rounded-lg bg-[var(--muted)] hover:bg-slate-200 border border-[var(--border)] text-[var(--foreground)] font-medium transition-colors flex items-center gap-1"
-            >
-              <Lock size={11} /> Pedir acesso
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {guild.isMember && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onLeave && onLeave(guild);
+                }}
+                className="text-[10px] px-2 py-1 rounded-md text-red-500 hover:bg-red-50 font-medium transition-colors border border-transparent hover:border-red-100"
+              >
+                Sair
+              </button>
+            )}
+
+            {(guild.isAdmin || guild.isMember) ? (
+              <Link
+                href={`/guilds/${guild.id}`}
+                className="text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors"
+              >
+                Entrar
+              </Link>
+            ) : guild.memberCount >= guild.maxMembers ? (
+              <span className="text-xs px-3 py-1.5 rounded-lg bg-[var(--muted)] text-[var(--muted-foreground)] border border-[var(--border)] cursor-not-allowed">
+                Cheia
+              </span>
+            ) : guild.isPublic ? (
+              <button
+                onClick={() => onJoin(guild)}
+                className="text-xs px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 font-medium transition-colors"
+              >
+                Entrar
+              </button>
+            ) : (
+              <button
+                onClick={() => onJoin(guild)}
+                className="text-xs px-3 py-1.5 rounded-lg bg-[var(--muted)] hover:bg-slate-200 border border-[var(--border)] text-[var(--foreground)] font-medium transition-colors flex items-center gap-1"
+              >
+                <Lock size={11} /> Pedir acesso
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </motion.div>
@@ -284,11 +300,28 @@ export default function GuildsPage() {
     }
   }
 
-  function handleJoin(guild: GuildResponseDTO) {
+  async function handleJoin(guild: GuildResponseDTO) {
     if (guild.isPublic) {
-      notify("Em breve", `Entrar em guilds públicas será liberado em breve.`, "info");
+      try {
+        await GuildService.joinGuild(guild.id);
+        notify("Sucesso", `Você entrou na guilda "${guild.name}"!`, "success");
+        fetchGuilds();
+      } catch (err: any) {
+        notify("Erro", err.message || "Erro ao entrar na guilda", "error");
+      }
     } else {
-      notify("Em breve", `Pedido de entrada na guild "${guild.name}" será liberado em breve.`, "info");
+      notify("Em breve", `Pedido de entrada na guild "${guild.name}" será liberado em breve. Para entrar agora peça um convite para algum membro.`, "info");
+    }
+  }
+
+  async function handleLeave(guild: GuildResponseDTO) {
+    if (!confirm(`Tem certeza que deseja sair da guild "${guild.name}"?`)) return;
+    try {
+      await GuildService.leaveGuild(guild.id);
+      notify("Sucesso", "Você saiu da guilda.", "info");
+      fetchGuilds();
+    } catch (err: any) {
+      notify("Erro", err.message || "Erro ao sair da guilda", "error");
     }
   }
 
@@ -383,7 +416,7 @@ export default function GuildsPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {myGuilds.map((g, i) => (
-              <GuildCard key={g.id} guild={g} index={i} onJoin={handleJoin} />
+              <GuildCard key={g.id} guild={g} index={i} onJoin={handleJoin} onLeave={handleLeave} />
             ))}
           </div>
         </section>
@@ -446,7 +479,7 @@ export default function GuildsPage() {
         ) : filtered.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filtered.map((g, i) => (
-              <GuildCard key={g.id} guild={g} index={i} onJoin={handleJoin} />
+              <GuildCard key={g.id} guild={g} index={i} onJoin={handleJoin} onLeave={handleLeave} />
             ))}
           </div>
         ) : (

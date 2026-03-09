@@ -279,6 +279,28 @@ export const GuildService = {
     if (!res.ok) throw new Error("Erro ao recusar convite");
   },
 
+  /** POST /student/guilds/{id}/join */
+  async joinGuild(guildId: string): Promise<void> {
+    const res = await apiFetch(`/student/guilds/${guildId}/join`, {
+      method: "POST",
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || "Erro ao entrar na guild");
+    }
+  },
+
+  /** POST /student/guilds/{id}/leave */
+  async leaveGuild(guildId: string): Promise<void> {
+    const res = await apiFetch(`/student/guilds/${guildId}/leave`, {
+      method: "POST",
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || "Erro ao sair da guild");
+    }
+  },
+
   /** GET /student/guilds/me */
   async getMyGuilds(): Promise<GuildResponseDTO[]> {
     const res = await apiFetch("/student/guilds/me");

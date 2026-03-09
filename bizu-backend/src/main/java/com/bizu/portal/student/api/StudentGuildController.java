@@ -140,4 +140,22 @@ public class StudentGuildController {
         guildService.declineInvite(id, userId);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/{id}/join")
+    public ResponseEntity<Void> joinGuild(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        guildService.joinGuild(id, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/leave")
+    public ResponseEntity<Void> leaveGuild(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        guildService.leaveGuild(id, userId);
+        return ResponseEntity.ok().build();
+    }
 }

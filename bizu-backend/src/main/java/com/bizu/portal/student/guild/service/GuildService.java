@@ -55,6 +55,10 @@ public class GuildService {
         GamificationStats stats = gamificationRepository.findById(creatorId)
                 .orElseThrow(() -> new RuntimeException("Dados de gamificação não encontrados"));
 
+        if (!guildMemberRepository.findAllByUserId(creatorId).isEmpty()) {
+            throw new RuntimeException("Você já faz parte de uma guilda! Saia da atual para criar uma nova.");
+        }
+
         int creationCost = systemSettingsService.getSettings().getGuildCreationCost();
 
         if (stats.getAxonCoins() == null || stats.getAxonCoins() < creationCost) {
@@ -239,7 +243,12 @@ public class GuildService {
         invite.setStatus(GuildInvite.Status.ACCEPTED);
         guildInviteRepository.save(invite);
 
-        // Check if already a member
+        // Enforce only one guild
+        if (!guildMemberRepository.findAllByUserId(userId).isEmpty()) {
+            throw new RuntimeException("Você já faz parte de uma guilda! Saia da atual para aceitar este convite.");
+        }
+
+        // Check if already a member (redundant now but safe)
         if (guildMemberRepository.findByGuildIdAndUserId(invite.getGuild().getId(), userId).isEmpty()) {
             GuildMember member = GuildMember.builder()
                     .guild(invite.getGuild())
@@ -262,6 +271,66 @@ public class GuildService {
 
         invite.setStatus(GuildInvite.Status.DECLINED);
         guildInviteRepository.save(invite);
+    }
+
+    @Transactional
+    public void joinGuild(UUID guildId, UUID userId) {
+        if (!guildMemberRepository.findAllByUserId(userId).isEmpty()) {
+            throw new RuntimeException("Você já faz parte de uma guilda!");
+        }
+
+        Guild guild = guildRepository.findById(guildId)
+                .orElseThrow(() -> new RuntimeException("Guild não encontrada"));
+
+        if (!guild.isPublic()) {
+            // Should probably create a request instead of joining directly, 
+            // but for now I'll follow the "entrance" logic if it's public.
+            // If it's private, we should use the Request system (if it exists).
+            throw new RuntimeException("Esta guilda é privada. Peça acesso ou seja convidado.");
+        }
+
+        if (guildMemberRepository.findAllByGuildId(guildId).size() >= guild.getMaxMembers()) {
+            throw new RuntimeException("Esta guilda está cheia!");
+        }
+
+        User user = userService.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        GuildMember member = GuildMember.builder()
+                .guild(guild)
+                .user(user)
+                .role(GuildRole.MEMBER)
+                .build();
+
+        guildMemberRepository.save(member);
+        recordActivity(guild, user, "entrou na guilda", 0);
+    }
+
+    @Transactional
+    public void leaveGuild(UUID guildId, UUID userId) {
+        GuildMember member = guildMemberRepository.findByGuildIdAndUserId(guildId, userId)
+                .orElseThrow(() -> new RuntimeException("Você não é membro desta guilda"));
+
+        if (member.getRole() == GuildRole.FOUNDER) {
+            // If founder leaves, maybe transfer ownership or delete guild?
+            // For now, let's just block or handle it simply.
+            long memberCount = guildMemberRepository.findAllByGuildId(guildId).size();
+            if (memberCount > 1) {
+                throw new RuntimeException("Como fundador, você deve transferir a liderança antes de sair ou deletar a guilda.");
+            } else {
+                // Delete guild if founder is the last one? 
+                // Let's keep it simple: just delete the member and if no one left, the guild might stay empty or we delete it.
+                // Usually founder shouldn't leave easily.
+            }
+        }
+
+        guildMemberRepository.delete(member);
+        
+        Guild guild = guildRepository.findById(guildId).orElse(null);
+        User user = userService.findById(userId).orElse(null);
+        if (guild != null && user != null) {
+            recordActivity(guild, user, "saiu da guilda", 0);
+        }
     }
 
     // --- Helpers ---
