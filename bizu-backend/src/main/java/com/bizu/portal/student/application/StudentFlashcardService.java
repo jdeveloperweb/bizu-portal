@@ -59,12 +59,16 @@ public class StudentFlashcardService {
                 }
                 
                 // 3. Decks globais (userId e guildId nulos): 
-                // Devem ser filtrados pelo curso se o curso estiver definido no deck
+                // Não devem aparecer na lista principal se forem para venda (aparecem na loja)
+                if (deck.isForSale()) {
+                    return false;
+                }
+
+                // Filtrar pelo curso se definido
                 if (activeCourseId != null && deck.getCourseId() != null) {
                     return deck.getCourseId().equals(activeCourseId);
                 }
                 
-                // Se o deck não tem curso e é global, ou se não estamos em contexto de curso, mostra
                 return true;
             })
             .map(deck -> {
@@ -72,15 +76,14 @@ public class StudentFlashcardService {
                 long due = progressRepository.countDueByDeckAndUser(deck.getId(), userId, now);
                 long newCards = progressRepository.countNewByDeckAndUser(deck.getId(), userId);
                 
-                // Progress is calculated as (studied cards / total cards) * 100
-                // Studied cards are those that have a progress entry
                 long studied = total - newCards;
                 int progressPercent = total > 0 ? (int) ((studied * 100) / total) : 0;
 
-                // Verifica se foi compartilhado com alguma guild
+                // Nome da Guilda (se for um deck de guilda ou compartilhado com uma)
                 String guildName = null;
-                if (deck.getSharedWithGuildId() != null) {
-                    guildName = guildRepository.findById(deck.getSharedWithGuildId())
+                UUID guildIdToShow = deck.getGuildId() != null ? deck.getGuildId() : deck.getSharedWithGuildId();
+                if (guildIdToShow != null) {
+                    guildName = guildRepository.findById(guildIdToShow)
                         .map(g -> g.getName())
                         .orElse(null);
                 }
@@ -346,12 +349,9 @@ public class StudentFlashcardService {
         FlashcardDeck deck = deckRepository.findById(deckId)
             .orElseThrow(() -> new RuntimeException("Deck não encontrado"));
             
-        // Trava removida temporariamente a pedido do usuário
-        /*
-        if (!deck.getUserId().equals(userId)) {
+        if (deck.getUserId() == null || !deck.getUserId().equals(userId)) {
             throw new RuntimeException("Apenas o proprietário do deck pode excluí-lo");
         }
-        */
         
         deckRepository.delete(deck);
     }

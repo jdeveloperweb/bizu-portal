@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
     Layers, Plus, BookOpen, Shield, Scale, Gavel,
-    ChevronRight, Target, Brain, Zap, Clock,
-    Star, TrendingUp, CheckCircle2, BarChart3,
-    Flame, PlayCircle, Loader2, XCircle, Share2, Users
+    Target, Brain, Zap, Clock,
+    Star, TrendingUp, CheckCircle2,
+    PlayCircle, Loader2, XCircle, Share2, Users, ShoppingBag
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
@@ -48,7 +48,7 @@ const ICON_MAP: Record<string, any> = {
 };
 
 export default function FlashcardsPage() {
-    const { isFree } = useAuth();
+    const { isFree, user } = useAuth();
     const [decks, setDecks] = useState<Deck[]>([]);
     const [summary, setSummary] = useState<Summary | null>(null);
     const [loading, setLoading] = useState(true);
@@ -60,6 +60,7 @@ export default function FlashcardsPage() {
     const [isSharing, setIsSharing] = useState(false);
     const [activeTab, setActiveTab] = useState<"my" | "store">("my");
     const [storeDecks, setStoreDecks] = useState<Deck[]>([]);
+    const [storeLoading, setStoreLoading] = useState(false);
     const [searchUser, setSearchUser] = useState("");
     const [foundUsers, setFoundUsers] = useState<any[]>([]);
     const [sharingType, setSharingType] = useState<"GUILD" | "USER">("GUILD");
@@ -89,6 +90,7 @@ export default function FlashcardsPage() {
     };
 
     const fetchStoreDecks = async () => {
+        setStoreLoading(true);
         try {
             const res = await apiFetch("/student/flashcards/store");
             if (res.ok) {
@@ -96,6 +98,8 @@ export default function FlashcardsPage() {
             }
         } catch (error) {
             console.error("Error fetching store decks:", error);
+        } finally {
+            setStoreLoading(false);
         }
     };
 
@@ -109,7 +113,7 @@ export default function FlashcardsPage() {
         fetchData();
     }, []);
 
-    const handleCreateDeck = async (e: React.FormEvent) => {
+    const handleCreateDeck = async (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsSaving(true);
         try {
@@ -119,8 +123,16 @@ export default function FlashcardsPage() {
                 body: JSON.stringify(newDeck)
             });
             if (res.ok) {
+                // Optimistic update: parse response and add immediately
+                try {
+                    const createdDeck = await res.json();
+                    setDecks(prev => [...prev, createdDeck]);
+                } catch {
+                    // If response is not JSON, fallback to refetch
+                }
                 setIsModalOpen(false);
                 setNewDeck({ title: "", description: "", icon: "Layers", color: "from-indigo-500 to-violet-600" });
+                // Refresh to sync accurate summary stats
                 fetchData();
             }
         } catch (error) {
@@ -157,6 +169,7 @@ export default function FlashcardsPage() {
             try {
                 const res = await apiFetch(`/student/flashcards/decks/${deckId}`, { method: "DELETE" });
                 if (res.ok) {
+                    setDecks(prev => prev.filter(d => d.id !== deckId));
                     alert("Coleção excluída com sucesso!");
                     fetchData();
                 }
@@ -231,190 +244,197 @@ export default function FlashcardsPage() {
                         <span className="pill pill-primary text-[10px] font-bold uppercase tracking-[0.15em]">Flashcards</span>
                     </div>
                     <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-0.5">
-                        Minhas Coleções
+                        {activeTab === "my" ? "Minhas Coleções" : "Loja de Decks"}
                     </h1>
-                    <p className="text-sm text-slate-500">Memorize conceitos com repetição espaçada.</p>
+                    <p className="text-sm text-slate-500">
+                        {activeTab === "my" ? "Memorize conceitos com repetição espaçada." : "Adquira coleções criadas pela comunidade."}
+                    </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-full">
-                        <Clock size={13} /> {totalDue} pendentes
-                    </div>
-                    <button onClick={() => setIsModalOpen(true)} className="btn-primary !h-10 !text-[12px] !px-5 whitespace-nowrap">
-                        <Plus size={15} /> Nova Coleção
-                    </button>
+                    {activeTab === "my" && (
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-full">
+                            <Clock size={13} /> {totalDue} pendentes
+                        </div>
+                    )}
+                    {activeTab === "my" && (
+                        <button onClick={() => setIsModalOpen(true)} className="btn-primary !h-10 !text-[12px] !px-5 whitespace-nowrap">
+                            <Plus size={15} /> Nova Coleção
+                        </button>
+                    )}
                     <button
-                        onClick={() => {
-                            setActiveTab(activeTab === "my" ? "store" : "my");
-                        }}
-                        className={`btn-outline !h-10 !text-[12px] !px-5 whitespace-nowrap ${activeTab === "store" ? "!bg-indigo-600 !text-white" : ""}`}
+                        onClick={() => setActiveTab(activeTab === "my" ? "store" : "my")}
+                        className={`btn-outline !h-10 !text-[12px] !px-5 whitespace-nowrap ${activeTab === "store" ? "!bg-indigo-600 !text-white !border-indigo-600" : ""}`}
                     >
-                        {activeTab === "my" ? <Target size={15} /> : <Layers size={15} />}
+                        {activeTab === "my" ? <ShoppingBag size={15} /> : <Layers size={15} />}
                         {activeTab === "my" ? "Loja de Decks" : "Meus Decks"}
                     </button>
                 </div>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                {[
-                    { label: "Total de cartas", val: String(totalCards), icon: Layers, bg: "bg-indigo-50", text: "text-indigo-600" },
-                    { label: "Pendentes hoje", val: String(totalDue), icon: Clock, bg: "bg-amber-50", text: "text-amber-600" },
-                    { label: "Novas", val: String(totalNew), icon: Star, bg: "bg-emerald-50", text: "text-emerald-600" },
-                    { label: "Progresso médio", val: `${avgProgress}%`, icon: TrendingUp, bg: "bg-violet-50", text: "text-violet-600" },
-                ].map(s => {
-                    const Icon = s.icon;
-                    return (
-                        <div key={s.label} className="card-elevated p-4 hover:!transform-none">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className={`w-7 h-7 rounded-lg ${s.bg} flex items-center justify-center`}>
-                                    <Icon size={13} className={s.text} />
+            {/* Stats (only on my tab) */}
+            {activeTab === "my" && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    {[
+                        { label: "Total de cartas", val: String(totalCards), icon: Layers, bg: "bg-indigo-50", text: "text-indigo-600" },
+                        { label: "Pendentes hoje", val: String(totalDue), icon: Clock, bg: "bg-amber-50", text: "text-amber-600" },
+                        { label: "Novas", val: String(totalNew), icon: Star, bg: "bg-emerald-50", text: "text-emerald-600" },
+                        { label: "Progresso médio", val: `${avgProgress}%`, icon: TrendingUp, bg: "bg-violet-50", text: "text-violet-600" },
+                    ].map(s => {
+                        const Icon = s.icon;
+                        return (
+                            <div key={s.label} className="card-elevated p-4 hover:!transform-none">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className={`w-7 h-7 rounded-lg ${s.bg} flex items-center justify-center`}>
+                                        <Icon size={13} className={s.text} />
+                                    </div>
                                 </div>
+                                <div className="text-xl font-extrabold text-slate-900">{s.val}</div>
+                                <div className="text-[11px] text-slate-400">{s.label}</div>
                             </div>
-                            <div className="text-xl font-extrabold text-slate-900">{s.val}</div>
-                            <div className="text-[11px] text-slate-400">{s.label}</div>
-                        </div>
-                    );
-                })}
-            </div>
+                        );
+                    })}
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-3">
-                    {/* Deck List */}
-                    {(activeTab === "my" ? decks : storeDecks).length > 0 ? (
-                        (activeTab === "my" ? decks : storeDecks).map(deck => {
-                            const Icon = ICON_MAP[deck.icon] || BookOpen;
-                            const colorClass = deck.color || "from-indigo-500 to-violet-600";
-                            return (
-                                <div key={deck.id} className="relative group">
-                                    {/* Camadas decorativas para efeito de deck */}
-                                    <div className="absolute inset-0 bg-white border border-slate-200 rounded-2xl transform translate-x-1.5 translate-y-1.5 -z-10 opacity-60 transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
-                                    <div className="absolute inset-0 bg-white border border-slate-200 rounded-2xl transform translate-x-3 translate-y-3 -z-20 opacity-30 transition-transform duration-300 group-hover:translate-x-4 group-hover:translate-y-4" />
+                <div className="lg:col-span-2 space-y-4">
 
-                                    <div className="card-elevated !rounded-2xl p-5 hover:!transform-none bg-white relative">
-                                        <div className="flex items-start gap-4">
-                                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorClass} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-sm`}>
-                                                <Icon size={20} className="text-white" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 mb-0.5">
-                                                    <h3 className="text-[14px] font-bold text-slate-800">{deck.title}</h3>
-                                                    {deck.newCards > 0 && activeTab === "my" && (
-                                                        <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
-                                                            {deck.newCards} novas
-                                                        </span>
-                                                    )}
-                                                    {deck.sharedWithGuildName && activeTab === "my" && (
-                                                        <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full flex items-center gap-1">
-                                                            <Users size={9} /> {deck.sharedWithGuildName}
-                                                        </span>
-                                                    )}
-                                                    {deck.originalCreatorName && (
-                                                        <span className="text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full">
-                                                            Criador: {deck.originalCreatorName}
-                                                        </span>
-                                                    )}
-                                                    {activeTab === "store" && deck.rating !== undefined && (
-                                                        <span className="flex items-center gap-0.5 text-[10px] font-bold text-amber-500">
-                                                            <Star size={10} fill="currentColor" /> {deck.rating?.toFixed(1)} ({deck.ratingCount})
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p className="text-[11px] text-slate-400 mb-3 line-clamp-1">{deck.description}</p>
+                    {/* MY DECKS */}
+                    {activeTab === "my" && (
+                        <>
+                            {decks.length > 0 ? decks.map(deck => {
+                                const Icon = ICON_MAP[deck.icon] || BookOpen;
+                                const colorClass = deck.color || "from-indigo-500 to-violet-600";
+                                return (
+                                    <div key={deck.id} className="relative group">
+                                        {/* Physical card stack layers */}
+                                        <div className="absolute left-4 right-4 top-3 h-full -z-20 bg-slate-100 rounded-2xl border border-slate-200/60 transition-all duration-300 group-hover:top-4" />
+                                        <div className="absolute left-2 right-2 top-1.5 h-full -z-10 bg-slate-50 rounded-2xl border border-slate-200/80 transition-all duration-300 group-hover:top-2.5" />
 
-                                                {/* Progress bar (only for my decks) */}
-                                                {activeTab === "my" && (
-                                                    <div className="flex items-center gap-3 mb-2">
-                                                        <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                            <div className={`h-full rounded-full bg-gradient-to-r ${colorClass} transition-all duration-700`}
-                                                                style={{ width: `${deck.progress}%` }} />
-                                                        </div>
-                                                        <span className="text-[11px] font-bold text-slate-600">{deck.progress}%</span>
+                                        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+                                            {/* Colored top stripe */}
+                                            <div className={`h-1.5 w-full bg-gradient-to-r ${colorClass}`} />
+
+                                            <div className="p-5">
+                                                <div className="flex items-start gap-4">
+                                                    {/* Icon */}
+                                                    <div className={`w-13 h-13 min-w-[52px] min-h-[52px] rounded-xl bg-gradient-to-br ${colorClass} flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-105`}>
+                                                        <Icon size={22} className="text-white" />
                                                     </div>
-                                                )}
 
-                                                <div className="flex items-center gap-4 text-[10px] text-slate-400">
-                                                    <span className="flex items-center gap-1"><Layers size={10} /> {deck.totalCards} cartas</span>
-                                                    {activeTab === "my" && (
-                                                        <>
-                                                            <span className="flex items-center gap-1"><Clock size={10} /> {deck.dueCards} pendentes</span>
+                                                    {/* Content */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                                                            <h3 className="text-[14px] font-bold text-slate-800">{deck.title}</h3>
+                                                            {deck.newCards > 0 && (
+                                                                <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
+                                                                    {deck.newCards} novas
+                                                                </span>
+                                                            )}
+                                                            {deck.sharedWithGuildName && (
+                                                                <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                                                                    <Users size={9} /> {deck.sharedWithGuildName}
+                                                                </span>
+                                                            )}
+                                                            {deck.originalCreatorName && (
+                                                                <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
+                                                                    Criador: {deck.originalCreatorName}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[11px] text-slate-400 mb-3 line-clamp-1">{deck.description}</p>
+
+                                                        {/* Progress bar */}
+                                                        <div className="flex items-center gap-2 mb-2.5">
+                                                            <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                                <div className={`h-full rounded-full bg-gradient-to-r ${colorClass} transition-all duration-700`}
+                                                                    style={{ width: `${deck.progress}%` }} />
+                                                            </div>
+                                                            <span className="text-[11px] font-bold text-slate-500 w-8 text-right">{deck.progress}%</span>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-4 text-[10px] text-slate-400">
+                                                            <span className="flex items-center gap-1"><Layers size={10} /> {deck.totalCards} cartas</span>
+                                                            {deck.dueCards > 0 && (
+                                                                <span className="flex items-center gap-1 text-amber-500 font-semibold"><Clock size={10} /> {deck.dueCards} pendentes</span>
+                                                            )}
                                                             <span>{deck.lastStudied}</span>
-                                                        </>
-                                                    )}
-                                                    {activeTab === "store" && (
-                                                        <span className="font-bold text-indigo-600 flex items-center gap-1">
-                                                            <Zap size={10} /> {deck.price} axons
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-col gap-2 shrink-0">
-                                                {activeTab === "my" ? (
-                                                    <>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Actions */}
+                                                    <div className="flex flex-col gap-1.5 shrink-0">
                                                         <Link href={`/flashcards/estudar?deckId=${deck.id}`}
                                                             className="btn-primary !h-9 !text-[11px] !px-4 whitespace-nowrap">
                                                             <PlayCircle size={13} /> Revisar
                                                         </Link>
-                                                        <Link href={`/flashcards/gerenciar?deckId=${deck.id}`}
-                                                            className="btn-outline !h-9 !text-[11px] !px-4 !border-slate-200 !text-slate-600 hover:!bg-slate-50 whitespace-nowrap flex items-center justify-center gap-1.5 rounded-xl font-bold">
-                                                            <Plus size={12} /> Cartas
-                                                        </Link>
 
-                                                        <div className="relative">
-                                                            <button
-                                                                onClick={() => setSharingDeckId(sharingDeckId === deck.id ? null : deck.id)}
-                                                                className={`btn-outline w-full !h-9 !text-[11px] !px-4 !border-slate-200 !text-slate-600 hover:!bg-slate-50 whitespace-nowrap flex items-center justify-center gap-1.5 rounded-xl font-bold ${sharingDeckId === deck.id ? "!bg-indigo-50 !text-indigo-600 !border-indigo-200" : ""}`}>
-                                                                <Share2 size={12} /> Share
-                                                            </button>
-                                                            {sharingDeckId === deck.id && (
-                                                                <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 p-2 z-10 animate-in fade-in zoom-in-95 duration-150">
-                                                                    <div className="flex gap-2 mb-2 p-1 bg-slate-50 rounded-lg">
-                                                                        <button onClick={() => setSharingType("GUILD")} className={`flex-1 text-[10px] font-bold py-1 rounded ${sharingType === "GUILD" ? "bg-white shadow text-indigo-600" : "text-slate-400"}`}>GUILDA</button>
-                                                                        <button onClick={() => setSharingType("USER")} className={`flex-1 text-[10px] font-bold py-1 rounded ${sharingType === "USER" ? "bg-white shadow text-indigo-600" : "text-slate-400"}`}>USUÁRIO</button>
-                                                                    </div>
+                                                        {deck.userId === user?.id && (
+                                                            <>
+                                                                <Link href={`/flashcards/gerenciar?deckId=${deck.id}`}
+                                                                    className="btn-outline !h-9 !text-[11px] !px-4 !border-slate-200 !text-slate-600 hover:!bg-slate-50 whitespace-nowrap flex items-center justify-center gap-1.5 rounded-xl font-bold">
+                                                                    <Plus size={12} /> Cartas
+                                                                </Link>
 
-                                                                    <div className="space-y-1 max-h-48 overflow-y-auto">
-                                                                        {sharingType === "GUILD" ? (
-                                                                            myGuilds.length > 0 ? myGuilds.map(guild => (
-                                                                                <button key={guild.id}
-                                                                                    disabled={isSharing}
-                                                                                    onClick={() => handleShareDeck(deck.id, guild.id, "GUILD")}
-                                                                                    className="w-full text-left px-3 py-2 rounded-lg text-[12px] font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center justify-between">
-                                                                                    <span className="truncate">{guild.name}</span>
-                                                                                    {isSharing && <Loader2 size={10} className="animate-spin" />}
-                                                                                </button>
-                                                                            )) : (
-                                                                                <p className="px-3 py-2 text-[11px] text-slate-400 italic">Nenhuma guilda.</p>
-                                                                            )
-                                                                        ) : (
-                                                                            <div className="p-2 space-y-2">
-                                                                                <input
-                                                                                    type="text"
-                                                                                    className="w-full text-[12px] px-2 py-1 border rounded"
-                                                                                    placeholder="Apelido..."
-                                                                                    value={searchUser}
-                                                                                    onChange={e => searchUsersToShare(e.target.value)}
-                                                                                />
-                                                                                {foundUsers.map(user => (
-                                                                                    <button key={user.id}
-                                                                                        onClick={() => handleShareDeck(deck.id, user.id, "USER")}
-                                                                                        className="w-full text-left px-2 py-1.5 rounded hover:bg-indigo-50 text-[11px] font-bold text-slate-600 flex items-center gap-2">
-                                                                                        <div className="w-5 h-5 rounded-full bg-slate-200 bg-cover" style={{ backgroundImage: `url(${user.avatarUrl})` }} />
-                                                                                        {user.nickname}
-                                                                                    </button>
-                                                                                ))}
+                                                                <div className="relative">
+                                                                    <button
+                                                                        onClick={() => setSharingDeckId(sharingDeckId === deck.id ? null : deck.id)}
+                                                                        className={`btn-outline w-full !h-9 !text-[11px] !px-4 !border-slate-200 !text-slate-600 hover:!bg-slate-50 whitespace-nowrap flex items-center justify-center gap-1.5 rounded-xl font-bold ${sharingDeckId === deck.id ? "!bg-indigo-50 !text-indigo-600 !border-indigo-200" : ""}`}>
+                                                                        <Share2 size={12} /> Share
+                                                                    </button>
+                                                                    {sharingDeckId === deck.id && (
+                                                                        <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 p-2 z-10 animate-in fade-in zoom-in-95 duration-150">
+                                                                            <div className="flex gap-2 mb-2 p-1 bg-slate-50 rounded-lg">
+                                                                                <button onClick={() => setSharingType("GUILD")} className={`flex-1 text-[10px] font-bold py-1 rounded ${sharingType === "GUILD" ? "bg-white shadow text-indigo-600" : "text-slate-400"}`}>GUILDA</button>
+                                                                                <button onClick={() => setSharingType("USER")} className={`flex-1 text-[10px] font-bold py-1 rounded ${sharingType === "USER" ? "bg-white shadow text-indigo-600" : "text-slate-400"}`}>USUÁRIO</button>
                                                                             </div>
-                                                                        )}
-                                                                    </div>
+
+                                                                            <div className="space-y-1 max-h-48 overflow-y-auto">
+                                                                                {sharingType === "GUILD" ? (
+                                                                                    myGuilds.length > 0 ? myGuilds.map(guild => (
+                                                                                        <button key={guild.id}
+                                                                                            disabled={isSharing}
+                                                                                            onClick={() => handleShareDeck(deck.id, guild.id, "GUILD")}
+                                                                                            className="w-full text-left px-3 py-2 rounded-lg text-[12px] font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center justify-between">
+                                                                                            <span className="truncate">{guild.name}</span>
+                                                                                            {isSharing && <Loader2 size={10} className="animate-spin" />}
+                                                                                        </button>
+                                                                                    )) : (
+                                                                                        <p className="px-3 py-2 text-[11px] text-slate-400 italic">Nenhuma guilda.</p>
+                                                                                    )
+                                                                                ) : (
+                                                                                    <div className="p-2 space-y-2">
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            className="w-full text-[12px] px-2 py-1 border rounded"
+                                                                                            placeholder="Apelido..."
+                                                                                            value={searchUser}
+                                                                                            onChange={e => searchUsersToShare(e.target.value)}
+                                                                                        />
+                                                                                        {foundUsers.map(user => (
+                                                                                            <button key={user.id}
+                                                                                                onClick={() => handleShareDeck(deck.id, user.id, "USER")}
+                                                                                                className="w-full text-left px-2 py-1.5 rounded hover:bg-indigo-50 text-[11px] font-bold text-slate-600 flex items-center gap-2">
+                                                                                                <div className="w-5 h-5 rounded-full bg-slate-200 bg-cover" style={{ backgroundImage: `url(${user.avatarUrl})` }} />
+                                                                                                {user.nickname}
+                                                                                            </button>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
-                                                            )}
-                                                        </div>
-                                                        <button
-                                                            onClick={() => handleDeleteDeck(deck.id)}
-                                                            className="text-[10px] font-bold text-rose-500 hover:text-rose-600 p-1 opacity-60 hover:opacity-100 transition-all flex items-center justify-center gap-1"
-                                                        >
-                                                            <XCircle size={12} /> Excluir
-                                                        </button>
-                                                        {deck.originalCreatorId !== deck.userId && (
+
+                                                                <button
+                                                                    onClick={() => handleDeleteDeck(deck.id)}
+                                                                    className="text-[10px] font-bold text-rose-400 hover:text-rose-600 p-1 opacity-50 hover:opacity-100 transition-all flex items-center justify-center gap-1"
+                                                                >
+                                                                    <XCircle size={12} /> Excluir
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                        {deck.originalCreatorId && deck.originalCreatorId !== deck.userId && (
                                                             <button
                                                                 onClick={async () => {
                                                                     const val = window.prompt("Qual a nota (1 a 5)?");
@@ -433,46 +453,139 @@ export default function FlashcardsPage() {
                                                                 <Star size={12} /> Avaliar
                                                             </button>
                                                         )}
-                                                    </>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => handleBuyDeck(deck.id, deck.price || 0)}
-                                                        disabled={deck.isPurchased}
-                                                        className={`btn-primary !h-10 !text-[12px] !px-6 ${deck.isPurchased ? "!bg-slate-100 !text-slate-400 !border-slate-200" : ""}`}
-                                                    >
-                                                        {deck.isPurchased ? "Comprado" : "Comprar"}
-                                                    </button>
-                                                )}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                );
+                            }) : (
+                                <div className="card-elevated !rounded-2xl p-12 flex flex-col items-center justify-center text-center gap-3 border-2 border-dashed !border-slate-200">
+                                    <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
+                                        <Layers size={32} className="text-slate-300" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-slate-800">Nenhuma coleção ainda</h3>
+                                        <p className="text-sm text-slate-500 max-w-md mx-auto">
+                                            Crie sua primeira coleção ou explore a loja para adquirir decks da comunidade.
+                                        </p>
+                                    </div>
                                 </div>
-                            );
-                        })
-                    ) : (
-                        <div className="card-elevated !rounded-2xl p-12 flex flex-col items-center justify-center text-center gap-3 border-2 border-dashed !border-slate-200">
-                            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
-                                <Layers size={32} className="text-slate-300" />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-slate-800">Nenhuma coleção encontrada</h3>
-                                <p className="text-sm text-slate-500 max-w-md mx-auto">
-                                    Você ainda não possui coleções de flashcards. Adicione uma nova coleção ou importe de um curso para começar a estudar.
-                                </p>
-                            </div>
-                        </div>
+                            )}
+
+                            {/* Add New Collection */}
+                            <button onClick={() => setIsModalOpen(true)} className="w-full card-elevated !rounded-2xl p-6 hover:!transform-none border-2 border-dashed !border-slate-200 hover:!border-indigo-300 transition-all group">
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-indigo-50 flex items-center justify-center transition-colors">
+                                        <Brain size={18} className="text-slate-400 group-hover:text-indigo-500 transition-colors" />
+                                    </div>
+                                    <span className="text-[13px] font-bold text-slate-500 group-hover:text-indigo-600 transition-colors">Nova Coleção</span>
+                                    <span className="text-[11px] text-slate-400">Adicione flashcards ou importe de um curso</span>
+                                </div>
+                            </button>
+                        </>
                     )}
 
-                    {/* Add New Collection */}
-                    <button onClick={() => setIsModalOpen(true)} className="w-full card-elevated !rounded-2xl p-6 hover:!transform-none border-2 border-dashed !border-slate-200 hover:!border-indigo-300 transition-all group">
-                        <div className="flex flex-col items-center gap-2">
-                            <div className="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-indigo-50 flex items-center justify-center transition-colors">
-                                <Brain size={18} className="text-slate-400 group-hover:text-indigo-500 transition-colors" />
-                            </div>
-                            <span className="text-[13px] font-bold text-slate-500 group-hover:text-indigo-600 transition-colors">Nova Coleção</span>
-                            <span className="text-[11px] text-slate-400">Adicione flashcards ou importe de um curso</span>
-                        </div>
-                    </button>
+                    {/* STORE */}
+                    {activeTab === "store" && (
+                        <>
+                            {storeLoading ? (
+                                <div className="flex flex-col items-center justify-center py-16 gap-3">
+                                    <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+                                    <p className="text-sm text-slate-400">Carregando loja...</p>
+                                </div>
+                            ) : storeDecks.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {storeDecks.map(deck => {
+                                        const Icon = ICON_MAP[deck.icon] || BookOpen;
+                                        const colorClass = deck.color || "from-indigo-500 to-violet-600";
+                                        const rating = deck.rating || 0;
+                                        return (
+                                            <div key={deck.id} className="relative group">
+                                                {/* Stack effect */}
+                                                <div className={`absolute left-4 right-4 top-3 h-full -z-10 rounded-2xl bg-gradient-to-br ${colorClass} opacity-15 transition-all duration-300 group-hover:top-4`} />
+                                                <div className={`absolute left-2 right-2 top-1.5 h-full -z-10 rounded-2xl bg-gradient-to-br ${colorClass} opacity-10 transition-all duration-300 group-hover:top-2.5`} />
+
+                                                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col">
+                                                    {/* Colored header */}
+                                                    <div className={`bg-gradient-to-br ${colorClass} p-6 text-center relative overflow-hidden`}>
+                                                        {/* Decorative blobs */}
+                                                        <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-white/10" />
+                                                        <div className="absolute -bottom-4 -left-4 w-14 h-14 rounded-full bg-white/10" />
+
+                                                        <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-3 relative">
+                                                            <Icon size={28} className="text-white" />
+                                                        </div>
+                                                        <h3 className="text-white font-bold text-[16px] mb-1">{deck.title}</h3>
+
+                                                        {/* Star rating */}
+                                                        <div className="flex items-center justify-center gap-0.5">
+                                                            {[1, 2, 3, 4, 5].map(s => (
+                                                                <Star key={s} size={11}
+                                                                    className={s <= Math.round(rating) ? "text-yellow-300 fill-yellow-300" : "text-white/30"}
+                                                                />
+                                                            ))}
+                                                            <span className="text-white/60 text-[10px] ml-1.5">
+                                                                {rating > 0 ? rating.toFixed(1) : "Sem avaliações"} {deck.ratingCount ? `(${deck.ratingCount})` : ""}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Card body */}
+                                                    <div className="p-4 flex flex-col flex-1">
+                                                        {deck.originalCreatorName && (
+                                                            <p className="text-[10px] text-indigo-500 font-semibold mb-1">por {deck.originalCreatorName}</p>
+                                                        )}
+                                                        <p className="text-[12px] text-slate-500 mb-4 line-clamp-2 flex-1">{deck.description}</p>
+
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <span className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                                                                <Layers size={11} className="text-slate-300" /> {deck.totalCards} cartas
+                                                            </span>
+                                                            {deck.isPurchased ? (
+                                                                <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+                                                                    <CheckCircle2 size={11} /> Adquirido
+                                                                </span>
+                                                            ) : (
+                                                                <span className="font-extrabold text-indigo-600 text-[15px] flex items-center gap-1">
+                                                                    <Zap size={12} className="text-indigo-400" /> {deck.price} <span className="text-[11px] font-semibold text-indigo-400">axons</span>
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        <button
+                                                            onClick={() => !deck.isPurchased && handleBuyDeck(deck.id, deck.price || 0)}
+                                                            disabled={deck.isPurchased}
+                                                            className={`w-full h-10 rounded-xl text-[12px] font-bold flex items-center justify-center gap-2 transition-all
+                                                                ${deck.isPurchased
+                                                                    ? "bg-emerald-50 text-emerald-600 border border-emerald-200 cursor-default"
+                                                                    : "btn-primary"
+                                                                }`}
+                                                        >
+                                                            {deck.isPurchased
+                                                                ? <><CheckCircle2 size={14} /> Já Adquirido</>
+                                                                : <><ShoppingBag size={14} /> Comprar por {deck.price} Axons</>
+                                                            }
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="card-elevated !rounded-2xl p-12 flex flex-col items-center justify-center text-center gap-3 border-2 border-dashed !border-slate-200">
+                                    <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
+                                        <ShoppingBag size={32} className="text-slate-300" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-slate-800">Loja vazia por enquanto</h3>
+                                        <p className="text-sm text-slate-500">Em breve haverá decks disponíveis para compra.</p>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
 
                 {/* Modal for New Collection */}
