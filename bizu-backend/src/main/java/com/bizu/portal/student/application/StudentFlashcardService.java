@@ -388,6 +388,23 @@ public class StudentFlashcardService {
     }
 
     @Transactional
+    public FlashcardDeck updateDeck(UUID deckId, UUID userId, String title, String description, String icon, String color) {
+        FlashcardDeck deck = deckRepository.findById(deckId)
+            .orElseThrow(() -> new RuntimeException("Deck não encontrado"));
+
+        if (!deck.getUserId().equals(userId)) {
+            throw new RuntimeException("Você não tem permissão para editar este deck");
+        }
+
+        deck.setTitle(title);
+        deck.setDescription(description);
+        deck.setIcon(icon);
+        deck.setColor(color);
+
+        return deckRepository.save(deck);
+    }
+
+    @Transactional
     public void deleteDeck(UUID deckId, UUID userId) {
         FlashcardDeck deck = deckRepository.findById(deckId)
             .orElseThrow(() -> new RuntimeException("Deck não encontrado"));

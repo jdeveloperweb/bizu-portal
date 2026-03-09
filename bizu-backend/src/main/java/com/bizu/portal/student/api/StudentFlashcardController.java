@@ -171,6 +171,22 @@ public class StudentFlashcardController {
         return ResponseEntity.ok().build();
     }
 
+    @org.springframework.web.bind.annotation.PutMapping("/decks/{id}")
+    public ResponseEntity<FlashcardDeck> updateDeck(
+            @PathVariable UUID id,
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = resolveUserId(jwt);
+        return ResponseEntity.ok(studentFlashcardService.updateDeck(
+            id,
+            userId,
+            body.get("title"),
+            body.get("description"),
+            body.get("icon"),
+            body.get("color")
+        ));
+    }
+
     @PostMapping("/shared-decks/{sharedDeckId}/unshare")
     public ResponseEntity<Void> unshareDeck(
             @PathVariable UUID sharedDeckId,

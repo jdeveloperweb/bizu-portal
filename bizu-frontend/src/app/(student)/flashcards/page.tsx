@@ -6,7 +6,7 @@ import {
     Layers, Plus, BookOpen, Shield, Scale, Gavel,
     Target, Brain, Zap, Clock,
     Star, TrendingUp, CheckCircle2,
-    PlayCircle, Loader2, XCircle, Share2, Users, ShoppingBag
+    PlayCircle, Loader2, XCircle, Share2, Users, ShoppingBag, Edit, Settings
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
@@ -55,6 +55,7 @@ export default function FlashcardsPage() {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newDeck, setNewDeck] = useState({ title: "", description: "", icon: "Layers", color: "from-indigo-500 to-violet-600" });
+    const [editingDeckId, setEditingDeckId] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [myGuilds, setMyGuilds] = useState<GuildResponseDTO[]>([]);
     const [sharingDeckId, setSharingDeckId] = useState<string | null>(null);
@@ -114,30 +115,28 @@ export default function FlashcardsPage() {
         fetchData();
     }, []);
 
-    const handleCreateDeck = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    const handleSaveDeck = async (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsSaving(true);
         try {
-            const res = await apiFetch("/student/flashcards/decks", {
-                method: "POST",
+            const url = editingDeckId
+                ? `/student/flashcards/decks/${editingDeckId}`
+                : "/student/flashcards/decks";
+            const method = editingDeckId ? "PUT" : "POST";
+
+            const res = await apiFetch(url, {
+                method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(newDeck)
             });
             if (res.ok) {
-                // Optimistic update: parse response and add immediately
-                try {
-                    const createdDeck = await res.json();
-                    setDecks(prev => [...prev, createdDeck]);
-                } catch {
-                    // If response is not JSON, fallback to refetch
-                }
                 setIsModalOpen(false);
+                setEditingDeckId(null);
                 setNewDeck({ title: "", description: "", icon: "Layers", color: "from-indigo-500 to-violet-600" });
-                // Refresh to sync accurate summary stats
                 fetchData();
             }
         } catch (error) {
-            console.error("Error creating deck:", error);
+            console.error("Error saving deck:", error);
         } finally {
             setIsSaving(false);
         }
@@ -290,7 +289,11 @@ export default function FlashcardsPage() {
 
                     {/* New collection CTA */}
                     {activeTab === "my" && (
-                        <button onClick={() => setIsModalOpen(true)} className="btn-primary !h-10 !text-[12px] !px-5 whitespace-nowrap">
+                        <button onClick={() => {
+                            setEditingDeckId(null);
+                            setNewDeck({ title: "", description: "", icon: "Layers", color: "from-indigo-500 to-violet-600" });
+                            setIsModalOpen(true);
+                        }} className="btn-primary !h-10 !text-[12px] !px-5 whitespace-nowrap">
                             <Plus size={15} /> Nova Coleção
                         </button>
                     )}
@@ -332,14 +335,16 @@ export default function FlashcardsPage() {
                                 const Icon = ICON_MAP[deck.icon] || BookOpen;
                                 const colorClass = deck.color || "from-indigo-500 to-violet-600";
                                 return (
-                                    <div key={deck.id} className="relative group" style={{ paddingBottom: '10px', paddingRight: '6px', zIndex: sharingDeckId === deck.id ? 50 : 'auto' }}>
-                                        {/* Physical card stack — ghost cards shifted right+down */}
-                                        <div className="absolute inset-0 rounded-2xl bg-slate-200 border border-slate-300/70" style={{ transform: 'translate(6px, 6px)', zIndex: 0 }} />
-                                        <div className="absolute inset-0 rounded-2xl bg-slate-100 border border-slate-200" style={{ transform: 'translate(3px, 3px)', zIndex: 1 }} />
+                                    <div key={deck.id} className="relative group" style={{ paddingBottom: '14px', paddingRight: '14px', zIndex: sharingDeckId === deck.id ? 100 : 'auto' }}>
+                                        {/* Ghost card 2 — deepest, fans out on hover via Tailwind group classes */}
+                                        <div className="absolute inset-0 rounded-2xl bg-slate-200 border border-slate-300/60 translate-x-[8px] translate-y-[8px] transition-transform duration-300 ease-out group-hover:translate-x-[11px] group-hover:translate-y-[11px]" />
+                                        {/* Ghost card 1 — middle layer */}
+                                        <div className="absolute inset-0 rounded-2xl bg-slate-100 border border-slate-200/80 translate-x-[4px] translate-y-[4px] transition-transform duration-300 ease-out group-hover:translate-x-[6px] group-hover:translate-y-[6px]" />
 
-                                        <div className="relative bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300" style={{ zIndex: 2 }}>
-                                            {/* Colored top stripe */}
-                                            <div className={`h-1.5 w-full bg-gradient-to-r ${colorClass}`} />
+                                        {/* Main card — NO overflow-hidden (clips the share dropdown) and NO explicit z-index (creates stacking context trapping dropdown) */}
+                                        <div className="relative bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300">
+                                            {/* Stripe uses rounded-t-2xl instead of relying on overflow-hidden */}
+                                            <div className={`h-1.5 w-full bg-gradient-to-r ${colorClass} rounded-t-2xl`} />
 
                                             <div className="p-5">
                                                 <div className="flex items-start gap-4">
@@ -430,10 +435,23 @@ export default function FlashcardsPage() {
 
                                                         {deck.userId === user?.id && (
                                                             <>
-                                                                <Link href={`/flashcards/gerenciar?deckId=${deck.id}`}
-                                                                    className="btn-outline !h-9 !text-[11px] !px-4 !border-slate-200 !text-slate-600 hover:!bg-slate-50 whitespace-nowrap flex items-center justify-center gap-1.5 rounded-xl font-bold">
-                                                                    <Plus size={12} /> Cartas
-                                                                </Link>
+                                                                <div className="flex gap-1.5">
+                                                                    <Link href={`/flashcards/gerenciar?deckId=${deck.id}`}
+                                                                        className="flex-1 btn-outline !h-9 !text-[11px] !px-4 !border-slate-200 !text-slate-600 hover:!bg-slate-50 whitespace-nowrap flex items-center justify-center gap-1.5 rounded-xl font-bold">
+                                                                        <Plus size={12} /> Cartas
+                                                                    </Link>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setEditingDeckId(deck.id);
+                                                                            setNewDeck({ title: deck.title, description: deck.description, icon: deck.icon, color: deck.color });
+                                                                            setIsModalOpen(true);
+                                                                        }}
+                                                                        className="btn-outline !h-9 !w-9 flex items-center justify-center !p-0 !border-slate-200 !text-slate-400 hover:!text-indigo-600 hover:!bg-indigo-50 rounded-xl"
+                                                                        title="Editar Deck"
+                                                                    >
+                                                                        <Edit size={12} />
+                                                                    </button>
+                                                                </div>
 
                                                                 <div className="relative">
                                                                     <button
@@ -652,13 +670,13 @@ export default function FlashcardsPage() {
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
                         <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-black text-slate-900">Nova Coleção</h2>
-                                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                                <h2 className="text-xl font-black text-slate-900">{editingDeckId ? "Editar Coleção" : "Nova Coleção"}</h2>
+                                <button onClick={() => { setIsModalOpen(false); setEditingDeckId(null); }} className="text-slate-400 hover:text-slate-600">
                                     <XCircle size={20} />
                                 </button>
                             </div>
 
-                            <form onSubmit={handleCreateDeck} className="space-y-4">
+                            <form onSubmit={handleSaveDeck} className="space-y-4">
                                 <div>
                                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Título</label>
                                     <input
@@ -719,8 +737,8 @@ export default function FlashcardsPage() {
                                     disabled={isSaving}
                                     className="w-full btn-primary !h-12 !text-md mt-4 gap-2"
                                 >
-                                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus size={20} />}
-                                    Criar Coleção
+                                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingDeckId ? <Settings size={20} /> : <Plus size={20} />)}
+                                    {editingDeckId ? "Salvar Alterações" : "Criar Coleção"}
                                 </button>
                             </form>
                         </div>
