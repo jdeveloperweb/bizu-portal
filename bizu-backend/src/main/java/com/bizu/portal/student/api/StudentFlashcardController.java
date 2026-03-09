@@ -146,8 +146,9 @@ public class StudentFlashcardController {
     }
 
     @GetMapping("/store")
-    public ResponseEntity<List<StudentFlashcardDeckDTO>> getStoreDecks() {
-        return ResponseEntity.ok(studentFlashcardService.getStoreDecks());
+    public ResponseEntity<List<StudentFlashcardDeckDTO>> getStoreDecks(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = resolveUserId(jwt);
+        return ResponseEntity.ok(studentFlashcardService.getStoreDecks(userId));
     }
 
     @PostMapping("/store/decks/{id}/buy")

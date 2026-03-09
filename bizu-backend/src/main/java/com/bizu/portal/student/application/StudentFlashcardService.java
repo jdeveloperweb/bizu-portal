@@ -444,7 +444,7 @@ public class StudentFlashcardService {
         deckRepository.delete(sharedCopy);
     }
 
-    public List<StudentFlashcardDeckDTO> getStoreDecks() {
+    public List<StudentFlashcardDeckDTO> getStoreDecks(UUID userId) {
         UUID activeCourseId = CourseContextHolder.getCourseId();
         
         return deckRepository.findAllByIsForSaleTrue().stream()
@@ -452,6 +452,9 @@ public class StudentFlashcardService {
             .map(deck -> {
                 String creatorName = deck.getOriginalCreatorId() != null ? 
                     userRepository.findById(deck.getOriginalCreatorId()).map(u -> u.getName()).orElse("Desconhecido") : "Sistema";
+
+                boolean isPurchased = purchaseRepository.existsByDeckIdAndStudentId(deck.getId(), userId);
+                boolean isOwner = deck.getUserId() != null && deck.getUserId().equals(userId);
 
                 return StudentFlashcardDeckDTO.builder()
                     .id(deck.getId())
@@ -465,6 +468,7 @@ public class StudentFlashcardService {
                     .rating(deck.getRating())
                     .ratingCount(deck.getRatingCount())
                     .isForSale(true)
+                    .isPurchased(isPurchased || isOwner)
                     .build();
             }).collect(Collectors.toList());
     }

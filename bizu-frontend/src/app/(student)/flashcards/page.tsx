@@ -680,7 +680,7 @@ export default function FlashcardsPage() {
                                                             </span>
                                                             {deck.isPurchased ? (
                                                                 <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
-                                                                    <CheckCircle2 size={11} /> Adquirido
+                                                                    <CheckCircle2 size={11} /> Comprado
                                                                 </span>
                                                             ) : (
                                                                 <span className="font-extrabold text-indigo-600 text-[15px] flex items-center gap-1">
@@ -699,7 +699,7 @@ export default function FlashcardsPage() {
                                                                 }`}
                                                         >
                                                             {deck.isPurchased
-                                                                ? <><CheckCircle2 size={14} /> Já Adquirido</>
+                                                                ? <><CheckCircle2 size={14} /> Comprado</>
                                                                 : <><ShoppingBag size={14} /> Comprar por {deck.price} Axons</>
                                                             }
                                                         </button>

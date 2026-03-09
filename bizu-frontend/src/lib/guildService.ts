@@ -438,4 +438,15 @@ export const GuildService = {
       throw new Error(err.message || "Erro ao deletar guilda");
     }
   },
+
+  /** DELETE /student/flashcards/guild-decks/{deckId} */
+  async removeFlashcardDeckFromGuild(deckId: string): Promise<void> {
+    const res = await apiFetch(`/student/flashcards/guild-decks/${deckId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || "Erro ao remover deck da guilda");
+    }
+  },
 };

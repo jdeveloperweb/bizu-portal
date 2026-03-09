@@ -1161,7 +1161,13 @@ function TarefasTab({ tasks }: { tasks: GuildTaskDTO[] }) {
 
 // ─── Tab: Flash Cards ─────────────────────────────────────────────────────────
 
-function FlashCardsTab({ guildId, decks }: { guildId: string; decks: GuildFlashcardDeckDTO[] }) {
+function FlashCardsTab({ guildId, decks, isAdmin, isFounder, onRemoveDeck }: {
+  guildId: string;
+  decks: GuildFlashcardDeckDTO[];
+  isAdmin: boolean;
+  isFounder: boolean;
+  onRemoveDeck: (deckId: string) => Promise<void>;
+}) {
   const { notify } = useNotification();
   const [selectedDeck, setSelectedDeck] = useState<GuildFlashcardDeckDTO | null>(null);
   const [cards, setCards] = useState<GuildFlashcardDTO[]>([]);
@@ -1303,34 +1309,52 @@ function FlashCardsTab({ guildId, decks }: { guildId: string; decks: GuildFlashc
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {decks.map((deck, i) => (
-        <motion.button
+        <motion.div
           key={deck.id}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.05 }}
-          onClick={() => openDeck(deck)}
-          className="group text-left p-5 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:border-indigo-300 hover:shadow-md transition-all duration-300"
+          className="relative group w-full text-left p-5 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:border-indigo-300 hover:shadow-md transition-all duration-300"
         >
-          {/* Icon / Color badge */}
-          <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4"
-            style={{ background: deck.color ? `${deck.color}20` : "var(--muted)", border: `1px solid ${deck.color ?? "var(--border)"}40` }}
-          >
-            {deck.icon ?? "📚"}
-          </div>
-          <h4 className="font-bold text-[var(--foreground)] mb-1">{deck.title}</h4>
-          {deck.description && (
-            <p className="text-xs text-[var(--muted-foreground)] mb-3 line-clamp-2">{deck.description}</p>
+          {/* Remove from guild button */}
+          {(isAdmin || isFounder) && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveDeck(deck.id);
+              }}
+              className="absolute top-3 right-3 p-1.5 rounded-lg bg-red-50 text-red-500 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-100"
+              title="Remover da Guilda"
+            >
+              <X size={14} />
+            </button>
           )}
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-[var(--muted-foreground)]">
-              {deck.cardCount} {deck.cardCount === 1 ? "card" : "cards"}
-            </span>
-            <span className="text-xs text-indigo-600 flex items-center gap-1 group-hover:gap-2 transition-all">
-              Estudar <ChevronRight size={12} />
-            </span>
+
+          <div
+            onClick={() => openDeck(deck)}
+            className="flex flex-col h-full cursor-pointer"
+          >
+            {/* Icon / Color badge */}
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4"
+              style={{ background: deck.color ? `${deck.color}20` : "var(--muted)", border: `1px solid ${deck.color ?? "var(--border)"}40` }}
+            >
+              {deck.icon ?? "📚"}
+            </div>
+            <h4 className="font-bold text-[var(--foreground)] mb-1">{deck.title}</h4>
+            {deck.description && (
+              <p className="text-xs text-[var(--muted-foreground)] mb-3 line-clamp-2">{deck.description}</p>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-[var(--muted-foreground)]">
+                {deck.cardCount} {deck.cardCount === 1 ? "card" : "cards"}
+              </span>
+              <span className="text-xs text-indigo-600 flex items-center gap-1 group-hover:gap-2 transition-all">
+                Estudar <ChevronRight size={12} />
+              </span>
+            </div>
           </div>
-        </motion.button>
+        </motion.div>
       ))}
     </div>
   );
@@ -1598,6 +1622,17 @@ export default function GuildDetailPage() {
     }
   }, [guildId, guild, notify]);
 
+  const handleRemoveDeck = useCallback(async (deckId: string) => {
+    if (!window.confirm("Remover este deck da guilda? Isso não apagará o deck do proprietário original.")) return;
+    try {
+      await GuildService.removeFlashcardDeckFromGuild(deckId);
+      setDecks(prev => prev.filter(d => d.id !== deckId));
+      notify("Sucesso", "Deck removido da guilda.", "success");
+    } catch (err: any) {
+      notify("Erro", err.message || "Não foi possível remover o deck.", "error");
+    }
+  }, [notify]);
+
   if (loading) return <PageSkeleton />;
   if (!guild) return (
     <div className="p-8 text-center text-[var(--muted-foreground)]">
@@ -1794,7 +1829,13 @@ export default function GuildDetailPage() {
           {tab === "anotacoes" && <AnotacoesTab notes={notes} />}
           {tab === "tarefas" && <TarefasTab tasks={tasks} />}
           {tab === "flashcards" && (
-            <FlashCardsTab guildId={guildId} decks={decks} />
+            <FlashCardsTab
+              guildId={guildId}
+              decks={decks}
+              isAdmin={isAdmin}
+              isFounder={isFounder}
+              onRemoveDeck={handleRemoveDeck}
+            />
           )}
         </motion.div>
       </AnimatePresence>
