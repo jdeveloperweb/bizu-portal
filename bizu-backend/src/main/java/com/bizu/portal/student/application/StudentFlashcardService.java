@@ -346,9 +346,12 @@ public class StudentFlashcardService {
         FlashcardDeck deck = deckRepository.findById(deckId)
             .orElseThrow(() -> new RuntimeException("Deck não encontrado"));
             
+        // Trava removida temporariamente a pedido do usuário
+        /*
         if (!deck.getUserId().equals(userId)) {
             throw new RuntimeException("Apenas o proprietário do deck pode excluí-lo");
         }
+        */
         
         deckRepository.delete(deck);
     }
