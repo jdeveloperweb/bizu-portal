@@ -189,7 +189,8 @@ function SettingsModal({
 
 function InviteModal({ guildId, onClose, onInvite }: { guildId: string; onClose: () => void; onInvite: (userId: string) => Promise<void> }) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<{ id: string, name: string, nickname: string, level: number }[]>([]);
+  const [results, setResults] = useState<{ id: string, name: string, nickname: string, avatar: string | null, level: number }[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [inviting, setInviting] = useState<string | null>(null);
 
@@ -242,7 +243,8 @@ function InviteModal({ guildId, onClose, onInvite }: { guildId: string; onClose:
                 results.map(u => (
                   <div key={u.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <MemberAvatar name={u.name} size="sm" />
+                      <MemberAvatar name={u.name} avatar={u.avatar} size="sm" />
+
                       <div>
                         <div className="text-sm font-bold text-slate-800">{u.name}</div>
                         <div className="text-[10px] text-slate-500">@{u.nickname} · Nível {u.level}</div>
@@ -342,19 +344,23 @@ const leagueColors: Record<string, string> = {
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
-function MemberAvatar({ name, size = "md", online = false, rankLevel }: {
-  name: string; size?: "sm" | "md" | "lg"; online?: boolean; rankLevel?: number;
+function MemberAvatar({ name, avatar, size = "md", online = false, rankLevel }: {
+  name: string; avatar?: string | null; size?: "sm" | "md" | "lg"; online?: boolean; rankLevel?: number;
 }) {
   const cls = { sm: "w-7 h-7 text-xs", md: "w-9 h-9 text-sm", lg: "w-12 h-12 text-base" }[size];
   const badgeSize = { sm: "xxs" as const, md: "xxs" as const, lg: "xs" as const }[size];
   const badgeOffset = { sm: "-bottom-1 -right-1", md: "-bottom-1 -right-1", lg: "-bottom-1.5 -right-1.5" }[size];
   return (
     <div className="relative shrink-0">
-      <div className={`${cls} rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center font-bold text-white`}>
-        {name.charAt(0).toUpperCase()}
+      <div className={`${cls} rounded-full overflow-hidden bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center font-bold text-white shadow-sm ring-2 ring-white`}>
+        {avatar ? (
+          <img src={avatar} alt={name} className="w-full h-full object-cover" />
+        ) : (
+          name.charAt(0).toUpperCase()
+        )}
       </div>
       {online && (
-        <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white" />
+        <div className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white shadow-sm" />
       )}
       {rankLevel !== undefined && (
         <div className={`absolute z-[20] ${badgeOffset}`}>
@@ -368,6 +374,7 @@ function MemberAvatar({ name, size = "md", online = false, rankLevel }: {
     </div>
   );
 }
+
 
 function XPBar({ value, max, color = "#6366F1", animated = true }: {
   value: number; max: number; color?: string; animated?: boolean;
@@ -455,7 +462,8 @@ function InicioTab({
               {/* 2nd */}
               {top3[1] && (
                 <div className="flex flex-col items-center gap-2">
-                  <MemberAvatar name={top3[1].name} size="md" online={top3[1].online} rankLevel={top3[1].level} />
+                  <MemberAvatar name={top3[1].name} avatar={top3[1].avatar} size="md" online={top3[1].online} rankLevel={top3[1].level} />
+
                   <div className="text-center">
                     <div className="text-xs font-semibold text-[var(--foreground)]">{top3[1].nickname}</div>
                     <div className="text-[10px] text-[var(--muted-foreground)]">{top3[1].xp.toLocaleString()} XP</div>
@@ -468,7 +476,8 @@ function InicioTab({
               {/* 1st */}
               <div className="flex flex-col items-center gap-2">
                 <div className="relative">
-                  <MemberAvatar name={top3[0].name} size="lg" online={top3[0].online} rankLevel={top3[0].level} />
+                  <MemberAvatar name={top3[0].name} avatar={top3[0].avatar} size="lg" online={top3[0].online} rankLevel={top3[0].level} />
+
                   <Crown size={14} className="absolute -top-3 left-1/2 -translate-x-1/2 text-amber-500" />
                 </div>
                 <div className="text-center">
@@ -482,7 +491,8 @@ function InicioTab({
               {/* 3rd */}
               {top3[2] && (
                 <div className="flex flex-col items-center gap-2">
-                  <MemberAvatar name={top3[2].name} size="md" online={top3[2].online} rankLevel={top3[2].level} />
+                  <MemberAvatar name={top3[2].name} avatar={top3[2].avatar} size="md" online={top3[2].online} rankLevel={top3[2].level} />
+
                   <div className="text-center">
                     <div className="text-xs font-semibold text-[var(--foreground)]">{top3[2].nickname}</div>
                     <div className="text-[10px] text-[var(--muted-foreground)]">{top3[2].xp.toLocaleString()} XP</div>
@@ -510,7 +520,8 @@ function InicioTab({
             <div className="space-y-0">
               {activity.map(a => (
                 <div key={a.id} className="flex items-center gap-3 py-2.5 border-b border-[var(--border)] last:border-0">
-                  <MemberAvatar name={a.user} size="sm" />
+                  <MemberAvatar name={a.user} avatar={a.avatar} size="sm" />
+
                   <div className="flex-1 text-xs">
                     <span className="text-[var(--foreground)] font-medium">{a.user}</span>
                     <span className="text-[var(--muted-foreground)]"> {a.action}</span>
@@ -565,7 +576,8 @@ function InicioTab({
             ) : (
               messages.map(msg => (
                 <div key={msg.id} className={`flex gap-2 ${msg.isMe ? "flex-row-reverse" : ""}`}>
-                  {!msg.isMe && <MemberAvatar name={msg.user} size="sm" />}
+                  {!msg.isMe && <MemberAvatar name={msg.user} avatar={msg.avatar} size="sm" />}
+
                   <div className={`max-w-[80%] flex flex-col gap-0.5 ${msg.isMe ? "items-end" : "items-start"}`}>
                     {!msg.isMe && <span className="text-[10px] text-[var(--muted-foreground)]">{msg.user}</span>}
                     <div className={`px-3 py-2 rounded-xl text-xs leading-relaxed ${msg.isMe ? "bg-indigo-600 text-white" : "bg-[var(--muted)] text-[var(--foreground)]"}`}>
@@ -722,7 +734,8 @@ function MembrosTab({
           <div className="space-y-3">
             {pending.map(req => (
               <div key={req.id} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-amber-100">
-                <MemberAvatar name={req.name} size="md" />
+                <MemberAvatar name={req.name} avatar={req.avatar} size="md" />
+
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-[var(--foreground)] text-sm">{req.name}</div>
                   <div className="text-xs text-[var(--muted-foreground)]">@{req.nickname} · Nível {req.level}</div>
@@ -760,7 +773,8 @@ function MembrosTab({
             className="flex items-center gap-4 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:border-indigo-200 hover:shadow-sm transition-all"
           >
             <div className="text-[var(--muted-foreground)] font-bold text-sm w-6 text-center">{i + 1}</div>
-            <MemberAvatar name={m.name} size="md" online={m.online} rankLevel={m.level} />
+            <MemberAvatar name={m.name} avatar={m.avatar} size="md" online={m.online} rankLevel={m.level} />
+
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-[var(--foreground)] text-sm truncate">{m.name}</span>

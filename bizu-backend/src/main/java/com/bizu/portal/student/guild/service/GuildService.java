@@ -199,10 +199,12 @@ public class GuildService {
         return GuildMessageDTO.builder()
                 .id(message.getId())
                 .user(user.getName())
+                .avatar(user.getAvatarUrl())
                 .text(message.getContent())
                 .time(message.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                 .isMe(true)
                 .build();
+
     }
 
     public List<GuildMessageDTO> getChatMessages(UUID guildId, UUID userId) {
@@ -211,10 +213,12 @@ public class GuildService {
                 .map(m -> GuildMessageDTO.builder()
                         .id(m.getId())
                         .user(m.getUser().getName())
+                        .avatar(m.getUser().getAvatarUrl())
                         .text(m.getContent())
                         .time(m.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                         .isMe(m.getUser().getId().equals(userId))
                         .build())
+
                 .collect(Collectors.toList());
     }
 
@@ -668,9 +672,11 @@ public class GuildService {
                                 .id(r.getId())
                                 .name(r.getUser().getName())
                                 .nickname(r.getUser().getNickname())
+                                .avatar(r.getUser().getAvatarUrl())
                                 .level(levelCalculator.calculateLevel(xp))
                                 .message(r.getMessage())
                                 .build();
+
                     })
                     .collect(Collectors.toList());
         }
@@ -716,10 +722,12 @@ public class GuildService {
                 .map(a -> GuildActivityDTO.builder()
                         .id(a.getId())
                         .user(a.getUser() != null ? a.getUser().getName() : "Sistema")
+                        .avatar(a.getUser() != null ? a.getUser().getAvatarUrl() : null)
                         .action(a.getAction())
                         .xp(a.getXpGained())
                         .time(formatTimeAgo(a.getCreatedAt()))
                         .build())
+
                 .collect(Collectors.toList());
     }
 

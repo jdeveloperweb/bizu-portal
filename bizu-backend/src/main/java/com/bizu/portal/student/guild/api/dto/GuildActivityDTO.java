@@ -9,7 +9,9 @@ import java.util.UUID;
 public class GuildActivityDTO {
     private UUID id;
     private String user;
+    private String avatar;
     private String action;
     private int xp;
     private String time;
 }
+

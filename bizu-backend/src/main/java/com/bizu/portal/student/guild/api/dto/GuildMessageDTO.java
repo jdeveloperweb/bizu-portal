@@ -9,7 +9,9 @@ import java.util.UUID;
 public class GuildMessageDTO {
     private UUID id;
     private String user;
+    private String avatar;
     private String text;
     private String time;
     private boolean isMe;
 }
+

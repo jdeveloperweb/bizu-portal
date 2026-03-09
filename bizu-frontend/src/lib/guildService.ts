@@ -42,9 +42,11 @@ export interface GuildRequestDTO {
   id: string;
   name: string;
   nickname: string;
+  avatar: string | null;
   level: number;
   message: string;
 }
+
 
 export interface GuildMemberResponseDTO {
   members: GuildMemberDTO[];
@@ -76,18 +78,22 @@ export interface GuildMissionDTO {
 export interface GuildActivityDTO {
   id: string;
   user: string;
+  avatar: string | null;
   action: string;
   xp: number;
   time: string;
 }
 
+
 export interface GuildMessageDTO {
   id: string;
   user: string;
+  avatar: string | null;
   text: string;
   time: string;
   isMe: boolean;
 }
+
 
 export interface GuildCreateRequestDTO {
   name: string;
@@ -258,7 +264,7 @@ export const GuildService = {
   },
 
   /** GET /friends/search?nickname= (reused for invite autocomplete) */
-  async searchUsers(query: string): Promise<{ id: string; name: string; nickname: string; level: number }[]> {
+  async searchUsers(query: string): Promise<{ id: string; name: string; nickname: string; avatar: string | null; level: number }[]> {
     const res = await apiFetch(`/friends/search?nickname=${encodeURIComponent(query)}`);
     if (!res.ok) return [];
     const data = await res.json();
@@ -267,9 +273,11 @@ export const GuildService = {
       id: u.id,
       name: u.name ?? u.fullName ?? "Usuário",
       nickname: u.nickname ?? u.username ?? "",
+      avatar: u.avatarUrl || null,
       level: Math.floor(u.level ?? 1),
     }));
   },
+
 
   /** GET /student/guilds/invites */
   async getPendingInvites(): Promise<GuildInviteDTO[]> {
