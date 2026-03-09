@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -50,6 +51,10 @@ public class StudentFlashcardService {
             .filter(deck -> {
                 // 1. Decks da guilda: só aparecem para membros daquela guilda
                 if (deck.getGuildId() != null) {
+                    // Evitar duplicidade: se o usuário for o criador original, ele já vê o deck dele na lista pessoal
+                    if (userId.equals(deck.getOriginalCreatorId())) {
+                        return false;
+                    }
                     return myGuildIds.contains(deck.getGuildId());
                 }
                 
@@ -88,6 +93,33 @@ public class StudentFlashcardService {
                         .orElse(null);
                 }
 
+                // Informações de compartilhamento para o proprietário ver
+                List<ShareInfoDTO> shares = new ArrayList<>();
+                if (deck.getUserId() != null && deck.getUserId().equals(userId)) {
+                    // Amigos que receberam cópias
+                    deckRepository.findAllBySourceDeckId(deck.getId()).forEach(copy -> {
+                        if (copy.getUserId() != null && !userId.equals(copy.getUserId())) {
+                            userRepository.findById(copy.getUserId()).ifPresent(u -> {
+                                shares.add(ShareInfoDTO.builder()
+                                    .name(u.getNickname() != null ? u.getNickname() : u.getName())
+                                    .avatarUrl(u.getAvatarUrl())
+                                    .type("USER")
+                                    .build());
+                            });
+                        }
+                    });
+                    
+                    // Guilda alvo (se houver)
+                    if (deck.getSharedWithGuildId() != null) {
+                        guildRepository.findById(deck.getSharedWithGuildId()).ifPresent(g -> {
+                            shares.add(ShareInfoDTO.builder()
+                                .name(g.getName())
+                                .type("GUILD")
+                                .build());
+                        });
+                    }
+                }
+
                 String creatorName = deck.getOriginalCreatorId() != null ? 
                     userRepository.findById(deck.getOriginalCreatorId()).map(u -> u.getName()).orElse("Desconhecido") : null;
 
@@ -113,8 +145,10 @@ public class StudentFlashcardService {
                     .rating(deck.getRating())
                     .ratingCount(deck.getRatingCount())
                     .isPurchased(isPurchased)
+                    .sharedWith(shares)
                     .build();
-            }).collect(Collectors.toList());
+            })
+.collect(Collectors.toList());
     }
 
     @Transactional
@@ -241,7 +275,10 @@ public class StudentFlashcardService {
             
             FlashcardDeck sharedDeck = FlashcardDeck.builder()
                 .userId(friend.getId())
-                .title(sourceDeck.getTitle() + " (Compartilhado)")
+                .sourceDeckId(sourceDeck.getId())
+                .originalCreatorId(userId)
+                .courseId(sourceDeck.getCourseId())
+                .title(sourceDeck.getTitle())
                 .description(sourceDeck.getDescription())
                 .icon(sourceDeck.getIcon())
                 .color(sourceDeck.getColor())
@@ -269,6 +306,8 @@ public class StudentFlashcardService {
 
             FlashcardDeck guildDeck = FlashcardDeck.builder()
                 .guildId(targetId)
+                .sourceDeckId(sourceDeck.getId())
+                .originalCreatorId(userId)
                 .courseId(guild.getCourseId())
                 .title(sourceDeck.getTitle())
                 .description(sourceDeck.getDescription())

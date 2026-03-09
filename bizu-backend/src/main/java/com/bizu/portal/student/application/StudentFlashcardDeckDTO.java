@@ -27,4 +27,5 @@ public class StudentFlashcardDeckDTO {
     private Double rating;
     private Integer ratingCount;
     private boolean isPurchased;
+    private java.util.List<ShareInfoDTO> sharedWith;
 }

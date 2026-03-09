@@ -43,6 +43,9 @@ public class FlashcardDeck {
     @Column(name = "shared_with_guild_id")
     private UUID sharedWithGuildId;
 
+    @Column(name = "source_deck_id")
+    private UUID sourceDeckId;
+
     @Column(name = "course_id")
     private UUID courseId;
 

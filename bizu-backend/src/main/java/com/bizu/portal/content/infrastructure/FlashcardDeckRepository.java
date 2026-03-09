@@ -12,4 +12,5 @@ public interface FlashcardDeckRepository extends JpaRepository<FlashcardDeck, UU
     List<FlashcardDeck> findAllByGuildIdOrderByCreatedAtDesc(UUID guildId);
     List<FlashcardDeck> findAllByIsForSaleTrue();
     List<FlashcardDeck> findAllByUserId(UUID userId);
+    List<FlashcardDeck> findAllBySourceDeckId(UUID sourceDeckId);
 }
