@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { GuildBadge, GuildBadgeSelector, GuildBadgeType, GUILD_BADGES } from "@/components/guilds/GuildBadge";
+import { RankInsignia } from "@/components/gamification/RankInsignia";
 import {
   GuildService,
   GuildResponseDTO,
@@ -341,10 +342,12 @@ const leagueColors: Record<string, string> = {
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
-function MemberAvatar({ name, size = "md", online = false }: {
-  name: string; size?: "sm" | "md" | "lg"; online?: boolean;
+function MemberAvatar({ name, size = "md", online = false, rankLevel }: {
+  name: string; size?: "sm" | "md" | "lg"; online?: boolean; rankLevel?: number;
 }) {
   const cls = { sm: "w-7 h-7 text-xs", md: "w-9 h-9 text-sm", lg: "w-12 h-12 text-base" }[size];
+  const badgeSize = { sm: "xxs" as const, md: "xxs" as const, lg: "xs" as const }[size];
+  const badgeOffset = { sm: "-bottom-1 -right-1", md: "-bottom-1 -right-1", lg: "-bottom-1.5 -right-1.5" }[size];
   return (
     <div className="relative shrink-0">
       <div className={`${cls} rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center font-bold text-white`}>
@@ -352,6 +355,15 @@ function MemberAvatar({ name, size = "md", online = false }: {
       </div>
       {online && (
         <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white" />
+      )}
+      {rankLevel !== undefined && (
+        <div className={`absolute z-[20] ${badgeOffset}`}>
+          <RankInsignia
+            level={rankLevel}
+            size={badgeSize}
+            className="bg-white rounded-md shadow-sm ring-1 ring-white/80"
+          />
+        </div>
       )}
     </div>
   );
@@ -443,7 +455,7 @@ function InicioTab({
               {/* 2nd */}
               {top3[1] && (
                 <div className="flex flex-col items-center gap-2">
-                  <MemberAvatar name={top3[1].name} size="md" online={top3[1].online} />
+                  <MemberAvatar name={top3[1].name} size="md" online={top3[1].online} rankLevel={top3[1].level} />
                   <div className="text-center">
                     <div className="text-xs font-semibold text-[var(--foreground)]">{top3[1].nickname}</div>
                     <div className="text-[10px] text-[var(--muted-foreground)]">{top3[1].xp.toLocaleString()} XP</div>
@@ -456,7 +468,7 @@ function InicioTab({
               {/* 1st */}
               <div className="flex flex-col items-center gap-2">
                 <div className="relative">
-                  <MemberAvatar name={top3[0].name} size="lg" online={top3[0].online} />
+                  <MemberAvatar name={top3[0].name} size="lg" online={top3[0].online} rankLevel={top3[0].level} />
                   <Crown size={14} className="absolute -top-3 left-1/2 -translate-x-1/2 text-amber-500" />
                 </div>
                 <div className="text-center">
@@ -470,7 +482,7 @@ function InicioTab({
               {/* 3rd */}
               {top3[2] && (
                 <div className="flex flex-col items-center gap-2">
-                  <MemberAvatar name={top3[2].name} size="md" online={top3[2].online} />
+                  <MemberAvatar name={top3[2].name} size="md" online={top3[2].online} rankLevel={top3[2].level} />
                   <div className="text-center">
                     <div className="text-xs font-semibold text-[var(--foreground)]">{top3[2].nickname}</div>
                     <div className="text-[10px] text-[var(--muted-foreground)]">{top3[2].xp.toLocaleString()} XP</div>
@@ -748,7 +760,7 @@ function MembrosTab({
             className="flex items-center gap-4 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] hover:border-indigo-200 hover:shadow-sm transition-all"
           >
             <div className="text-[var(--muted-foreground)] font-bold text-sm w-6 text-center">{i + 1}</div>
-            <MemberAvatar name={m.name} size="md" online={m.online} />
+            <MemberAvatar name={m.name} size="md" online={m.online} rankLevel={m.level} />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-[var(--foreground)] text-sm truncate">{m.name}</span>
@@ -901,7 +913,7 @@ function RankingTab({ guild, members }: { guild: GuildResponseDTO; members: Guil
                   i === 2 ? "bg-amber-700 text-white" :
                     "bg-[var(--muted)] text-[var(--muted-foreground)]"
                 }`}>{i + 1}</div>
-              <MemberAvatar name={m.name} size="sm" />
+              <MemberAvatar name={m.name} size="sm" rankLevel={m.level} />
               <div className="flex-1 text-sm text-[var(--foreground)] font-medium truncate">{m.name}</div>
               <div className="text-right shrink-0">
                 <div className="text-sm font-bold text-amber-600">{m.xp.toLocaleString()}</div>
