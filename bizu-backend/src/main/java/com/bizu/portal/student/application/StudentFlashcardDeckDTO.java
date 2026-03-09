@@ -29,6 +29,8 @@ public class StudentFlashcardDeckDTO {
     private Integer ratingCount;
     @com.fasterxml.jackson.annotation.JsonProperty("isPurchased")
     private boolean isPurchased;
+    @com.fasterxml.jackson.annotation.JsonProperty("isOwner")
+    private boolean isOwner;
     private UUID guildId;
     private java.util.List<ShareInfoDTO> sharedWith;
 }

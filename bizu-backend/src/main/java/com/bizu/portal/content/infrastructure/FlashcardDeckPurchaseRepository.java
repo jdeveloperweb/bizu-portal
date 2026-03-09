@@ -11,4 +11,5 @@ import java.util.UUID;
 public interface FlashcardDeckPurchaseRepository extends JpaRepository<FlashcardDeckPurchase, UUID> {
     List<FlashcardDeckPurchase> findAllByStudentId(UUID studentId);
     boolean existsByDeckIdAndStudentId(UUID deckId, UUID studentId);
+    List<FlashcardDeckPurchase> findAllByDeckIdIn(List<UUID> deckIds);
 }

@@ -6,7 +6,8 @@ import {
     Layers, Plus, BookOpen, Shield, Scale, Gavel,
     Target, Brain, Zap, Clock,
     Star, TrendingUp, CheckCircle2,
-    PlayCircle, Loader2, XCircle, Share2, Users, ShoppingBag, Edit, Settings
+    PlayCircle, Loader2, XCircle, Share2, Users, ShoppingBag, Edit, Settings,
+    Crown, BarChart3, Coins, Wallet
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
@@ -34,6 +35,7 @@ interface Deck {
     rating?: number;
     ratingCount?: number;
     isPurchased?: boolean;
+    isOwner?: boolean;
     guildId?: string;
     sharedWith?: Array<{ deckId: string; name: string; avatarUrl?: string; type: "GUILD" | "USER" }>;
 }
@@ -43,6 +45,13 @@ interface Summary {
     totalDue: number;
     totalNew: number;
     avgProgress: number;
+}
+
+interface SalesStats {
+    totalSales: number;
+    totalAxonsEarned: number;
+    currentAxons: number;
+    deckStats: { deckId: string; title: string; price: number; salesCount: number; axonsEarned: number }[];
 }
 
 const ICON_MAP: Record<string, any> = {
@@ -69,6 +78,8 @@ export default function FlashcardsPage() {
     const [sharingType, setSharingType] = useState<"GUILD" | "USER">("GUILD");
     const [ratingDeckId, setRatingDeckId] = useState<string | null>(null);
     const [hoverRating, setHoverRating] = useState(0);
+    const [salesStats, setSalesStats] = useState<SalesStats | null>(null);
+    const [salesLoading, setSalesLoading] = useState(false);
     const { alert, confirm } = useCustomDialog();
 
     const fetchData = async () => {
@@ -97,10 +108,12 @@ export default function FlashcardsPage() {
     const fetchStoreDecks = async () => {
         setStoreLoading(true);
         try {
-            const res = await apiFetch("/student/flashcards/store");
-            if (res.ok) {
-                setStoreDecks(await res.json());
-            }
+            const [storeRes, salesRes] = await Promise.all([
+                apiFetch("/student/flashcards/store"),
+                apiFetch("/student/flashcards/store/my-sales")
+            ]);
+            if (storeRes.ok) setStoreDecks(await storeRes.json());
+            if (salesRes.ok) setSalesStats(await salesRes.json());
         } catch (error) {
             console.error("Error fetching store decks:", error);
         } finally {
@@ -630,95 +643,171 @@ export default function FlashcardsPage() {
                                     <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
                                     <p className="text-sm text-slate-400">Carregando loja...</p>
                                 </div>
-                            ) : storeDecks.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {storeDecks.map(deck => {
-                                        const Icon = ICON_MAP[deck.icon] || BookOpen;
-                                        const colorClass = deck.color || "from-indigo-500 to-violet-600";
-                                        const rating = deck.rating || 0;
-                                        return (
-                                            <div key={deck.id} className="relative group">
-                                                {/* Stack effect */}
-                                                <div className={`absolute left-4 right-4 top-3 h-full -z-10 rounded-2xl bg-gradient-to-br ${colorClass} opacity-15 transition-all duration-300 group-hover:top-4`} />
-                                                <div className={`absolute left-2 right-2 top-1.5 h-full -z-10 rounded-2xl bg-gradient-to-br ${colorClass} opacity-10 transition-all duration-300 group-hover:top-2.5`} />
+                            ) : (
+                                <>
+                                    {/* Painel de vendas — visível apenas se o usuário tem decks à venda */}
+                                    {salesStats && salesStats.deckStats.length > 0 && (
+                                        <div className="mb-6 bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 rounded-2xl p-5">
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <BarChart3 size={16} className="text-indigo-600" />
+                                                <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-widest">Suas Vendas</h3>
+                                            </div>
 
-                                                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col">
-                                                    {/* Colored header */}
-                                                    <div className={`bg-gradient-to-br ${colorClass} p-6 text-center relative overflow-hidden`}>
-                                                        {/* Decorative blobs */}
-                                                        <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-white/10" />
-                                                        <div className="absolute -bottom-4 -left-4 w-14 h-14 rounded-full bg-white/10" />
-
-                                                        <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-3 relative">
-                                                            <Icon size={28} className="text-white" />
-                                                        </div>
-                                                        <h3 className="text-white font-bold text-[16px] mb-1">{deck.title}</h3>
-
-                                                        {/* Star rating */}
-                                                        <div className="flex items-center justify-center gap-0.5">
-                                                            {[1, 2, 3, 4, 5].map(s => (
-                                                                <Star key={s} size={11}
-                                                                    className={s <= Math.round(rating) ? "text-yellow-300 fill-yellow-300" : "text-white/30"}
-                                                                />
-                                                            ))}
-                                                            <span className="text-white/60 text-[10px] ml-1.5">
-                                                                {rating > 0 ? rating.toFixed(1) : "Sem avaliações"} {deck.ratingCount ? `(${deck.ratingCount})` : ""}
-                                                            </span>
-                                                        </div>
+                                            {/* Resumo */}
+                                            <div className="grid grid-cols-3 gap-3 mb-4">
+                                                <div className="bg-white rounded-xl p-3 text-center border border-indigo-100">
+                                                    <div className="flex items-center justify-center gap-1 mb-1">
+                                                        <Wallet size={13} className="text-indigo-400" />
+                                                        <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Saldo</span>
                                                     </div>
-
-                                                    {/* Card body */}
-                                                    <div className="p-4 flex flex-col flex-1">
-                                                        {deck.originalCreatorName && (
-                                                            <p className="text-[10px] text-indigo-500 font-semibold mb-1">por {deck.originalCreatorName}</p>
-                                                        )}
-                                                        <p className="text-[12px] text-slate-500 mb-4 line-clamp-2 flex-1">{deck.description}</p>
-
-                                                        <div className="flex items-center justify-between mb-3">
-                                                            <span className="text-[11px] text-slate-400 flex items-center gap-1.5">
-                                                                <Layers size={11} className="text-slate-300" /> {deck.totalCards} cartas
-                                                            </span>
-                                                            {deck.isPurchased ? (
-                                                                <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
-                                                                    <CheckCircle2 size={11} /> Comprado
-                                                                </span>
-                                                            ) : (
-                                                                <span className="font-extrabold text-indigo-600 text-[15px] flex items-center gap-1">
-                                                                    <Zap size={12} className="text-indigo-400" /> {deck.price} <span className="text-[11px] font-semibold text-indigo-400">axons</span>
-                                                                </span>
-                                                            )}
-                                                        </div>
-
-                                                        <button
-                                                            onClick={() => !deck.isPurchased && handleBuyDeck(deck.id, deck.price || 0)}
-                                                            disabled={deck.isPurchased}
-                                                            className={`w-full h-10 rounded-xl text-[12px] font-bold flex items-center justify-center gap-2 transition-all
-                                                                ${deck.isPurchased
-                                                                    ? "bg-emerald-50 text-emerald-600 border border-emerald-200 cursor-default"
-                                                                    : "btn-primary"
-                                                                }`}
-                                                        >
-                                                            {deck.isPurchased
-                                                                ? <><CheckCircle2 size={14} /> Comprado</>
-                                                                : <><ShoppingBag size={14} /> Comprar por {deck.price} Axons</>
-                                                            }
-                                                        </button>
+                                                    <p className="text-[18px] font-black text-indigo-600 leading-none">{salesStats.currentAxons}</p>
+                                                    <p className="text-[9px] text-slate-400 font-semibold mt-0.5">AXONS</p>
+                                                </div>
+                                                <div className="bg-white rounded-xl p-3 text-center border border-indigo-100">
+                                                    <div className="flex items-center justify-center gap-1 mb-1">
+                                                        <Coins size={13} className="text-amber-400" />
+                                                        <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Ganhos</span>
                                                     </div>
+                                                    <p className="text-[18px] font-black text-amber-500 leading-none">{salesStats.totalAxonsEarned}</p>
+                                                    <p className="text-[9px] text-slate-400 font-semibold mt-0.5">AXONS GANHOS</p>
+                                                </div>
+                                                <div className="bg-white rounded-xl p-3 text-center border border-indigo-100">
+                                                    <div className="flex items-center justify-center gap-1 mb-1">
+                                                        <ShoppingBag size={13} className="text-emerald-400" />
+                                                        <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Vendas</span>
+                                                    </div>
+                                                    <p className="text-[18px] font-black text-emerald-600 leading-none">{salesStats.totalSales}</p>
+                                                    <p className="text-[9px] text-slate-400 font-semibold mt-0.5">TOTAL</p>
                                                 </div>
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            ) : (
-                                <div className="card-elevated !rounded-2xl p-12 flex flex-col items-center justify-center text-center gap-3 border-2 border-dashed !border-slate-200">
-                                    <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
-                                        <ShoppingBag size={32} className="text-slate-300" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-bold text-slate-800">Loja vazia por enquanto</h3>
-                                        <p className="text-sm text-slate-500">Em breve haverá decks disponíveis para compra.</p>
-                                    </div>
-                                </div>
+
+                                            {/* Histórico por deck */}
+                                            <div className="space-y-2">
+                                                {salesStats.deckStats.map(ds => (
+                                                    <div key={ds.deckId} className="bg-white rounded-xl px-4 py-3 flex items-center justify-between border border-indigo-50">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <Crown size={13} className="text-amber-400 flex-shrink-0" />
+                                                            <div>
+                                                                <p className="text-[12px] font-bold text-slate-800 leading-tight">{ds.title}</p>
+                                                                <p className="text-[10px] text-slate-400">{ds.price} axons por venda</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-4 text-right">
+                                                            <div>
+                                                                <p className="text-[11px] font-black text-slate-700">{ds.salesCount}</p>
+                                                                <p className="text-[9px] text-slate-400">vendas</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-[11px] font-black text-amber-500">{ds.axonsEarned}</p>
+                                                                <p className="text-[9px] text-slate-400">axons</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Grade de decks */}
+                                    {storeDecks.length > 0 ? (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {storeDecks.map(deck => {
+                                                const Icon = ICON_MAP[deck.icon] || BookOpen;
+                                                const colorClass = deck.color || "from-indigo-500 to-violet-600";
+                                                const rating = deck.rating || 0;
+                                                return (
+                                                    <div key={deck.id} className="relative group">
+                                                        <div className={`absolute left-4 right-4 top-3 h-full -z-10 rounded-2xl bg-gradient-to-br ${colorClass} opacity-15 transition-all duration-300 group-hover:top-4`} />
+                                                        <div className={`absolute left-2 right-2 top-1.5 h-full -z-10 rounded-2xl bg-gradient-to-br ${colorClass} opacity-10 transition-all duration-300 group-hover:top-2.5`} />
+
+                                                        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col">
+                                                            <div className={`bg-gradient-to-br ${colorClass} p-6 text-center relative overflow-hidden`}>
+                                                                <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-white/10" />
+                                                                <div className="absolute -bottom-4 -left-4 w-14 h-14 rounded-full bg-white/10" />
+                                                                {deck.isOwner && (
+                                                                    <div className="absolute top-2.5 right-2.5 bg-amber-400 text-white text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow">
+                                                                        <Crown size={9} /> Seu deck
+                                                                    </div>
+                                                                )}
+                                                                <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-3 relative">
+                                                                    <Icon size={28} className="text-white" />
+                                                                </div>
+                                                                <h3 className="text-white font-bold text-[16px] mb-1">{deck.title}</h3>
+                                                                <div className="flex items-center justify-center gap-0.5">
+                                                                    {[1, 2, 3, 4, 5].map(s => (
+                                                                        <Star key={s} size={11}
+                                                                            className={s <= Math.round(rating) ? "text-yellow-300 fill-yellow-300" : "text-white/30"}
+                                                                        />
+                                                                    ))}
+                                                                    <span className="text-white/60 text-[10px] ml-1.5">
+                                                                        {rating > 0 ? rating.toFixed(1) : "Sem avaliações"} {deck.ratingCount ? `(${deck.ratingCount})` : ""}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="p-4 flex flex-col flex-1">
+                                                                {deck.originalCreatorName && (
+                                                                    <p className="text-[10px] text-indigo-500 font-semibold mb-1">por {deck.originalCreatorName}</p>
+                                                                )}
+                                                                <p className="text-[12px] text-slate-500 mb-4 line-clamp-2 flex-1">{deck.description}</p>
+
+                                                                <div className="flex items-center justify-between mb-3">
+                                                                    <span className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                                                                        <Layers size={11} className="text-slate-300" /> {deck.totalCards} cartas
+                                                                    </span>
+                                                                    {deck.isOwner ? (
+                                                                        <span className="text-[11px] font-bold text-amber-500 flex items-center gap-1">
+                                                                            <Crown size={11} /> Criado por você
+                                                                        </span>
+                                                                    ) : deck.isPurchased ? (
+                                                                        <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+                                                                            <CheckCircle2 size={11} /> Comprado
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="font-extrabold text-indigo-600 text-[15px] flex items-center gap-1">
+                                                                            <Zap size={12} className="text-indigo-400" /> {deck.price} <span className="text-[11px] font-semibold text-indigo-400">axons</span>
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+
+                                                                {deck.isOwner ? (
+                                                                    <div className="w-full h-10 rounded-xl text-[12px] font-bold flex items-center justify-center gap-2 bg-amber-50 text-amber-600 border border-amber-200 cursor-default">
+                                                                        <Crown size={14} /> Você é o criador
+                                                                    </div>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => !deck.isPurchased && handleBuyDeck(deck.id, deck.price || 0)}
+                                                                        disabled={deck.isPurchased}
+                                                                        className={`w-full h-10 rounded-xl text-[12px] font-bold flex items-center justify-center gap-2 transition-all
+                                                                            ${deck.isPurchased
+                                                                                ? "bg-emerald-50 text-emerald-600 border border-emerald-200 cursor-default"
+                                                                                : "btn-primary"
+                                                                            }`}
+                                                                    >
+                                                                        {deck.isPurchased
+                                                                            ? <><CheckCircle2 size={14} /> Comprado</>
+                                                                            : <><ShoppingBag size={14} /> Comprar por {deck.price} Axons</>
+                                                                        }
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <div className="card-elevated !rounded-2xl p-12 flex flex-col items-center justify-center text-center gap-3 border-2 border-dashed !border-slate-200">
+                                            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
+                                                <ShoppingBag size={32} className="text-slate-300" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-bold text-slate-800">Loja vazia por enquanto</h3>
+                                                <p className="text-sm text-slate-500">Em breve haverá decks disponíveis para compra.</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </>
                     )}

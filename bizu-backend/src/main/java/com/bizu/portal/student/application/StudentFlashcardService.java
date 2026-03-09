@@ -273,7 +273,7 @@ public class StudentFlashcardService {
         User owner = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        if ("FRIEND".equalsIgnoreCase(targetType)) {
+        if ("FRIEND".equalsIgnoreCase(targetType) || "USER".equalsIgnoreCase(targetType)) {
             // Ao compartilhar com um amigo, criamos uma CÓPIA do deck para ele
             User friend = userRepository.findById(targetId)
                 .orElseThrow(() -> new RuntimeException("Amigo não encontrado"));
@@ -463,12 +463,14 @@ public class StudentFlashcardService {
                     .icon(deck.getIcon())
                     .color(deck.getColor())
                     .totalCards(deck.getCards().size())
+                    .originalCreatorId(deck.getOriginalCreatorId())
                     .originalCreatorName(creatorName)
                     .price(deck.getPrice())
                     .rating(deck.getRating())
                     .ratingCount(deck.getRatingCount())
                     .isForSale(deck.isForSale())
-                    .isPurchased(isPurchased || isOwner)
+                    .isPurchased(isPurchased)
+                    .isOwner(isOwner)
                     .build();
             }).collect(Collectors.toList());
     }
@@ -598,5 +600,47 @@ public class StudentFlashcardService {
         }
 
         deckRepository.delete(deck);
+    }
+
+    public java.util.Map<String, Object> getMySalesStats(UUID userId) {
+        // Decks do criador que estão à venda
+        List<FlashcardDeck> myForSaleDecks = deckRepository.findAllByIsForSaleTrue().stream()
+            .filter(d -> userId.equals(d.getUserId()))
+            .collect(Collectors.toList());
+
+        List<UUID> myDeckIds = myForSaleDecks.stream().map(FlashcardDeck::getId).collect(Collectors.toList());
+        List<com.bizu.portal.content.domain.FlashcardDeckPurchase> purchases = myDeckIds.isEmpty()
+            ? java.util.Collections.emptyList()
+            : purchaseRepository.findAllByDeckIdIn(myDeckIds);
+
+        int totalSales = purchases.size();
+        int totalAxonsEarned = purchases.stream().mapToInt(p -> p.getPricePaid()).sum();
+
+        int currentAxons = gamificationRepository.findById(userId)
+            .map(s -> s.getAxonCoins()).orElse(0);
+
+        // Vendas por deck
+        java.util.Map<UUID, Long> salesByDeck = purchases.stream()
+            .collect(Collectors.groupingBy(com.bizu.portal.content.domain.FlashcardDeckPurchase::getDeckId, Collectors.counting()));
+        java.util.Map<UUID, Integer> axonsByDeck = purchases.stream()
+            .collect(Collectors.groupingBy(com.bizu.portal.content.domain.FlashcardDeckPurchase::getDeckId,
+                Collectors.summingInt(com.bizu.portal.content.domain.FlashcardDeckPurchase::getPricePaid)));
+
+        List<java.util.Map<String, Object>> deckStats = myForSaleDecks.stream().map(deck -> {
+            java.util.Map<String, Object> entry = new java.util.HashMap<>();
+            entry.put("deckId", deck.getId());
+            entry.put("title", deck.getTitle());
+            entry.put("price", deck.getPrice());
+            entry.put("salesCount", salesByDeck.getOrDefault(deck.getId(), 0L));
+            entry.put("axonsEarned", axonsByDeck.getOrDefault(deck.getId(), 0));
+            return entry;
+        }).collect(Collectors.toList());
+
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("totalSales", totalSales);
+        result.put("totalAxonsEarned", totalAxonsEarned);
+        result.put("currentAxons", currentAxons);
+        result.put("deckStats", deckStats);
+        return result;
     }
 }

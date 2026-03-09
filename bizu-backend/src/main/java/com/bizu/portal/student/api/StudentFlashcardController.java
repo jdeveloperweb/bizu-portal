@@ -157,6 +157,12 @@ public class StudentFlashcardController {
         return ResponseEntity.ok(studentFlashcardService.buyDeck(id, userId));
     }
 
+    @GetMapping("/store/my-sales")
+    public ResponseEntity<Map<String, Object>> getMySalesStats(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = resolveUserId(jwt);
+        return ResponseEntity.ok(studentFlashcardService.getMySalesStats(userId));
+    }
+
     @PostMapping("/decks/{id}/rate")
     public ResponseEntity<Void> rateDeck(
             @PathVariable UUID id,
