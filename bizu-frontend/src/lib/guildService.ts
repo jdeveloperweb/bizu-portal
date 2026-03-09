@@ -128,6 +128,15 @@ export interface GuildFlashcardDTO {
   back: string;
 }
 
+export interface GuildInviteDTO {
+  id: string;
+  guildId: string;
+  guildName: string;
+  badge: string;
+  inviterName: string;
+  createdAt: string;
+}
+
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 export const GuildService = {
@@ -244,5 +253,28 @@ export const GuildService = {
       nickname: u.nickname ?? u.username ?? "",
       level: Math.floor(u.level ?? 1),
     }));
+  },
+
+  /** GET /student/guilds/invites */
+  async getPendingInvites(): Promise<GuildInviteDTO[]> {
+    const res = await apiFetch("/student/guilds/invites");
+    if (!res.ok) throw new Error("Erro ao buscar convites");
+    return res.json();
+  },
+
+  /** POST /student/guilds/invites/{id}/accept */
+  async acceptInvite(inviteId: string): Promise<void> {
+    const res = await apiFetch(`/student/guilds/invites/${inviteId}/accept`, {
+      method: "POST",
+    });
+    if (!res.ok) throw new Error("Erro ao aceitar convite");
+  },
+
+  /** POST /student/guilds/invites/{id}/decline */
+  async declineInvite(inviteId: string): Promise<void> {
+    const res = await apiFetch(`/student/guilds/invites/${inviteId}/decline`, {
+      method: "POST",
+    });
+    if (!res.ok) throw new Error("Erro ao recusar convite");
   },
 };

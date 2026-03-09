@@ -211,6 +211,59 @@ public class GuildService {
                 .collect(Collectors.toList());
     }
 
+    // --- Invites ---
+
+    @Transactional(readOnly = true)
+    public List<GuildInviteDTO> getPendingInvites(UUID userId) {
+        return guildInviteRepository.findAllByInviteeIdAndStatus(userId, GuildInvite.Status.PENDING).stream()
+                .map(i -> GuildInviteDTO.builder()
+                        .id(i.getId())
+                        .guildId(i.getGuild().getId())
+                        .guildName(i.getGuild().getName())
+                        .badge(i.getGuild().getBadge())
+                        .inviterName(i.getInviter().getName())
+                        .createdAt(i.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void acceptInvite(UUID inviteId, UUID userId) {
+        GuildInvite invite = guildInviteRepository.findById(inviteId)
+                .orElseThrow(() -> new RuntimeException("Convite não encontrado"));
+
+        if (!invite.getInvitee().getId().equals(userId)) {
+            throw new RuntimeException("Este convite não pertence a você");
+        }
+
+        invite.setStatus(GuildInvite.Status.ACCEPTED);
+        guildInviteRepository.save(invite);
+
+        // Check if already a member
+        if (guildMemberRepository.findByGuildIdAndUserId(invite.getGuild().getId(), userId).isEmpty()) {
+            GuildMember member = GuildMember.builder()
+                    .guild(invite.getGuild())
+                    .user(invite.getInvitee())
+                    .role(GuildRole.MEMBER)
+                    .build();
+            guildMemberRepository.save(member);
+            recordActivity(invite.getGuild(), invite.getInvitee(), "entrou na guilda pelo convite de " + invite.getInviter().getName(), 0);
+        }
+    }
+
+    @Transactional
+    public void declineInvite(UUID inviteId, UUID userId) {
+        GuildInvite invite = guildInviteRepository.findById(inviteId)
+                .orElseThrow(() -> new RuntimeException("Convite não encontrado"));
+
+        if (!invite.getInvitee().getId().equals(userId)) {
+            throw new RuntimeException("Este convite não pertence a você");
+        }
+
+        invite.setStatus(GuildInvite.Status.DECLINED);
+        guildInviteRepository.save(invite);
+    }
+
     // --- Helpers ---
 
     private void validateMembership(UUID guildId, UUID userId) {

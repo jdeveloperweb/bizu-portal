@@ -110,4 +110,28 @@ public class StudentGuildController {
         UUID userId = userService.resolveUserId(jwt);
         return ResponseEntity.ok(guildService.sendMessage(id, userId, request.getText()));
     }
+
+    @GetMapping("/invites")
+    public ResponseEntity<List<GuildInviteDTO>> getMyInvites(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        return ResponseEntity.ok(guildService.getPendingInvites(userId));
+    }
+
+    @PostMapping("/invites/{id}/accept")
+    public ResponseEntity<Void> acceptInvite(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        guildService.acceptInvite(id, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/invites/{id}/decline")
+    public ResponseEntity<Void> declineInvite(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        guildService.declineInvite(id, userId);
+        return ResponseEntity.ok().build();
+    }
 }

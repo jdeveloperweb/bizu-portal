@@ -9,18 +9,18 @@ import {
   ChevronRight, Filter, Star,
 } from "lucide-react";
 import { GuildBadge, GuildBadgeType, GUILD_BADGES } from "@/components/guilds/GuildBadge";
-import { GuildService, GuildResponseDTO } from "@/lib/guildService";
+import { GuildService, GuildResponseDTO, GuildInviteDTO } from "@/lib/guildService";
 import { useNotification } from "@/components/NotificationProvider";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // ─── League config ────────────────────────────────────────────────────────────
 
 const leagueConfig: Record<string, { label: string; color: string }> = {
-  BRONZE:   { label: "Bronze",   color: "#CD7F32" },
-  PRATA:    { label: "Prata",    color: "#C0C0C0" },
-  OURO:     { label: "Ouro",     color: "#FFD700" },
+  BRONZE: { label: "Bronze", color: "#CD7F32" },
+  PRATA: { label: "Prata", color: "#C0C0C0" },
+  OURO: { label: "Ouro", color: "#FFD700" },
   DIAMANTE: { label: "Diamante", color: "#B9F2FF" },
-  MESTRE:   { label: "Mestre",   color: "#A855F7" },
+  MESTRE: { label: "Mestre", color: "#A855F7" },
 };
 
 // ─── Components ───────────────────────────────────────────────────────────────
@@ -227,6 +227,7 @@ function FeaturedCard({ guild }: { guild: GuildResponseDTO }) {
 export default function GuildsPage() {
   const { notify } = useNotification();
   const [guilds, setGuilds] = useState<GuildResponseDTO[]>([]);
+  const [invites, setInvites] = useState<GuildInviteDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "public" | "private">("all");
@@ -243,16 +244,47 @@ export default function GuildsPage() {
     }
   }, [notify]);
 
+  const fetchInvites = useCallback(async () => {
+    try {
+      const data = await GuildService.getPendingInvites();
+      setInvites(data);
+    } catch {
+      // SILENT FAIL
+    }
+  }, []);
+
   // Initial load
   useEffect(() => {
     fetchGuilds();
-  }, [fetchGuilds]);
+    fetchInvites();
+  }, [fetchGuilds, fetchInvites]);
 
   // Debounced search
   useEffect(() => {
     const t = setTimeout(() => fetchGuilds(search || undefined), 400);
     return () => clearTimeout(t);
   }, [search, fetchGuilds]);
+
+  async function handleAcceptInvite(id: string) {
+    try {
+      await GuildService.acceptInvite(id);
+      notify("Sucesso", "Você entrou na guilda!", "success");
+      fetchInvites();
+      fetchGuilds();
+    } catch (err: any) {
+      notify("Erro", err.message || "Erro ao aceitar convite", "error");
+    }
+  }
+
+  async function handleDeclineInvite(id: string) {
+    try {
+      await GuildService.declineInvite(id);
+      notify("Sucesso", "Convite recusado.", "info");
+      fetchInvites();
+    } catch (err: any) {
+      notify("Erro", err.message || "Erro ao recusar convite", "error");
+    }
+  }
 
   function handleJoin(guild: GuildResponseDTO) {
     if (guild.isPublic) {
@@ -299,6 +331,52 @@ export default function GuildsPage() {
         </Link>
       </motion.div>
 
+      {/* Invites Section */}
+      {!loading && invites.length > 0 && (
+        <motion.section
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="bg-indigo-600/10 border border-indigo-500/30 rounded-2xl p-6"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-indigo-600/20 flex items-center justify-center">
+              <Star size={18} className="text-indigo-400" />
+            </div>
+            <h2 className="text-lg font-bold text-white tracking-tight">Convites para Guilda</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {invites.map((invite) => (
+              <div key={invite.id} className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <GuildBadge type={invite.badge as GuildBadgeType} size="md" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-white truncate">{invite.guildName}</p>
+                    <p className="text-[11px] text-slate-400 truncate">Convidado por {invite.inviterName}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={() => handleDeclineInvite(invite.id)}
+                    className="p-1.5 rounded-lg hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition-colors"
+                    title="Recusar"
+                  >
+                    <Plus size={16} className="rotate-45" />
+                  </button>
+                  <button
+                    onClick={() => handleAcceptInvite(invite.id)}
+                    className="p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
+                    title="Aceitar"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+      )}
+
       {/* My Guilds */}
       {!loading && myGuilds.length > 0 && (
         <section>
@@ -343,11 +421,10 @@ export default function GuildsPage() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`text-xs px-3 py-2 rounded-lg font-medium transition-colors flex items-center gap-1 ${
-                filter === f
-                  ? "bg-indigo-600 text-white"
-                  : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
-              }`}
+              className={`text-xs px-3 py-2 rounded-lg font-medium transition-colors flex items-center gap-1 ${filter === f
+                ? "bg-indigo-600 text-white"
+                : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
+                }`}
             >
               {f === "all" ? "Todas" : f === "public" ? <><Globe size={11} />Públicas</> : <><Lock size={11} />Fechadas</>}
             </button>
