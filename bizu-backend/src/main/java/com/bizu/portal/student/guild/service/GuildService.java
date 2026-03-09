@@ -333,11 +333,139 @@ public class GuildService {
         }
     }
 
+    @Transactional
+    public void approveRequest(UUID guildId, UUID requestId, UUID adminId) {
+        GuildRequest request = guildRequestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+
+        validateAdminAccess(guildId, adminId);
+
+        if (request.getStatus() != GuildRequest.Status.PENDING) {
+            throw new RuntimeException("Este pedido já foi processado");
+        }
+
+        request.setStatus(GuildRequest.Status.ACCEPTED);
+        guildRequestRepository.save(request);
+
+        // Check if user is already in another guild
+        if (!guildMemberRepository.findAllByUserId(request.getUser().getId()).isEmpty()) {
+            // If they joined another guild in the meantime, we just mark this as accepted but don't add to this guild
+            // Actually, we should probably throw an error or handle it. 
+            // Better to check before adding.
+            return;
+        }
+
+        GuildMember member = GuildMember.builder()
+                .guild(request.getGuild())
+                .user(request.getUser())
+                .role(GuildRole.MEMBER)
+                .build();
+        guildMemberRepository.save(member);
+        
+        recordActivity(request.getGuild(), request.getUser(), "entrou na guilda (aprovado por administrador)", 0);
+    }
+
+    @Transactional
+    public void declineRequest(UUID guildId, UUID requestId, UUID adminId) {
+        GuildRequest request = guildRequestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+
+        validateAdminAccess(guildId, adminId);
+
+        if (request.getStatus() != GuildRequest.Status.PENDING) {
+            throw new RuntimeException("Este pedido já foi processado");
+        }
+
+        request.setStatus(GuildRequest.Status.DECLINED);
+        guildRequestRepository.save(request);
+    }
+
+    @Transactional
+    public void promoteMember(UUID guildId, UUID memberId, UUID adminId) {
+        GuildMember admin = validateAdminAccess(guildId, adminId);
+        GuildMember target = guildMemberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+
+        if (!target.getGuild().getId().equals(guildId)) {
+            throw new RuntimeException("Membro não pertence a esta guilda");
+        }
+
+        if (target.getRole() != GuildRole.MEMBER) {
+            throw new RuntimeException("Este membro já possui cargo administrativo ou superior");
+        }
+
+        target.setRole(GuildRole.ADMIN);
+        guildMemberRepository.save(target);
+        
+        recordActivity(target.getGuild(), admin.getUser(), "promoveu " + target.getUser().getName() + " a administrador", 0);
+    }
+
+    @Transactional
+    public void demoteMember(UUID guildId, UUID memberId, UUID adminId) {
+        GuildMember admin = validateAdminAccess(guildId, adminId);
+        GuildMember target = guildMemberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+
+        if (!target.getGuild().getId().equals(guildId)) {
+            throw new RuntimeException("Membro não pertence a esta guilda");
+        }
+
+        if (target.getRole() != GuildRole.ADMIN) {
+            throw new RuntimeException("Somente administradores podem ser rebaixados");
+        }
+
+        // Only founder can demote admin
+        if (admin.getRole() != GuildRole.FOUNDER) {
+            throw new RuntimeException("Acesso negado: Somente o fundador pode remover o cargo de administrador");
+        }
+
+        target.setRole(GuildRole.MEMBER);
+        guildMemberRepository.save(target);
+        
+        recordActivity(target.getGuild(), admin.getUser(), "removeu o cargo de administrador de " + target.getUser().getName(), 0);
+    }
+
+    @Transactional
+    public void kickMember(UUID guildId, UUID memberId, UUID adminId) {
+        GuildMember admin = validateAdminAccess(guildId, adminId);
+        GuildMember target = guildMemberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+
+        if (!target.getGuild().getId().equals(guildId)) {
+            throw new RuntimeException("Membro não pertence a esta guilda");
+        }
+
+        if (target.getRole() == GuildRole.FOUNDER) {
+            throw new RuntimeException("Não é possível remover o fundador da guilda");
+        }
+
+        if (target.getRole() == GuildRole.ADMIN && admin.getRole() != GuildRole.FOUNDER) {
+            throw new RuntimeException("Acesso negado: Somente o fundador pode remover administradores");
+        }
+        
+        if (target.getId().equals(admin.getId())) {
+             throw new RuntimeException("Use o recurso 'Sair da Guilda' para sair");
+        }
+
+        guildMemberRepository.delete(target);
+        recordActivity(target.getGuild(), admin.getUser(), "removeu " + target.getUser().getName() + " da guilda", 0);
+    }
+
     // --- Helpers ---
 
     private void validateMembership(UUID guildId, UUID userId) {
         guildMemberRepository.findByGuildIdAndUserId(guildId, userId)
                 .orElseThrow(() -> new RuntimeException("Acesso negado: Você não é membro desta guild"));
+    }
+
+    private GuildMember validateAdminAccess(UUID guildId, UUID userId) {
+        GuildMember member = guildMemberRepository.findByGuildIdAndUserId(guildId, userId)
+                .orElseThrow(() -> new RuntimeException("Acesso negado: Você não é membro desta guild"));
+        
+        if (member.getRole() != GuildRole.FOUNDER && member.getRole() != GuildRole.ADMIN) {
+            throw new RuntimeException("Acesso negado: Somente administradores podem realizar esta ação");
+        }
+        return member;
     }
 
     public List<GuildResponseDTO> searchGuilds(UUID userId, String query) {

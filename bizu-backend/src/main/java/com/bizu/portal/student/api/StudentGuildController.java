@@ -167,4 +167,54 @@ public class StudentGuildController {
         guildService.leaveGuild(id, userId);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/{id}/requests/{requestId}/approve")
+    public ResponseEntity<Void> approveRequest(
+            @PathVariable UUID id,
+            @PathVariable UUID requestId,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        guildService.approveRequest(id, requestId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/requests/{requestId}/decline")
+    public ResponseEntity<Void> declineRequest(
+            @PathVariable UUID id,
+            @PathVariable UUID requestId,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        guildService.declineRequest(id, requestId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/members/{memberId}/promote")
+    public ResponseEntity<Void> promoteMember(
+            @PathVariable UUID id,
+            @PathVariable UUID memberId,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        guildService.promoteMember(id, memberId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/members/{memberId}/demote")
+    public ResponseEntity<Void> demoteMember(
+            @PathVariable UUID id,
+            @PathVariable UUID memberId,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        guildService.demoteMember(id, memberId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}/members/{memberId}")
+    public ResponseEntity<Void> kickMember(
+            @PathVariable UUID id,
+            @PathVariable UUID memberId,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        guildService.kickMember(id, memberId, userId);
+        return ResponseEntity.ok().build();
+    }
 }
