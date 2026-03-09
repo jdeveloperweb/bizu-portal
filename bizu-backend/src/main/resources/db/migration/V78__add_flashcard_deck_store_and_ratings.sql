@@ -3,7 +3,7 @@ ALTER TABLE content.flashcard_decks
 ADD COLUMN original_creator_id UUID,
 ADD COLUMN is_for_sale BOOLEAN DEFAULT FALSE,
 ADD COLUMN price INTEGER DEFAULT 0,
-ADD COLUMN rating NUMERIC(3,2) DEFAULT 0,
+ADD COLUMN rating DOUBLE PRECISION DEFAULT 0,
 ADD COLUMN rating_count INTEGER DEFAULT 0;
 
 -- Tabela de compras de decks
