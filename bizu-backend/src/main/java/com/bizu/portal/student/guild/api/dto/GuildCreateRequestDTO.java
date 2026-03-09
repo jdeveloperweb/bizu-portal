@@ -1,4 +1,5 @@
 package com.bizu.portal.student.guild.api.dto;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
 import java.util.List;
@@ -9,6 +10,7 @@ public class GuildCreateRequestDTO {
     private String name;
     private String description;
     private String badge;
+    @JsonProperty("isPublic")
     private boolean isPublic;
     private int maxMembers;
     private List<UUID> invitedUserIds;

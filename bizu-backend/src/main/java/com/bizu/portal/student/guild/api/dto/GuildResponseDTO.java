@@ -1,4 +1,5 @@
 package com.bizu.portal.student.guild.api.dto;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,9 +24,16 @@ public class GuildResponseDTO {
     private int rankPosition;
     private String league;
     private int streak;
+    @JsonProperty("isPublic")
     private boolean isPublic;
+
+    @JsonProperty("isAdmin")
     private boolean isAdmin;
+
+    @JsonProperty("isMember")
     private boolean isMember;
+
+    @JsonProperty("isFounder")
     private boolean isFounder;
     private List<String> tags;
     private String createdAt;
