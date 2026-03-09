@@ -9,6 +9,9 @@ import com.bizu.portal.content.infrastructure.FlashcardRepository;
 import com.bizu.portal.identity.infrastructure.UserRepository;
 import com.bizu.portal.student.infrastructure.FlashcardProgressRepository;
 import com.bizu.portal.student.guild.repository.GuildRepository;
+import com.bizu.portal.student.guild.repository.GuildMemberRepository;
+import com.bizu.portal.shared.security.CourseContextHolder;
+import com.bizu.portal.student.guild.domain.GuildMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,14 +31,39 @@ public class StudentFlashcardService {
     private final FlashcardProgressRepository progressRepository;
     private final UserRepository userRepository;
     private final GuildRepository guildRepository;
+    private final GuildMemberRepository guildMemberRepository;
 
     public List<StudentFlashcardDeckDTO> getDecksForUser(UUID userId) {
         OffsetDateTime now = OffsetDateTime.now();
+        UUID activeCourseId = CourseContextHolder.getCourseId();
         
-        // Show global decks (userId is null) and user's own decks, but NOT guild decks
+        // Buscar IDs das guildas que o usuário participa
+        List<UUID> myGuildIds = guildMemberRepository.findAllByUserId(userId).stream()
+            .map(m -> m.getGuild().getId())
+            .collect(Collectors.toList());
+
+        // Show global decks (userId is null), user's own decks, AND decks from user's guilds
         return deckRepository.findAll().stream()
-            .filter(deck -> deck.getGuildId() == null) // exclui decks de guild da listagem pessoal
-            .filter(deck -> deck.getUserId() == null || deck.getUserId().equals(userId))
+            .filter(deck -> {
+                // 1. Decks da guilda: só aparecem para membros daquela guilda
+                if (deck.getGuildId() != null) {
+                    return myGuildIds.contains(deck.getGuildId());
+                }
+                
+                // 2. Decks pessoais: aparecem apenas para o dono
+                if (deck.getUserId() != null) {
+                    return deck.getUserId().equals(userId);
+                }
+                
+                // 3. Decks globais (userId e guildId nulos): 
+                // Devem ser filtrados pelo curso se o curso estiver definido no deck
+                if (activeCourseId != null && deck.getCourseId() != null) {
+                    return deck.getCourseId().equals(activeCourseId);
+                }
+                
+                // Se o deck não tem curso e é global, ou se não estamos em contexto de curso, mostra
+                return true;
+            })
             .map(deck -> {
                 long total = deck.getCards().size();
                 long due = progressRepository.countDueByDeckAndUser(deck.getId(), userId, now);
@@ -74,6 +102,7 @@ public class StudentFlashcardService {
     public FlashcardDeck createDeck(UUID userId, String title, String description, String icon, String color) {
         FlashcardDeck deck = FlashcardDeck.builder()
             .userId(userId)
+            .courseId(CourseContextHolder.getCourseId())
             .title(title)
             .description(description)
             .icon(icon != null ? icon : "Layers")
@@ -212,8 +241,11 @@ public class StudentFlashcardService {
                 throw new RuntimeException("Guilda não encontrada");
             }
 
+            var guild = guildRepository.findById(targetId).get();
+
             FlashcardDeck guildDeck = FlashcardDeck.builder()
                 .guildId(targetId)
+                .courseId(guild.getCourseId())
                 .title(sourceDeck.getTitle())
                 .description(sourceDeck.getDescription())
                 .icon(sourceDeck.getIcon())
@@ -248,6 +280,7 @@ public class StudentFlashcardService {
 
         FlashcardDeck personalDeck = FlashcardDeck.builder()
             .userId(userId)
+            .courseId(CourseContextHolder.getCourseId())
             .title(guildDeck.getTitle() + " (Clonado)")
             .description(guildDeck.getDescription())
             .icon(guildDeck.getIcon())

@@ -585,6 +585,10 @@ public class GuildService {
         guildRequestRepository.deleteAll(guildRequestRepository.findAllByGuildIdAndStatus(guildId, GuildRequest.Status.PENDING));
         guildActivityRepository.deleteAll(guildActivityRepository.findAllByGuildIdOrderByCreatedAtDesc(guildId, PageRequest.of(0, 1000)));
         guildMessageRepository.deleteAll(guildMessageRepository.findAllByGuildIdOrderByCreatedAtDesc(guildId, PageRequest.of(0, 1000)));
+        guildMissionRepository.deleteAll(guildMissionRepository.findAllByGuildId(guildId));
+        noteRepository.deleteAll(noteRepository.findAllByGuildIdOrderByUpdatedAtDesc(guildId));
+        studentTaskRepository.deleteAll(studentTaskRepository.findAllByGuildIdOrderByCreatedAtDesc(guildId));
+        flashcardDeckRepository.deleteAll(flashcardDeckRepository.findAllByGuildIdOrderByCreatedAtDesc(guildId));
 
         guildRepository.delete(guild);
     }
