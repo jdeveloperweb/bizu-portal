@@ -30,6 +30,7 @@ import {
   GuildFlashcardDTO,
 } from "@/lib/guildService";
 import { useNotification } from "@/components/NotificationProvider";
+import { useAuth } from "@/components/AuthProvider";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -1054,6 +1055,7 @@ export default function GuildDetailPage() {
   const params = useParams();
   const guildId = params.id as string;
   const { notify } = useNotification();
+  const { user } = useAuth();
 
   const [tab, setTab] = useState<GuildTab>("inicio");
   const [guild, setGuild] = useState<GuildResponseDTO | null>(null);
@@ -1237,6 +1239,16 @@ export default function GuildDetailPage() {
     </div>
   );
 
+  // Derive the current user's guild role from the members list — fallback when
+  // backend doesn't return isAdmin/isFounder correctly in the guild DTO.
+  const myMember = members.find(m =>
+    (user?.id && m.id === user.id) ||
+    (user?.nickname && m.nickname === user.nickname) ||
+    (user?.preferred_username && m.nickname === user.preferred_username)
+  );
+  const isFounder = guild.isFounder || myMember?.role === "founder";
+  const isAdmin   = guild.isAdmin   || myMember?.role === "admin" || myMember?.role === "founder";
+
   const leagueColor = leagueColors[guild.league?.toUpperCase()] ?? "#CD7F32";
   const leagueLabel = guild.league
     ? guild.league.charAt(0).toUpperCase() + guild.league.slice(1).toLowerCase()
@@ -1310,7 +1322,7 @@ export default function GuildDetailPage() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {guild.isMember && !guild.isFounder && (
+            {guild.isMember && !isFounder && (
               <button
                 onClick={handleLeave}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-red-500 hover:bg-red-50 border border-transparent hover:border-red-100 text-sm font-medium transition-colors"
@@ -1319,7 +1331,7 @@ export default function GuildDetailPage() {
               </button>
             )}
 
-            {guild.isAdmin && (
+            {isAdmin && (
               <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--muted)] hover:bg-slate-200 border border-[var(--border)] text-[var(--foreground)] text-sm font-medium transition-colors">
                 <Settings size={14} /> Gerenciar
               </button>
@@ -1371,8 +1383,8 @@ export default function GuildDetailPage() {
             <MembrosTab
               members={members}
               pending={pending}
-              isAdmin={guild.isAdmin}
-              isFounder={guild.isFounder ?? false}
+              isAdmin={isAdmin}
+              isFounder={isFounder}
               onAccept={handleAccept}
               onDecline={handleDecline}
               onPromote={handlePromote}
@@ -1381,7 +1393,7 @@ export default function GuildDetailPage() {
             />
           )}
           {tab === "materiais" && (
-            <MateriaisTab materials={materials} isAdmin={guild.isAdmin} />
+            <MateriaisTab materials={materials} isAdmin={isAdmin} />
           )}
           {tab === "ranking" && (
             <RankingTab guild={guild} members={members} />
