@@ -170,4 +170,13 @@ public class StudentFlashcardController {
         );
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/shared-decks/{sharedDeckId}/unshare")
+    public ResponseEntity<Void> unshareDeck(
+            @PathVariable UUID sharedDeckId,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = resolveUserId(jwt);
+        studentFlashcardService.unshareDeck(sharedDeckId, userId);
+        return ResponseEntity.ok().build();
+    }
 }

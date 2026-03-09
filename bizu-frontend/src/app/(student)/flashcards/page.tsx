@@ -34,7 +34,7 @@ interface Deck {
     rating?: number;
     ratingCount?: number;
     isPurchased?: boolean;
-    sharedWith?: Array<{ name: string; avatarUrl?: string; type: "GUILD" | "USER" }>;
+    sharedWith?: Array<{ deckId: string; name: string; avatarUrl?: string; type: "GUILD" | "USER" }>;
 }
 
 interface Summary {
@@ -143,25 +143,34 @@ export default function FlashcardsPage() {
         }
     };
 
-    const handleShareDeck = async (deckId: string, targetId: string, type: "GUILD" | "USER") => {
+    const handleShareDeck = async (deckId: string, targetId: string, targetType: "GUILD" | "USER") => {
         setIsSharing(true);
         try {
             const res = await apiFetch(`/student/flashcards/decks/${deckId}/share`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ targetType: type, targetId })
+                body: JSON.stringify({ targetType, targetId })
             });
             if (res.ok) {
-                alert(type === "GUILD" ? "Deck compartilhado com a guilda!" : "Deck compartilhado com o usuário!");
                 setSharingDeckId(null);
-            } else {
-                throw new Error("Erro ao compartilhar");
+                fetchData();
             }
         } catch (error) {
-            console.error(error);
-            alert("Erro ao compartilhar deck.", { type: "danger" });
+            console.error("Error sharing deck:", error);
         } finally {
             setIsSharing(false);
+        }
+    };
+
+    const handleUnshare = async (sharedDeckId: string) => {
+        if (!confirm("Interromper compartilhamento? O destinatário perderá o acesso.")) return;
+        try {
+            const res = await apiFetch(`/student/flashcards/shared-decks/${sharedDeckId}/unshare`, {
+                method: "POST"
+            });
+            if (res.ok) fetchData();
+        } catch (error) {
+            console.error("Error unsharing deck:", error);
         }
     };
 
@@ -323,12 +332,12 @@ export default function FlashcardsPage() {
                                 const Icon = ICON_MAP[deck.icon] || BookOpen;
                                 const colorClass = deck.color || "from-indigo-500 to-violet-600";
                                 return (
-                                    <div key={deck.id} className="relative group">
-                                        {/* Physical card stack layers */}
-                                        <div className="absolute left-4 right-4 top-3 h-full -z-20 bg-slate-100 rounded-2xl border border-slate-200/60 transition-all duration-300 group-hover:top-4" />
-                                        <div className="absolute left-2 right-2 top-1.5 h-full -z-10 bg-slate-50 rounded-2xl border border-slate-200/80 transition-all duration-300 group-hover:top-2.5" />
+                                    <div key={deck.id} className="relative group" style={{ paddingBottom: '10px', paddingRight: '6px', zIndex: sharingDeckId === deck.id ? 50 : 'auto' }}>
+                                        {/* Physical card stack — ghost cards shifted right+down */}
+                                        <div className="absolute inset-0 rounded-2xl bg-slate-200 border border-slate-300/70" style={{ transform: 'translate(6px, 6px)', zIndex: 0 }} />
+                                        <div className="absolute inset-0 rounded-2xl bg-slate-100 border border-slate-200" style={{ transform: 'translate(3px, 3px)', zIndex: 1 }} />
 
-                                        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+                                        <div className="relative bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300" style={{ zIndex: 2 }}>
                                             {/* Colored top stripe */}
                                             <div className={`h-1.5 w-full bg-gradient-to-r ${colorClass}`} />
 
@@ -360,17 +369,22 @@ export default function FlashcardsPage() {
                                                                 <div className="flex items-center gap-1.5 ml-1">
                                                                     <div className="flex items-center -space-x-1.5">
                                                                         {deck.sharedWith.slice(0, 3).map((share, idx) => (
-                                                                            <div key={idx} className="w-5 h-5 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center overflow-hidden shadow-sm ring-1 ring-slate-100" title={share.name}>
+                                                                            <button
+                                                                                key={idx}
+                                                                                onClick={(e) => { e.stopPropagation(); handleUnshare(share.deckId); }}
+                                                                                className="w-5 h-5 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center overflow-hidden shadow-sm ring-1 ring-slate-100 hover:scale-110 hover:ring-rose-200 transition-all cursor-pointer group/share"
+                                                                                title={`Remover compartilhamento com ${share.name}`}
+                                                                            >
                                                                                 {share.type === "GUILD" ? (
-                                                                                    <Users size={10} className="text-indigo-500 fill-indigo-50" />
+                                                                                    <Users size={10} className="text-indigo-500 fill-indigo-50 group-hover/share:text-rose-500" />
                                                                                 ) : (
                                                                                     <img
                                                                                         src={share.avatarUrl || `https://ui-avatars.com/api/?name=${share.name}&background=random`}
                                                                                         alt={share.name}
-                                                                                        className="w-full h-full object-cover"
+                                                                                        className="w-full h-full object-cover group-hover/share:opacity-40"
                                                                                     />
                                                                                 )}
-                                                                            </div>
+                                                                            </button>
                                                                         ))}
                                                                         {deck.sharedWith.length > 3 && (
                                                                             <div className="w-5 h-5 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center shadow-sm ring-1 ring-slate-100">
@@ -428,7 +442,7 @@ export default function FlashcardsPage() {
                                                                         <Share2 size={12} /> Share
                                                                     </button>
                                                                     {sharingDeckId === deck.id && (
-                                                                        <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 p-2 z-10 animate-in fade-in zoom-in-95 duration-150">
+                                                                        <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 p-2 z-[200] animate-in fade-in zoom-in-95 duration-150">
                                                                             <div className="flex gap-2 mb-2 p-1 bg-slate-50 rounded-lg">
                                                                                 <button onClick={() => setSharingType("GUILD")} className={`flex-1 text-[10px] font-bold py-1 rounded ${sharingType === "GUILD" ? "bg-white shadow text-indigo-600" : "text-slate-400"}`}>GUILDA</button>
                                                                                 <button onClick={() => setSharingType("USER")} className={`flex-1 text-[10px] font-bold py-1 rounded ${sharingType === "USER" ? "bg-white shadow text-indigo-600" : "text-slate-400"}`}>USUÁRIO</button>

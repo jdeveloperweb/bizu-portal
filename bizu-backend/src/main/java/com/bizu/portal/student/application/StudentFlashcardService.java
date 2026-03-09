@@ -101,23 +101,22 @@ public class StudentFlashcardService {
                         if (copy.getUserId() != null && !userId.equals(copy.getUserId())) {
                             userRepository.findById(copy.getUserId()).ifPresent(u -> {
                                 shares.add(ShareInfoDTO.builder()
+                                    .deckId(copy.getId())
                                     .name(u.getNickname() != null ? u.getNickname() : u.getName())
                                     .avatarUrl(u.getAvatarUrl())
                                     .type("USER")
                                     .build());
                             });
+                        } else if (copy.getGuildId() != null) {
+                            guildRepository.findById(copy.getGuildId()).ifPresent(g -> {
+                                shares.add(ShareInfoDTO.builder()
+                                    .deckId(copy.getId())
+                                    .name(g.getName())
+                                    .type("GUILD")
+                                    .build());
+                            });
                         }
                     });
-                    
-                    // Guilda alvo (se houver)
-                    if (deck.getSharedWithGuildId() != null) {
-                        guildRepository.findById(deck.getSharedWithGuildId()).ifPresent(g -> {
-                            shares.add(ShareInfoDTO.builder()
-                                .name(g.getName())
-                                .type("GUILD")
-                                .build());
-                        });
-                    }
                 }
 
                 String creatorName = deck.getOriginalCreatorId() != null ? 
@@ -260,9 +259,14 @@ public class StudentFlashcardService {
         FlashcardDeck sourceDeck = deckRepository.findById(deckId)
             .orElseThrow(() -> new RuntimeException("Deck not found"));
         
-        // Verifica permissão (apenas dono ou deck público/global - mas aqui focamos no dono)
-        if (sourceDeck.getUserId() != null && !sourceDeck.getUserId().equals(userId)) {
+        // Verifica permissão (apenas dono real do deck pode compartilhar)
+        if (sourceDeck.getUserId() == null || !sourceDeck.getUserId().equals(userId)) {
             throw new RuntimeException("Você não tem permissão para compartilhar este deck");
+        }
+
+        // Se for uma cópia recebida, também não pode compartilhar (opcional, dependendo da regra, mas sugerido pelo user)
+        if (sourceDeck.getSourceDeckId() != null) {
+            throw new RuntimeException("Você não pode compartilhar um deck que foi compartilhado com você");
         }
 
         User owner = userRepository.findById(userId)
@@ -393,6 +397,33 @@ public class StudentFlashcardService {
         }
         
         deckRepository.delete(deck);
+    }
+
+    @Transactional
+    public void unshareDeck(UUID sharedDeckId, UUID requesterId) {
+        FlashcardDeck sharedCopy = deckRepository.findById(sharedDeckId)
+            .orElseThrow(() -> new RuntimeException("Cópia compartilhada não encontrada"));
+
+        if (sharedCopy.getSourceDeckId() == null) {
+            throw new RuntimeException("Este deck não é uma cópia compartilhada");
+        }
+
+        FlashcardDeck sourceDeck = deckRepository.findById(sharedCopy.getSourceDeckId())
+            .orElseThrow(() -> new RuntimeException("Deck original não encontrado"));
+
+        if (!sourceDeck.getUserId().equals(requesterId)) {
+            throw new RuntimeException("Apenas o proprietário original pode remover o compartilhamento");
+        }
+
+        // Se for uma cópia de guilda, limpar a referência na fonte
+        if (sharedCopy.getGuildId() != null) {
+            if (sourceDeck.getSharedWithGuildId() != null && sourceDeck.getSharedWithGuildId().equals(sharedCopy.getGuildId())) {
+                sourceDeck.setSharedWithGuildId(null);
+                deckRepository.save(sourceDeck);
+            }
+        }
+
+        deckRepository.delete(sharedCopy);
     }
 
     public List<StudentFlashcardDeckDTO> getStoreDecks() {
