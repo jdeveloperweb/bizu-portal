@@ -9,6 +9,7 @@ import {
     Pause, Play, SkipForward,
 } from "lucide-react";
 import { motion, AnimatePresence, useAnimationControls } from "framer-motion";
+import { apiFetch } from "@/lib/api";
 
 interface Option {
     id: string;
@@ -30,6 +31,7 @@ interface QuestionProps {
 }
 
 export default function QuestionViewer({
+    id,
     statement,
     options,
     correctOptionId,
@@ -81,14 +83,24 @@ export default function QuestionViewer({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSubmitted]);
 
-    const handleSelect = (id: string) => {
+    const handleSelect = async (optionId: string) => {
         if (isSubmitted) return;
-        setSelectedOption(id);
+        setSelectedOption(optionId);
         if (!isSimuladoMode) {
             setIsSubmitted(true);
             setIsPaused(false);
             setShowResolution(false);
             beginTimer(AUTO_NEXT_DELAY_MS);
+
+            try {
+                await apiFetch("/student/activities/quick-answer", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ questionId: id, selectedOption: optionId })
+                });
+            } catch (error) {
+                console.error("Falha ao submeter resposta:", error);
+            }
         }
     };
 

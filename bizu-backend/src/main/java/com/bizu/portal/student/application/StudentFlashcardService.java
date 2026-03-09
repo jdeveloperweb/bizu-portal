@@ -36,6 +36,7 @@ public class StudentFlashcardService {
     private final com.bizu.portal.content.infrastructure.FlashcardDeckPurchaseRepository purchaseRepository;
     private final com.bizu.portal.content.infrastructure.FlashcardDeckRatingRepository ratingRepository;
     private final com.bizu.portal.student.infrastructure.GamificationRepository gamificationRepository;
+    private final com.bizu.portal.student.application.GamificationService gamificationService;
 
     public List<StudentFlashcardDeckDTO> getDecksForUser(UUID userId) {
         OffsetDateTime now = OffsetDateTime.now();
@@ -230,6 +231,12 @@ public class StudentFlashcardService {
             case "easy" -> 5;
             default -> 3;
         };
+
+        if (quality >= 3) {
+            gamificationService.addXp(userId, 10);
+        } else {
+            gamificationService.addXp(userId, -10);
+        }
 
         // Simplified SM-2 logic
         if (quality < 3) {
@@ -486,30 +493,35 @@ public class StudentFlashcardService {
             throw new RuntimeException("Este deck não está à venda");
         }
 
-        if (purchaseRepository.existsByDeckIdAndStudentId(deckId, buyerId)) {
-            throw new RuntimeException("Você já comprou este deck");
+        boolean hasActiveCopy = deckRepository.existsBySourceDeckIdAndUserId(deckId, buyerId);
+        if (hasActiveCopy) {
+            throw new RuntimeException("Você já possui uma cópia deste deck");
         }
 
-        var stats = gamificationRepository.findById(buyerId)
-            .orElseThrow(() -> new RuntimeException("Perfil de gamificação não encontrado"));
+        boolean alreadyBought = purchaseRepository.existsByDeckIdAndStudentId(deckId, buyerId);
 
-        if (stats.getAxonCoins() < storeDeck.getPrice()) {
-            throw new RuntimeException("Axons insuficientes");
+        if (!alreadyBought) {
+            var stats = gamificationRepository.findById(buyerId)
+                .orElseThrow(() -> new RuntimeException("Perfil de gamificação não encontrado"));
+
+            if (stats.getAxonCoins() < storeDeck.getPrice()) {
+                throw new RuntimeException("Axons insuficientes");
+            }
+
+            // Deduzir axons
+            stats.setAxonCoins(stats.getAxonCoins() - storeDeck.getPrice());
+            gamificationRepository.save(stats);
+
+            // Registrar compra
+            com.bizu.portal.content.domain.FlashcardDeckPurchase purchase = com.bizu.portal.content.domain.FlashcardDeckPurchase.builder()
+                .deckId(deckId)
+                .studentId(buyerId)
+                .pricePaid(storeDeck.getPrice())
+                .build();
+            purchaseRepository.save(purchase);
         }
 
-        // Deduzir axons
-        stats.setAxonCoins(stats.getAxonCoins() - storeDeck.getPrice());
-        gamificationRepository.save(stats);
-
-        // Registrar compra
-        com.bizu.portal.content.domain.FlashcardDeckPurchase purchase = com.bizu.portal.content.domain.FlashcardDeckPurchase.builder()
-            .deckId(deckId)
-            .studentId(buyerId)
-            .pricePaid(storeDeck.getPrice())
-            .build();
-        purchaseRepository.save(purchase);
-
-        // Criar cópia para o usuário
+        // Criar cópia para o usuário (seja nova compra ou restauração)
         FlashcardDeck buyerDeck = FlashcardDeck.builder()
             .userId(buyerId)
             .sourceDeckId(deckId) // Link para o deck original da loja

@@ -78,12 +78,16 @@ C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bi
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\content\domain\Course.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\content\domain\Flashcard.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\content\domain\FlashcardDeck.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\content\domain\FlashcardDeckPurchase.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\content\domain\FlashcardDeckRating.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\content\domain\Material.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\content\domain\Module.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\content\domain\Question.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\content\domain\QuestionImportLog.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\content\domain\Simulado.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\content\infrastructure\CourseRepository.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\content\infrastructure\FlashcardDeckPurchaseRepository.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\content\infrastructure\FlashcardDeckRatingRepository.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\content\infrastructure\FlashcardDeckRepository.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\content\infrastructure\FlashcardRepository.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\content\infrastructure\MaterialRepository.java
@@ -123,6 +127,7 @@ C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bi
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\shared\application\FileStorageService.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\shared\config\AsyncConfig.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\shared\event\AttemptCompletedEventListener.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\shared\exception\BusinessException.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\shared\exception\CourseContextViolationException.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\shared\exception\EntitlementDeniedException.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\shared\exception\GlobalExceptionHandler.java
@@ -181,6 +186,7 @@ C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bi
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\RankingService.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\RedisRankingService.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\RewardDTO.java
+C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\ShareInfoDTO.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\SimuladoExamService.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\SimulationService.java
 C:\Users\Jaime.Vicente\bizu-portal\bizu-portal\bizu-backend\src\main\java\com\bizu\portal\student\application\StudentAttemptCompletedEvent.java

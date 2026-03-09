@@ -30,6 +30,8 @@ public class StudentActivityController {
     private final CourseService courseService;
     private final ModuleService moduleService;
     private final UserRepository userRepository;
+    private final com.bizu.portal.student.application.AttemptService attemptService;
+    private final com.bizu.portal.content.infrastructure.QuestionRepository questionRepository;
 
     @Data
     public static class StartExamRequest {
@@ -45,6 +47,12 @@ public class StudentActivityController {
     @Data
     public static class SubmitAnswerRequest {
         private UUID snapshotId;
+        private String selectedOption;
+    }
+
+    @Data
+    public static class QuickAnswerRequest {
+        private UUID questionId;
         private String selectedOption;
     }
 
@@ -82,6 +90,20 @@ public class StudentActivityController {
     @PostMapping("/{attemptId}/finish")
     public ResponseEntity<com.bizu.portal.student.application.RewardDTO> finishAttempt(@PathVariable UUID attemptId) {
         return ResponseEntity.ok(activityService.finishAttempt(attemptId));
+    }
+
+    @PostMapping("/quick-answer")
+    public ResponseEntity<com.bizu.portal.student.application.RewardDTO> submitQuickAnswer(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody QuickAnswerRequest request) {
+        User user = resolveUser(jwt);
+        com.bizu.portal.content.domain.Question question = questionRepository.findById(request.getQuestionId())
+            .orElseThrow(() -> new RuntimeException("Questão não encontrada"));
+        
+        com.bizu.portal.student.domain.Attempt attempt = attemptService.processAttempt(user, question, request.getSelectedOption());
+        
+        // Retornar um RewardDTO genérico ou null se quisermos apenas Ok
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{attemptId}")
