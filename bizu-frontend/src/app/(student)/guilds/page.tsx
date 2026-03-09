@@ -39,23 +39,13 @@ function LeagueBadge({ league }: { league: string }) {
 
 function GuildCardSkeleton() {
   return (
-    <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 space-y-4">
-      <div className="flex items-start gap-4">
-        <Skeleton className="w-16 h-16 rounded-xl shrink-0" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-5 w-3/4 rounded" />
-          <Skeleton className="h-4 w-1/3 rounded" />
-        </div>
+    <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl px-4 py-3 flex items-center gap-4">
+      <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
+      <div className="flex-1 space-y-1.5">
+        <Skeleton className="h-4 w-40 rounded" />
+        <Skeleton className="h-3 w-24 rounded" />
       </div>
-      <Skeleton className="h-8 w-full rounded" />
-      <div className="flex gap-2">
-        <Skeleton className="h-5 w-16 rounded-md" />
-        <Skeleton className="h-5 w-16 rounded-md" />
-      </div>
-      <div className="flex justify-between pt-2 border-t border-[var(--border)]">
-        <Skeleton className="h-4 w-24 rounded" />
-        <Skeleton className="h-8 w-24 rounded-lg" />
-      </div>
+      <Skeleton className="h-7 w-20 rounded-lg" />
     </div>
   );
 }
@@ -70,130 +60,83 @@ function GuildCard({ guild, index, onJoin, onLeave }: {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.35 }}
-      className="group relative bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden hover:border-indigo-300 hover:shadow-md transition-all duration-300"
+      transition={{ delay: index * 0.03, duration: 0.25 }}
+      className="group bg-[var(--card)] border border-[var(--border)] rounded-xl px-4 py-3 hover:border-indigo-300 hover:shadow-sm transition-all duration-200"
     >
-      <div className="h-0.5 w-full bg-gradient-to-r from-transparent via-indigo-400/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
-      <div className="p-5">
-        {/* Header */}
-        <div className="flex items-start gap-4 mb-4">
-          <div className="relative shrink-0">
-            <GuildBadge type={badgeType} size="lg" showGlow />
-            {guild.rankPosition <= 5 && (
-              <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center">
-                <span className="text-[9px] font-black text-white">#{guild.rankPosition}</span>
-              </div>
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-bold text-[var(--foreground)] text-base truncate">{guild.name}</h3>
-              {!guild.isPublic && <Lock size={12} className="text-[var(--muted-foreground)] shrink-0" />}
+      <div className="flex items-center gap-3">
+        {/* Avatar + Rank */}
+        <div className="relative shrink-0">
+          <GuildBadge type={badgeType} size="md" />
+          {guild.rankPosition <= 5 && (
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center">
+              <span className="text-[8px] font-black text-white">#{guild.rankPosition}</span>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <LeagueBadge league={guild.league} />
-              {guild.streak >= 7 && (
-                <span className="text-[10px] text-orange-500 flex items-center gap-0.5 font-medium">
-                  <Flame size={10} /> {guild.streak}d
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Description */}
-        <p className="text-sm text-[var(--muted-foreground)] line-clamp-2 mb-4 leading-relaxed">
-          {guild.description}
-        </p>
-
-        {/* Tags */}
-        {guild.tags?.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-4">
-            {guild.tags.map(tag => (
-              <span key={tag} className="text-[11px] px-2 py-0.5 rounded-md bg-[var(--muted)] text-[var(--muted-foreground)] border border-[var(--border)]">
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Stats */}
-        <div className="flex items-center gap-4 mb-4 pb-4 border-b border-[var(--border)]">
-          <div className="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)]">
-            <Users size={13} className="text-indigo-600" />
-            <span>{guild.memberCount}<span className="text-[var(--muted-foreground)] opacity-50">/{guild.maxMembers}</span></span>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)]">
-            <Zap size={13} className="text-amber-500" />
-            <span>{(guild.totalXp / 1000).toFixed(1)}k XP</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-[var(--muted-foreground)]">
-            <TrendingUp size={13} className="text-green-600" />
-            <span>+{(guild.weeklyXp / 1000).toFixed(1)}k/sem</span>
-          </div>
-        </div>
-
-        {/* CTA */}
-        <div className="flex items-center justify-between">
-          {(guild.isMember || guild.isAdmin || guild.isFounder) ? (
-            <Link
-              href={`/guilds/${guild.id}`}
-              className="text-xs text-indigo-600 hover:text-indigo-700 transition-colors flex items-center gap-1 font-medium"
-            >
-              Ver guild <ChevronRight size={12} />
-            </Link>
-          ) : (
-            <div />
           )}
+        </div>
 
-          <div className="flex items-center gap-2">
-            {guild.isMember && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  onLeave && onLeave(guild);
-                }}
-                className="text-[10px] px-2 py-1 rounded-md text-red-500 hover:bg-red-50 font-medium transition-colors border border-transparent hover:border-red-100"
-              >
-                Sair
-              </button>
-            )}
+        {/* Nome + League */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <h3 className="font-semibold text-[var(--foreground)] text-sm truncate">{guild.name}</h3>
+            {!guild.isPublic && <Lock size={11} className="text-[var(--muted-foreground)] shrink-0" />}
+          </div>
+          <div className="flex items-center gap-2 mt-0.5">
+            <LeagueBadge league={guild.league} />
+            <span className="text-[11px] text-[var(--muted-foreground)] flex items-center gap-1">
+              <Users size={11} className="text-indigo-500" />
+              {guild.memberCount}/{guild.maxMembers}
+            </span>
+            <span className="text-[11px] text-[var(--muted-foreground)] flex items-center gap-1">
+              <Zap size={11} className="text-amber-500" />
+              {(guild.totalXp / 1000).toFixed(1)}k
+            </span>
+          </div>
+        </div>
 
-            {(guild.isAdmin || guild.isMember) ? (
+        {/* Ações */}
+        <div className="flex items-center gap-2 shrink-0">
+          {(guild.isMember || guild.isAdmin || guild.isFounder) ? (
+            <>
+              {guild.isMember && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); onLeave && onLeave(guild); }}
+                  className="text-[10px] px-2 py-1 rounded-md text-red-500 hover:bg-red-50 font-medium transition-colors"
+                >
+                  Sair
+                </button>
+              )}
               <Link
                 href={`/guilds/${guild.id}`}
                 className="text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors"
               >
-                Entrar
+                Acessar
               </Link>
-            ) : guild.memberCount >= guild.maxMembers ? (
-              <span className="text-xs px-3 py-1.5 rounded-lg bg-[var(--muted)] text-[var(--muted-foreground)] border border-[var(--border)] cursor-not-allowed">
-                Cheia
-              </span>
-            ) : guild.hasPendingRequest ? (
-              <span className="text-xs px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 border border-amber-200 flex items-center gap-1 cursor-default">
-                Pendente
-              </span>
-            ) : guild.isPublic ? (
-              <button
-                onClick={() => onJoin(guild)}
-                className="text-xs px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 font-medium transition-colors"
-              >
-                Entrar
-              </button>
-            ) : (
-              <button
-                onClick={() => onJoin(guild)}
-                className="text-xs px-3 py-1.5 rounded-lg bg-[var(--muted)] hover:bg-slate-200 border border-[var(--border)] text-[var(--foreground)] font-medium transition-colors flex items-center gap-1"
-              >
-                <Lock size={11} /> Pedir acesso
-              </button>
-            )}
-          </div>
+            </>
+          ) : guild.memberCount >= guild.maxMembers ? (
+            <span className="text-xs px-3 py-1.5 rounded-lg bg-[var(--muted)] text-[var(--muted-foreground)] border border-[var(--border)] cursor-not-allowed">
+              Cheia
+            </span>
+          ) : guild.hasPendingRequest ? (
+            <span className="text-xs px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 border border-amber-200 cursor-default">
+              Pendente
+            </span>
+          ) : guild.isPublic ? (
+            <button
+              onClick={() => onJoin(guild)}
+              className="text-xs px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 font-medium transition-colors"
+            >
+              Entrar
+            </button>
+          ) : (
+            <button
+              onClick={() => onJoin(guild)}
+              className="text-xs px-3 py-1.5 rounded-lg bg-[var(--muted)] hover:bg-slate-200 border border-[var(--border)] text-[var(--foreground)] font-medium transition-colors flex items-center gap-1"
+            >
+              <Lock size={11} /> Pedir acesso
+            </button>
+          )}
         </div>
       </div>
     </motion.div>
@@ -209,36 +152,35 @@ function FeaturedCard({ guild }: { guild: GuildResponseDTO }) {
       href={`/guilds/${guild.id}`}
       className="group relative rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--card)] hover:border-indigo-300 hover:shadow-md transition-all duration-300 block"
     >
-      {/* Top league color accent */}
-      <div className="h-1 w-full" style={{ background: leagueCfg.color }} />
+      <div className="h-0.5 w-full" style={{ background: leagueCfg.color }} />
 
-      <div className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <GuildBadge type={badgeType} size="md" showGlow />
-          <div className="text-right">
-            <div className="text-[9px] text-[var(--muted-foreground)] uppercase tracking-tight">Ranking Global</div>
-            <div className="text-lg font-black text-[var(--foreground)] leading-none">#{guild.rankPosition}</div>
+      <div className="p-3">
+        <div className="flex items-center gap-3">
+          <div className="relative shrink-0">
+            <GuildBadge type={badgeType} size="sm" />
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center border border-white">
+              <span className="text-[8px] font-black text-white">#{guild.rankPosition}</span>
+            </div>
           </div>
-        </div>
 
-        <h3 className="text-base font-black text-[var(--foreground)] mb-0.5 leading-tight">{guild.name}</h3>
-        <p className="text-[11px] text-[var(--muted-foreground)] line-clamp-1 mb-3">{guild.description}</p>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-bold text-[var(--foreground)] truncate leading-none mb-1">{guild.name}</h3>
+            <div className="flex items-center gap-2">
+              <LeagueBadge league={guild.league} />
+              <div className="flex items-center gap-1.5 text-[10px] text-[var(--muted-foreground)]">
+                <Users size={10} className="text-indigo-400" />
+                <span>{guild.memberCount}</span>
+              </div>
+            </div>
+          </div>
 
-        <div className="flex items-center gap-2 pt-3 border-t border-[var(--border)]">
-          <div className="text-center px-1">
-            <div className="text-sm font-bold text-[var(--foreground)]">{guild.memberCount}</div>
-            <div className="text-[8px] text-[var(--muted-foreground)] uppercase tracking-tighter">Membros</div>
-          </div>
-          <div className="text-center border-l border-[var(--border)] px-2">
-            <div className="text-sm font-bold text-amber-600">{(guild.totalXp / 1000).toFixed(0)}k</div>
-            <div className="text-[8px] text-[var(--muted-foreground)] uppercase tracking-tighter">XP</div>
-          </div>
-          <div className="text-center border-l border-[var(--border)] px-2">
-            <div className="text-sm font-bold text-orange-500">{guild.streak}d</div>
-            <div className="text-[8px] text-[var(--muted-foreground)] uppercase tracking-tighter">Streak</div>
-          </div>
-          <div className="ml-auto">
-            <LeagueBadge league={guild.league} />
+          <div className="text-right shrink-0">
+            <div className="text-xs font-black text-indigo-600">{(guild.totalXp / 1000).toFixed(0)}k XP</div>
+            {guild.streak > 0 && (
+              <div className="text-[9px] text-orange-500 font-medium flex items-center justify-end gap-0.5">
+                <Flame size={10} /> {guild.streak}d
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -340,7 +282,7 @@ export default function GuildsPage() {
   }
 
   const myGuilds = guilds.filter(g => g.isAdmin || g.isMember);
-  const featured = [...guilds].sort((a, b) => a.rankPosition - b.rankPosition).slice(0, 3);
+  const featured = [...guilds].sort((a, b) => a.rankPosition - b.rankPosition).slice(0, 5);
 
   const filtered = guilds.filter(g => {
     if (filter === "public") return g.isPublic;
@@ -442,7 +384,7 @@ export default function GuildsPage() {
           <h2 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-3 flex items-center gap-2">
             <Crown size={13} className="text-purple-500" /> Guilds em Destaque
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
             {featured.map(g => <FeaturedCard key={g.id} guild={g} />)}
           </div>
         </section>
@@ -487,11 +429,11 @@ export default function GuildsPage() {
         </h2>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="flex flex-col gap-2">
             {Array.from({ length: 6 }).map((_, i) => <GuildCardSkeleton key={i} />)}
           </div>
         ) : filtered.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="flex flex-col gap-2">
             {filtered.map((g, i) => (
               <GuildCard key={g.id} guild={g} index={i} onJoin={handleJoin} onLeave={handleLeave} />
             ))}
