@@ -12,7 +12,9 @@ import {
   CheckSquare, RotateCcw, Eye, EyeOff,
   ListTodo, StickyNote, ShieldCheck, ShieldOff, UserMinus, X
 } from "lucide-react";
+import { getAvatarUrl } from "@/lib/imageUtils";
 import Link from "next/link";
+
 import { useParams } from "next/navigation";
 import { GuildBadge, GuildBadgeSelector, GuildBadgeType, GUILD_BADGES } from "@/components/guilds/GuildBadge";
 import { RankInsignia } from "@/components/gamification/RankInsignia";
@@ -354,11 +356,12 @@ function MemberAvatar({ name, avatar, size = "md", online = false, rankLevel }: 
     <div className="relative shrink-0">
       <div className={`${cls} rounded-full overflow-hidden bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center font-bold text-white shadow-sm ring-2 ring-white`}>
         {avatar ? (
-          <img src={avatar} alt={name} className="w-full h-full object-cover" />
+          <img src={getAvatarUrl(avatar)} alt={name} className="w-full h-full object-cover" />
         ) : (
           name.charAt(0).toUpperCase()
         )}
       </div>
+
       {online && (
         <div className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white shadow-sm" />
       )}
