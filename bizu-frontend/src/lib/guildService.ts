@@ -16,6 +16,7 @@ export interface GuildResponseDTO {
   streak: number;
   isPublic: boolean;
   isAdmin: boolean;
+  isFounder: boolean;
   isMember: boolean;
   tags: string[];
   createdAt: string;
@@ -306,6 +307,51 @@ export const GuildService = {
     const res = await apiFetch("/student/guilds/me");
     if (!res.ok) throw new Error("Erro ao buscar minhas guilds");
     return res.json();
+  },
+
+  /** POST /student/guilds/{guildId}/requests/{requestId}/approve */
+  async approveRequest(guildId: string, requestId: string): Promise<void> {
+    const res = await apiFetch(`/student/guilds/${guildId}/requests/${requestId}/approve`, { method: "POST" });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || "Erro ao aprovar pedido");
+    }
+  },
+
+  /** POST /student/guilds/{guildId}/requests/{requestId}/decline */
+  async declineRequest(guildId: string, requestId: string): Promise<void> {
+    const res = await apiFetch(`/student/guilds/${guildId}/requests/${requestId}/decline`, { method: "POST" });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || "Erro ao recusar pedido");
+    }
+  },
+
+  /** POST /student/guilds/{guildId}/members/{memberId}/promote */
+  async promoteMember(guildId: string, memberId: string): Promise<void> {
+    const res = await apiFetch(`/student/guilds/${guildId}/members/${memberId}/promote`, { method: "POST" });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || "Erro ao promover membro");
+    }
+  },
+
+  /** POST /student/guilds/{guildId}/members/{memberId}/demote */
+  async demoteMember(guildId: string, memberId: string): Promise<void> {
+    const res = await apiFetch(`/student/guilds/${guildId}/members/${memberId}/demote`, { method: "POST" });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || "Erro ao rebaixar membro");
+    }
+  },
+
+  /** DELETE /student/guilds/{guildId}/members/{memberId} */
+  async kickMember(guildId: string, memberId: string): Promise<void> {
+    const res = await apiFetch(`/student/guilds/${guildId}/members/${memberId}`, { method: "DELETE" });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || "Erro ao remover membro");
+    }
   },
 
   /** POST /student/notes/{id}/share */

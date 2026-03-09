@@ -10,7 +10,7 @@ import {
   Upload, FileText, Video, Link2, Clock, Award,
   Bell, Calendar, Send, PenLine,
   CheckSquare, RotateCcw, Eye, EyeOff,
-  ListTodo, StickyNote,
+  ListTodo, StickyNote, ShieldCheck, ShieldOff, UserMinus,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -316,16 +316,98 @@ function InicioTab({
   );
 }
 
+// ─── Member actions dropdown ──────────────────────────────────────────────────
+
+function MemberActionsMenu({
+  member, isFounder, onPromote, onDemote, onKick,
+}: {
+  member: GuildMemberDTO;
+  isFounder: boolean;
+  onPromote: () => void;
+  onDemote: () => void;
+  onKick: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  const canManageAdmin = member.role === "admin" && isFounder;
+  const canPromote = member.role === "member";
+  const canKick = member.role !== "founder";
+
+  return (
+    <div ref={ref} className="relative shrink-0">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="p-1.5 rounded-lg hover:bg-[var(--muted)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+      >
+        <MoreVertical size={14} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -4 }}
+            transition={{ duration: 0.1 }}
+            className="absolute right-0 top-full mt-1 w-48 bg-white border border-[var(--border)] rounded-xl shadow-lg z-50 overflow-hidden py-1"
+          >
+            {canPromote && (
+              <button
+                onClick={() => { onPromote(); setOpen(false); }}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-indigo-50 hover:text-indigo-700 transition-colors text-left"
+              >
+                <ShieldCheck size={14} className="text-indigo-500" />
+                Promover a Admin
+              </button>
+            )}
+            {canManageAdmin && (
+              <button
+                onClick={() => { onDemote(); setOpen(false); }}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-[var(--foreground)] hover:bg-amber-50 hover:text-amber-700 transition-colors text-left"
+              >
+                <ShieldOff size={14} className="text-amber-500" />
+                Remover de Admin
+              </button>
+            )}
+            {canKick && (
+              <button
+                onClick={() => { onKick(); setOpen(false); }}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
+              >
+                <UserMinus size={14} />
+                Remover da Guild
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ─── Tab: Membros ─────────────────────────────────────────────────────────────
 
 function MembrosTab({
-  members, pending, isAdmin, onAccept, onDecline,
+  members, pending, isAdmin, isFounder, onAccept, onDecline, onPromote, onDemote, onKick,
 }: {
   members: GuildMemberDTO[];
   pending: GuildRequestDTO[];
   isAdmin: boolean;
+  isFounder: boolean;
   onAccept: (id: string) => void;
   onDecline: (id: string) => void;
+  onPromote: (memberId: string) => void;
+  onDemote: (memberId: string) => void;
+  onKick: (memberId: string) => void;
 }) {
   return (
     <div className="space-y-6">
@@ -400,9 +482,13 @@ function MembrosTab({
               </div>
             )}
             {isAdmin && m.role !== "founder" && (
-              <button className="p-1.5 rounded-lg hover:bg-[var(--muted)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors shrink-0">
-                <MoreVertical size={14} />
-              </button>
+              <MemberActionsMenu
+                member={m}
+                isFounder={isFounder}
+                onPromote={() => onPromote(m.id)}
+                onDemote={() => onDemote(m.id)}
+                onKick={() => onKick(m.id)}
+              />
             )}
           </motion.div>
         ))}
@@ -1052,14 +1138,83 @@ export default function GuildDetailPage() {
     }
   }, [guildId, notify]);
 
-  // ── Accept join request ──
-  function handleAccept(_requestId: string) {
-    notify("Em breve", "Aprovação de membros será liberada em breve.", "info");
-  }
+  // ── Approve join request ──
+  const handleAccept = useCallback(async (requestId: string) => {
+    const req = pending.find(r => r.id === requestId);
+    setPending(prev => prev.filter(r => r.id !== requestId));
+    try {
+      await GuildService.approveRequest(guildId, requestId);
+      if (req) {
+        const newMember: GuildMemberDTO = {
+          id: requestId,
+          name: req.name,
+          nickname: req.nickname,
+          level: req.level,
+          xp: 0,
+          role: "member",
+          streak: 0,
+          joinDate: new Date().toLocaleDateString("pt-BR"),
+          avatar: null,
+          online: false,
+        };
+        setMembers(prev => [...prev, newMember]);
+      }
+      notify("Aprovado", `${req?.name ?? "Membro"} entrou na guild.`, "success");
+    } catch (e: any) {
+      setPending(prev => req ? [...prev, req] : prev);
+      notify("Erro", e.message ?? "Não foi possível aprovar o pedido.", "error");
+    }
+  }, [guildId, pending, notify]);
 
-  function handleDecline(_requestId: string) {
-    notify("Em breve", "Rejeição de membros será liberada em breve.", "info");
-  }
+  const handleDecline = useCallback(async (requestId: string) => {
+    const req = pending.find(r => r.id === requestId);
+    setPending(prev => prev.filter(r => r.id !== requestId));
+    try {
+      await GuildService.declineRequest(guildId, requestId);
+      notify("Recusado", `Pedido de ${req?.name ?? "membro"} recusado.`, "info");
+    } catch (e: any) {
+      setPending(prev => req ? [...prev, req] : prev);
+      notify("Erro", e.message ?? "Não foi possível recusar o pedido.", "error");
+    }
+  }, [guildId, pending, notify]);
+
+  // ── Promote to admin ──
+  const handlePromote = useCallback(async (memberId: string) => {
+    setMembers(prev => prev.map(m => m.id === memberId ? { ...m, role: "admin" } : m));
+    try {
+      await GuildService.promoteMember(guildId, memberId);
+      notify("Promovido", "Membro promovido a Admin.", "success");
+    } catch (e: any) {
+      setMembers(prev => prev.map(m => m.id === memberId ? { ...m, role: "member" } : m));
+      notify("Erro", e.message ?? "Não foi possível promover o membro.", "error");
+    }
+  }, [guildId, notify]);
+
+  // ── Demote from admin ──
+  const handleDemote = useCallback(async (memberId: string) => {
+    setMembers(prev => prev.map(m => m.id === memberId ? { ...m, role: "member" } : m));
+    try {
+      await GuildService.demoteMember(guildId, memberId);
+      notify("Rebaixado", "Admin rebaixado a membro.", "info");
+    } catch (e: any) {
+      setMembers(prev => prev.map(m => m.id === memberId ? { ...m, role: "admin" } : m));
+      notify("Erro", e.message ?? "Não foi possível rebaixar o membro.", "error");
+    }
+  }, [guildId, notify]);
+
+  // ── Kick member ──
+  const handleKick = useCallback(async (memberId: string) => {
+    const kicked = members.find(m => m.id === memberId);
+    if (!window.confirm(`Remover ${kicked?.name ?? "este membro"} da guild?`)) return;
+    setMembers(prev => prev.filter(m => m.id !== memberId));
+    try {
+      await GuildService.kickMember(guildId, memberId);
+      notify("Removido", `${kicked?.name ?? "Membro"} foi removido da guild.`, "info");
+    } catch (e: any) {
+      if (kicked) setMembers(prev => [...prev, kicked]);
+      notify("Erro", e.message ?? "Não foi possível remover o membro.", "error");
+    }
+  }, [guildId, members, notify]);
 
   if (loading) return <PageSkeleton />;
   if (!guild) return (
@@ -1197,8 +1352,12 @@ export default function GuildDetailPage() {
               members={members}
               pending={pending}
               isAdmin={guild.isAdmin}
+              isFounder={guild.isFounder ?? false}
               onAccept={handleAccept}
               onDecline={handleDecline}
+              onPromote={handlePromote}
+              onDemote={handleDemote}
+              onKick={handleKick}
             />
           )}
           {tab === "materiais" && (
