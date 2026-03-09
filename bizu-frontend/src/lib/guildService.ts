@@ -375,4 +375,47 @@ export const GuildService = {
     });
     if (!res.ok) throw new Error("Erro ao compartilhar anotação");
   },
+
+  /** POST /student/guilds/{id}/invites?userId={userId} */
+  async inviteMember(guildId: string, userId: string): Promise<void> {
+    const res = await apiFetch(`/student/guilds/${guildId}/invites?userId=${userId}`, {
+      method: "POST",
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || "Erro ao convidar membro");
+    }
+  },
+
+  /** POST /student/guilds/{id}/materials (multipart) */
+  async uploadMaterial(guildId: string, file: File, title?: string): Promise<GuildMaterialDTO> {
+    const formData = new FormData();
+    formData.append("file", file);
+    if (title) formData.append("title", title);
+
+    const res = await apiFetch(`/student/guilds/${guildId}/materials`, {
+      method: "POST",
+      // apiFetch automatically handles content-type for FormData if not set
+      body: formData,
+      headers: {
+        // Important: let the browser set the boundary
+      }
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || "Erro ao fazer upload do material");
+    }
+    return res.json();
+  },
+
+  /** DELETE /student/guilds/{id} */
+  async deleteGuild(id: string): Promise<void> {
+    const res = await apiFetch(`/student/guilds/${id}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || "Erro ao deletar guilda");
+    }
+  },
 };

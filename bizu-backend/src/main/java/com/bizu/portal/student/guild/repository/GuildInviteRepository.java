@@ -10,4 +10,5 @@ import java.util.UUID;
 public interface GuildInviteRepository extends JpaRepository<GuildInvite, UUID> {
     List<GuildInvite> findAllByInviteeIdAndStatus(UUID inviteeId, GuildInvite.Status status);
     List<GuildInvite> findAllByGuildIdAndStatus(UUID guildId, GuildInvite.Status status);
+    java.util.Optional<GuildInvite> findByGuildIdAndInviteeIdAndStatus(UUID guildId, UUID inviteeId, GuildInvite.Status status);
 }

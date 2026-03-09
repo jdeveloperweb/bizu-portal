@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -216,5 +217,34 @@ public class StudentGuildController {
         UUID userId = userService.resolveUserId(jwt);
         guildService.kickMember(id, memberId, userId);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/invites")
+    public ResponseEntity<Void> inviteMember(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam UUID userId) {
+        UUID inviterId = userService.resolveUserId(jwt);
+        guildService.inviteMember(id, userId, inviterId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/materials")
+    public ResponseEntity<GuildMaterialDTO> uploadMaterial(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "title", required = false) String title) {
+        UUID userId = userService.resolveUserId(jwt);
+        return ResponseEntity.ok(guildService.uploadMaterial(id, userId, file, title));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteGuild(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userService.resolveUserId(jwt);
+        guildService.deleteGuild(id, userId);
+        return ResponseEntity.noContent().build();
     }
 }

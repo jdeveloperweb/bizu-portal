@@ -40,11 +40,12 @@ type GuildTab = "inicio" | "membros" | "materiais" | "flashcards" | "anotacoes" 
 // ─── Settings Modal ───────────────────────────────────────────────────────────
 
 function SettingsModal({
-  guild, onClose, onUpdate
+  guild, onClose, onUpdate, onDelete
 }: {
   guild: GuildResponseDTO;
   onClose: () => void;
   onUpdate: (data: Partial<GuildResponseDTO>) => Promise<void>;
+  onDelete: () => Promise<void>;
 }) {
   const [name, setName] = useState(guild.name);
   const [description, setDescription] = useState(guild.description);
@@ -151,6 +152,18 @@ function SettingsModal({
               </button>
             </div>
           </div>
+
+          {guild.isFounder && (
+            <div className="pt-4 border-t border-slate-100">
+              <button
+                onClick={onDelete}
+                className="flex items-center gap-2 text-xs font-bold text-red-500 hover:text-red-700 transition-colors"
+                type="button"
+              >
+                <X size={14} /> Deletar permanentemente esta guilda
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
@@ -166,6 +179,143 @@ function SettingsModal({
             className="px-8 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/20 active:scale-95 transition-all disabled:opacity-50"
           >
             {saving ? "Salvando..." : "Salvar Alterações"}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function InviteModal({ guildId, onClose, onInvite }: { guildId: string; onClose: () => void; onInvite: (userId: string) => Promise<void> }) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<{ id: string, name: string, nickname: string, level: number }[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [inviting, setInviting] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (query.length < 3) {
+        setResults([]);
+        return;
+      }
+      setLoading(true);
+      try {
+        const data = await GuildService.searchUsers(query);
+        setResults(data);
+      } finally {
+        setLoading(false);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  async function handleInvite(userId: string) {
+    setInviting(userId);
+    try {
+      await onInvite(userId);
+      setResults(prev => prev.filter(u => u.id !== userId));
+    } finally {
+      setInviting(null);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-slate-900">Convidar Membros</h2>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 transition-colors"><X size={18} /></button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div className="relative">
+            <input
+              placeholder="Digite o @nickname..."
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none text-sm transition-all"
+            />
+          </div>
+          <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+            {loading ? <div className="text-center py-4 text-xs text-slate-400">Buscando...</div> :
+              results.length === 0 && query.length >= 3 ? <div className="text-center py-4 text-xs text-slate-400">Nenhum usuário encontrado.</div> :
+                results.map(u => (
+                  <div key={u.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <MemberAvatar name={u.name} size="sm" />
+                      <div>
+                        <div className="text-sm font-bold text-slate-800">{u.name}</div>
+                        <div className="text-[10px] text-slate-500">@{u.nickname} · Nível {u.level}</div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleInvite(u.id)}
+                      disabled={inviting === u.id}
+                      className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all disabled:opacity-50"
+                    >
+                      {inviting === u.id ? "..." : "Convidar"}
+                    </button>
+                  </div>
+                ))}
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function UploadMaterialModal({ onClose, onUpload }: { onClose: () => void; onUpload: (file: File, title: string) => Promise<void> }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [title, setTitle] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  async function handleUpload() {
+    if (!file) return;
+    setUploading(true);
+    try {
+      await onUpload(file, title);
+      onClose();
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-slate-900">Compartilhar Material</h2>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 transition-colors"><X size={18} /></button>
+        </div>
+        <div className="p-6 space-y-5">
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Título do Material (Opcional)</label>
+            <input
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              placeholder="Ex: Resumo de Anatomia"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none text-sm transition-all"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Arquivo (PDF, Vídeo, etc)</label>
+            <div className={`relative border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center transition-all ${file ? "border-indigo-400 bg-indigo-50" : "border-slate-200 hover:border-slate-300"}`}>
+              <Upload size={24} className={file ? "text-indigo-600" : "text-slate-300"} />
+              <div className="mt-2 text-xs font-medium text-slate-600">
+                {file ? file.name : "Arraste ou clique para selecionar"}
+              </div>
+              <input
+                type="file"
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                onChange={e => setFile(e.target.files?.[0] || null)}
+              />
+            </div>
+          </div>
+          <button
+            onClick={handleUpload}
+            disabled={!file || uploading}
+            className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/20 transition-all disabled:opacity-50"
+          >
+            {uploading ? "Fazendo upload..." : "Compartilhar com a Guild"}
           </button>
         </div>
       </motion.div>
@@ -534,7 +684,7 @@ function MemberActionsMenu({
 // ─── Tab: Membros ─────────────────────────────────────────────────────────────
 
 function MembrosTab({
-  members, pending, isAdmin, isFounder, onAccept, onDecline, onPromote, onDemote, onKick,
+  members, pending, isAdmin, isFounder, onAccept, onDecline, onPromote, onDemote, onKick, onInvite,
 }: {
   members: GuildMemberDTO[];
   pending: GuildRequestDTO[];
@@ -545,6 +695,7 @@ function MembrosTab({
   onPromote: (memberId: string) => void;
   onDemote: (memberId: string) => void;
   onKick: (memberId: string) => void;
+  onInvite: () => void;
 }) {
   return (
     <div className="space-y-6">
@@ -632,7 +783,10 @@ function MembrosTab({
       </div>
 
       {(isAdmin || isFounder) && (
-        <button className="w-full py-3 rounded-xl border border-dashed border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:border-indigo-300 text-sm flex items-center justify-center gap-2 transition-colors">
+        <button
+          onClick={onInvite}
+          className="w-full py-3 rounded-xl border border-dashed border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:border-indigo-300 text-sm flex items-center justify-center gap-2 transition-colors"
+        >
           <UserPlus size={14} /> Convidar Membros
         </button>
       )}
@@ -642,7 +796,7 @@ function MembrosTab({
 
 // ─── Tab: Materiais ───────────────────────────────────────────────────────────
 
-function MateriaisTab({ materials, isAdmin }: { materials: GuildMaterialDTO[]; isAdmin: boolean }) {
+function MateriaisTab({ materials, isAdmin, onUpload }: { materials: GuildMaterialDTO[]; isAdmin: boolean; onUpload: () => void }) {
   const iconMap: Record<string, React.ElementType> = { pdf: FileText, video: Video, link: Link2 };
   const colorMap: Record<string, string> = { pdf: "text-red-500", video: "text-blue-500", link: "text-green-600" };
   const bgMap: Record<string, string> = { pdf: "bg-red-50", video: "bg-blue-50", link: "bg-green-50" };
@@ -650,7 +804,10 @@ function MateriaisTab({ materials, isAdmin }: { materials: GuildMaterialDTO[]; i
   return (
     <div className="space-y-4">
       {isAdmin && (
-        <button className="w-full py-4 rounded-xl border border-dashed border-indigo-300 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-sm flex items-center justify-center gap-2 transition-colors">
+        <button
+          onClick={onUpload}
+          className="w-full py-4 rounded-xl border border-dashed border-indigo-300 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-sm flex items-center justify-center gap-2 transition-colors"
+        >
           <Upload size={15} /> Compartilhar Material com a Guild
         </button>
       )}
@@ -1206,6 +1363,8 @@ export default function GuildDetailPage() {
   const [decks, setDecks] = useState<GuildFlashcardDeckDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   // ── Initial data load ──
   useEffect(() => {
@@ -1376,6 +1535,40 @@ export default function GuildDetailPage() {
     }
   }, [guild, notify]);
 
+  const handleInviteMem = useCallback(async (uid: string) => {
+    try {
+      await GuildService.inviteMember(guildId, uid);
+      notify("Sucesso", "Convite enviado com sucesso.", "success");
+    } catch (err: any) {
+      notify("Erro", err.message || "Erro ao convidar membro", "error");
+      throw err;
+    }
+  }, [guildId, notify]);
+
+  const handleUploadMat = useCallback(async (file: File, title: string) => {
+    try {
+      const mat = await GuildService.uploadMaterial(guildId, file, title);
+      setMaterials(prev => [mat, ...prev]);
+      notify("Sucesso", "Material compartilhado com sucesso.", "success");
+    } catch (err: any) {
+      notify("Erro", err.message || "Erro ao fazer upload do material", "error");
+      throw err;
+    }
+  }, [guildId, notify]);
+
+  const handleDeleteGuild = useCallback(async () => {
+    if (!guild) return;
+    if (!window.confirm(`ATENÇÃO: Deletar a guilda "${guild.name}" é permanente e apagará todos os materiais, chat e membros. Continuar?`)) return;
+
+    try {
+      await GuildService.deleteGuild(guildId);
+      notify("Sucesso", "Guilda deletada permanentemente.", "info");
+      window.location.href = "/guilds";
+    } catch (err: any) {
+      notify("Erro", err.message || "Erro ao deletar guilda", "error");
+    }
+  }, [guildId, guild, notify]);
+
   if (loading) return <PageSkeleton />;
   if (!guild) return (
     <div className="p-8 text-center text-[var(--muted-foreground)]">
@@ -1541,10 +1734,11 @@ export default function GuildDetailPage() {
               onPromote={handlePromote}
               onDemote={handleDemote}
               onKick={handleKick}
+              onInvite={() => setIsInviteOpen(true)}
             />
           )}
           {tab === "materiais" && (
-            <MateriaisTab materials={materials} isAdmin={isAdmin} />
+            <MateriaisTab materials={materials} isAdmin={isAdmin} onUpload={() => setIsUploadOpen(true)} />
           )}
           {tab === "ranking" && (
             <RankingTab guild={guild} members={members} />
@@ -1566,6 +1760,26 @@ export default function GuildDetailPage() {
             guild={guild}
             onClose={() => setIsSettingsOpen(false)}
             onUpdate={handleUpdateGuild}
+            onDelete={handleDeleteGuild}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isInviteOpen && (
+          <InviteModal
+            guildId={guildId}
+            onClose={() => setIsInviteOpen(false)}
+            onInvite={handleInviteMem}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isUploadOpen && (
+          <UploadMaterialModal
+            onClose={() => setIsUploadOpen(false)}
+            onUpload={handleUploadMat}
           />
         )}
       </AnimatePresence>

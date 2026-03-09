@@ -15,10 +15,12 @@ import com.bizu.portal.content.infrastructure.FlashcardDeckRepository;
 import com.bizu.portal.student.infrastructure.NoteRepository;
 import com.bizu.portal.student.infrastructure.StudentTaskRepository;
 import com.bizu.portal.student.infrastructure.GamificationRepository;
+import com.bizu.portal.shared.application.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -46,6 +48,7 @@ public class GuildService {
     private final UserService userService;
     private final com.bizu.portal.admin.application.SystemSettingsService systemSettingsService;
     private final com.bizu.portal.commerce.application.EntitlementService entitlementService;
+    private final FileStorageService fileStorageService;
 
     @Transactional
     public GuildResponseDTO createGuild(UUID creatorId, GuildCreateRequestDTO request) {
@@ -449,6 +452,119 @@ public class GuildService {
 
         guildMemberRepository.delete(target);
         recordActivity(target.getGuild(), admin.getUser(), "removeu " + target.getUser().getName() + " da guilda", 0);
+    }
+
+    @Transactional
+    public void inviteMember(UUID guildId, UUID userId, UUID inviterId) {
+        validateAdminAccess(guildId, inviterId);
+        
+        User inviter = userService.findById(inviterId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        User invitee = userService.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário convidado não encontrado"));
+        Guild guild = guildRepository.findById(guildId)
+                .orElseThrow(() -> new RuntimeException("Guild não encontrada"));
+
+        if (guildMemberRepository.findByGuildIdAndUserId(guildId, userId).isPresent()) {
+            throw new RuntimeException("Este usuário já é membro da guilda");
+        }
+
+        if (guildInviteRepository.findByGuildIdAndInviteeIdAndStatus(guildId, userId, GuildInvite.Status.PENDING).isPresent()) {
+            throw new RuntimeException("Já existe um convite pendente para este usuário");
+        }
+
+        GuildInvite invite = GuildInvite.builder()
+                .guild(guild)
+                .inviter(inviter)
+                .invitee(invitee)
+                .status(GuildInvite.Status.PENDING)
+                .build();
+        
+        guildInviteRepository.save(invite);
+    }
+
+    @Transactional
+    public GuildMaterialDTO uploadMaterial(UUID guildId, UUID userId, MultipartFile file, String title) {
+        validateAdminAccess(guildId, userId);
+        
+        Guild guild = guildRepository.findById(guildId)
+                .orElseThrow(() -> new RuntimeException("Guild não encontrada"));
+        User user = userService.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        String originalFilename = file.getOriginalFilename();
+        String type = determineFileType(originalFilename);
+        String storedPath = fileStorageService.storeInSubdirectory(file, "guilds/" + guildId);
+        
+        String url = "/api/v1/public/files/" + storedPath;
+
+        GuildMaterial material = GuildMaterial.builder()
+                .guild(guild)
+                .uploader(user)
+                .title(title != null && !title.isBlank() ? title : originalFilename)
+                .type(type)
+                .url(url)
+                .fileSize(formatFileSize(file.getSize()))
+                .build();
+
+        material = guildMaterialRepository.save(material);
+        recordActivity(guild, user, "compartilhou um novo material: " + material.getTitle(), 0);
+
+        return mapToMaterialDTO(material);
+    }
+
+    @Transactional
+    public void deleteGuild(UUID guildId, UUID userId) {
+        Guild guild = guildRepository.findById(guildId)
+                .orElseThrow(() -> new RuntimeException("Guild não encontrada"));
+        
+        GuildMember member = guildMemberRepository.findByGuildIdAndUserId(guildId, userId)
+                .orElseThrow(() -> new RuntimeException("Acesso negado: Você não é membro desta guild"));
+        
+        if (member.getRole() != GuildRole.FOUNDER) {
+            throw new RuntimeException("Acesso negado: Somente o fundador pode deletar a guilda");
+        }
+
+        // Deletar arquivos localmente
+        fileStorageService.deleteSubdirectory("guilds/" + guildId);
+
+        // Deletar relações dependentes manualmente já que não há cascade definido no Guild entity
+        guildMemberRepository.deleteAll(guildMemberRepository.findAllByGuildId(guildId));
+        guildMaterialRepository.deleteAll(guildMaterialRepository.findAllByGuildIdOrderByCreatedAtDesc(guildId));
+        guildInviteRepository.deleteAll(guildInviteRepository.findAllByGuildIdAndStatus(guildId, GuildInvite.Status.PENDING));
+        guildRequestRepository.deleteAll(guildRequestRepository.findAllByGuildIdAndStatus(guildId, GuildRequest.Status.PENDING));
+        guildActivityRepository.deleteAll(guildActivityRepository.findAllByGuildIdOrderByCreatedAtDesc(guildId, PageRequest.of(0, 1000)));
+        guildMessageRepository.deleteAll(guildMessageRepository.findAllByGuildIdOrderByCreatedAtDesc(guildId, PageRequest.of(0, 1000)));
+
+        guildRepository.delete(guild);
+    }
+
+    private String determineFileType(String filename) {
+        if (filename == null) return "PDF";
+        String ext = filename.toLowerCase();
+        if (ext.endsWith(".mp4") || ext.endsWith(".mov") || ext.endsWith(".avi")) return "VIDEO";
+        if (ext.startsWith("http")) return "LINK";
+        return "PDF";
+    }
+
+    private String formatFileSize(long size) {
+        if (size <= 0) return "0 B";
+        final String[] units = new String[] { "B", "kB", "MB", "GB", "TB" };
+        int digitGroups = (int) (Math.log10(size)/Math.log10(1024));
+        if (digitGroups < 0) digitGroups = 0;
+        return new java.text.DecimalFormat("#,##0.#").format(size/Math.pow(1024, digitGroups)) + " " + units[digitGroups];
+    }
+
+    private GuildMaterialDTO mapToMaterialDTO(GuildMaterial m) {
+        return GuildMaterialDTO.builder()
+                .id(m.getId())
+                .title(m.getTitle())
+                .type(m.getType().toLowerCase())
+                .uploader(m.getUploader() != null ? m.getUploader().getNickname() : "Sistema")
+                .size(m.getFileSize())
+                .date(formatTimeAgo(m.getCreatedAt()))
+                .url(m.getUrl())
+                .build();
     }
 
     // --- Helpers ---
