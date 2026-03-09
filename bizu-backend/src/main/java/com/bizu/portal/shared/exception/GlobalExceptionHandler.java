@@ -19,6 +19,11 @@ public class GlobalExceptionHandler {
         return createErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND");
     }
 
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<Map<String, Object>> handleBusiness(BusinessException ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, "BUSINESS_ERROR");
+    }
+
     @ExceptionHandler(EntitlementDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleEntitlementDenied(EntitlementDeniedException ex) {
         return createErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN, "ENTITLEMENT_DENIED");

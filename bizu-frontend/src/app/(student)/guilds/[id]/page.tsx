@@ -156,7 +156,7 @@ function SettingsModal({
             </div>
           </div>
 
-          {guild.isFounder && (
+          {guild.isAdmin && (
             <div className="pt-4 border-t border-slate-100">
               <button
                 onClick={onDelete}

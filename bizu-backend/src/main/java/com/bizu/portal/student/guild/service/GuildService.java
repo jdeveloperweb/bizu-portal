@@ -16,6 +16,7 @@ import com.bizu.portal.student.infrastructure.NoteRepository;
 import com.bizu.portal.student.infrastructure.StudentTaskRepository;
 import com.bizu.portal.student.infrastructure.GamificationRepository;
 import com.bizu.portal.shared.application.FileStorageService;
+import com.bizu.portal.shared.exception.BusinessException;
 import com.bizu.portal.shared.security.CourseContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -60,13 +61,13 @@ public class GuildService {
                 .orElseThrow(() -> new RuntimeException("Dados de gamificação não encontrados"));
 
         if (!guildMemberRepository.findAllByUserId(creatorId).isEmpty()) {
-            throw new RuntimeException("Você já faz parte de uma guilda! Saia da atual para criar uma nova.");
+            throw new BusinessException("Ops! Você já faz parte de uma guilda. Saia da atual para poder criar uma nova.");
         }
 
         int creationCost = systemSettingsService.getSettings().getGuildCreationCost();
 
         if (stats.getAxonCoins() == null || stats.getAxonCoins() < creationCost) {
-            throw new RuntimeException("Saldo insuficiente! Criar uma guilda custa " + creationCost + " Axons.");
+            throw new BusinessException("Saldo insuficiente! Criar uma guilda custa " + creationCost + " Axons.");
         }
         
         stats.setAxonCoins(stats.getAxonCoins() - creationCost);
@@ -230,7 +231,7 @@ public class GuildService {
     public List<GuildInviteDTO> getPendingInvites(UUID userId) {
         UUID activeCourseId = CourseContextHolder.getCourseId();
         return guildInviteRepository.findAllByInviteeIdAndStatus(userId, GuildInvite.Status.PENDING).stream()
-                .filter(i -> activeCourseId == null || activeCourseId.equals(i.getGuild().getCourseId()))
+                .filter(i -> activeCourseId == null || i.getGuild().getCourseId() == null || activeCourseId.equals(i.getGuild().getCourseId()))
                 .map(i -> GuildInviteDTO.builder()
                         .id(i.getId())
                         .guildId(i.getGuild().getId())
@@ -256,7 +257,7 @@ public class GuildService {
 
         // Enforce only one guild
         if (!guildMemberRepository.findAllByUserId(userId).isEmpty()) {
-            throw new RuntimeException("Você já faz parte de uma guilda! Saia da atual para aceitar este convite.");
+            throw new BusinessException("Você já faz parte de uma guilda! Saia da atual para aceitar este convite.");
         }
 
         // Check if already a member (redundant now but safe)
@@ -287,7 +288,7 @@ public class GuildService {
     @Transactional
     public void requestAccess(UUID guildId, UUID userId) {
         if (!guildMemberRepository.findAllByUserId(userId).isEmpty()) {
-            throw new RuntimeException("Você já faz parte de uma guilda!");
+            throw new BusinessException("Você já faz parte de uma guilda!");
         }
 
         Guild guild = guildRepository.findById(guildId)
@@ -323,7 +324,7 @@ public class GuildService {
     @Transactional
     public void joinGuild(UUID guildId, UUID userId) {
         if (!guildMemberRepository.findAllByUserId(userId).isEmpty()) {
-            throw new RuntimeException("Você já faz parte de uma guilda!");
+            throw new BusinessException("Você já faz parte de uma guilda!");
         }
 
         Guild guild = guildRepository.findById(guildId)
@@ -338,7 +339,7 @@ public class GuildService {
         }
 
         if (guildMemberRepository.findAllByGuildId(guildId).size() >= guild.getMaxMembers()) {
-            throw new RuntimeException("Esta guilda está cheia!");
+            throw new BusinessException("Poxa, esta guilda já está cheia!");
         }
 
         User user = userService.findById(userId)
@@ -570,8 +571,8 @@ public class GuildService {
         GuildMember member = guildMemberRepository.findByGuildIdAndUserId(guildId, userId)
                 .orElseThrow(() -> new RuntimeException("Acesso negado: Você não é membro desta guild"));
         
-        if (member.getRole() != GuildRole.FOUNDER) {
-            throw new RuntimeException("Acesso negado: Somente o fundador pode deletar a guilda");
+        if (member.getRole() != GuildRole.FOUNDER && member.getRole() != GuildRole.ADMIN) {
+            throw new RuntimeException("Acesso negado: Somente proprietários ou administradores podem deletar a guilda");
         }
 
         // Deletar arquivos localmente
@@ -635,7 +636,7 @@ public class GuildService {
 
     public List<GuildResponseDTO> searchGuilds(UUID userId, String query) {
         UUID activeCourseId = CourseContextHolder.getCourseId();
-        return guildRepository.findAllByCourseId(activeCourseId).stream()
+        return guildRepository.findAllByCourseIdOrCourseIdIsNull(activeCourseId).stream()
                 .filter(g -> query == null || g.getName().toLowerCase().contains(query.toLowerCase()))
                 .map(g -> mapToResponseDTO(g, userId))
                 .collect(Collectors.toList());
@@ -645,7 +646,7 @@ public class GuildService {
         UUID activeCourseId = CourseContextHolder.getCourseId();
         return guildMemberRepository.findAllByUserId(userId).stream()
                 .map(GuildMember::getGuild)
-                .filter(g -> activeCourseId == null || activeCourseId.equals(g.getCourseId()))
+                .filter(g -> activeCourseId == null || g.getCourseId() == null || activeCourseId.equals(g.getCourseId()))
                 .map(g -> mapToResponseDTO(g, userId))
                 .collect(Collectors.toList());
     }
@@ -654,7 +655,7 @@ public class GuildService {
         Guild guild = guildRepository.findById(guildId)
                 .filter(g -> {
                     UUID activeCourseId = CourseContextHolder.getCourseId();
-                    return activeCourseId == null || activeCourseId.equals(g.getCourseId());
+                    return activeCourseId == null || g.getCourseId() == null || activeCourseId.equals(g.getCourseId());
                 })
                 .orElseThrow(() -> new RuntimeException("Guild not found or access denied for this course"));
         return mapToResponseDTO(guild, userId);
