@@ -12,5 +12,4 @@ public interface FlashcardDeckPurchaseRepository extends JpaRepository<Flashcard
     List<FlashcardDeckPurchase> findAllByStudentId(UUID studentId);
     boolean existsByDeckIdAndStudentId(UUID deckId, UUID studentId);
     List<FlashcardDeckPurchase> findAllByDeckIdIn(List<UUID> deckIds);
-    void deleteByDeckIdAndStudentId(UUID deckId, UUID studentId);
 }

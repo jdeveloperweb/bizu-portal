@@ -415,11 +415,6 @@ public class StudentFlashcardService {
             throw new RuntimeException("Apenas o proprietário do deck pode excluí-lo");
         }
 
-        // Se é uma cópia comprada, remover o registro de compra para permitir recompra
-        if (deck.getSourceDeckId() != null) {
-            purchaseRepository.deleteByDeckIdAndStudentId(deck.getSourceDeckId(), userId);
-        }
-
         deckRepository.delete(deck);
     }
 
@@ -459,7 +454,8 @@ public class StudentFlashcardService {
                 String creatorName = deck.getOriginalCreatorId() != null ? 
                     userRepository.findById(deck.getOriginalCreatorId()).map(u -> u.getName()).orElse("Desconhecido") : "Sistema";
 
-                boolean isPurchased = purchaseRepository.existsByDeckIdAndStudentId(deck.getId(), userId);
+                // Verifica se o usuário ainda tem uma cópia ativa (não usa purchase para não apagar histórico de vendas)
+                boolean isPurchased = deckRepository.existsBySourceDeckIdAndUserId(deck.getId(), userId);
                 boolean isOwner = deck.getUserId() != null && deck.getUserId().equals(userId);
 
                 return StudentFlashcardDeckDTO.builder()

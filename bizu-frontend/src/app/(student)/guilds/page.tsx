@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -197,6 +197,7 @@ export default function GuildsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "public" | "private">("all");
+  const isFirstRender = useRef(true);
 
   const fetchGuilds = useCallback(async (q?: string) => {
     setLoading(true);
@@ -225,6 +226,10 @@ export default function GuildsPage() {
   }, [fetchGuilds, fetchInvites]);
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const t = setTimeout(() => fetchGuilds(search || undefined), 400);
     return () => clearTimeout(t);
   }, [search, fetchGuilds]);
