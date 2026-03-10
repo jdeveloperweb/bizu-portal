@@ -568,21 +568,36 @@ export default function WarMap({ zones, onZoneClick, guildName, totalScore }: Wa
         </div>
       ) : (
         <>
-          {dims.w > 0 && (
-            <WarPathSVG zones={zones} containerWidth={dims.w} containerHeight={dims.h} />
-          )}
-
-          <div className="absolute inset-0" style={{ zIndex: 2 }}>
-            {zones.map((zone) => (
-              <WarZoneNode
-                key={zone.zoneId}
-                zone={zone}
-                onClick={handleZoneClick}
-                isSelected={selectedZone?.zoneId === zone.zoneId}
-              />
-            ))}
+          {/* ── Scrollable map canvas ──
+              minWidth keeps absolute-% node positions from squishing on narrow
+              screens. overflow-x-auto + hidden scrollbar = swipe to pan on mobile. */}
+          <style>{`.wm-scroll::-webkit-scrollbar{display:none}`}</style>
+          <div
+            className="wm-scroll absolute inset-0 overflow-x-auto overflow-y-hidden"
+            style={{ scrollbarWidth: "none" } as React.CSSProperties}
+          >
+            <div className="relative h-full" style={{ minWidth: 900 }}>
+              {dims.w > 0 && (
+                <WarPathSVG
+                  zones={zones}
+                  containerWidth={Math.max(dims.w, 900)}
+                  containerHeight={dims.h}
+                />
+              )}
+              <div className="absolute inset-0" style={{ zIndex: 2 }}>
+                {zones.map((zone) => (
+                  <WarZoneNode
+                    key={zone.zoneId}
+                    zone={zone}
+                    onClick={handleZoneClick}
+                    isSelected={selectedZone?.zoneId === zone.zoneId}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
 
+          {/* Modal sits outside the scroll div so it overlays the full viewport */}
           <AnimatePresence>
             {selectedZone && (
               <ZoneDetailModal
@@ -596,66 +611,72 @@ export default function WarMap({ zones, onZoneClick, guildName, totalScore }: Wa
       )}
 
       {/* ── HUD overlays ── */}
-      <div className="absolute bottom-5 left-5 flex items-center gap-2.5 z-10 flex-wrap">
+      {/* Mobile: 3-column grid spanning the bottom edge.
+          md+: reverts to a left-anchored flex row (original desktop layout). */}
+      <div className="absolute bottom-3 left-3 right-3 md:left-5 md:right-auto grid grid-cols-3 md:flex md:items-center md:w-auto gap-1.5 md:gap-2.5 z-10">
         {/* Guild name */}
         <motion.div
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
+          className="flex items-center justify-center gap-1 md:gap-2 px-2 md:px-4 py-2 md:py-2.5 rounded-xl min-w-0"
           style={{
             background: "linear-gradient(135deg, rgba(5,3,20,0.85) 0%, rgba(8,4,28,0.85) 100%)",
             border: "1px solid rgba(99,102,241,0.2)",
             backdropFilter: "blur(20px)",
             boxShadow: "0 4px 24px rgba(0,0,0,0.6)",
           }}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Shield size={14} className="text-indigo-400 flex-none" />
-          <span className="text-gray-500 uppercase tracking-widest text-[8px] font-black">Guilda</span>
-          <span className="text-white text-xs font-black">{guildName}</span>
+          <Shield size={12} className="text-indigo-400 flex-none" />
+          <div className="flex flex-col items-start min-w-0">
+            <span className="text-gray-500 uppercase tracking-widest text-[6px] md:text-[8px] font-black leading-none">Guilda</span>
+            <span className="text-white text-[9px] md:text-xs font-black truncate max-w-[72px] md:max-w-none leading-tight">{guildName}</span>
+          </div>
         </motion.div>
 
         {/* Score */}
         <motion.div
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
+          className="flex items-center justify-center gap-1 md:gap-2 px-2 md:px-4 py-2 md:py-2.5 rounded-xl"
           style={{
             background: "linear-gradient(135deg, rgba(20,10,5,0.85) 0%, rgba(30,16,4,0.85) 100%)",
             border: "1px solid rgba(245,158,11,0.25)",
             backdropFilter: "blur(20px)",
             boxShadow: "0 4px 24px rgba(0,0,0,0.6), 0 0 20px rgba(245,158,11,0.08)",
           }}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <Star size={14} className="text-amber-400 fill-amber-400 flex-none" />
-          <span className="text-amber-400 text-xs font-black tracking-tight">
-            {totalScore.toLocaleString("pt-BR")}
-          </span>
-          <span className="text-amber-700 text-[8px] font-black uppercase tracking-widest">pts</span>
+          <Star size={12} className="text-amber-400 fill-amber-400 flex-none" />
+          <div className="flex flex-col items-center">
+            <span className="text-amber-400 text-[9px] md:text-xs font-black tracking-tight leading-none">
+              {totalScore.toLocaleString("pt-BR")}
+            </span>
+            <span className="text-amber-700 text-[6px] md:text-[8px] font-black uppercase tracking-widest leading-none mt-0.5">pts</span>
+          </div>
         </motion.div>
 
         {/* Conquered counter */}
-        {zones.length > 0 && (
-          <motion.div
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
-            style={{
-              background: "linear-gradient(135deg, rgba(4,12,8,0.85) 0%, rgba(5,18,10,0.85) 100%)",
-              border: "1px solid rgba(16,185,129,0.2)",
-              backdropFilter: "blur(20px)",
-              boxShadow: "0 4px 24px rgba(0,0,0,0.6)",
-            }}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6 }}
-          >
-            <Crown size={14} className="text-emerald-400 flex-none" />
-            <span className="text-emerald-400 text-xs font-black">
+        <motion.div
+          className="flex items-center justify-center gap-1 md:gap-2 px-2 md:px-4 py-2 md:py-2.5 rounded-xl"
+          style={{
+            background: "linear-gradient(135deg, rgba(4,12,8,0.85) 0%, rgba(5,18,10,0.85) 100%)",
+            border: "1px solid rgba(16,185,129,0.2)",
+            backdropFilter: "blur(20px)",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.6)",
+          }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          <Crown size={12} className="text-emerald-400 flex-none" />
+          <div className="flex flex-col items-center">
+            <span className="text-emerald-400 text-[9px] md:text-xs font-black leading-none">
               {conqueredCount}/{zones.length}
             </span>
-            <span className="text-emerald-800 text-[8px] font-black uppercase tracking-widest">zonas</span>
-          </motion.div>
-        )}
+            <span className="text-emerald-800 text-[6px] md:text-[8px] font-black uppercase tracking-widest leading-none mt-0.5">zonas</span>
+          </div>
+        </motion.div>
       </div>
 
       {/* Top-right: event title watermark */}
