@@ -78,7 +78,7 @@ export default function GuildRankingPanel({ ranking, myGuildId, onClose }: Guild
 
                 {/* Guild badge */}
                 {entry.guildBadge && (
-                  <GuildBadge badge={entry.guildBadge as any} size="sm" />
+                  <GuildBadge type={entry.guildBadge as any} size="sm" />
                 )}
 
                 {/* Guild info */}
