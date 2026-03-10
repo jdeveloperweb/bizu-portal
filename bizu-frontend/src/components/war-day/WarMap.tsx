@@ -85,7 +85,7 @@ function MapBackground() {
   return (
     <div
       className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none"
-      style={{ background: "#060411", zIndex: 0 }}
+      style={{ background: "#0b081a", zIndex: 0 }}
     >
 
       {/* ── 1. Micro-grain stone texture ── */}
@@ -99,13 +99,13 @@ function MapBackground() {
 
       {/* ── 2. Void colour clouds — static, slightly visible ── */}
       <div className="absolute inset-0" style={{
-        background: "radial-gradient(ellipse 60% 50% at 50% -5%, rgba(67,56,202,0.18) 0%, transparent 100%)",
+        background: "radial-gradient(ellipse 70% 60% at 50% 10%, rgba(67,56,202,0.3) 0%, transparent 100%)",
       }} />
       <div className="absolute inset-0" style={{
-        background: "radial-gradient(ellipse 50% 40% at 100% 100%, rgba(76,29,149,0.15) 0%, transparent 100%)",
+        background: "radial-gradient(ellipse 60% 50% at 90% 90%, rgba(124,58,237,0.25) 0%, transparent 100%)",
       }} />
       <div className="absolute inset-0" style={{
-        background: "radial-gradient(ellipse 45% 35% at 0% 70%, rgba(30,27,75,0.18) 0%, transparent 100%)",
+        background: "radial-gradient(ellipse 55% 45% at 10% 80%, rgba(79,70,229,0.28) 0%, transparent 100%)",
       }} />
 
       {/* ── 3. Star field + constellation lines ── */}
@@ -137,7 +137,7 @@ function MapBackground() {
         className="absolute inset-0 flex items-center justify-center"
         animate={{ rotate: 360 }}
         transition={{ duration: 200, repeat: Infinity, ease: "linear" }}
-        style={{ opacity: 0.18 }}
+        style={{ opacity: 0.35 }}
       >
         <svg viewBox="0 0 800 800" style={{ width: "min(112%, 112vh)", height: "min(112%, 112vh)" }}>
           {/* Concentric rings */}
@@ -197,27 +197,27 @@ function MapBackground() {
       {/* ── 5. Stardust — two slow-breathing offset layers ── */}
       <motion.div
         className="absolute inset-0"
-        animate={{ opacity: [0.1, 0.25, 0.1] }}
+        animate={{ opacity: [0.15, 0.4, 0.15] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         style={{
-          backgroundImage: "radial-gradient(circle, rgba(99,102,241,0.5) 1px, transparent 1px)",
-          backgroundSize: "115px 115px",
+          backgroundImage: "radial-gradient(circle, rgba(99,102,241,0.6) 1.5px, transparent 1.5px)",
+          backgroundSize: "130px 130px",
         }}
       />
       <motion.div
         className="absolute inset-0"
-        animate={{ opacity: [0.08, 0.18, 0.08] }}
+        animate={{ opacity: [0.12, 0.3, 0.12] }}
         transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 5 }}
         style={{
-          backgroundImage: "radial-gradient(circle, rgba(139,92,246,0.45) 1px, transparent 1px)",
-          backgroundSize: "175px 175px",
-          backgroundPosition: "58px 58px",
+          backgroundImage: "radial-gradient(circle, rgba(139,92,246,0.55) 1.5px, transparent 1.5px)",
+          backgroundSize: "190px 190px",
+          backgroundPosition: "65px 65px",
         }}
       />
 
       {/* ── 6. Lighter vignette — no completely dark edge ── */}
       <div className="absolute inset-0" style={{
-        background: "radial-gradient(ellipse at 50% 50%, transparent 25%, rgba(6,4,17,0.3) 75%, rgba(3,1,9,0.7) 100%)",
+        background: "radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(11,8,26,0.2) 80%, rgba(6,4,17,0.4) 100%)",
       }} />
 
       {/* ── 7. Inset edge shadow ── */}
@@ -541,9 +541,9 @@ export default function WarMap({ zones, onZoneClick, guildName, totalScore }: Wa
       className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl"
       style={{
         minHeight: 600,
-        background: "#060411",
-        border: "1px solid rgba(99,102,241,0.18)",
-        boxShadow: "0 0 80px rgba(99,102,241,0.12), 0 30px 80px rgba(0,0,0,0.9)",
+        background: "#0b081a",
+        border: "1px solid rgba(99,102,241,0.25)",
+        boxShadow: "0 0 100px rgba(99,102,241,0.15), 0 30px 80px rgba(0,0,0,0.9)",
       }}
     >
       {zones.length === 0 ? (
