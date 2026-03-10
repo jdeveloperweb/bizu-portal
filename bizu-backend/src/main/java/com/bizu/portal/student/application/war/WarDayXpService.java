@@ -94,9 +94,10 @@ public class WarDayXpService {
         }
 
         // Update ranking with distributed XP
+        final int finalXpDistributed = totalXpDistributed;
         rankingRepository.findByWarDayEventIdAndGuildId(event.getId(), guildId)
                 .ifPresent(r -> {
-                    r.setXpDistributed(totalXpDistributed);
+                    r.setXpDistributed(finalXpDistributed);
                     rankingRepository.save(r);
                 });
 
