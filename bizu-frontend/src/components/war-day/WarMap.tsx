@@ -17,182 +17,241 @@ interface WarMapProps {
   totalScore: number;
 }
 
-// ── Epic map background ──────────────────────────────────────────────────────
+// ── Map background ────────────────────────────────────────────────────────────
+
+// Fixed star positions (avoids Math.random hydration mismatch)
+const STARS: Array<{ x: number; y: number; r: number; o: number }> = [
+  // Bright anchor stars
+  { x: 90,   y: 65,  r: 1.6, o: 0.50 }, { x: 1085, y: 95,  r: 1.7, o: 0.46 },
+  { x: 48,   y: 392, r: 1.4, o: 0.42 }, { x: 1142, y: 518, r: 1.5, o: 0.44 },
+  { x: 552,  y: 35,  r: 1.5, o: 0.42 }, { x: 278,  y: 640, r: 1.3, o: 0.36 },
+  { x: 858,  y: 620, r: 1.4, o: 0.40 },
+  // Medium stars
+  { x: 168,  y: 155, r: 0.9, o: 0.32 }, { x: 418,  y: 108, r: 1.0, o: 0.30 },
+  { x: 718,  y: 85,  r: 0.8, o: 0.28 }, { x: 922,  y: 190, r: 1.1, o: 0.32 },
+  { x: 1028, y: 318, r: 0.9, o: 0.26 }, { x: 1118, y: 398, r: 0.8, o: 0.24 },
+  { x: 962,  y: 478, r: 1.0, o: 0.28 }, { x: 842,  y: 538, r: 0.9, o: 0.26 },
+  { x: 682,  y: 582, r: 0.8, o: 0.24 }, { x: 498,  y: 622, r: 1.0, o: 0.26 },
+  { x: 382,  y: 578, r: 0.9, o: 0.24 }, { x: 218,  y: 548, r: 0.8, o: 0.22 },
+  { x: 118,  y: 478, r: 1.0, o: 0.26 }, { x: 78,   y: 278, r: 0.9, o: 0.24 },
+  { x: 142,  y: 198, r: 0.8, o: 0.22 },
+  // Small distant stars
+  { x: 308,  y: 178, r: 0.6, o: 0.18 }, { x: 462,  y: 198, r: 0.5, o: 0.16 },
+  { x: 578,  y: 155, r: 0.6, o: 0.18 }, { x: 678,  y: 198, r: 0.5, o: 0.15 },
+  { x: 782,  y: 158, r: 0.6, o: 0.17 }, { x: 842,  y: 278, r: 0.5, o: 0.15 },
+  { x: 902,  y: 358, r: 0.6, o: 0.16 }, { x: 958,  y: 418, r: 0.5, o: 0.15 },
+  { x: 822,  y: 458, r: 0.6, o: 0.16 }, { x: 742,  y: 518, r: 0.5, o: 0.15 },
+  { x: 638,  y: 498, r: 0.6, o: 0.16 }, { x: 542,  y: 538, r: 0.5, o: 0.15 },
+  { x: 438,  y: 508, r: 0.6, o: 0.16 }, { x: 338,  y: 478, r: 0.5, o: 0.15 },
+  { x: 258,  y: 438, r: 0.6, o: 0.16 }, { x: 178,  y: 398, r: 0.5, o: 0.15 },
+  { x: 158,  y: 338, r: 0.6, o: 0.17 }, { x: 198,  y: 278, r: 0.5, o: 0.15 },
+  { x: 262,  y: 238, r: 0.6, o: 0.16 }, { x: 358,  y: 258, r: 0.5, o: 0.15 },
+  { x: 478,  y: 278, r: 0.4, o: 0.13 }, { x: 598,  y: 258, r: 0.5, o: 0.15 },
+  { x: 698,  y: 298, r: 0.4, o: 0.13 }, { x: 782,  y: 358, r: 0.5, o: 0.15 },
+  { x: 862,  y: 418, r: 0.4, o: 0.13 }, { x: 1048, y: 222, r: 0.5, o: 0.14 },
+  { x: 188,  y: 92,  r: 0.5, o: 0.14 }, { x: 382,  y: 72,  r: 0.4, o: 0.13 },
+];
+
+// Constellation line pairs (indices into STARS)
+const CONSTELLATION_PAIRS = [
+  [0, 7], [7, 22], [0, 22], [22, 23], [4, 8], [8, 23], [8, 25],
+  [3, 11], [11, 12], [11, 10], [2, 19], [19, 20], [19, 18],
+  [6, 14], [14, 15], [15, 16], [5, 16], [1, 10], [10, 11],
+  [13, 14], [13, 31], [0, 48], [4, 49], [1, 47],
+];
+
+// Astrolabe radial line endpoints (pre-computed, 24 lines every 15°)
+const ASTRO_LINES = Array.from({ length: 24 }, (_, i) => {
+  const a = (i * Math.PI * 2) / 24;
+  return {
+    x1: 400 + 65 * Math.cos(a), y1: 400 + 65 * Math.sin(a),
+    x2: 400 + 355 * Math.cos(a), y2: 400 + 355 * Math.sin(a),
+    major: i % 3 === 0,
+  };
+});
+
+// Astrolabe tick marks on outer ring (72 ticks every 5°)
+const ASTRO_TICKS = Array.from({ length: 72 }, (_, i) => {
+  const a = (i * Math.PI * 2) / 72;
+  const inner = i % 6 === 0 ? 340 : i % 3 === 0 ? 348 : 353;
+  return {
+    x1: 400 + inner * Math.cos(a), y1: 400 + inner * Math.sin(a),
+    x2: 400 + 360 * Math.cos(a),  y2: 400 + 360 * Math.sin(a),
+    major: i % 6 === 0,
+  };
+});
 
 function MapBackground() {
   return (
-    <div className="absolute inset-0 w-full h-full overflow-hidden" style={{ background: "#050310" }}>
+    <div
+      className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none"
+      style={{ background: "#020109" }}
+    >
 
-      {/* SVG parchment/stone texture via fractalNoise */}
-      <svg className="absolute inset-0 w-full h-full opacity-[0.18] mix-blend-overlay pointer-events-none">
-        <filter id="mb-noise">
-          <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch" />
+      {/* ── 1. Micro-grain stone texture ── */}
+      <svg className="absolute inset-0 w-full h-full opacity-[0.09] mix-blend-soft-light">
+        <filter id="mbg-grain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="4" stitchTiles="stitch" />
           <feColorMatrix type="saturate" values="0" />
         </filter>
-        <rect width="100%" height="100%" filter="url(#mb-noise)" />
+        <rect width="100%" height="100%" filter="url(#mbg-grain)" />
       </svg>
 
-      {/* Aurora pulse — top */}
-      <motion.div
-        className="absolute pointer-events-none"
-        style={{
-          inset: 0,
-          background: "radial-gradient(ellipse 80% 45% at 50% -10%, rgba(99,102,241,0.28) 0%, transparent 70%)",
-        }}
-        animate={{ opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-      />
+      {/* ── 2. Void colour clouds — static, extremely subtle ── */}
+      <div className="absolute inset-0" style={{
+        background: "radial-gradient(ellipse 60% 50% at 50% -5%, rgba(67,56,202,0.09) 0%, transparent 100%)",
+      }} />
+      <div className="absolute inset-0" style={{
+        background: "radial-gradient(ellipse 50% 40% at 100% 100%, rgba(76,29,149,0.07) 0%, transparent 100%)",
+      }} />
+      <div className="absolute inset-0" style={{
+        background: "radial-gradient(ellipse 45% 35% at 0% 70%, rgba(30,27,75,0.07) 0%, transparent 100%)",
+      }} />
 
-      {/* Aurora pulse — bottom right */}
-      <motion.div
-        className="absolute pointer-events-none"
-        style={{
-          inset: 0,
-          background: "radial-gradient(ellipse 60% 40% at 85% 110%, rgba(248,113,113,0.18) 0%, transparent 65%)",
-        }}
-        animate={{ opacity: [0.3, 0.7, 0.3] }}
-        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 3 }}
-      />
-
-      {/* Aurora pulse — left */}
-      <motion.div
-        className="absolute pointer-events-none"
-        style={{
-          inset: 0,
-          background: "radial-gradient(ellipse 50% 50% at -10% 60%, rgba(139,92,246,0.2) 0%, transparent 70%)",
-        }}
-        animate={{ opacity: [0.4, 0.9, 0.4] }}
-        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 5 }}
-      />
-
-      {/* Ancient runic grid */}
-      <svg className="absolute inset-0 w-full h-full opacity-[0.06] pointer-events-none">
-        <defs>
-          <pattern id="runicGrid" width="100" height="100" patternUnits="userSpaceOnUse">
-            <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#7C3AED" strokeWidth="0.5" />
-            <circle cx="0" cy="0" r="2" fill="#7C3AED" />
-            {/* Rune marks at cross-points */}
-            <path d="M -4,0 L 4,0 M 0,-4 L 0,4" stroke="#A78BFA" strokeWidth="0.8" opacity="0.5" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#runicGrid)" />
-      </svg>
-
-      {/* Slowly rotating arcane circle — center */}
-      <motion.div
-        className="absolute pointer-events-none"
-        style={{ inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
+      {/* ── 3. Star field + constellation lines ── */}
+      <svg
+        className="absolute inset-0 w-full h-full"
+        viewBox="0 0 1200 700"
+        preserveAspectRatio="xMidYMid slice"
       >
-        <svg
-          viewBox="0 0 600 600"
-          style={{ width: "min(90vw, 90vh)", height: "min(90vw, 90vh)", opacity: 0.04 }}
-        >
-          <circle cx="300" cy="300" r="280" fill="none" stroke="#A78BFA" strokeWidth="1.5" strokeDasharray="8 18" />
-          <circle cx="300" cy="300" r="240" fill="none" stroke="#7C3AED" strokeWidth="0.8" />
-          {/* Octagram points */}
-          {Array.from({ length: 8 }).map((_, i) => {
-            const angle = (i * Math.PI * 2) / 8 - Math.PI / 2;
+        {/* Constellation lines — very faint */}
+        {CONSTELLATION_PAIRS.map(([a, b], i) =>
+          STARS[a] && STARS[b] ? (
+            <line
+              key={i}
+              x1={STARS[a].x} y1={STARS[a].y}
+              x2={STARS[b].x} y2={STARS[b].y}
+              stroke="rgba(99,102,241,0.10)"
+              strokeWidth="0.5"
+            />
+          ) : null
+        )}
+        {/* Stars */}
+        {STARS.map((s, i) => (
+          <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="white" opacity={s.o} />
+        ))}
+      </svg>
+
+      {/* ── 4. Astrolabe / polar navigation chart — very slow rotation ── */}
+      <motion.div
+        className="absolute inset-0 flex items-center justify-center"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 200, repeat: Infinity, ease: "linear" }}
+        style={{ opacity: 0.038 }}
+      >
+        <svg viewBox="0 0 800 800" style={{ width: "min(112%, 112vh)", height: "min(112%, 112vh)" }}>
+          {/* Concentric rings */}
+          <circle cx="400" cy="400" r="360" fill="none" stroke="#6D28D9" strokeWidth="0.7" strokeDasharray="5 22" />
+          <circle cx="400" cy="400" r="292" fill="none" stroke="#5B21B6" strokeWidth="0.45" />
+          <circle cx="400" cy="400" r="212" fill="none" stroke="#5B21B6" strokeWidth="0.38" />
+          <circle cx="400" cy="400" r="135" fill="none" stroke="#6D28D9" strokeWidth="0.38" strokeDasharray="3 9" />
+          <circle cx="400" cy="400" r="65"  fill="none" stroke="#5B21B6" strokeWidth="0.38" />
+          <circle cx="400" cy="400" r="2.5" fill="#8B5CF6" opacity="0.6" />
+          {/* Radial lines */}
+          {ASTRO_LINES.map((l, i) => (
+            <line
+              key={i}
+              x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
+              stroke="#5B21B6"
+              strokeWidth={l.major ? "0.55" : "0.28"}
+              opacity={l.major ? 1 : 0.55}
+            />
+          ))}
+          {/* Tick marks */}
+          {ASTRO_TICKS.map((t, i) => (
+            <line
+              key={i}
+              x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2}
+              stroke="#6D28D9"
+              strokeWidth={t.major ? "0.6" : "0.35"}
+            />
+          ))}
+          {/* Cardinal direction diamonds */}
+          {Array.from({ length: 4 }, (_, i) => {
+            const a = (i * Math.PI * 2) / 4 - Math.PI / 2;
+            const cx = 400 + 372 * Math.cos(a);
+            const cy = 400 + 372 * Math.sin(a);
             return (
-              <line
+              <polygon
                 key={i}
-                x1={300 + 240 * Math.cos(angle)}
-                y1={300 + 240 * Math.sin(angle)}
-                x2="300" y2="300"
-                stroke="#6D28D9" strokeWidth="0.6"
+                points={`${cx},${cy - 6} ${cx + 4},${cy} ${cx},${cy + 6} ${cx - 4},${cy}`}
+                fill="#8B5CF6" opacity="0.7"
               />
             );
           })}
-          <circle cx="300" cy="300" r="180" fill="none" stroke="#A78BFA" strokeWidth="0.5" strokeDasharray="3 12" />
-        </svg>
-      </motion.div>
-
-      {/* Counter-rotating inner circle */}
-      <motion.div
-        className="absolute pointer-events-none"
-        style={{ inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
-        animate={{ rotate: -360 }}
-        transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
-      >
-        <svg
-          viewBox="0 0 400 400"
-          style={{ width: "min(60vw, 60vh)", height: "min(60vw, 60vh)", opacity: 0.05 }}
-        >
-          <circle cx="200" cy="200" r="185" fill="none" stroke="#F59E0B" strokeWidth="0.8" strokeDasharray="5 25" />
-          {Array.from({ length: 6 }).map((_, i) => {
-            const angle = (i * Math.PI * 2) / 6;
-            const x = 200 + 185 * Math.cos(angle);
-            const y = 200 + 185 * Math.sin(angle);
-            return <circle key={i} cx={x} cy={y} r="3" fill="#F59E0B" opacity="0.7" />;
+          {/* Intercardinal dots */}
+          {Array.from({ length: 4 }, (_, i) => {
+            const a = ((i + 0.5) * Math.PI * 2) / 4 - Math.PI / 2;
+            return (
+              <circle
+                key={i}
+                cx={400 + 370 * Math.cos(a)}
+                cy={400 + 370 * Math.sin(a)}
+                r="2.5" fill="#6D28D9" opacity="0.6"
+              />
+            );
           })}
         </svg>
       </motion.div>
 
-      {/* Floating ember particles */}
+      {/* ── 5. Stardust — two slow-breathing offset layers ── */}
       <motion.div
-        className="absolute inset-0 pointer-events-none"
-        animate={{ opacity: [0.15, 0.35, 0.15] }}
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute inset-0"
+        animate={{ opacity: [0.05, 0.13, 0.05] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         style={{
-          backgroundImage: "radial-gradient(circle, rgba(167,139,250,0.4) 1px, transparent 1px)",
-          backgroundSize: "90px 90px",
+          backgroundImage: "radial-gradient(circle, rgba(99,102,241,0.5) 1px, transparent 1px)",
+          backgroundSize: "115px 115px",
         }}
       />
       <motion.div
-        className="absolute inset-0 pointer-events-none"
-        animate={{ opacity: [0.08, 0.2, 0.08] }}
-        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+        className="absolute inset-0"
+        animate={{ opacity: [0.03, 0.09, 0.03] }}
+        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 5 }}
         style={{
-          backgroundImage: "radial-gradient(circle, rgba(245,158,11,0.3) 1px, transparent 1px)",
-          backgroundSize: "140px 140px",
-          backgroundPosition: "45px 45px",
+          backgroundImage: "radial-gradient(circle, rgba(139,92,246,0.45) 1px, transparent 1px)",
+          backgroundSize: "175px 175px",
+          backgroundPosition: "58px 58px",
         }}
       />
 
-      {/* Scanning beam */}
-      <motion.div
-        className="absolute inset-0 pointer-events-none"
+      {/* ── 6. Heavy vignette — the keystone layer ── */}
+      <div className="absolute inset-0" style={{
+        background: "radial-gradient(ellipse at 50% 50%, transparent 15%, rgba(2,1,9,0.82) 65%, rgba(1,0,6,0.95) 100%)",
+      }} />
+
+      {/* ── 7. Inset edge shadow ── */}
+      <div className="absolute inset-0" style={{ boxShadow: "inset 0 0 150px rgba(1,0,6,0.9)" }} />
+
+      {/* ── 8. Thin inner frame ── */}
+      <div
+        className="absolute"
         style={{
-          background: "linear-gradient(transparent 0%, rgba(99,102,241,0.06) 50%, transparent 100%)",
-          backgroundSize: "100% 60px",
+          inset: 10,
+          borderRadius: "1.75rem",
+          border: "1px solid rgba(67,56,202,0.08)",
         }}
-        animate={{ backgroundPositionY: ["0%", "100%"] }}
-        transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
       />
 
-      {/* Heavy vignette */}
-      <div className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse at 50% 50%, transparent 25%, rgba(3,2,12,0.85) 100%)" }}
-      />
-
-      {/* Bottom fog */}
-      <div className="absolute bottom-0 left-0 right-0 h-1/3 pointer-events-none"
-        style={{ background: "linear-gradient(to top, rgba(3,2,12,0.7) 0%, transparent 100%)" }}
-      />
-
-      {/* Ornate frame */}
-      <div className="absolute inset-3 rounded-[2rem] pointer-events-none"
-        style={{ border: "1px solid rgba(99,102,241,0.12)", boxShadow: "inset 0 0 80px rgba(0,0,0,0.7)" }}
-      />
-      {/* Corner ornaments */}
-      {[
-        { top: 12, left: 12 },
-        { top: 12, right: 12 },
-        { bottom: 12, left: 12 },
-        { bottom: 12, right: 12 },
-      ].map((pos, i) => (
-        <svg
-          key={i}
-          width="28" height="28"
-          className="absolute pointer-events-none opacity-20"
-          style={{ ...pos }}
-          viewBox="0 0 28 28"
-        >
-          <path d="M 2,2 L 14,2 L 14,6 L 6,6 L 6,14 L 2,14 Z" fill="#A78BFA" />
-          <circle cx="2" cy="2" r="2" fill="#7C3AED" />
-        </svg>
-      ))}
+      {/* ── 9. Corner sigil marks ── */}
+      {([
+        { top: 10,    left: 10,  rot: 0   },
+        { top: 10,    right: 10, rot: 90  },
+        { bottom: 10, right: 10, rot: 180 },
+        { bottom: 10, left: 10,  rot: 270 },
+      ] as Array<{ top?: number; bottom?: number; left?: number; right?: number; rot: number }>)
+        .map(({ rot, ...pos }, i) => (
+          <svg
+            key={i}
+            width="20" height="20"
+            className="absolute"
+            style={{ ...pos, opacity: 0.16, transform: `rotate(${rot}deg)` }}
+            viewBox="0 0 20 20"
+          >
+            <path d="M 2,2 L 11,2 L 11,5 L 5,5 L 5,11 L 2,11 Z" fill="#6D28D9" />
+            <circle cx="2" cy="2" r="1.5" fill="#8B5CF6" />
+          </svg>
+        ))}
     </div>
   );
 }
