@@ -7,7 +7,7 @@ import BrandLogo from "@/components/BrandLogo";
 import {
     PieChart, Users, BookOpen, CreditCard, Ticket,
     Palette, Settings, HelpCircle, LogOut, ChevronRight,
-    ShieldAlert, ShoppingCart
+    ShieldAlert, ShoppingCart, Swords
 } from "lucide-react";
 
 export default function AdminSidebar() {
@@ -25,6 +25,7 @@ export default function AdminSidebar() {
         { href: "/admin/planos", icon: CreditCard, label: "Planos & Precos" },
         { href: "/admin/cupons", icon: Ticket, label: "Cupons" },
         { href: "/admin/loja", icon: ShoppingCart, label: "Loja & Gamificacao" },
+        { href: "/admin/war-day", icon: Swords, label: "War Day" },
         { href: "/admin/branding", icon: Palette, label: "Branding" },
     ];
 

@@ -35,6 +35,7 @@ const quickActions = [
     { icon: Layers, label: "Flashcards", desc: "Revisão inteligente", href: "/flashcards" },
     { icon: Swords, label: "Arena", desc: "Desafie outros alunos", href: "/arena" },
     { icon: Timer, label: "Foco", desc: "Sessões de estudo", href: "/pomodoro" },
+    { icon: Flame, label: "War Day", desc: "Batalha entre guilds", href: "/war-day" },
 ];
 
 // Static color maps — defined at module level to avoid re-allocation on every render

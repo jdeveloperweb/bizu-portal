@@ -10,7 +10,7 @@ import {
     Swords, TrendingUp, User, Trophy, LogOut,
     ChevronRight, ChevronLeft, Search, Timer, CheckSquare,
     StickyNote, Settings, BarChart3, Menu, X, FileText, PlayCircle, CreditCard, Users, Lock, Brain,
-    Zap, Target, Crown, Shield
+    Zap, Target, Crown, Shield, Flame
 } from "lucide-react";
 import { getAvatarUrl } from "@/lib/imageUtils";
 import { Avatar } from "@/components/ui/Avatar";
@@ -28,6 +28,7 @@ const studyNav = [
     { href: "/pomodoro", icon: Timer, label: "Pomodoro" },
     { href: "/flashcards", icon: Layers, label: "Flashcards" },
     { href: "/arena", icon: Swords, label: "Arena PVP" },
+    { href: "/war-day", icon: Flame, label: "War Day" },
     { href: "/loja", icon: Brain, label: "Axon Store" },
 ];
 
