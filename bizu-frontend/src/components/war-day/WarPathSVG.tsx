@@ -12,32 +12,35 @@ interface WarPathSVGProps {
 
 export default function WarPathSVG({ zones, containerWidth, containerHeight }: WarPathSVGProps) {
   const paths = useMemo(() => {
+    const zoneMap = new Map(zones.map((z) => [z.zoneId, z]));
     const result: Array<{
       id: string;
-      x1: number; y1: number;
-      x2: number; y2: number;
+      d: string;
       active: boolean;
       conquered: boolean;
+      length: number;
     }> = [];
-
-    const zoneMap = new Map(zones.map((z) => [z.zoneId, z]));
 
     zones.forEach((zone) => {
       zone.prerequisiteZoneIds?.forEach((prereqId) => {
         const prereq = zoneMap.get(prereqId);
         if (!prereq) return;
 
-        const isActive = zone.status !== "LOCKED" || prereq.status === "CONQUERED";
-        const isConquered = zone.status === "CONQUERED" && prereq.status === "CONQUERED";
+        const x1 = prereq.positionX * containerWidth;
+        const y1 = prereq.positionY * containerHeight;
+        const x2 = zone.positionX * containerWidth;
+        const y2 = zone.positionY * containerHeight;
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const cx = x1 + dx * 0.5 + dy * 0.18;
+        const cy = y1 + dy * 0.5 - dx * 0.18;
 
         result.push({
           id: `${prereqId}-${zone.zoneId}`,
-          x1: prereq.positionX * containerWidth,
-          y1: prereq.positionY * containerHeight,
-          x2: zone.positionX * containerWidth,
-          y2: zone.positionY * containerHeight,
-          active: isActive,
-          conquered: isConquered,
+          d: `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`,
+          active: zone.status !== "LOCKED" || prereq.status === "CONQUERED",
+          conquered: zone.status === "CONQUERED" && prereq.status === "CONQUERED",
+          length: Math.hypot(dx, dy) * 1.2,
         });
       });
     });
@@ -55,138 +58,144 @@ export default function WarPathSVG({ zones, containerWidth, containerHeight }: W
       style={{ zIndex: 1 }}
     >
       <defs>
-        <filter id="magicalGlow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="4" result="blur" />
-          <feFlood floodColor="rgba(99,102,241,0.6)" result="color" />
-          <feComposite in="color" in2="blur" operator="in" result="glow" />
+        {/* Arcane purple glow */}
+        <filter id="pf-arcane" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="5" result="b" />
+          <feFlood floodColor="#7C3AED" floodOpacity="1" result="c" />
+          <feComposite in="c" in2="b" operator="in" result="g" />
           <feMerge>
-            <feMergeNode in="glow" />
-            <feMergeNode in="glow" />
+            <feMergeNode in="g" />
+            <feMergeNode in="g" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
-
-        <filter id="conqueredGlow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="5" result="blur" />
-          <feFlood floodColor="rgba(245,158,11,0.5)" result="color" />
-          <feComposite in="color" in2="blur" operator="in" result="glow" />
+        {/* Gold conquest glow */}
+        <filter id="pf-gold" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="7" result="b" />
+          <feFlood floodColor="#F59E0B" floodOpacity="1" result="c" />
+          <feComposite in="c" in2="b" operator="in" result="g" />
           <feMerge>
-            <feMergeNode in="glow" />
-            <feMergeNode in="glow" />
+            <feMergeNode in="g" />
+            <feMergeNode in="g" />
+            <feMergeNode in="g" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
-
-        <linearGradient id="energyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="transparent" />
-          <stop offset="50%" stopColor="white" />
-          <stop offset="100%" stopColor="transparent" />
-        </linearGradient>
       </defs>
 
-      {paths.map((path) => {
-        const dx = path.x2 - path.x1;
-        const dy = path.y2 - path.y1;
-        const midX = path.x1 + dx * 0.5;
-        const midY = path.y1 + dy * 0.5;
-        // Subtle curve for a more organic "unfolding" map feel
-        const cx = midX + dy * 0.1;
-        const cy = midY - dx * 0.1;
-        const d = `M ${path.x1} ${path.y1} Q ${cx} ${cy} ${path.x2} ${path.y2}`;
-
-        return (
-          <g key={path.id}>
-            {/* Background Path (Dotted/Ghostly) */}
-            <path
-              d={d}
-              fill="none"
-              stroke="white"
-              strokeWidth="1.5"
-              strokeDasharray="4 8"
-              opacity="0.05"
-            />
-
-            {/* Locked Path */}
-            {!path.active && (
+      {paths.map((p, i) => (
+        <g key={p.id}>
+          {/* ── LOCKED ── */}
+          {!p.active && (
+            <>
               <path
-                d={d}
-                fill="none"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                opacity="0.1"
+                d={p.d} fill="none" stroke="#0A0618" strokeWidth="12"
+                strokeLinecap="round" opacity="0.9"
               />
-            )}
+              <path
+                d={p.d} fill="none" stroke="#2D1F6E" strokeWidth="2"
+                strokeDasharray="5 16" strokeLinecap="round" opacity="0.45"
+              />
+            </>
+          )}
 
-            {/* Active Path Base */}
-            {path.active && !path.conquered && (
-              <>
-                <motion.path
-                  d={d}
-                  fill="none"
-                  stroke="#6366F1"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{ pathLength: 1, opacity: 0.4 }}
-                  transition={{ duration: 1 }}
-                />
-                <motion.path
-                  d={d}
-                  fill="none"
-                  stroke="#6366F1"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  filter="url(#magicalGlow)"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 1.5, delay: 0.2 }}
-                />
-              </>
-            )}
-
-            {/* Conquered Path */}
-            {path.conquered && (
-              <>
-                <path
-                  d={d}
-                  fill="none"
-                  stroke="#F59E0B"
-                  strokeWidth="5"
-                  strokeLinecap="round"
-                  opacity="0.2"
-                />
-                <motion.path
-                  d={d}
-                  fill="none"
-                  stroke="#F59E0B"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  filter="url(#conqueredGlow)"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 0.8 }}
-                />
-              </>
-            )}
-
-            {/* Pulsing Energy Particle */}
-            {path.active && !path.conquered && (
+          {/* ── ACTIVE (not conquered) ── */}
+          {p.active && !p.conquered && (
+            <>
+              {/* Far outer ambient glow */}
+              <path
+                d={p.d} fill="none" stroke="#3730A3" strokeWidth="22"
+                strokeLinecap="round" opacity="0.18"
+                filter="url(#pf-arcane)"
+              />
+              {/* Wide base channel */}
+              <path
+                d={p.d} fill="none" stroke="#1E1B4B" strokeWidth="12"
+                strokeLinecap="round" opacity="0.7"
+              />
+              {/* Mid glow */}
+              <path
+                d={p.d} fill="none" stroke="#5B21B6" strokeWidth="6"
+                strokeLinecap="round" opacity="0.75"
+              />
+              {/* Bright core — entrance animation */}
               <motion.path
-                d={d}
-                fill="none"
-                stroke="url(#energyGradient)"
-                strokeWidth="3"
+                d={p.d} fill="none" stroke="#C4B5FD" strokeWidth="2"
                 strokeLinecap="round"
-                strokeDasharray="50 150"
-                animate={{ strokeDashoffset: [200, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                opacity="0.8"
+                filter="url(#pf-arcane)"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.95 }}
+                transition={{ duration: 1.6, delay: i * 0.08, ease: "easeOut" }}
               />
-            )}
-          </g>
-        );
-      })}
+              {/* Traveling energy bolt 1 */}
+              <motion.path
+                d={p.d} fill="none" stroke="rgba(196,181,253,0.9)" strokeWidth="7"
+                strokeLinecap="round"
+                strokeDasharray={`18 ${Math.max(p.length, 1)}`}
+                animate={{ strokeDashoffset: [0, -(p.length + 18)] }}
+                transition={{ duration: 2.6, repeat: Infinity, ease: "linear", delay: i * 0.3 }}
+                filter="url(#pf-arcane)"
+              />
+              {/* Traveling energy bolt 2 — offset */}
+              <motion.path
+                d={p.d} fill="none" stroke="rgba(167,139,250,0.6)" strokeWidth="4"
+                strokeLinecap="round"
+                strokeDasharray={`10 ${Math.max(p.length, 1)}`}
+                animate={{ strokeDashoffset: [0, -(p.length + 10)] }}
+                transition={{ duration: 2.6, repeat: Infinity, ease: "linear", delay: i * 0.3 + 1.3 }}
+              />
+            </>
+          )}
+
+          {/* ── CONQUERED ── */}
+          {p.conquered && (
+            <>
+              {/* Far outer gold halo */}
+              <path
+                d={p.d} fill="none" stroke="#78350F" strokeWidth="26"
+                strokeLinecap="round" opacity="0.22"
+                filter="url(#pf-gold)"
+              />
+              {/* Wide golden channel */}
+              <path
+                d={p.d} fill="none" stroke="#92400E" strokeWidth="14"
+                strokeLinecap="round" opacity="0.55"
+              />
+              {/* Mid amber glow */}
+              <path
+                d={p.d} fill="none" stroke="#D97706" strokeWidth="7"
+                strokeLinecap="round" opacity="0.8"
+              />
+              {/* Bright gold core — entrance */}
+              <motion.path
+                d={p.d} fill="none" stroke="#FDE68A" strokeWidth="2.5"
+                strokeLinecap="round"
+                filter="url(#pf-gold)"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 1.0, ease: "easeOut" }}
+              />
+              {/* Traveling gold sparkle 1 */}
+              <motion.path
+                d={p.d} fill="none" stroke="rgba(253,230,138,0.98)" strokeWidth="9"
+                strokeLinecap="round"
+                strokeDasharray={`14 ${Math.max(p.length, 1)}`}
+                animate={{ strokeDashoffset: [0, -(p.length + 14)] }}
+                transition={{ duration: 2.0, repeat: Infinity, ease: "linear", delay: i * 0.22 }}
+                filter="url(#pf-gold)"
+              />
+              {/* Traveling gold sparkle 2 — smaller trail */}
+              <motion.path
+                d={p.d} fill="none" stroke="rgba(251,191,36,0.7)" strokeWidth="5"
+                strokeLinecap="round"
+                strokeDasharray={`8 ${Math.max(p.length, 1)}`}
+                animate={{ strokeDashoffset: [0, -(p.length + 8)] }}
+                transition={{ duration: 2.0, repeat: Infinity, ease: "linear", delay: i * 0.22 + 1.0 }}
+              />
+            </>
+          )}
+        </g>
+      ))}
     </svg>
   );
 }

@@ -5,7 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ZoneState } from "@/lib/warDayService";
 import WarZoneNode from "./WarZoneNode";
 import WarPathSVG from "./WarPathSVG";
-import { Sword, Shield, Crown, Flame, ChevronRight, Clock, Star, X, Map, AlertTriangle } from "lucide-react";
+import {
+  Sword, Shield, Crown, Flame, ChevronRight,
+  Star, X, AlertTriangle, Swords,
+} from "lucide-react";
 
 interface WarMapProps {
   zones: ZoneState[];
@@ -14,66 +17,215 @@ interface WarMapProps {
   totalScore: number;
 }
 
+// ── Epic map background ──────────────────────────────────────────────────────
+
 function MapBackground() {
   return (
-    <div className="absolute inset-0 w-full h-full overflow-hidden bg-[#0d0d1a]">
-      {/* Stone/Leather Texture Overlay */}
-      <div className="absolute inset-0 opacity-[0.25] mix-blend-overlay pointer-events-none"
+    <div className="absolute inset-0 w-full h-full overflow-hidden" style={{ background: "#050310" }}>
+
+      {/* SVG parchment/stone texture via fractalNoise */}
+      <svg className="absolute inset-0 w-full h-full opacity-[0.18] mix-blend-overlay pointer-events-none">
+        <filter id="mb-noise">
+          <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch" />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#mb-noise)" />
+      </svg>
+
+      {/* Aurora pulse — top */}
+      <motion.div
+        className="absolute pointer-events-none"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+          inset: 0,
+          background: "radial-gradient(ellipse 80% 45% at 50% -10%, rgba(99,102,241,0.28) 0%, transparent 70%)",
+        }}
+        animate={{ opacity: [0.5, 1, 0.5] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Aurora pulse — bottom right */}
+      <motion.div
+        className="absolute pointer-events-none"
+        style={{
+          inset: 0,
+          background: "radial-gradient(ellipse 60% 40% at 85% 110%, rgba(248,113,113,0.18) 0%, transparent 65%)",
+        }}
+        animate={{ opacity: [0.3, 0.7, 0.3] }}
+        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+      />
+
+      {/* Aurora pulse — left */}
+      <motion.div
+        className="absolute pointer-events-none"
+        style={{
+          inset: 0,
+          background: "radial-gradient(ellipse 50% 50% at -10% 60%, rgba(139,92,246,0.2) 0%, transparent 70%)",
+        }}
+        animate={{ opacity: [0.4, 0.9, 0.4] }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 5 }}
+      />
+
+      {/* Ancient runic grid */}
+      <svg className="absolute inset-0 w-full h-full opacity-[0.06] pointer-events-none">
+        <defs>
+          <pattern id="runicGrid" width="100" height="100" patternUnits="userSpaceOnUse">
+            <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#7C3AED" strokeWidth="0.5" />
+            <circle cx="0" cy="0" r="2" fill="#7C3AED" />
+            {/* Rune marks at cross-points */}
+            <path d="M -4,0 L 4,0 M 0,-4 L 0,4" stroke="#A78BFA" strokeWidth="0.8" opacity="0.5" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#runicGrid)" />
+      </svg>
+
+      {/* Slowly rotating arcane circle — center */}
+      <motion.div
+        className="absolute pointer-events-none"
+        style={{ inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
+      >
+        <svg
+          viewBox="0 0 600 600"
+          style={{ width: "min(90vw, 90vh)", height: "min(90vw, 90vh)", opacity: 0.04 }}
+        >
+          <circle cx="300" cy="300" r="280" fill="none" stroke="#A78BFA" strokeWidth="1.5" strokeDasharray="8 18" />
+          <circle cx="300" cy="300" r="240" fill="none" stroke="#7C3AED" strokeWidth="0.8" />
+          {/* Octagram points */}
+          {Array.from({ length: 8 }).map((_, i) => {
+            const angle = (i * Math.PI * 2) / 8 - Math.PI / 2;
+            return (
+              <line
+                key={i}
+                x1={300 + 240 * Math.cos(angle)}
+                y1={300 + 240 * Math.sin(angle)}
+                x2="300" y2="300"
+                stroke="#6D28D9" strokeWidth="0.6"
+              />
+            );
+          })}
+          <circle cx="300" cy="300" r="180" fill="none" stroke="#A78BFA" strokeWidth="0.5" strokeDasharray="3 12" />
+        </svg>
+      </motion.div>
+
+      {/* Counter-rotating inner circle */}
+      <motion.div
+        className="absolute pointer-events-none"
+        style={{ inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
+        animate={{ rotate: -360 }}
+        transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
+      >
+        <svg
+          viewBox="0 0 400 400"
+          style={{ width: "min(60vw, 60vh)", height: "min(60vw, 60vh)", opacity: 0.05 }}
+        >
+          <circle cx="200" cy="200" r="185" fill="none" stroke="#F59E0B" strokeWidth="0.8" strokeDasharray="5 25" />
+          {Array.from({ length: 6 }).map((_, i) => {
+            const angle = (i * Math.PI * 2) / 6;
+            const x = 200 + 185 * Math.cos(angle);
+            const y = 200 + 185 * Math.sin(angle);
+            return <circle key={i} cx={x} cy={y} r="3" fill="#F59E0B" opacity="0.7" />;
+          })}
+        </svg>
+      </motion.div>
+
+      {/* Floating ember particles */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        animate={{ opacity: [0.15, 0.35, 0.15] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          backgroundImage: "radial-gradient(circle, rgba(167,139,250,0.4) 1px, transparent 1px)",
+          backgroundSize: "90px 90px",
+        }}
+      />
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        animate={{ opacity: [0.08, 0.2, 0.08] }}
+        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+        style={{
+          backgroundImage: "radial-gradient(circle, rgba(245,158,11,0.3) 1px, transparent 1px)",
+          backgroundSize: "140px 140px",
+          backgroundPosition: "45px 45px",
         }}
       />
 
-      {/* Deep Atmospheric Lighting */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.2)_0%,transparent_70%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_60%,rgba(5,5,15,0.8)_100%)]" />
+      {/* Scanning beam */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "linear-gradient(transparent 0%, rgba(99,102,241,0.06) 50%, transparent 100%)",
+          backgroundSize: "100% 60px",
+        }}
+        animate={{ backgroundPositionY: ["0%", "100%"] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
+      />
 
-      {/* Ancient Runic Grid */}
-      <svg className="absolute inset-0 w-full h-full opacity-[0.07]" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="ancientGrid" width="120" height="120" patternUnits="userSpaceOnUse">
-            <path d="M 120 0 L 0 0 0 120" fill="none" stroke="#6366F1" strokeWidth="0.5" />
-            <circle cx="0" cy="0" r="1.5" fill="#6366F1" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#ancientGrid)" />
-      </svg>
+      {/* Heavy vignette */}
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse at 50% 50%, transparent 25%, rgba(3,2,12,0.85) 100%)" }}
+      />
 
-      {/* Floating Magic Embers */}
-      <div className="absolute inset-0 pointer-events-none">
-        <motion.div
-          className="w-full h-full"
-          animate={{ opacity: [0.2, 0.4, 0.2] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          style={{
-            backgroundImage: 'radial-gradient(circle, rgba(167,139,250,0.3) 1px, transparent 1px)',
-            backgroundSize: '120px 120px'
-          }}
-        />
-      </div>
+      {/* Bottom fog */}
+      <div className="absolute bottom-0 left-0 right-0 h-1/3 pointer-events-none"
+        style={{ background: "linear-gradient(to top, rgba(3,2,12,0.7) 0%, transparent 100%)" }}
+      />
 
-      {/* Dark Vignette */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,transparent_30%,rgba(5,5,15,1)_100%)] pointer-events-none" />
-
-      {/* Decorative Border Frame */}
-      <div className="absolute inset-4 border border-white/5 rounded-[2rem] pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.8)]" />
+      {/* Ornate frame */}
+      <div className="absolute inset-3 rounded-[2rem] pointer-events-none"
+        style={{ border: "1px solid rgba(99,102,241,0.12)", boxShadow: "inset 0 0 80px rgba(0,0,0,0.7)" }}
+      />
+      {/* Corner ornaments */}
+      {[
+        { top: 12, left: 12 },
+        { top: 12, right: 12 },
+        { bottom: 12, left: 12 },
+        { bottom: 12, right: 12 },
+      ].map((pos, i) => (
+        <svg
+          key={i}
+          width="28" height="28"
+          className="absolute pointer-events-none opacity-20"
+          style={{ ...pos }}
+          viewBox="0 0 28 28"
+        >
+          <path d="M 2,2 L 14,2 L 14,6 L 6,6 L 6,14 L 2,14 Z" fill="#A78BFA" />
+          <circle cx="2" cy="2" r="2" fill="#7C3AED" />
+        </svg>
+      ))}
     </div>
   );
 }
 
-function ZoneDetailModal({ zone, onClose, onEnter }: {
+// ── Zone type config (modal) ─────────────────────────────────────────────────
+
+const MODAL_ZONE: Record<string, {
+  color: string; icon: React.ReactNode; label: string;
+  heroFrom: string; heroTo: string;
+}> = {
+  CAMP:       { color: "#F59E0B", label: "Acampamento",         heroFrom: "#2D1500", heroTo: "#0D0800", icon: <Sword   size={36} /> },
+  WATCHTOWER: { color: "#22D3EE", label: "Torre de Vigia",      heroFrom: "#001A1F", heroTo: "#020A0D", icon: <Shield  size={36} /> },
+  FORTRESS:   { color: "#A78BFA", label: "Fortaleza",           heroFrom: "#130720", heroTo: "#060310", icon: <Shield  size={36} /> },
+  CASTLE:     { color: "#C084FC", label: "Castelo",             heroFrom: "#180825", heroTo: "#070312", icon: <Crown   size={36} /> },
+  BOSS:       { color: "#F87171", label: "Fortaleza das Trevas", heroFrom: "#240808", heroTo: "#0D0303", icon: <Flame   size={36} /> },
+};
+
+// ── Zone Detail Modal ────────────────────────────────────────────────────────
+
+function ZoneDetailModal({
+  zone, onClose, onEnter,
+}: {
   zone: ZoneState;
   onClose: () => void;
   onEnter: (zone: ZoneState) => void;
 }) {
-  const ZONE_COLORS: Record<string, string> = {
-    CAMP: "#F59E0B", WATCHTOWER: "#22D3EE",
-    FORTRESS: "#A78BFA", CASTLE: "#C084FC", BOSS: "#F87171",
-  };
-  const color = ZONE_COLORS[zone.zoneType] ?? "#6366F1";
-  const isConquered = zone.status === "CONQUERED";
-  const isAvailable = zone.status === "AVAILABLE" || zone.status === "IN_PROGRESS";
-  const required = Math.ceil(zone.questionCount * 0.7);
+  const cfg     = MODAL_ZONE[zone.zoneType] ?? MODAL_ZONE.CAMP;
+  const color   = cfg.color;
+  const isConquered  = zone.status === "CONQUERED";
+  const isAvailable  = zone.status === "AVAILABLE" || zone.status === "IN_PROGRESS";
+  const required     = Math.ceil(zone.questionCount * 0.7);
+  const progress     = Math.min(zone.progressPercent, 100);
+  const circ         = 2 * Math.PI * 22;
 
   return (
     <motion.div
@@ -83,109 +235,220 @@ function ZoneDetailModal({ zone, onClose, onEnter }: {
       exit={{ opacity: 0 }}
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
+      {/* Backdrop */}
+      <div className="absolute inset-0 backdrop-blur-md" style={{ background: "rgba(3,2,12,0.75)" }} />
+
+      {/* Card */}
       <motion.div
-        className="relative w-80 max-w-[calc(100vw-2rem)] rounded-2xl border p-5 sm:p-6 text-white"
+        className="relative w-[340px] max-w-[calc(100vw-2rem)] rounded-2xl overflow-hidden text-white"
         style={{
-          background: "linear-gradient(135deg, #0d1220 0%, #1a0a2e 100%)",
-          borderColor: `${color}60`,
-          boxShadow: `0 0 40px 10px ${color}20`,
+          background: "linear-gradient(160deg, #0e0820 0%, #080414 100%)",
+          border: `1px solid ${color}50`,
+          boxShadow: `0 0 60px 12px ${color}18, 0 30px 60px rgba(0,0,0,0.8)`,
         }}
-        initial={{ scale: 0.8, y: 40 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.8, y: 40 }}
+        initial={{ scale: 0.75, y: 50, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        exit={{ scale: 0.8, y: 40, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 320, damping: 28 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <button onClick={onClose} className="absolute top-3 right-3 text-gray-500 hover:text-white transition-colors">
-          <X size={18} />
-        </button>
-
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
+        {/* ── Hero header ── */}
+        <div
+          className="relative px-6 pt-7 pb-6 flex items-center gap-4"
+          style={{ background: `linear-gradient(135deg, ${cfg.heroFrom} 0%, ${cfg.heroTo} 100%)` }}
+        >
+          {/* Radial glow behind icon */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: `radial-gradient(circle at 60px 50%, ${color}22 0%, transparent 65%)` }}
+          />
+          {/* Zone icon */}
+          <div
+            className="relative flex-none flex items-center justify-center rounded-xl"
             style={{
-              background: `linear-gradient(135deg, ${color}33, ${color}11)`,
-              border: `1px solid ${color}60`
-            }}>
-            {zone.zoneType === "BOSS" ? <Flame size={24} color={color} /> :
-              zone.zoneType === "CASTLE" ? <Crown size={24} color={color} /> :
-                zone.zoneType === "FORTRESS" ? <Shield size={24} color={color} /> :
-                  <Sword size={24} color={color} />}
+              width: 68, height: 68,
+              background: `linear-gradient(135deg, ${color}28, ${color}0a)`,
+              border: `1px solid ${color}60`,
+              boxShadow: `0 0 24px ${color}30`,
+              color,
+            }}
+          >
+            {cfg.icon}
           </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color }}>
-              {zone.zoneType === "BOSS" ? "⚔️ Chefe Final" :
-                zone.zoneType === "CASTLE" ? "Castelo" :
-                  zone.zoneType === "FORTRESS" ? "Fortaleza" :
-                    zone.zoneType === "WATCHTOWER" ? "Torre de Vigia" : "Acampamento"}
+          {/* Zone name */}
+          <div className="relative min-w-0">
+            <p
+              className="text-[9px] font-black uppercase tracking-[0.25em] mb-1"
+              style={{ color }}
+            >
+              {zone.zoneType === "BOSS" ? "⚔ Grande Chefe Final" : cfg.label}
             </p>
-            <h3 className="text-xl font-black tracking-tight">{zone.name}</h3>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          <div className="rounded-lg p-2.5 bg-white/5 border border-white/5">
-            <p className="text-[9px] text-gray-400 uppercase font-bold mb-1">Cota Mínima</p>
-            <p className="text-lg font-black" style={{ color }}>{required}</p>
-          </div>
-          <div className="rounded-lg p-2.5 bg-white/5 border border-white/5">
-            <p className="text-[9px] text-gray-400 uppercase font-bold mb-1">Recompensa</p>
-            <p className="text-lg font-black" style={{ color }}>+{zone.pointsPerCorrect} pts</p>
-          </div>
-          <div className="rounded-lg p-2.5 bg-white/5 border border-white/5">
-            <p className="text-[9px] text-gray-400 uppercase font-bold mb-1">Dificuldade</p>
-            <div className="flex gap-0.5 mt-0.5">
-              {Array.from({ length: zone.difficultyLevel }).map((_, i) => (
-                <Star key={i} size={12} fill={color} color={color} />
+            <h3 className="text-xl font-black leading-tight tracking-tight text-white">{zone.name}</h3>
+            {/* Difficulty pips */}
+            <div className="flex gap-1 mt-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="w-2 h-2 rounded-full"
+                  style={{
+                    background: i < zone.difficultyLevel ? color : "rgba(255,255,255,0.1)",
+                    boxShadow: i < zone.difficultyLevel ? `0 0 5px ${color}` : "none",
+                  }}
+                />
               ))}
             </div>
           </div>
-          <div className="rounded-lg p-2.5 bg-white/5 border border-white/5">
-            <p className="text-[9px] text-gray-400 uppercase font-bold mb-1">Guild Status</p>
-            <p className="text-base font-bold text-white leading-none mt-1">{zone.correctAnswers} / {required}</p>
-          </div>
+          {/* Close */}
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 rounded-lg p-1.5 transition-colors hover:bg-white/10"
+            style={{ color: "rgba(255,255,255,0.4)" }}
+          >
+            <X size={16} />
+          </button>
         </div>
 
-        <div className="mb-6">
-          <div className="flex justify-between text-[10px] text-gray-400 font-bold mb-1 uppercase tracking-wider">
-            <span>Domínio da Área</span>
-            <span>{Math.round(zone.progressPercent)}%</span>
+        {/* ── Stats grid ── */}
+        <div className="grid grid-cols-2 gap-2 px-5 pt-4">
+          {[
+            { label: "Cota Mínima", value: `${required} acertos` },
+            { label: "Recompensa", value: `+${zone.pointsPerCorrect} pts` },
+            { label: "Total de Questões", value: zone.questionCount },
+            { label: "Guild Status", value: `${zone.correctAnswers} / ${required}` },
+          ].map(({ label, value }) => (
+            <div
+              key={label}
+              className="rounded-xl px-3 py-2.5"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+            >
+              <p className="text-[8px] font-black uppercase tracking-widest text-gray-500 mb-1">{label}</p>
+              <p className="text-sm font-black" style={{ color }}>{value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Conquest progress ── */}
+        <div className="px-5 pt-4 pb-5">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+              Domínio da Área
+            </span>
+            <span className="text-sm font-black" style={{ color }}>{Math.round(progress)}%</span>
           </div>
-          <div className="h-2 rounded-full bg-white/5 overflow-hidden border border-white/5">
+
+          {/* RPG resource bar */}
+          <div
+            className="relative h-3 rounded-full overflow-hidden"
+            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.06)" }}
+          >
             <motion.div
               className="h-full rounded-full"
-              style={{ background: `linear-gradient(90deg, ${color}aa, ${color})` }}
+              style={{ background: `linear-gradient(90deg, ${color}99, ${color})` }}
               initial={{ width: 0 }}
-              animate={{ width: `${zone.progressPercent}%` }}
-              transition={{ duration: 1, ease: "easeOut" }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
             />
+            {/* Shimmer */}
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)",
+                backgroundSize: "200% 100%",
+              }}
+              animate={{ backgroundPositionX: ["100%", "-100%"] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
+            />
+          </div>
+
+          {/* Circular conquest ring (decorative) */}
+          <div className="flex justify-center mt-4">
+            <svg width="60" height="60" viewBox="0 0 60 60">
+              <circle cx="30" cy="30" r="22" fill="none" stroke={`${color}18`} strokeWidth="3" />
+              <motion.circle
+                cx="30" cy="30" r="22"
+                fill="none"
+                stroke={color}
+                strokeWidth="3"
+                strokeLinecap="round"
+                transform="rotate(-90 30 30)"
+                strokeDasharray={circ}
+                initial={{ strokeDashoffset: circ }}
+                animate={{ strokeDashoffset: circ * (1 - progress / 100) }}
+                transition={{ duration: 1.3, ease: "easeOut" }}
+                style={{ filter: `drop-shadow(0 0 4px ${color})` }}
+              />
+              <text
+                x="30" y="34"
+                textAnchor="middle"
+                fill={color}
+                fontSize="10"
+                fontWeight="900"
+                fontFamily="sans-serif"
+              >
+                {Math.round(progress)}%
+              </text>
+            </svg>
           </div>
         </div>
 
-        {isConquered ? (
-          <div className="flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
-            <Shield size={18} className="text-emerald-400" />
-            <span className="text-emerald-400 font-black text-sm uppercase">Ponto de Vitória Garantido</span>
-          </div>
-        ) : isAvailable ? (
-          <button
-            onClick={() => onEnter(zone)}
-            className="w-full group relative flex items-center justify-center gap-2 py-3.5 rounded-xl font-black text-black transition-all hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
-            style={{ background: color }}
-          >
-            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none" />
-            <Sword size={18} className="relative z-10" />
-            <span className="relative z-10 uppercase text-sm tracking-wider">Lançar Ataque</span>
-            <ChevronRight size={18} className="relative z-10 group-hover:translate-x-1 transition-transform" />
-          </button>
-        ) : (
-          <div className="flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-900/60 border border-gray-800">
-            <span className="text-gray-500 text-[10px] font-black uppercase tracking-widest">Caminho Bloqueado</span>
-          </div>
-        )}
+        {/* ── Divider ── */}
+        <div className="mx-5 mb-4" style={{ height: 1, background: `linear-gradient(90deg, transparent, ${color}40, transparent)` }} />
+
+        {/* ── Action ── */}
+        <div className="px-5 pb-5">
+          {isConquered ? (
+            <div
+              className="flex items-center justify-center gap-2 py-3.5 rounded-xl"
+              style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.3)" }}
+            >
+              <Shield size={18} className="text-emerald-400" />
+              <span className="text-emerald-400 font-black text-sm uppercase tracking-wider">
+                Vitória Conquistada
+              </span>
+            </div>
+          ) : isAvailable ? (
+            <motion.button
+              onClick={() => onEnter(zone)}
+              className="w-full relative flex items-center justify-center gap-2 py-4 rounded-xl font-black text-[13px] uppercase tracking-wider overflow-hidden"
+              style={{
+                background: `linear-gradient(135deg, ${color}dd, ${color})`,
+                color: "#0d0d0d",
+                boxShadow: `0 0 30px ${color}60`,
+              }}
+              whileHover={{ scale: 1.02, boxShadow: `0 0 40px ${color}90` }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {/* Shine sweep */}
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%)",
+                  backgroundSize: "200% 100%",
+                }}
+                animate={{ backgroundPositionX: ["-100%", "300%"] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
+              />
+              <Swords size={18} className="relative z-10" />
+              <span className="relative z-10">Lançar Ataque</span>
+              <ChevronRight size={18} className="relative z-10" />
+            </motion.button>
+          ) : (
+            <div
+              className="flex items-center justify-center gap-2 py-3.5 rounded-xl"
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
+            >
+              <span className="text-gray-600 text-[10px] font-black uppercase tracking-widest">
+                Caminho Bloqueado
+              </span>
+            </div>
+          )}
+        </div>
       </motion.div>
     </motion.div>
   );
 }
+
+// ── Main Component ───────────────────────────────────────────────────────────
 
 export default function WarMap({ zones, onZoneClick, guildName, totalScore }: WarMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -194,12 +457,12 @@ export default function WarMap({ zones, onZoneClick, guildName, totalScore }: Wa
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      const rect = entries[0].contentRect;
-      setDims({ w: rect.width, h: rect.height });
+    const obs = new ResizeObserver((entries) => {
+      const r = entries[0].contentRect;
+      setDims({ w: r.width, h: r.height });
     });
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
+    obs.observe(containerRef.current);
+    return () => obs.disconnect();
   }, []);
 
   const handleZoneClick = useCallback((zone: ZoneState) => {
@@ -211,32 +474,43 @@ export default function WarMap({ zones, onZoneClick, guildName, totalScore }: Wa
     onZoneClick(zone);
   }, [onZoneClick]);
 
+  const conqueredCount = zones.filter((z) => z.status === "CONQUERED").length;
+
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl border border-white/5"
-      style={{ minHeight: 600 }}
+      className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl"
+      style={{
+        minHeight: 600,
+        border: "1px solid rgba(99,102,241,0.18)",
+        boxShadow: "0 0 80px rgba(99,102,241,0.12), 0 30px 80px rgba(0,0,0,0.9)",
+      }}
     >
       <MapBackground />
 
       {zones.length === 0 ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-3 px-6 text-center">
-          <div className="w-20 h-20 rounded-2xl flex items-center justify-center bg-indigo-500/10 border border-indigo-500/20 shadow-xl">
-            <AlertTriangle size={32} className="text-indigo-400" />
-          </div>
-          <p className="text-gray-200 font-black text-lg uppercase tracking-tight">Mapa Vazio</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-4 px-6 text-center">
+          <motion.div
+            className="w-24 h-24 rounded-2xl flex items-center justify-center"
+            style={{
+              background: "rgba(99,102,241,0.08)",
+              border: "1px solid rgba(99,102,241,0.2)",
+              boxShadow: "0 0 40px rgba(99,102,241,0.15)",
+            }}
+            animate={{ scale: [1, 1.04, 1] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          >
+            <AlertTriangle size={36} className="text-indigo-400" />
+          </motion.div>
+          <p className="text-gray-200 font-black text-xl uppercase tracking-tight">Mapa Vazio</p>
           <p className="text-gray-500 text-xs max-w-xs leading-relaxed">
-            As forças do mal ainda não se organizaram. Um administrador deve definir as zonas de batalha para este evento.
+            As forças das trevas ainda não se organizaram. Um administrador deve definir as zonas de batalha.
           </p>
         </div>
       ) : (
         <>
           {dims.w > 0 && (
-            <WarPathSVG
-              zones={zones}
-              containerWidth={dims.w}
-              containerHeight={dims.h}
-            />
+            <WarPathSVG zones={zones} containerWidth={dims.w} containerHeight={dims.h} />
           )}
 
           <div className="absolute inset-0" style={{ zIndex: 2 }}>
@@ -262,17 +536,77 @@ export default function WarMap({ zones, onZoneClick, guildName, totalScore }: Wa
         </>
       )}
 
-      {/* Interface Overlays */}
-      <div className="absolute bottom-6 left-6 flex items-center gap-3 z-10">
-        <div className="px-4 py-2.5 rounded-xl text-xs font-black backdrop-blur-xl bg-black/40 border border-white/10 shadow-2xl flex items-center gap-2">
-          <Shield size={14} className="text-indigo-400" />
-          <span className="text-gray-500 uppercase tracking-widest text-[9px]">Fortaleza da Guilda:</span>
-          <span className="text-white text-sm">{guildName}</span>
-        </div>
-        <div className="px-4 py-2.5 rounded-xl text-xs font-black backdrop-blur-xl bg-indigo-900/30 border border-indigo-500/30 shadow-2xl flex items-center gap-2">
-          <Star size={14} className="text-amber-400 fill-amber-400" />
-          <span className="text-amber-400 text-sm tracking-tight">{totalScore.toLocaleString("pt-BR")} ESPÓLIOS</span>
-        </div>
+      {/* ── HUD overlays ── */}
+      <div className="absolute bottom-5 left-5 flex items-center gap-2.5 z-10 flex-wrap">
+        {/* Guild name */}
+        <motion.div
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
+          style={{
+            background: "linear-gradient(135deg, rgba(5,3,20,0.85) 0%, rgba(8,4,28,0.85) 100%)",
+            border: "1px solid rgba(99,102,241,0.2)",
+            backdropFilter: "blur(20px)",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.6)",
+          }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Shield size={14} className="text-indigo-400 flex-none" />
+          <span className="text-gray-500 uppercase tracking-widest text-[8px] font-black">Guilda</span>
+          <span className="text-white text-xs font-black">{guildName}</span>
+        </motion.div>
+
+        {/* Score */}
+        <motion.div
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
+          style={{
+            background: "linear-gradient(135deg, rgba(20,10,5,0.85) 0%, rgba(30,16,4,0.85) 100%)",
+            border: "1px solid rgba(245,158,11,0.25)",
+            backdropFilter: "blur(20px)",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.6), 0 0 20px rgba(245,158,11,0.08)",
+          }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Star size={14} className="text-amber-400 fill-amber-400 flex-none" />
+          <span className="text-amber-400 text-xs font-black tracking-tight">
+            {totalScore.toLocaleString("pt-BR")}
+          </span>
+          <span className="text-amber-700 text-[8px] font-black uppercase tracking-widest">pts</span>
+        </motion.div>
+
+        {/* Conquered counter */}
+        {zones.length > 0 && (
+          <motion.div
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
+            style={{
+              background: "linear-gradient(135deg, rgba(4,12,8,0.85) 0%, rgba(5,18,10,0.85) 100%)",
+              border: "1px solid rgba(16,185,129,0.2)",
+              backdropFilter: "blur(20px)",
+              boxShadow: "0 4px 24px rgba(0,0,0,0.6)",
+            }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <Crown size={14} className="text-emerald-400 flex-none" />
+            <span className="text-emerald-400 text-xs font-black">
+              {conqueredCount}/{zones.length}
+            </span>
+            <span className="text-emerald-800 text-[8px] font-black uppercase tracking-widest">zonas</span>
+          </motion.div>
+        )}
+      </div>
+
+      {/* Top-right: event title watermark */}
+      <div className="absolute top-5 right-5 z-10 pointer-events-none">
+        <p
+          className="text-[9px] font-black uppercase tracking-[0.3em] opacity-30"
+          style={{ color: "#A78BFA" }}
+        >
+          War Day · Battle Map
+        </p>
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Lock, Swords, CheckCircle2, Star, Skull } from "lucide-react";
 import { ZoneState } from "@/lib/warDayService";
 
 interface WarZoneNodeProps {
@@ -10,230 +9,427 @@ interface WarZoneNodeProps {
   isSelected: boolean;
 }
 
-const ZONE_VISUALS: Record<string, { label: string; color: string; glowColor: string; bgColor: string; accentColor: string }> = {
-  CAMP: { label: "Acampamento", color: "#F59E0B", glowColor: "rgba(245,158,11,0.5)", bgColor: "#1e150a", accentColor: "#fbbf24" },
-  WATCHTOWER: { label: "Torre de Vigia", color: "#22D3EE", glowColor: "rgba(34,211,238,0.5)", bgColor: "#0a1b1e", accentColor: "#67e8f9" },
-  FORTRESS: { label: "Fortaleza", color: "#A78BFA", glowColor: "rgba(167,139,250,0.5)", bgColor: "#150a1e", accentColor: "#c4b5fd" },
-  CASTLE: { label: "Castelo", color: "#C084FC", glowColor: "rgba(192,132,252,0.5)", bgColor: "#1a0a1e", accentColor: "#d8b4fe" },
-  BOSS: { label: "Fortaleza das Trevas", color: "#F87171", glowColor: "rgba(248,113,113,0.7)", bgColor: "#1e0a0a", accentColor: "#fca5a5" },
+// Regular octagon points on a 100×100 viewBox
+const OCT = "50,4 87,17 96,50 87,83 50,96 13,83 4,50 13,17";
+const OCT_INNER = "50,11 83,23 91,50 83,77 50,89 17,77 9,50 17,23";
+
+const ZONE_THEME: Record<string, {
+  color: string; glow: string; embers: string; label: string; tier: string;
+}> = {
+  CAMP:       { color: "#F59E0B", glow: "rgba(245,158,11,0.65)",  embers: "#FDE68A", label: "Acampamento",         tier: "I"    },
+  WATCHTOWER: { color: "#22D3EE", glow: "rgba(34,211,238,0.65)",  embers: "#A5F3FC", label: "Torre de Vigia",      tier: "II"   },
+  FORTRESS:   { color: "#A78BFA", glow: "rgba(167,139,250,0.65)", embers: "#DDD6FE", label: "Fortaleza",           tier: "III"  },
+  CASTLE:     { color: "#C084FC", glow: "rgba(192,132,252,0.65)", embers: "#E9D5FF", label: "Castelo",             tier: "IV"   },
+  BOSS:       { color: "#F87171", glow: "rgba(248,113,113,0.80)", embers: "#FECACA", label: "Fortaleza das Trevas", tier: "BOSS" },
 };
 
-const STATUS_CONFIG = {
-  LOCKED: { opacity: 0.4, scale: 0.95 },
-  AVAILABLE: { opacity: 1.0, scale: 1.0 },
-  IN_PROGRESS: { opacity: 1.0, scale: 1.05 },
-  CONQUERED: { opacity: 1.0, scale: 1.0 },
-};
+// ── Zone Art Components ─────────────────────────────────────────────────────
 
-function ZoneIcon({ zoneType, status, color, bgColor }: { zoneType: string; status: string; color: string; bgColor: string }) {
-  const isLocked = status === 'LOCKED';
-  const iconColor = isLocked ? '#4B5563' : color;
-  const secondaryColor = isLocked ? '#1F2937' : bgColor;
-
-  if (zoneType === "BOSS") {
-    return (
-      <svg width="68" height="68" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <radialGradient id="bossGrad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor={iconColor} />
-            <stop offset="100%" stopColor={secondaryColor} />
-          </radialGradient>
-        </defs>
-        <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z" fill="url(#bossGrad)" stroke={iconColor} strokeWidth="1.5" strokeLinejoin="round" />
-        <path d="M12 13V18" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
-        <path d="M9 16L12 13L15 16" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
-      </svg>
-    );
-  }
-  if (zoneType === "CASTLE") {
-    return (
-      <svg width="58" height="58" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M2 20V9L4 7V20M22 20V9L20 7V20M2 13H22M7 13V20M17 13V20M10 20V16C10 14.8954 10.8954 14 12 14C13.1046 14 14 14.8954 14 16V20M6 7V4H8V7M16 7V4H18V7M11 7V2H13V7" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-  if (zoneType === "FORTRESS") {
-    return (
-      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 21V10L5 8V21M21 21V10L19 8V21M3 14H21M8 14V21M16 14V21M11 21V17C11 16.4477 11.4477 16 12 16C12.5523 16 13 16.4477 13 17V21M7 8V5H9V8M15 8V5H17V8" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-  if (zoneType === "WATCHTOWER") {
-    return (
-      <svg width="54" height="54" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8 21V18H16V21M6 18H18L16 6H8L6 18ZM10 6V3H14V6M9 13H15M12 13V6" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="12" cy="10" r="1.5" fill={iconColor} />
-      </svg>
-    );
-  }
-  // CAMP
+function ArtCAMP({ c }: { c: string }) {
   return (
-    <svg width="50" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 3L2 21H22L12 3Z" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M12 13L16 21H8L12 13Z" fill={iconColor} opacity="0.3" />
-      <path d="M12 17V21" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" />
+    <g transform="translate(50,52)">
+      <ellipse cx="0" cy="24" rx="26" ry="7" fill={c} opacity="0.12" />
+      {/* Tent */}
+      <polygon points="0,-26 -24,20 24,20" fill={c} opacity="0.10" />
+      <polygon points="0,-26 -24,20 24,20" fill="none" stroke={c} strokeWidth="2.2" strokeLinejoin="round" />
+      <path d="M -9,20 Q 0,6 9,20" fill={c} opacity="0.22" />
+      <line x1="0" y1="-22" x2="0" y2="20" stroke={c} strokeWidth="1.4" opacity="0.45" />
+      {/* Flag */}
+      <line x1="0" y1="-26" x2="0" y2="-38" stroke={c} strokeWidth="1.8" strokeLinecap="round" />
+      <polygon points="0,-38 12,-33 0,-28" fill={c} opacity="0.85" />
+      {/* Fire pit */}
+      <ellipse cx="0" cy="28" rx="10" ry="3.5" fill={c} opacity="0.25" />
+      {/* Flame */}
+      <path d="M -4,26 Q -7,16 -3,11 Q -1,18 1,11 Q 5,16 4,26" fill={c} opacity="0.85" />
+      <path d="M -2,24 Q -4,17 -1,14 Q 0,19 1,14 Q 4,17 2,24" fill="#FFFBEB" opacity="0.75" />
+    </g>
+  );
+}
+
+function ArtWATCHTOWER({ c }: { c: string }) {
+  return (
+    <g transform="translate(50,52)">
+      {/* Base platform */}
+      <rect x="-14" y="14" width="28" height="12" rx="2" fill={c} opacity="0.12" stroke={c} strokeWidth="1.5" />
+      {/* Tower body */}
+      <rect x="-10" y="-16" width="20" height="32" rx="2" fill={c} opacity="0.09" stroke={c} strokeWidth="1.5" />
+      {/* Battlements */}
+      {[-10, -3, 4].map((x, i) => (
+        <rect key={i} x={x} y="-23" width="5" height="8" rx="1" fill={c} opacity="0.2" stroke={c} strokeWidth="1.2" />
+      ))}
+      {/* Light beam */}
+      <path d="M 0,-20 L -26,-36 L 26,-36 Z" fill={c} opacity="0.09" />
+      <path d="M 0,-20 L -20,-34 L 20,-34 Z" fill={c} opacity="0.07" />
+      {/* Lantern */}
+      <circle cx="0" cy="-4" r="5.5" fill={c} opacity="0.4" />
+      <circle cx="0" cy="-4" r="2.5" fill="#FFFFFFCC" />
+      {/* Arrow slit */}
+      <rect x="-1.5" y="4" width="3" height="7" rx="1" fill={c} opacity="0.55" />
+    </g>
+  );
+}
+
+function ArtFORTRESS({ c }: { c: string }) {
+  return (
+    <g transform="translate(50,52)">
+      {/* Wall */}
+      <rect x="-32" y="6" width="64" height="18" rx="2" fill={c} opacity="0.10" stroke={c} strokeWidth="1.5" />
+      {/* Left tower */}
+      <rect x="-32" y="-16" width="15" height="24" rx="2" fill={c} opacity="0.10" stroke={c} strokeWidth="1.5" />
+      {/* Right tower */}
+      <rect x="17" y="-16" width="15" height="24" rx="2" fill={c} opacity="0.10" stroke={c} strokeWidth="1.5" />
+      {/* Gate arch */}
+      <path d="M -9,24 L -9,10 Q 0,-2 9,10 L 9,24" fill={c} opacity="0.18" />
+      {/* Shield emblem */}
+      <path d="M 0,-4 L -12,4 L -9,16 L 0,22 L 9,16 L 12,4 Z"
+        fill={c} opacity="0.25" stroke={c} strokeWidth="1.8" strokeLinejoin="round" />
+      <line x1="0" y1="-1" x2="0" y2="16" stroke="#FFFFFF" strokeWidth="1.5" opacity="0.5" />
+      <line x1="-8" y1="7" x2="8" y2="7" stroke="#FFFFFF" strokeWidth="1.5" opacity="0.5" />
+      {/* Left battlements */}
+      {[-30, -24].map((x, i) => (
+        <rect key={i} x={x} y="-22" width="5" height="7" rx="1" fill={c} opacity="0.3" stroke={c} strokeWidth="1" />
+      ))}
+      {/* Right battlements */}
+      {[19, 25].map((x, i) => (
+        <rect key={i} x={x} y="-22" width="5" height="7" rx="1" fill={c} opacity="0.3" stroke={c} strokeWidth="1" />
+      ))}
+    </g>
+  );
+}
+
+function ArtCASTLE({ c }: { c: string }) {
+  return (
+    <g transform="translate(50,52)">
+      {/* Main tower */}
+      <rect x="-11" y="-18" width="22" height="44" rx="2" fill={c} opacity="0.10" stroke={c} strokeWidth="1.5" />
+      {/* Side towers */}
+      <rect x="-30" y="-8" width="14" height="34" rx="1" fill={c} opacity="0.09" stroke={c} strokeWidth="1.5" />
+      <rect x="16" y="-8" width="14" height="34" rx="1" fill={c} opacity="0.09" stroke={c} strokeWidth="1.5" />
+      {/* Spires */}
+      <polygon points="0,-36 -7,-18 7,-18" fill={c} opacity="0.75" />
+      <polygon points="-23,-26 -28,-8 -18,-8" fill={c} opacity="0.55" />
+      <polygon points="23,-26 18,-8 28,-8" fill={c} opacity="0.55" />
+      {/* Crown */}
+      <path d="M -14,-40 L -9,-34 L -4,-40 L 0,-34 L 4,-40 L 9,-34 L 14,-40"
+        stroke={c} strokeWidth="2" fill="none" strokeLinejoin="round" />
+      {/* Windows */}
+      <rect x="-4" y="-10" width="8" height="10" rx="4" fill={c} opacity="0.4" />
+      <rect x="-20" y="0" width="5" height="7" rx="2.5" fill={c} opacity="0.3" />
+      <rect x="15" y="0" width="5" height="7" rx="2.5" fill={c} opacity="0.3" />
+      {/* Gate */}
+      <path d="M -7,26 L -7,12 Q 0,3 7,12 L 7,26" fill={c} opacity="0.22" />
+    </g>
+  );
+}
+
+function ArtBOSS({ c }: { c: string }) {
+  return (
+    <g transform="translate(50,54)">
+      {/* Hell ground glow */}
+      <ellipse cx="0" cy="28" rx="30" ry="9" fill={c} opacity="0.14" />
+      {/* Flames */}
+      <path d="M -22,28 Q -24,10 -14,2 Q -16,14 -8,8 Q -11,18 -4,12 Q -5,22 0,18 Q 5,22 4,12 Q 11,18 8,8 Q 16,14 14,2 Q 24,10 22,28"
+        fill={c} opacity="0.38" />
+      <path d="M -14,28 Q -15,16 -8,10 Q -10,18 -4,14 Q -2,20 0,16 Q 2,20 4,14 Q 10,18 8,10 Q 15,16 14,28"
+        fill="#FEF3C7" opacity="0.28" />
+      {/* Skull */}
+      <ellipse cx="0" cy="-4" rx="18" ry="16" fill={c} opacity="0.14" stroke={c} strokeWidth="1.8" />
+      {/* Horns */}
+      <path d="M -16,-6 Q -26,-26 -12,-34 Q -10,-20 -14,-10" fill={c} opacity="0.65" stroke={c} strokeWidth="1.2" />
+      <path d="M 16,-6 Q 26,-26 12,-34 Q 10,-20 14,-10" fill={c} opacity="0.65" stroke={c} strokeWidth="1.2" />
+      {/* Eye sockets */}
+      <ellipse cx="-7" cy="-6" rx="4.5" ry="3.5" fill={c} opacity="0.85" />
+      <ellipse cx="7" cy="-6" rx="4.5" ry="3.5" fill={c} opacity="0.85" />
+      <ellipse cx="-7" cy="-6" rx="2" ry="1.5" fill="#FFF" opacity="0.9" />
+      <ellipse cx="7" cy="-6" rx="2" ry="1.5" fill="#FFF" opacity="0.9" />
+      {/* Nasal cavity */}
+      <path d="M -2,0 L 0,4 L 2,0" fill="none" stroke={c} strokeWidth="1.5" strokeLinejoin="round" opacity="0.6" />
+      {/* Fangs */}
+      <polygon points="-5,4 -3,11 -7,4" fill="white" opacity="0.6" />
+      <polygon points="5,4 3,11 7,4" fill="white" opacity="0.6" />
+    </g>
+  );
+}
+
+function ZoneArt({ zoneType, color, isLocked }: { zoneType: string; color: string; isLocked: boolean }) {
+  const c = isLocked ? "#374151" : color;
+  switch (zoneType) {
+    case "CAMP":        return <ArtCAMP c={c} />;
+    case "WATCHTOWER":  return <ArtWATCHTOWER c={c} />;
+    case "FORTRESS":    return <ArtFORTRESS c={c} />;
+    case "CASTLE":      return <ArtCASTLE c={c} />;
+    case "BOSS":        return <ArtBOSS c={c} />;
+    default:            return <ArtCAMP c={c} />;
+  }
+}
+
+// ── Progress Ring ────────────────────────────────────────────────────────────
+
+function ProgressRing({ progress, color, size }: { progress: number; color: string; size: number }) {
+  const r = 47;
+  const circ = 2 * Math.PI * r;
+  const offset = circ * (1 - Math.min(progress, 100) / 100);
+
+  return (
+    <svg
+      className="absolute pointer-events-none"
+      style={{ inset: -7, width: size + 14, height: size + 14 }}
+      viewBox="0 0 100 100"
+    >
+      {/* Track */}
+      <circle cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth="2" opacity="0.12" />
+      {/* Fill */}
+      <motion.circle
+        cx="50" cy="50" r={r}
+        fill="none" stroke={color} strokeWidth="3.5" strokeLinecap="round"
+        transform="rotate(-90 50 50)"
+        strokeDasharray={circ}
+        initial={{ strokeDashoffset: circ }}
+        animate={{ strokeDashoffset: offset }}
+        transition={{ duration: 1.3, ease: "easeOut" }}
+        style={{ filter: `drop-shadow(0 0 4px ${color})` }}
+      />
     </svg>
   );
 }
 
+// ── Main Component ───────────────────────────────────────────────────────────
+
 export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodeProps) {
-  const visual = ZONE_VISUALS[zone.zoneType] ?? ZONE_VISUALS.CAMP;
-  const statusCfg = STATUS_CONFIG[zone.status] ?? STATUS_CONFIG.LOCKED;
-  const isBoss = zone.zoneType === "BOSS";
+  const theme = ZONE_THEME[zone.zoneType] ?? ZONE_THEME.CAMP;
+  const isBoss      = zone.zoneType === "BOSS";
   const isConquered = zone.status === "CONQUERED";
   const isAvailable = zone.status === "AVAILABLE";
   const isInProgress = zone.status === "IN_PROGRESS";
-  const isLocked = zone.status === "LOCKED";
+  const isLocked    = zone.status === "LOCKED";
+  const isActive    = isAvailable || isInProgress;
 
-  const nodeSize = isBoss ? 160 : 120;
-  const difficultyStars = Array.from({ length: zone.difficultyLevel }, (_, i) => i);
+  const nodeSize  = isBoss ? 158 : 118;
+  // Deterministic float delay from zone position to avoid hydration mismatch
+  const floatDelay = (zone.positionX + zone.positionY) * 1.5;
+
+  const uid = zone.zoneId; // shorthand for filter/gradient IDs
 
   return (
     <motion.div
-      className="absolute group"
+      className="absolute"
       style={{
         left: `${zone.positionX * 100}%`,
         top: `${zone.positionY * 100}%`,
         transform: "translate(-50%, -50%)",
         width: nodeSize,
-        zIndex: isSelected ? 30 : isInProgress ? 20 : 10,
+        zIndex: isSelected ? 30 : isInProgress ? 20 : isBoss ? 15 : 10,
         cursor: isLocked ? "default" : "pointer",
       }}
-      initial={{ opacity: 0, scale: 0.5 }}
+      initial={{ opacity: 0, scale: 0.35, y: 16 }}
       animate={{
-        opacity: statusCfg.opacity,
-        scale: isSelected ? 1.15 : statusCfg.scale,
-        y: [0, -4, 0], // Subtle floating animation
+        opacity: isLocked ? 0.42 : 1,
+        scale: isSelected ? 1.18 : 1,
+        y: isLocked ? 0 : [0, isBoss ? -9 : -5, 0],
       }}
       transition={{
-        scale: { duration: 0.3, type: "spring", stiffness: 300 },
-        y: { duration: 4, repeat: Infinity, ease: "easeInOut", delay: Math.random() * 2 }
+        opacity: { duration: 0.5 },
+        scale: { type: "spring", stiffness: 280, damping: 22 },
+        y: { duration: isBoss ? 5 : 4, repeat: Infinity, ease: "easeInOut", delay: floatDelay },
       }}
       onClick={() => !isLocked && onClick(zone)}
     >
-      {/* Active Area Glow */}
-      {(isAvailable || isInProgress) && (
-        <motion.div
-          className="absolute inset-0 rounded-full"
-          style={{ inset: -10, boxShadow: `0 0 35px 5px ${visual.glowColor}` }}
-          animate={{ opacity: [0.2, 0.6, 0.2], scale: [1, 1.1, 1] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        />
-      )}
-
-      {/* Boss Pulse */}
-      {isBoss && isAvailable && (
-        <motion.div
-          className="absolute rounded-full"
-          style={{
-            inset: -15,
-            border: `2px solid ${visual.color}44`,
-            boxShadow: `0 0 40px 10px ${visual.glowColor}`,
-          }}
-          animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        />
-      )}
-
       <div className="relative flex flex-col items-center">
-        {/* The Node Base */}
-        <div
-          className="relative flex items-center justify-center rounded-3xl border-2 transition-transform duration-300 group-hover:scale-110"
-          style={{
-            width: nodeSize,
-            height: nodeSize,
-            background: isLocked
-              ? "rgba(10,10,20,0.8)"
-              : `linear-gradient(135deg, ${visual.bgColor} 0%, #050510 100%)`,
-            borderColor: isLocked ? "rgba(255,255,255,0.05)" : `${visual.color}60`,
-            boxShadow: isLocked
-              ? "none"
-              : `0 10px 30px -5px rgba(0,0,0,0.8), inset 0 0 20px ${visual.color}15`,
-            backdropFilter: "blur(12px)",
-          }}
-        >
-          {/* Internal Glowing Ring */}
-          {!isLocked && (
-            <div className="absolute inset-2 rounded-2xl border border-white/5 shadow-[inset_0_0_15px_rgba(255,255,255,0.05)]" />
-          )}
 
-          {isLocked ? (
-            <Lock size={24} className="text-gray-700 opacity-50" />
-          ) : (
-            <ZoneIcon zoneType={zone.zoneType} status={zone.status} color={visual.accentColor} bgColor={visual.bgColor} />
-          )}
+        {/* ── OUTER AURA (available / in-progress) ── */}
+        {isActive && (
+          <motion.div
+            className="absolute rounded-full pointer-events-none"
+            style={{
+              inset: -28,
+              background: `radial-gradient(circle, ${theme.glow} 0%, transparent 68%)`,
+            }}
+            animate={{ opacity: [0.35, 0.75, 0.35], scale: [1, 1.08, 1] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          />
+        )}
 
-          {/* Badges */}
-          <div className="absolute -top-1 -right-1 flex gap-1">
-            {isConquered && (
-              <motion.div
-                className="bg-emerald-500 rounded-lg p-1.5 shadow-lg border border-emerald-400/50"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-              >
-                <CheckCircle2 size={16} className="text-white" />
-              </motion.div>
-            )}
-            {isInProgress && (
-              <motion.div
-                className="bg-blue-500 rounded-lg p-1.5 shadow-lg border border-blue-400/50"
-                animate={{ rotate: [0, 15, -15, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <Swords size={18} className="text-white" />
-              </motion.div>
-            )}
-          </div>
+        {/* ── BOSS PULSE RINGS ── */}
+        {isBoss && isAvailable && (
+          <>
+            <motion.div
+              className="absolute rounded-full pointer-events-none"
+              style={{ inset: -40, border: `2px solid ${theme.color}55` }}
+              animate={{ scale: [1, 1.5, 1], opacity: [0.7, 0, 0.7] }}
+              transition={{ duration: 2.5, repeat: Infinity }}
+            />
+            <motion.div
+              className="absolute rounded-full pointer-events-none"
+              style={{ inset: -24, border: `1px solid ${theme.color}80` }}
+              animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
+              transition={{ duration: 2.5, repeat: Infinity, delay: 0.9 }}
+            />
+          </>
+        )}
 
-          {/* Progress Ring */}
+        {/* ── NODE BODY ── */}
+        <div className="relative" style={{ width: nodeSize, height: nodeSize }}>
+
+          {/* Progress ring for IN_PROGRESS */}
           {isInProgress && zone.progressPercent > 0 && (
-            <svg
-              className="absolute -inset-2 w-[calc(100%+16px)] h-[calc(100%+16px)] -rotate-90 pointer-events-none"
-              viewBox="0 0 100 100"
-            >
-              <circle
-                cx="50"
-                cy="50"
-                r="46"
-                fill="none"
-                stroke={visual.color}
-                strokeWidth="3"
-                strokeDasharray={`${zone.progressPercent * 2.89} 289`}
-                strokeLinecap="round"
-                opacity="0.8"
-              />
-            </svg>
+            <ProgressRing progress={zone.progressPercent} color={theme.color} size={nodeSize} />
           )}
+
+          {/* Blurred glow behind (HTML layer, cheaper than SVG filter) */}
+          {!isLocked && (
+            <div
+              className="absolute inset-0 blur-2xl opacity-35 pointer-events-none"
+              style={{ background: theme.glow }}
+            />
+          )}
+
+          {/* SVG node */}
+          <svg
+            width={nodeSize} height={nodeSize}
+            viewBox="0 0 100 100"
+            className="relative"
+            style={isSelected ? { filter: `drop-shadow(0 0 14px ${theme.color})` } : undefined}
+          >
+            <defs>
+              {/* Background gradient */}
+              <radialGradient id={`bg-${uid}`} cx="40%" cy="32%" r="68%">
+                <stop offset="0%"   stopColor={isLocked ? "#1a1a2e" : "#180a30"} />
+                <stop offset="100%" stopColor={isLocked ? "#0d0d18" : "#05030f"} />
+              </radialGradient>
+              {/* Color tint overlay */}
+              <radialGradient id={`tint-${uid}`} cx="50%" cy="28%" r="60%">
+                <stop offset="0%"   stopColor={theme.color} stopOpacity={isLocked ? "0" : "0.14"} />
+                <stop offset="100%" stopColor={theme.color} stopOpacity="0" />
+              </radialGradient>
+              {/* Subtle art glow */}
+              <filter id={`art-glow-${uid}`} x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="1.8" result="b" />
+                <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              {/* Conquered gold filter */}
+              <filter id={`gold-glow-${uid}`} x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="3" result="b" />
+                <feFlood floodColor="#FCD34D" floodOpacity="0.7" result="c" />
+                <feComposite in="c" in2="b" operator="in" result="g" />
+                <feMerge><feMergeNode in="g" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+            </defs>
+
+            {/* ── Outer decorative ring ── */}
+            <polygon
+              points={OCT}
+              fill="none"
+              stroke={isLocked ? "#1a1a2e" : `${theme.color}30`}
+              strokeWidth="9"
+            />
+
+            {/* ── Main octagon body ── */}
+            <polygon points={OCT} fill={`url(#bg-${uid})`} />
+            <polygon points={OCT} fill={`url(#tint-${uid})`} />
+
+            {/* ── Inner decorative ring ── */}
+            {!isLocked && (
+              <polygon points={OCT_INNER} fill="none" stroke={theme.color} strokeWidth="0.6" opacity="0.22" />
+            )}
+
+            {/* ── Octagon border ── */}
+            <polygon
+              points={OCT} fill="none"
+              stroke={isLocked ? "#2d2d4a" : theme.color}
+              strokeWidth={isSelected ? "2.8" : "1.9"}
+              opacity={isLocked ? 0.4 : 0.85}
+            />
+
+            {/* ── Zone art ── */}
+            <g filter={!isLocked ? `url(#art-glow-${uid})` : undefined}>
+              <ZoneArt zoneType={zone.zoneType} color={theme.embers} isLocked={isLocked} />
+            </g>
+
+            {/* ── CONQUERED: victory seal ── */}
+            {isConquered && (
+              <g filter={`url(#gold-glow-${uid})`}>
+                {/* Golden border */}
+                <polygon points={OCT} fill="none" stroke="#FCD34D" strokeWidth="2.5" opacity="0.7" />
+                {/* Victory star */}
+                <path
+                  d="M50,32 L53.5,43 L66,43 L56,50.5 L59.5,62 L50,55 L40.5,62 L44,50.5 L34,43 L46.5,43 Z"
+                  fill="#FCD34D" opacity="0.92"
+                />
+              </g>
+            )}
+
+            {/* ── LOCKED: padlock ── */}
+            {isLocked && (
+              <g>
+                <rect x="36" y="40" width="28" height="22" rx="4" fill="#0f0f1a" stroke="#2d2d4a" strokeWidth="1.5" />
+                <path d="M 42,40 Q 42,29 50,29 Q 58,29 58,40"
+                  fill="none" stroke="#2d2d4a" strokeWidth="2.8" strokeLinecap="round" />
+                <circle cx="50" cy="51" r="3.5" fill="#374151" />
+                <rect x="48.5" y="51" width="3" height="6" rx="1.5" fill="#374151" />
+              </g>
+            )}
+
+            {/* ── IN_PROGRESS: crossed swords badge ── */}
+            {isInProgress && (
+              <g>
+                <circle cx="83" cy="17" r="11" fill="#1D4ED8" />
+                <circle cx="83" cy="17" r="11" fill="none" stroke="#60A5FA" strokeWidth="1.5" />
+                <line x1="78" y1="12" x2="88" y2="22" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
+                <line x1="88" y1="12" x2="78" y2="22" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
+              </g>
+            )}
+          </svg>
         </div>
 
-        {/* Label and Info */}
-        <div className="mt-5 flex flex-col items-center gap-2">
+        {/* ── LABEL ── */}
+        <motion.div
+          className="mt-3 flex flex-col items-center gap-1.5 pointer-events-none"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+        >
           <div
-            className="px-4 py-2 rounded-xl backdrop-blur-xl bg-black/60 border border-white/5 shadow-2xl flex flex-col items-center"
+            className="px-3.5 py-2 rounded-xl text-center"
             style={{
-              minWidth: 140,
-              boxShadow: isSelected ? `0 0 20px ${visual.glowColor}44` : '0 4px 20px rgba(0,0,0,0.4)'
+              background: "linear-gradient(135deg,rgba(4,4,20,0.94) 0%,rgba(8,4,28,0.90) 100%)",
+              border: `1px solid ${isLocked ? "rgba(255,255,255,0.05)" : `${theme.color}45`}`,
+              backdropFilter: "blur(18px)",
+              boxShadow: isSelected
+                ? `0 0 24px ${theme.glow}, 0 4px 20px rgba(0,0,0,0.6)`
+                : "0 4px 20px rgba(0,0,0,0.6)",
+              minWidth: 118,
             }}
           >
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] mb-1" style={{ color: isLocked ? "#444" : visual.color }}>
-              {isBoss ? "GRANDE CHEFE" : zone.zoneType}
-            </span>
-            <span className="text-sm font-black text-white tracking-tight text-center">
+            <p
+              className="text-[8px] font-black uppercase tracking-[0.22em] mb-0.5"
+              style={{ color: isLocked ? "#374151" : theme.color }}
+            >
+              {isBoss ? "GRANDE CHEFE" : `${theme.tier} · ${theme.label}`}
+            </p>
+            <p className="text-[12px] font-black text-white leading-tight tracking-tight">
               {zone.name}
-            </span>
+            </p>
           </div>
 
-          {/* Difficulty and Skull */}
+          {/* Difficulty dots */}
           {!isLocked && (
-            <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-full border border-white/5">
-              {difficultyStars.map((_, i) => (
-                <Star key={i} size={10} fill={visual.color} color={visual.color} />
+            <div className="flex gap-1.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{
+                    background: i < zone.difficultyLevel ? theme.color : "rgba(255,255,255,0.08)",
+                    boxShadow: i < zone.difficultyLevel ? `0 0 5px ${theme.color}` : "none",
+                  }}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.35 + i * 0.06, type: "spring" }}
+                />
               ))}
-              {isBoss && <Skull size={12} className="text-red-500 ml-1" />}
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
     </motion.div>
   );
