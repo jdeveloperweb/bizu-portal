@@ -204,7 +204,7 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
   const isLocked    = zone.status === "LOCKED";
   const isActive    = isAvailable || isInProgress;
 
-  const nodeSize  = isBoss ? 158 : 118;
+  const nodeSize  = isBoss ? 108 : 80;
   // Deterministic float delay from zone position to avoid hydration mismatch
   const floatDelay = (zone.positionX + zone.positionY) * 1.5;
 
@@ -225,7 +225,7 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
       animate={{
         opacity: isLocked ? 0.42 : 1,
         scale: isSelected ? 1.18 : 1,
-        y: isLocked ? 0 : [0, isBoss ? -9 : -5, 0],
+        y: isLocked ? 0 : [0, isBoss ? -6 : -3, 0],
       }}
       transition={{
         opacity: { duration: 0.5 },
@@ -241,7 +241,7 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
           <motion.div
             className="absolute rounded-full pointer-events-none"
             style={{
-              inset: -28,
+              inset: -18,
               background: `radial-gradient(circle, ${theme.glow} 0%, transparent 68%)`,
             }}
             animate={{ opacity: [0.35, 0.75, 0.35], scale: [1, 1.08, 1] }}
@@ -254,13 +254,13 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
           <>
             <motion.div
               className="absolute rounded-full pointer-events-none"
-              style={{ inset: -40, border: `2px solid ${theme.color}55` }}
+              style={{ inset: -28, border: `2px solid ${theme.color}55` }}
               animate={{ scale: [1, 1.5, 1], opacity: [0.7, 0, 0.7] }}
               transition={{ duration: 2.5, repeat: Infinity }}
             />
             <motion.div
               className="absolute rounded-full pointer-events-none"
-              style={{ inset: -24, border: `1px solid ${theme.color}80` }}
+              style={{ inset: -16, border: `1px solid ${theme.color}80` }}
               animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
               transition={{ duration: 2.5, repeat: Infinity, delay: 0.9 }}
             />
@@ -383,21 +383,21 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
 
         {/* ── LABEL ── */}
         <motion.div
-          className="mt-3 flex flex-col items-center gap-1.5 pointer-events-none"
+          className="mt-2 flex flex-col items-center gap-1 pointer-events-none"
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
         >
           <div
-            className="px-3.5 py-2 rounded-xl text-center"
+            className="px-2.5 py-1.5 rounded-xl text-center"
             style={{
               background: "linear-gradient(135deg,rgba(4,4,20,0.94) 0%,rgba(8,4,28,0.90) 100%)",
               border: `1px solid ${isLocked ? "rgba(255,255,255,0.05)" : `${theme.color}45`}`,
               backdropFilter: "blur(18px)",
               boxShadow: isSelected
-                ? `0 0 24px ${theme.glow}, 0 4px 20px rgba(0,0,0,0.6)`
-                : "0 4px 20px rgba(0,0,0,0.6)",
-              minWidth: 118,
+                ? `0 0 20px ${theme.glow}, 0 4px 16px rgba(0,0,0,0.6)`
+                : "0 4px 16px rgba(0,0,0,0.6)",
+              minWidth: 90,
             }}
           >
             <p
@@ -406,14 +406,14 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
             >
               {isBoss ? "GRANDE CHEFE" : `${theme.tier} · ${theme.label}`}
             </p>
-            <p className="text-[12px] font-black text-white leading-tight tracking-tight">
+            <p className="text-[11px] font-black text-white leading-tight tracking-tight">
               {zone.name}
             </p>
           </div>
 
           {/* Difficulty dots */}
           {!isLocked && (
-            <div className="flex gap-1.5">
+            <div className="flex gap-1">
               {Array.from({ length: 5 }).map((_, i) => (
                 <motion.div
                   key={i}
