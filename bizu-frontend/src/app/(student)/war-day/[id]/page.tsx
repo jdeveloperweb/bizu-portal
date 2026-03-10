@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 // ─── Inner content (inside WarDayProvider) ────────────────────────────────────
 
 function WarDayMapContent({ eventId }: { eventId: string }) {
-  const { event, mapState, ranking, loading, error, loadEvent, joinEvent, timeRemaining } = useWarDay();
+  const { event, mapState, ranking, loading, error, loadEvent, joinEvent, refreshMap, timeRemaining } = useWarDay();
   const { user } = useAuth();
   const router = useRouter();
 
@@ -33,11 +33,13 @@ function WarDayMapContent({ eventId }: { eventId: string }) {
 
   const handleBattleBack = useCallback(() => {
     setActiveBattle(null);
-  }, []);
+    refreshMap(eventId);
+  }, [refreshMap, eventId]);
 
-  const handleZoneConquered = useCallback((result: AnswerResult) => {
+  const handleZoneConquered = useCallback((_result: AnswerResult) => {
     setActiveBattle(null);
-  }, []);
+    refreshMap(eventId);
+  }, [refreshMap, eventId]);
 
   if (loading) {
     return (
