@@ -55,6 +55,14 @@ export default function WarPathSVG({ zones, containerWidth, containerHeight }: W
     >
       <defs>
         <filter id="pathGlow">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <filter id="activeGlow">
           <feGaussianBlur stdDeviation="2" result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
@@ -91,12 +99,12 @@ export default function WarPathSVG({ zones, containerWidth, containerHeight }: W
                 path.conquered
                   ? "#F59E0B"
                   : path.active
-                  ? "rgba(148,163,184,0.5)"
-                  : "rgba(55,65,81,0.4)"
+                    ? "rgba(148,163,184,0.6)"
+                    : "rgba(55,65,81,0.5)"
               }
-              strokeWidth={path.conquered ? 3 : 2}
+              strokeWidth={path.conquered ? 4 : 2.5}
               strokeLinecap="round"
-              strokeDasharray={path.active && !path.conquered ? "6 4" : undefined}
+              strokeDasharray={path.active && !path.conquered ? "8 6" : undefined}
               filter={path.conquered ? "url(#pathGlow)" : undefined}
             />
             {/* Animated dash for active paths */}
@@ -104,10 +112,10 @@ export default function WarPathSVG({ zones, containerWidth, containerHeight }: W
               <path
                 d={d}
                 fill="none"
-                stroke="rgba(245,158,11,0.6)"
-                strokeWidth="1.5"
+                stroke="rgba(245,158,11,0.8)"
+                strokeWidth="2.5"
                 strokeLinecap="round"
-                strokeDasharray="4 20"
+                strokeDasharray="6 24"
                 style={{
                   animation: "dashMove 2s linear infinite",
                 }}
@@ -119,7 +127,7 @@ export default function WarPathSVG({ zones, containerWidth, containerHeight }: W
 
       <style>{`
         @keyframes dashMove {
-          to { stroke-dashoffset: -24; }
+          to { stroke-dashoffset: -30; }
         }
       `}</style>
     </svg>

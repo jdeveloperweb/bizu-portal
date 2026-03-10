@@ -29,9 +29,9 @@ function MapBackground() {
     <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice">
       <defs>
         <radialGradient id="mapBg" cx="50%" cy="50%" r="70%">
-          <stop offset="0%" stopColor="#1a0a2e"/>
-          <stop offset="60%" stopColor="#0d1220"/>
-          <stop offset="100%" stopColor="#050810"/>
+          <stop offset="0%" stopColor="#1a0a2e" />
+          <stop offset="60%" stopColor="#0d1220" />
+          <stop offset="100%" stopColor="#050810" />
         </radialGradient>
         <pattern id="hexGrid" x="0" y="0" width="40" height="35" patternUnits="userSpaceOnUse">
           <polygon
@@ -42,19 +42,19 @@ function MapBackground() {
           />
         </pattern>
         <filter id="fogBlur">
-          <feGaussianBlur stdDeviation="8"/>
+          <feGaussianBlur stdDeviation="30" />
         </filter>
         <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
-          <stop offset="40%" stopColor="transparent"/>
-          <stop offset="100%" stopColor="rgba(0,0,0,0.7)"/>
+          <stop offset="40%" stopColor="transparent" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0.7)" />
         </radialGradient>
       </defs>
 
       {/* Base dark background */}
-      <rect width="100%" height="100%" fill="url(#mapBg)"/>
+      <rect width="100%" height="100%" fill="url(#mapBg)" />
 
       {/* Hex grid overlay */}
-      <rect width="100%" height="100%" fill="url(#hexGrid)" opacity="0.5"/>
+      <rect width="100%" height="100%" fill="url(#hexGrid)" opacity="0.5" />
 
       {/* Terrain patches */}
       {TERRAIN_PATCHES.map((t) => (
@@ -70,17 +70,17 @@ function MapBackground() {
       ))}
 
       {/* Atmospheric fog patches */}
-      <ellipse cx="30%" cy="40%" rx="20%" ry="15%" fill="rgba(99,102,241,0.04)" filter="url(#fogBlur)"/>
-      <ellipse cx="70%" cy="60%" rx="15%" ry="12%" fill="rgba(167,139,250,0.04)" filter="url(#fogBlur)"/>
+      <ellipse cx="30%" cy="40%" rx="30%" ry="20%" fill="rgba(99,102,241,0.06)" filter="url(#fogBlur)" />
+      <ellipse cx="70%" cy="60%" rx="25%" ry="20%" fill="rgba(167,139,250,0.06)" filter="url(#fogBlur)" />
 
       {/* Vignette */}
-      <rect width="100%" height="100%" fill="url(#vignette)"/>
+      <rect width="100%" height="100%" fill="url(#vignette)" />
 
       {/* Decorative border runes */}
       <rect x="8" y="8" width="calc(100% - 16px)" height="calc(100% - 16px)"
-        fill="none" stroke="rgba(99,102,241,0.2)" strokeWidth="1" rx="8"/>
+        fill="none" stroke="rgba(99,102,241,0.2)" strokeWidth="1" rx="8" />
       <rect x="12" y="12" width="calc(100% - 24px)" height="calc(100% - 24px)"
-        fill="none" stroke="rgba(99,102,241,0.08)" strokeWidth="0.5" rx="6"/>
+        fill="none" stroke="rgba(99,102,241,0.08)" strokeWidth="0.5" rx="6" />
     </svg>
   );
 }
@@ -129,16 +129,16 @@ function ZoneDetailModal({ zone, onClose, onEnter }: {
           <div className="w-12 h-12 rounded-xl flex items-center justify-center"
             style={{ background: `${color}22`, border: `2px solid ${color}` }}>
             {zone.zoneType === "BOSS" ? <Flame size={24} color={color} /> :
-             zone.zoneType === "CASTLE" ? <Crown size={24} color={color} /> :
-             zone.zoneType === "FORTRESS" ? <Shield size={24} color={color} /> :
-             <Sword size={24} color={color} />}
+              zone.zoneType === "CASTLE" ? <Crown size={24} color={color} /> :
+                zone.zoneType === "FORTRESS" ? <Shield size={24} color={color} /> :
+                  <Sword size={24} color={color} />}
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider" style={{ color }}>
               {zone.zoneType === "BOSS" ? "⚔️ Chefe Final" :
-               zone.zoneType === "CASTLE" ? "Castelo" :
-               zone.zoneType === "FORTRESS" ? "Fortaleza" :
-               zone.zoneType === "WATCHTOWER" ? "Torre de Vigia" : "Acampamento"}
+                zone.zoneType === "CASTLE" ? "Castelo" :
+                  zone.zoneType === "FORTRESS" ? "Fortaleza" :
+                    zone.zoneType === "WATCHTOWER" ? "Torre de Vigia" : "Acampamento"}
             </p>
             <h3 className="text-xl font-bold">{zone.name}</h3>
           </div>
