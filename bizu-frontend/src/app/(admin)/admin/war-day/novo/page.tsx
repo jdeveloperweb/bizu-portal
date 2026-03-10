@@ -155,13 +155,24 @@ export default function CreateWarDayPage() {
 
   useEffect(() => {
     AdminWarDayService.listMapTemplates()
-      .then((t) => { setTemplates(t); if (t.length > 0) setSelectedTemplateId(t[0].id); })
-      .catch(() => {});
+      .then((t) => {
+        setTemplates(t);
+        if (t.length > 0) {
+          setSelectedTemplateId(t[0].id);
+        } else {
+          setUseExistingTemplate(false);
+        }
+      })
+      .catch(() => { });
   }, []);
 
   const handleSubmit = async () => {
     if (!title || !startAt || !endAt) {
       notify("Preencha todos os campos obrigatórios", "error"); return;
+    }
+
+    if (!useExistingTemplate && (!templateName || zones.length === 0)) {
+      notify("Informe o nome do template e adicione no mínimo 1 zona.", "error"); return;
     }
 
     setSaving(true);

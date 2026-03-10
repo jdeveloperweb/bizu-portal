@@ -108,14 +108,14 @@ export default function ZoneBattleScreen({ eventId, zone, onBack, onZoneConquere
 
   return (
     <div
-      className="flex flex-col min-h-screen"
+      className="flex flex-col min-h-[100dvh] overflow-hidden"
       style={{
         background: "radial-gradient(ellipse at top, #1a0a2e 0%, #050810 60%)",
         color: "white",
       }}
     >
       {/* Header */}
-      <div className="flex items-center gap-4 px-4 py-3 border-b border-white/10"
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10 flex-shrink-0"
         style={{ background: "rgba(0,0,0,0.4)" }}>
         <button
           onClick={onBack}
@@ -158,7 +158,8 @@ export default function ZoneBattleScreen({ eventId, zone, onBack, onZoneConquere
         </div>
       )}
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-6 max-w-2xl mx-auto w-full">
+      <div className="flex-1 overflow-y-auto overscroll-none">
+      <div className="flex flex-col items-center justify-start px-4 py-5 pb-8 max-w-2xl mx-auto w-full min-h-full">
         <AnimatePresence mode="wait">
           {phase === "loading" && (
             <motion.div key="loading" className="flex flex-col items-center gap-4"
@@ -232,7 +233,7 @@ export default function ZoneBattleScreen({ eventId, zone, onBack, onZoneConquere
               </div>
 
               {/* Question */}
-              <div className="rounded-2xl p-6 mb-6"
+              <div className="rounded-2xl p-4 sm:p-6 mb-5"
                 style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
                 {question.imageBase64 && (
                   <img
@@ -257,7 +258,7 @@ export default function ZoneBattleScreen({ eventId, zone, onBack, onZoneConquere
                   return (
                     <motion.button
                       key={key}
-                      className="w-full flex items-start gap-3 p-4 rounded-xl text-left transition-all font-medium"
+                      className="w-full flex items-start gap-3 p-3 sm:p-4 rounded-xl text-left transition-all font-medium"
                       style={{
                         background: showAnswer
                           ? isCorrect
@@ -355,6 +356,7 @@ export default function ZoneBattleScreen({ eventId, zone, onBack, onZoneConquere
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
       </div>
 
       {/* Zone conquest animation */}

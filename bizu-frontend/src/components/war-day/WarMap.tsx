@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ZoneState } from "@/lib/warDayService";
 import WarZoneNode from "./WarZoneNode";
 import WarPathSVG from "./WarPathSVG";
-import { Sword, Shield, Crown, Flame, ChevronRight, Clock, Star, X } from "lucide-react";
+import { Sword, Shield, Crown, Flame, ChevronRight, Clock, Star, X, Map, AlertTriangle } from "lucide-react";
 
 interface WarMapProps {
   zones: ZoneState[];
@@ -109,7 +109,7 @@ function ZoneDetailModal({ zone, onClose, onEnter }: {
     >
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
       <motion.div
-        className="relative w-80 rounded-2xl border p-6 text-white"
+        className="relative w-80 max-w-[calc(100vw-2rem)] rounded-2xl border p-5 sm:p-6 text-white"
         style={{
           background: "linear-gradient(135deg, #0d1220 0%, #1a0a2e 100%)",
           borderColor: color,
@@ -145,8 +145,8 @@ function ZoneDetailModal({ zone, onClose, onEnter }: {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="rounded-lg p-3" style={{ background: "rgba(255,255,255,0.05)" }}>
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <div className="rounded-lg p-2.5" style={{ background: "rgba(255,255,255,0.05)" }}>
             <p className="text-xs text-gray-400 mb-1">Questões para conquistar</p>
             <p className="text-lg font-bold" style={{ color }}>{required}</p>
           </div>
@@ -244,26 +244,52 @@ export default function WarMap({ zones, onZoneClick, guildName, totalScore }: Wa
       {/* RPG Map Background */}
       <MapBackground />
 
-      {/* Paths between zones */}
-      {dims.w > 0 && (
-        <WarPathSVG
-          zones={zones}
-          containerWidth={dims.w}
-          containerHeight={dims.h}
-        />
-      )}
+      {zones.length === 0 ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-3 px-6 text-center">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center"
+            style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.3)" }}>
+            <AlertTriangle size={30} className="text-indigo-400" />
+          </div>
+          <p className="text-gray-300 font-semibold text-base">Nenhuma zona configurada</p>
+          <p className="text-gray-600 text-sm max-w-xs">
+            Este evento não possui um mapa de batalha. Um administrador precisa vincular um template de mapa ao evento.
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Paths between zones */}
+          {dims.w > 0 && (
+            <WarPathSVG
+              zones={zones}
+              containerWidth={dims.w}
+              containerHeight={dims.h}
+            />
+          )}
 
-      {/* Zone nodes */}
-      <div className="absolute inset-0" style={{ zIndex: 2 }}>
-        {zones.map((zone) => (
-          <WarZoneNode
-            key={zone.zoneId}
-            zone={zone}
-            onClick={handleZoneClick}
-            isSelected={selectedZone?.zoneId === zone.zoneId}
-          />
-        ))}
-      </div>
+          {/* Zone nodes */}
+          <div className="absolute inset-0" style={{ zIndex: 2 }}>
+            {zones.map((zone) => (
+              <WarZoneNode
+                key={zone.zoneId}
+                zone={zone}
+                onClick={handleZoneClick}
+                isSelected={selectedZone?.zoneId === zone.zoneId}
+              />
+            ))}
+          </div>
+
+          {/* Zone detail modal */}
+          <AnimatePresence>
+            {selectedZone && (
+              <ZoneDetailModal
+                zone={selectedZone}
+                onClose={() => setSelectedZone(null)}
+                onEnter={handleEnter}
+              />
+            )}
+          </AnimatePresence>
+        </>
+      )}
 
       {/* Guild name watermark */}
       <div className="absolute bottom-4 left-4 flex items-center gap-2 z-10">
@@ -278,16 +304,6 @@ export default function WarMap({ zones, onZoneClick, guildName, totalScore }: Wa
         </div>
       </div>
 
-      {/* Zone detail modal */}
-      <AnimatePresence>
-        {selectedZone && (
-          <ZoneDetailModal
-            zone={selectedZone}
-            onClose={() => setSelectedZone(null)}
-            onEnter={handleEnter}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

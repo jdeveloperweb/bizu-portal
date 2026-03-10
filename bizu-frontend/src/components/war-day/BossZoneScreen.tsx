@@ -115,7 +115,7 @@ export default function BossZoneScreen({ eventId, zone, onBack, onBossDefeated }
 
   return (
     <motion.div
-      className="flex flex-col min-h-screen relative overflow-hidden"
+      className="flex flex-col min-h-[100dvh] relative overflow-hidden"
       style={{ background: "radial-gradient(ellipse at top, #3B0000 0%, #0A0010 50%, #050810 100%)", color: "white" }}
       animate={screenShake ? {
         x: [-6, 6, -5, 5, -3, 3, 0],
@@ -179,7 +179,8 @@ export default function BossZoneScreen({ eventId, zone, onBack, onBossDefeated }
         </div>
       )}
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-6 max-w-2xl mx-auto w-full z-10 relative">
+      <div className="flex-1 overflow-y-auto overscroll-none z-10 relative">
+      <div className="flex flex-col items-center justify-start px-4 py-5 pb-8 max-w-2xl mx-auto w-full min-h-full">
         <AnimatePresence mode="wait">
           {phase === "loading" && (
             <motion.div key="loading" className="text-center"
@@ -231,7 +232,7 @@ export default function BossZoneScreen({ eventId, zone, onBack, onBossDefeated }
             <motion.div key="boss-battle" className="w-full"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               {/* Question card */}
-              <div className="rounded-2xl p-6 mb-5"
+              <div className="rounded-2xl p-4 sm:p-6 mb-5"
                 style={{
                   background: "rgba(127,29,29,0.15)",
                   border: "1px solid rgba(248,113,113,0.2)",
@@ -327,6 +328,7 @@ export default function BossZoneScreen({ eventId, zone, onBack, onBossDefeated }
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
       </div>
 
       <ZoneConquestAnimation

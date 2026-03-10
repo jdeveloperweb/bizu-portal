@@ -48,86 +48,85 @@ export default function WarDayHUD({
   const progressPercent = totalZones > 0 ? (conquered / totalZones) * 100 : 0;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 px-4 py-3 w-full"
-      style={{ background: "rgba(0,0,0,0.7)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+    <div
+      className="w-full"
+      style={{ background: "rgba(0,0,0,0.7)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+    >
+      {/* Main row: always visible */}
+      <div className="flex items-center gap-2 px-3 py-2.5">
+        {/* Icon + title */}
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="w-7 h-7 rounded-lg flex-shrink-0 flex items-center justify-center"
+            style={{ background: "rgba(239,68,68,0.2)", border: "1px solid rgba(239,68,68,0.4)" }}>
+            <Swords size={15} className="text-red-400" />
+          </div>
+          <p className="text-sm font-bold text-white truncate hidden xs:block sm:block">{event.title}</p>
+        </div>
 
-      {/* Event title */}
-      <div className="flex items-center gap-2 flex-shrink-0">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ background: "rgba(239,68,68,0.2)", border: "1px solid rgba(239,68,68,0.4)" }}>
-          <Swords size={18} className="text-red-400" />
-        </div>
-        <div>
-          <p className="text-xs text-gray-500 uppercase tracking-wider">War Day</p>
-          <p className="text-sm font-bold text-white leading-tight truncate max-w-[120px]">{event.title}</p>
-        </div>
+        {/* Timer — always visible */}
+        <TimerBadge seconds={timeRemaining} />
+
+        {/* Score (compact, mobile) */}
+        {mapState && (
+          <div className="flex items-center gap-1 sm:hidden">
+            <Trophy size={13} className="text-yellow-400 flex-shrink-0" />
+            <span className="text-xs font-bold text-yellow-400">{mapState.totalScore.toLocaleString("pt-BR")}</span>
+          </div>
+        )}
+
+        {/* Ranking toggle */}
+        <button
+          onClick={onToggleRanking}
+          className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95"
+          style={{
+            background: showRanking ? "rgba(99,102,241,0.2)" : "rgba(255,255,255,0.06)",
+            border: showRanking ? "1px solid rgba(99,102,241,0.4)" : "1px solid rgba(255,255,255,0.1)",
+            color: showRanking ? "#818CF8" : "#94A3B8",
+          }}
+        >
+          <Trophy size={13} />
+          <span className="hidden sm:inline">Ranking</span>
+          <ChevronDown
+            size={12}
+            style={{ transform: showRanking ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}
+          />
+        </button>
       </div>
 
-      <div className="h-8 w-px bg-white/10 hidden sm:block" />
-
-      {/* Timer */}
-      <TimerBadge seconds={timeRemaining} />
-
-      <div className="h-8 w-px bg-white/10 hidden sm:block" />
-
-      {/* Guild score */}
+      {/* Secondary row: score + zones + participants on larger screens */}
       {mapState && (
-        <div className="flex items-center gap-2">
-          <Trophy size={16} className="text-yellow-400" />
-          <div>
-            <p className="text-xs text-gray-500">Pontuação</p>
-            <p className="text-sm font-bold text-yellow-400">
-              {mapState.totalScore.toLocaleString("pt-BR")} pts
-            </p>
+        <div className="hidden sm:flex items-center gap-4 px-4 pb-2.5">
+          <div className="h-px flex-1 bg-white/5" />
+
+          <div className="flex items-center gap-1.5">
+            <Trophy size={13} className="text-yellow-400" />
+            <span className="text-xs text-gray-400">Pontuação</span>
+            <span className="text-xs font-bold text-yellow-400">{mapState.totalScore.toLocaleString("pt-BR")} pts</span>
           </div>
-        </div>
-      )}
 
-      {/* Zone progress */}
-      {mapState && totalZones > 0 && (
-        <div className="flex items-center gap-2">
-          <Map size={16} className="text-indigo-400" />
-          <div>
-            <div className="flex items-center gap-1 mb-0.5">
-              <p className="text-xs text-gray-500">Zonas</p>
-              <p className="text-xs font-bold text-indigo-300">{conquered}/{totalZones}</p>
+          {totalZones > 0 && (
+            <div className="flex items-center gap-2">
+              <Map size={13} className="text-indigo-400" />
+              <span className="text-xs text-gray-400">Zonas</span>
+              <span className="text-xs font-bold text-indigo-300">{conquered}/{totalZones}</span>
+              <div className="w-16 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full bg-indigo-500"
+                  animate={{ width: `${progressPercent}%` }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
             </div>
-            <div className="w-20 h-1.5 rounded-full bg-white/10 overflow-hidden">
-              <motion.div
-                className="h-full rounded-full bg-indigo-500"
-                animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 0.5 }}
-              />
+          )}
+
+          {participantCount !== undefined && (
+            <div className="flex items-center gap-1">
+              <Users size={12} className="text-gray-500" />
+              <span className="text-xs text-gray-500">{participantCount} guilds</span>
             </div>
-          </div>
+          )}
         </div>
       )}
-
-      {/* Participants */}
-      {participantCount !== undefined && (
-        <div className="flex items-center gap-1.5">
-          <Users size={14} className="text-gray-400" />
-          <span className="text-xs text-gray-400">{participantCount} guilds</span>
-        </div>
-      )}
-
-      {/* Ranking toggle */}
-      <button
-        onClick={onToggleRanking}
-        className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105"
-        style={{
-          background: showRanking ? "rgba(99,102,241,0.2)" : "rgba(255,255,255,0.06)",
-          border: showRanking ? "1px solid rgba(99,102,241,0.4)" : "1px solid rgba(255,255,255,0.1)",
-          color: showRanking ? "#818CF8" : "#94A3B8",
-        }}
-      >
-        <Trophy size={14} />
-        <span>Ranking</span>
-        <ChevronDown
-          size={12}
-          style={{ transform: showRanking ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}
-        />
-      </button>
     </div>
   );
 }

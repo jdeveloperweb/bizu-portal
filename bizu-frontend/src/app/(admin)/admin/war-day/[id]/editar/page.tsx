@@ -51,8 +51,8 @@ export default function EditWarDayPage() {
   }, [id]);
 
   const handleSubmit = async () => {
-    if (!title || !startAt || !endAt) {
-      notify("Preencha todos os campos obrigatórios", "error"); return;
+    if (!title || !startAt || !endAt || !selectedTemplateId) {
+      notify("Preencha todos os campos e selecione um template de mapa.", "error"); return;
     }
     setSaving(true);
     try {
