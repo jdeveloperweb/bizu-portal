@@ -216,7 +216,10 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
       style={{
         left: `${zone.positionX * 100}%`,
         top: `${zone.positionY * 100}%`,
-        transform: "translate(-50%, -50%)",
+        // Use margins instead of transform for centering — avoids conflict with
+        // Framer Motion's own transform pipeline (y, scale animate props).
+        marginLeft: -nodeSize / 2,
+        marginTop: -nodeSize / 2,
         width: nodeSize,
         height: nodeSize,
         zIndex: isSelected ? 30 : isInProgress ? 20 : isBoss ? 15 : 10,
@@ -235,8 +238,6 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
       }}
       onClick={() => !isLocked && onClick(zone)}
     >
-      {/* Wrapper anchored to node body only — label is absolute below */}
-      <div className="relative" style={{ width: nodeSize, height: nodeSize }}>
 
         {/* ── OUTER AURA (available / in-progress) ── */}
         {isActive && (
@@ -284,11 +285,13 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
 
         {/* SVG node */}
         <svg
-            width={nodeSize} height={nodeSize}
-            viewBox="0 0 100 100"
-            className="relative"
-            style={isSelected ? { filter: `drop-shadow(0 0 14px ${theme.color})` } : undefined}
-          >
+          width={nodeSize} height={nodeSize}
+          viewBox="0 0 100 100"
+          style={{
+            display: "block", // prevents inline baseline gap
+            ...(isSelected ? { filter: `drop-shadow(0 0 14px ${theme.color})` } : {}),
+          }}
+        >
             <defs>
               {/* Background gradient */}
               <radialGradient id={`bg-${uid}`} cx="40%" cy="32%" r="68%">
@@ -392,8 +395,8 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
             alignItems: "center",
             gap: 4,
           }}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ delay: 0.25 }}
         >
           <div
@@ -438,7 +441,6 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
             </div>
           )}
         </motion.div>
-      </div>
     </motion.div>
   );
 }
