@@ -85,7 +85,7 @@ function MapBackground() {
   return (
     <div
       className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none"
-      style={{ background: "#020109" }}
+      style={{ background: "#020109", zIndex: 0 }}
     >
 
       {/* ── 1. Micro-grain stone texture ── */}
@@ -541,6 +541,7 @@ export default function WarMap({ zones, onZoneClick, guildName, totalScore }: Wa
       className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl"
       style={{
         minHeight: 600,
+        background: "#020109",
         border: "1px solid rgba(99,102,241,0.18)",
         boxShadow: "0 0 80px rgba(99,102,241,0.12), 0 30px 80px rgba(0,0,0,0.9)",
       }}
@@ -574,9 +575,9 @@ export default function WarMap({ zones, onZoneClick, guildName, totalScore }: Wa
           <style>{`.wm-scroll::-webkit-scrollbar{display:none}`}</style>
           <div
             className="wm-scroll absolute inset-0 overflow-x-auto overflow-y-hidden"
-            style={{ scrollbarWidth: "none" } as React.CSSProperties}
+            style={{ scrollbarWidth: "none", zIndex: 1, background: "transparent" } as React.CSSProperties}
           >
-            <div className="relative h-full" style={{ minWidth: 900 }}>
+            <div className="relative h-full" style={{ width: "100%", minWidth: 900 }}>
               {dims.w > 0 && (
                 <WarPathSVG
                   zones={zones}
