@@ -546,38 +546,45 @@ export default function WarMap({ zones, onZoneClick, guildName, totalScore }: Wa
         boxShadow: "0 0 80px rgba(99,102,241,0.12), 0 30px 80px rgba(0,0,0,0.9)",
       }}
     >
-      <MapBackground />
-
       {zones.length === 0 ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-4 px-6 text-center">
-          <motion.div
-            className="w-24 h-24 rounded-2xl flex items-center justify-center"
-            style={{
-              background: "rgba(99,102,241,0.08)",
-              border: "1px solid rgba(99,102,241,0.2)",
-              boxShadow: "0 0 40px rgba(99,102,241,0.15)",
-            }}
-            animate={{ scale: [1, 1.04, 1] }}
-            transition={{ duration: 3, repeat: Infinity }}
-          >
-            <AlertTriangle size={36} className="text-indigo-400" />
-          </motion.div>
-          <p className="text-gray-200 font-black text-xl uppercase tracking-tight">Mapa Vazio</p>
-          <p className="text-gray-500 text-xs max-w-xs leading-relaxed">
-            As forças das trevas ainda não se organizaram. Um administrador deve definir as zonas de batalha.
-          </p>
-        </div>
+        <>
+          {/* Background visible even on empty map */}
+          <MapBackground />
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-10 gap-4 px-6 text-center">
+            <motion.div
+              className="w-24 h-24 rounded-2xl flex items-center justify-center"
+              style={{
+                background: "rgba(99,102,241,0.08)",
+                border: "1px solid rgba(99,102,241,0.2)",
+                boxShadow: "0 0 40px rgba(99,102,241,0.15)",
+              }}
+              animate={{ scale: [1, 1.04, 1] }}
+              transition={{ duration: 3, repeat: Infinity }}
+            >
+              <AlertTriangle size={36} className="text-indigo-400" />
+            </motion.div>
+            <p className="text-gray-200 font-black text-xl uppercase tracking-tight">Mapa Vazio</p>
+            <p className="text-gray-500 text-xs max-w-xs leading-relaxed">
+              As forças das trevas ainda não se organizaram. Um administrador deve definir as zonas de batalha.
+            </p>
+          </div>
+        </>
       ) : (
         <>
           {/* ── Scrollable map canvas ──
-              minWidth keeps absolute-% node positions from squishing on narrow
-              screens. overflow-x-auto + hidden scrollbar = swipe to pan on mobile. */}
+              MapBackground lives INSIDE the inner canvas so it shares the same
+              compositor tree as nodes and paths — avoids GPU-layer opacity bugs
+              caused by overflow-x:auto siblings covering an absolutely-positioned
+              background div. The outer div's background:#020109 covers any gaps. */}
           <style>{`.wm-scroll::-webkit-scrollbar{display:none}`}</style>
           <div
             className="wm-scroll absolute inset-0 overflow-x-auto overflow-y-hidden"
-            style={{ scrollbarWidth: "none", zIndex: 1, background: "transparent" } as React.CSSProperties}
+            style={{ scrollbarWidth: "none" } as React.CSSProperties}
           >
             <div className="relative h-full" style={{ width: "100%", minWidth: 900 }}>
+              {/* Background is the FIRST child — paints below paths and nodes */}
+              <MapBackground />
+
               {dims.w > 0 && (
                 <WarPathSVG
                   zones={zones}
@@ -598,7 +605,7 @@ export default function WarMap({ zones, onZoneClick, guildName, totalScore }: Wa
             </div>
           </div>
 
-          {/* Modal sits outside the scroll div so it overlays the full viewport */}
+          {/* Modal sits outside the scroll div so it overlays the full container */}
           <AnimatePresence>
             {selectedZone && (
               <ZoneDetailModal
