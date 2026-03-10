@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { motion } from "framer-motion";
 import { ZoneState } from "@/lib/warDayService";
 
 interface WarPathSVGProps {
@@ -54,21 +55,15 @@ export default function WarPathSVG({ zones, containerWidth, containerHeight }: W
       style={{ zIndex: 1 }}
     >
       <defs>
-        <filter id="pathGlow">
+        <filter id="pathGlow" x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur stdDeviation="3" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
         </filter>
-        <filter id="activeGlow">
-          <feGaussianBlur stdDeviation="2" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
+        <linearGradient id="activeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="rgba(56,189,248,0)" />
+          <stop offset="50%" stopColor="rgba(56,189,248,0.8)" />
+          <stop offset="100%" stopColor="rgba(56,189,248,0)" />
+        </linearGradient>
       </defs>
 
       {paths.map((path) => {
@@ -76,49 +71,46 @@ export default function WarPathSVG({ zones, containerWidth, containerHeight }: W
         const dy = path.y2 - path.y1;
         const midX = path.x1 + dx * 0.5;
         const midY = path.y1 + dy * 0.5;
-        // Slight curve for organic feel
-        const cx = midX + dy * 0.15;
-        const cy = midY - dx * 0.15;
+        // More subtle curve
+        const cx = midX + dy * 0.08;
+        const cy = midY - dx * 0.08;
         const d = `M ${path.x1} ${path.y1} Q ${cx} ${cy} ${path.x2} ${path.y2}`;
 
         return (
           <g key={path.id}>
-            {/* Shadow path */}
+            {/* Base Path (Locked/Inactive) */}
             <path
               d={d}
               fill="none"
-              stroke="rgba(0,0,0,0.5)"
-              strokeWidth={path.conquered ? 5 : 3}
+              stroke={path.conquered ? "rgba(245,158,11,0.2)" : "rgba(99,102,241,0.1)"}
+              strokeWidth="1.5"
               strokeLinecap="round"
             />
-            {/* Main path */}
-            <path
-              d={d}
-              fill="none"
-              stroke={
-                path.conquered
-                  ? "#F59E0B"
-                  : path.active
-                    ? "rgba(148,163,184,0.6)"
-                    : "rgba(55,65,81,0.5)"
-              }
-              strokeWidth={path.conquered ? 4 : 2.5}
-              strokeLinecap="round"
-              strokeDasharray={path.active && !path.conquered ? "8 6" : undefined}
-              filter={path.conquered ? "url(#pathGlow)" : undefined}
-            />
-            {/* Animated dash for active paths */}
-            {path.active && !path.conquered && (
-              <path
+            {/* Active/Conquered Highlight */}
+            {(path.active || path.conquered) && (
+              <motion.path
                 d={d}
                 fill="none"
-                stroke="rgba(245,158,11,0.8)"
+                stroke={path.conquered ? "#F59E0B" : "#6366F1"}
+                strokeWidth={path.conquered ? "2.5" : "1.5"}
+                strokeLinecap="round"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+                filter="url(#pathGlow)"
+              />
+            )}
+            {/* Energy Flow Animation */}
+            {path.active && !path.conquered && (
+              <motion.path
+                d={d}
+                fill="none"
+                stroke="url(#activeGradient)"
                 strokeWidth="2.5"
                 strokeLinecap="round"
-                strokeDasharray="6 24"
-                style={{
-                  animation: "dashMove 2s linear infinite",
-                }}
+                strokeDasharray="40 120"
+                animate={{ strokeDashoffset: [-160, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
               />
             )}
           </g>

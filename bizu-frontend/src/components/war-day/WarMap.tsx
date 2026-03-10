@@ -14,74 +14,54 @@ interface WarMapProps {
   totalScore: number;
 }
 
-// Terrain patches for visual variety
-const TERRAIN_PATCHES = [
-  { cx: 15, cy: 20, rx: 12, ry: 6, fill: "rgba(34,85,34,0.3)", label: "forest" },
-  { cx: 80, cy: 15, rx: 8, ry: 4, fill: "rgba(34,85,34,0.25)", label: "forest2" },
-  { cx: 70, cy: 75, rx: 10, ry: 5, fill: "rgba(60,45,30,0.3)", label: "mountains" },
-  { cx: 25, cy: 70, rx: 9, ry: 4, fill: "rgba(20,60,80,0.25)", label: "swamp" },
-  { cx: 50, cy: 50, rx: 6, ry: 3, fill: "rgba(50,30,10,0.2)", label: "ruins" },
-  { cx: 90, cy: 50, rx: 7, ry: 5, fill: "rgba(60,45,30,0.2)", label: "rocks" },
-];
-
 function MapBackground() {
   return (
-    <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <radialGradient id="mapBg" cx="50%" cy="50%" r="70%">
-          <stop offset="0%" stopColor="#1a0a2e" />
-          <stop offset="60%" stopColor="#0d1220" />
-          <stop offset="100%" stopColor="#050810" />
-        </radialGradient>
-        <pattern id="hexGrid" x="0" y="0" width="40" height="35" patternUnits="userSpaceOnUse">
-          <polygon
-            points="20,0 40,10 40,25 20,35 0,25 0,10"
-            fill="none"
-            stroke="rgba(99,102,241,0.06)"
-            strokeWidth="0.5"
-          />
-        </pattern>
-        <filter id="fogBlur">
-          <feGaussianBlur stdDeviation="30" />
-        </filter>
-        <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
-          <stop offset="40%" stopColor="transparent" />
-          <stop offset="100%" stopColor="rgba(0,0,0,0.7)" />
-        </radialGradient>
-      </defs>
+    <div className="absolute inset-0 w-full h-full overflow-hidden bg-[#050510]">
+      {/* Precision Technical Grid */}
+      <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="smallGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(99,102,241,0.2)" strokeWidth="0.5" />
+          </pattern>
+          <pattern id="mainGrid" width="100" height="100" patternUnits="userSpaceOnUse">
+            <rect width="100" height="100" fill="url(#smallGrid)" />
+            <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(99,102,241,0.4)" strokeWidth="1" />
+          </pattern>
+          <filter id="technicalGlow">
+            <feGaussianBlur stdDeviation="1.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#mainGrid)" />
 
-      {/* Base dark background */}
-      <rect width="100%" height="100%" fill="url(#mapBg)" />
+        {/* Decorative corner markers */}
+        <g stroke="rgba(99,102,241,0.6)" strokeWidth="2" fill="none" filter="url(#technicalGlow)">
+          <path d="M 40 40 L 10 40 L 10 10 L 40 10" transform="translate(20, 20)" />
+          <path d="M 40 40 L 10 40 L 10 10 L 40 10" transform="translate(calc(100% - 60px), 20) rotate(90 25 25)" />
+          <path d="M 40 40 L 10 40 L 10 10 L 40 10" transform="translate(calc(100% - 60px), calc(100% - 60px)) rotate(180 25 25)" />
+          <path d="M 40 40 L 10 40 L 10 10 L 40 10" transform="translate(20, calc(100% - 60px)) rotate(270 25 25)" />
+        </g>
+      </svg>
 
-      {/* Hex grid overlay */}
-      <rect width="100%" height="100%" fill="url(#hexGrid)" opacity="0.5" />
+      {/* Animated Scanning Beam */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/5 to-transparent h-[40%] w-full"
+        animate={{ translateY: ['-100%', '300%'] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+      />
 
-      {/* Terrain patches */}
-      {TERRAIN_PATCHES.map((t) => (
-        <ellipse
-          key={t.label}
-          cx={`${t.cx}%`}
-          cy={`${t.cy}%`}
-          rx={`${t.rx}%`}
-          ry={`${t.ry}%`}
-          fill={t.fill}
-          filter="url(#fogBlur)"
-        />
-      ))}
+      {/* Deep Space Background Layer */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(13,18,32,0)_0%,rgba(5,7,12,0.8)_100%)] pointer-events-none" />
 
-      {/* Atmospheric fog patches */}
-      <ellipse cx="30%" cy="40%" rx="30%" ry="20%" fill="rgba(99,102,241,0.06)" filter="url(#fogBlur)" />
-      <ellipse cx="70%" cy="60%" rx="25%" ry="20%" fill="rgba(167,139,250,0.06)" filter="url(#fogBlur)" />
-
-      {/* Vignette */}
-      <rect width="100%" height="100%" fill="url(#vignette)" />
-
-      {/* Decorative border runes */}
-      <rect x="8" y="8" width="calc(100% - 16px)" height="calc(100% - 16px)"
-        fill="none" stroke="rgba(99,102,241,0.2)" strokeWidth="1" rx="8" />
-      <rect x="12" y="12" width="calc(100% - 24px)" height="calc(100% - 24px)"
-        fill="none" stroke="rgba(99,102,241,0.08)" strokeWidth="0.5" rx="6" />
-    </svg>
+      {/* Technical HUD Elements around nodes */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] border-[2px] border-dashed border-indigo-500/30 rounded-full" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] border-[1px] border-indigo-500/20 rounded-full" />
+      </div>
+    </div>
   );
 }
 

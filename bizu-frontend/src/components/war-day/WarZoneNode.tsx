@@ -25,54 +25,55 @@ const STATUS_CONFIG = {
   CONQUERED: { opacity: 1.0, scale: 1.0 },
 };
 
-function ZoneIcon({ zoneType, size = 28 }: { zoneType: string; size?: number }) {
-  const s = size;
+function ZoneIcon({ zoneType, status, color, bgColor }: { zoneType: string; status: string; color: string; bgColor: string }) {
+  const isLocked = status === 'LOCKED';
+  const iconColor = isLocked ? '#4B5563' : color;
+  const secondaryColor = isLocked ? '#1F2937' : bgColor;
+
   if (zoneType === "BOSS") {
     return (
-      <svg width={s} height={s} viewBox="0 0 28 28" fill="none">
-        <polygon points="14,2 18,9 26,9 20,14 22,22 14,17 6,22 8,14 2,9 10,9" fill="#F87171" stroke="#7F1D1D" strokeWidth="1" />
+      <svg width="42" height="42" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="bossGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={iconColor} />
+            <stop offset="100%" stopColor={secondaryColor} />
+          </radialGradient>
+        </defs>
+        <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z" fill="url(#bossGrad)" stroke={iconColor} strokeWidth="1.5" strokeLinejoin="round" />
+        <path d="M12 13V18" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
+        <path d="M9 16L12 13L15 16" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
       </svg>
     );
   }
   if (zoneType === "CASTLE") {
     return (
-      <svg width={s} height={s} viewBox="0 0 28 28" fill="none">
-        <rect x="4" y="12" width="20" height="12" rx="1" fill="#C084FC" stroke="#581C87" strokeWidth="1.5" />
-        <rect x="5" y="8" width="4" height="6" rx="0.5" fill="#C084FC" stroke="#581C87" strokeWidth="1" />
-        <rect x="12" y="6" width="4" height="8" rx="0.5" fill="#C084FC" stroke="#581C87" strokeWidth="1" />
-        <rect x="19" y="8" width="4" height="6" rx="0.5" fill="#C084FC" stroke="#581C87" strokeWidth="1" />
-        <rect x="11" y="16" width="6" height="8" rx="0.5" fill="#4C1D95" stroke="#581C87" strokeWidth="1" />
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 20V9L4 7V20M22 20V9L20 7V20M2 13H22M7 13V20M17 13V20M10 20V16C10 14.8954 10.8954 14 12 14C13.1046 14 14 14.8954 14 16V20M6 7V4H8V7M16 7V4H18V7M11 7V2H13V7" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <rect x="9" y="9" width="6" height="4" rx="1" fill={iconColor} opacity="0.2" />
       </svg>
     );
   }
   if (zoneType === "FORTRESS") {
     return (
-      <svg width={s} height={s} viewBox="0 0 28 28" fill="none">
-        <rect x="4" y="10" width="20" height="14" rx="1" fill="#A78BFA" stroke="#4C1D95" strokeWidth="1.5" />
-        <rect x="4" y="7" width="5" height="5" fill="#A78BFA" stroke="#4C1D95" strokeWidth="1" />
-        <rect x="19" y="7" width="5" height="5" fill="#A78BFA" stroke="#4C1D95" strokeWidth="1" />
-        <rect x="11" y="15" width="6" height="9" rx="0.5" fill="#4C1D95" stroke="#4C1D95" strokeWidth="1" />
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 21V10L5 8V21M21 21V10L19 8V21M3 14H21M8 14V21M16 14V21M11 21V17C11 16.4477 11.4477 16 12 16C12.5523 16 13 16.4477 13 17V21M7 8V5H9V8M15 8V5H17V8" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
   }
   if (zoneType === "WATCHTOWER") {
     return (
-      <svg width={s} height={s} viewBox="0 0 28 28" fill="none">
-        <rect x="10" y="4" width="8" height="18" rx="1" fill="#22D3EE" stroke="#164E63" strokeWidth="1.5" />
-        <rect x="7" y="3" width="14" height="4" rx="0.5" fill="#22D3EE" stroke="#164E63" strokeWidth="1" />
-        <rect x="8" y="18" width="12" height="6" rx="0.5" fill="#164E63" stroke="#22D3EE" strokeWidth="1" />
-        <circle cx="14" cy="11" r="2" fill="#164E63" />
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 21V18H16V21M6 18H18L16 6H8L6 18ZM10 6V3H14V6M9 13H15M12 13V6" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="12" cy="10" r="1.5" fill={iconColor} />
       </svg>
     );
   }
   // CAMP
   return (
-    <svg width={s} height={s} viewBox="0 0 28 28" fill="none">
-      <polygon points="14,4 24,22 4,22" fill="#F59E0B" stroke="#78350F" strokeWidth="1.5" />
-      <polygon points="8,22 14,12 20,22" fill="#78350F" />
-      <rect x="12" y="18" width="4" height="4" fill="#78350F" />
-      <circle cx="22" cy="16" r="3" fill="#EF4444" opacity="0.8" />
-      <circle cx="20" cy="20" r="2" fill="#EF4444" opacity="0.6" />
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 3L2 21H22L12 3Z" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 13L16 21H8L12 13Z" fill={iconColor} opacity="0.3" />
+      <path d="M12 17V21" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
@@ -139,26 +140,28 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
       >
         {/* Main zone circle */}
         <div
-          className="relative flex items-center justify-center rounded-full border-2 transition-all"
+          className="relative flex items-center justify-center rounded-full border transition-all"
           style={{
             width: nodeSize,
             height: nodeSize,
             background: isLocked
-              ? "rgba(20,20,30,0.8)"
-              : `linear-gradient(135deg, ${visual.color}33 0%, ${visual.bgColor} 100%)`,
-            borderColor: isLocked ? "#374151" : visual.color,
+              ? "rgba(15,15,25,0.7)"
+              : `linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%), ${visual.bgColor}`,
+            borderColor: isLocked ? "rgba(255,255,255,0.1)" : `${visual.color}80`,
             boxShadow: isLocked
-              ? "none"
+              ? "inset 0 0 10px rgba(0,0,0,0.5)"
               : isConquered
-                ? `0 0 20px 5px ${visual.glowColor}, inset 0 0 15px ${visual.glowColor}`
-                : `0 0 12px 3px ${visual.glowColor}, inset 0 0 8px ${visual.glowColor}`,
-            backdropFilter: "blur(4px)",
+                ? `0 0 30px -5px ${visual.glowColor}, inset 0 0 15px ${visual.glowColor}`
+                : `0 0 20px -8px ${visual.glowColor}, inset 0 0 10px ${visual.glowColor}`,
+            backdropFilter: "blur(8px)",
           }}
         >
+          {/* Inner ring for depth */}
+          <div className="absolute inset-1 rounded-full border border-white/5 pointer-events-none" />
           {isLocked ? (
             <Lock size={22} className="text-gray-600" />
           ) : (
-            <ZoneIcon zoneType={zone.zoneType} size={isBoss ? 36 : 28} />
+            <ZoneIcon zoneType={zone.zoneType} status={zone.status} color={visual.color} bgColor={visual.bgColor} />
           )}
 
           {/* Conquered checkmark */}
@@ -211,18 +214,22 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
 
         {/* Zone name */}
         <div
-          className="mt-2 px-2 py-0.5 rounded text-center font-bold"
+          className="mt-3 px-2.5 py-1 rounded-md text-center font-bold tracking-tight shadow-lg border border-white/5"
           style={{
-            fontSize: "11px",
-            lineHeight: "1.2",
-            background: "rgba(0,0,0,0.75)",
-            backdropFilter: "blur(4px)",
-            color: isLocked ? "#9CA3AF" : visual.color,
-            maxWidth: 130,
+            fontSize: "10px",
+            lineHeight: "1.1",
+            background: "rgba(10,10,20,0.85)",
+            backdropFilter: "blur(12px)",
+            color: isLocked ? "#6B7280" : "#F3F4F6",
+            maxWidth: 140,
             whiteSpace: "normal",
-            wordBreak: "break-word"
+            wordBreak: "break-word",
+            textShadow: "0 2px 4px rgba(0,0,0,0.5)"
           }}
         >
+          <span style={{ color: isLocked ? "#4B5563" : visual.color, display: 'block', fontSize: '8px', textTransform: 'uppercase', marginBottom: '2px', opacity: 0.8 }}>
+            {zone.zoneType}
+          </span>
           {zone.name}
         </div>
 
