@@ -22,34 +22,34 @@ interface WarMapProps {
 // Fixed star positions (avoids Math.random hydration mismatch)
 const STARS: Array<{ x: number; y: number; r: number; o: number }> = [
   // Bright anchor stars
-  { x: 90,   y: 65,  r: 1.6, o: 0.50 }, { x: 1085, y: 95,  r: 1.7, o: 0.46 },
-  { x: 48,   y: 392, r: 1.4, o: 0.42 }, { x: 1142, y: 518, r: 1.5, o: 0.44 },
-  { x: 552,  y: 35,  r: 1.5, o: 0.42 }, { x: 278,  y: 640, r: 1.3, o: 0.36 },
-  { x: 858,  y: 620, r: 1.4, o: 0.40 },
+  { x: 90, y: 65, r: 1.6, o: 0.50 }, { x: 1085, y: 95, r: 1.7, o: 0.46 },
+  { x: 48, y: 392, r: 1.4, o: 0.42 }, { x: 1142, y: 518, r: 1.5, o: 0.44 },
+  { x: 552, y: 35, r: 1.5, o: 0.42 }, { x: 278, y: 640, r: 1.3, o: 0.36 },
+  { x: 858, y: 620, r: 1.4, o: 0.40 },
   // Medium stars
-  { x: 168,  y: 155, r: 0.9, o: 0.32 }, { x: 418,  y: 108, r: 1.0, o: 0.30 },
-  { x: 718,  y: 85,  r: 0.8, o: 0.28 }, { x: 922,  y: 190, r: 1.1, o: 0.32 },
+  { x: 168, y: 155, r: 0.9, o: 0.32 }, { x: 418, y: 108, r: 1.0, o: 0.30 },
+  { x: 718, y: 85, r: 0.8, o: 0.28 }, { x: 922, y: 190, r: 1.1, o: 0.32 },
   { x: 1028, y: 318, r: 0.9, o: 0.26 }, { x: 1118, y: 398, r: 0.8, o: 0.24 },
-  { x: 962,  y: 478, r: 1.0, o: 0.28 }, { x: 842,  y: 538, r: 0.9, o: 0.26 },
-  { x: 682,  y: 582, r: 0.8, o: 0.24 }, { x: 498,  y: 622, r: 1.0, o: 0.26 },
-  { x: 382,  y: 578, r: 0.9, o: 0.24 }, { x: 218,  y: 548, r: 0.8, o: 0.22 },
-  { x: 118,  y: 478, r: 1.0, o: 0.26 }, { x: 78,   y: 278, r: 0.9, o: 0.24 },
-  { x: 142,  y: 198, r: 0.8, o: 0.22 },
+  { x: 962, y: 478, r: 1.0, o: 0.28 }, { x: 842, y: 538, r: 0.9, o: 0.26 },
+  { x: 682, y: 582, r: 0.8, o: 0.24 }, { x: 498, y: 622, r: 1.0, o: 0.26 },
+  { x: 382, y: 578, r: 0.9, o: 0.24 }, { x: 218, y: 548, r: 0.8, o: 0.22 },
+  { x: 118, y: 478, r: 1.0, o: 0.26 }, { x: 78, y: 278, r: 0.9, o: 0.24 },
+  { x: 142, y: 198, r: 0.8, o: 0.22 },
   // Small distant stars
-  { x: 308,  y: 178, r: 0.6, o: 0.18 }, { x: 462,  y: 198, r: 0.5, o: 0.16 },
-  { x: 578,  y: 155, r: 0.6, o: 0.18 }, { x: 678,  y: 198, r: 0.5, o: 0.15 },
-  { x: 782,  y: 158, r: 0.6, o: 0.17 }, { x: 842,  y: 278, r: 0.5, o: 0.15 },
-  { x: 902,  y: 358, r: 0.6, o: 0.16 }, { x: 958,  y: 418, r: 0.5, o: 0.15 },
-  { x: 822,  y: 458, r: 0.6, o: 0.16 }, { x: 742,  y: 518, r: 0.5, o: 0.15 },
-  { x: 638,  y: 498, r: 0.6, o: 0.16 }, { x: 542,  y: 538, r: 0.5, o: 0.15 },
-  { x: 438,  y: 508, r: 0.6, o: 0.16 }, { x: 338,  y: 478, r: 0.5, o: 0.15 },
-  { x: 258,  y: 438, r: 0.6, o: 0.16 }, { x: 178,  y: 398, r: 0.5, o: 0.15 },
-  { x: 158,  y: 338, r: 0.6, o: 0.17 }, { x: 198,  y: 278, r: 0.5, o: 0.15 },
-  { x: 262,  y: 238, r: 0.6, o: 0.16 }, { x: 358,  y: 258, r: 0.5, o: 0.15 },
-  { x: 478,  y: 278, r: 0.4, o: 0.13 }, { x: 598,  y: 258, r: 0.5, o: 0.15 },
-  { x: 698,  y: 298, r: 0.4, o: 0.13 }, { x: 782,  y: 358, r: 0.5, o: 0.15 },
-  { x: 862,  y: 418, r: 0.4, o: 0.13 }, { x: 1048, y: 222, r: 0.5, o: 0.14 },
-  { x: 188,  y: 92,  r: 0.5, o: 0.14 }, { x: 382,  y: 72,  r: 0.4, o: 0.13 },
+  { x: 308, y: 178, r: 0.6, o: 0.18 }, { x: 462, y: 198, r: 0.5, o: 0.16 },
+  { x: 578, y: 155, r: 0.6, o: 0.18 }, { x: 678, y: 198, r: 0.5, o: 0.15 },
+  { x: 782, y: 158, r: 0.6, o: 0.17 }, { x: 842, y: 278, r: 0.5, o: 0.15 },
+  { x: 902, y: 358, r: 0.6, o: 0.16 }, { x: 958, y: 418, r: 0.5, o: 0.15 },
+  { x: 822, y: 458, r: 0.6, o: 0.16 }, { x: 742, y: 518, r: 0.5, o: 0.15 },
+  { x: 638, y: 498, r: 0.6, o: 0.16 }, { x: 542, y: 538, r: 0.5, o: 0.15 },
+  { x: 438, y: 508, r: 0.6, o: 0.16 }, { x: 338, y: 478, r: 0.5, o: 0.15 },
+  { x: 258, y: 438, r: 0.6, o: 0.16 }, { x: 178, y: 398, r: 0.5, o: 0.15 },
+  { x: 158, y: 338, r: 0.6, o: 0.17 }, { x: 198, y: 278, r: 0.5, o: 0.15 },
+  { x: 262, y: 238, r: 0.6, o: 0.16 }, { x: 358, y: 258, r: 0.5, o: 0.15 },
+  { x: 478, y: 278, r: 0.4, o: 0.13 }, { x: 598, y: 258, r: 0.5, o: 0.15 },
+  { x: 698, y: 298, r: 0.4, o: 0.13 }, { x: 782, y: 358, r: 0.5, o: 0.15 },
+  { x: 862, y: 418, r: 0.4, o: 0.13 }, { x: 1048, y: 222, r: 0.5, o: 0.14 },
+  { x: 188, y: 92, r: 0.5, o: 0.14 }, { x: 382, y: 72, r: 0.4, o: 0.13 },
 ];
 
 // Constellation line pairs (indices into STARS)
@@ -76,7 +76,7 @@ const ASTRO_TICKS = Array.from({ length: 72 }, (_, i) => {
   const inner = i % 6 === 0 ? 340 : i % 3 === 0 ? 348 : 353;
   return {
     x1: 400 + inner * Math.cos(a), y1: 400 + inner * Math.sin(a),
-    x2: 400 + 360 * Math.cos(a),  y2: 400 + 360 * Math.sin(a),
+    x2: 400 + 360 * Math.cos(a), y2: 400 + 360 * Math.sin(a),
     major: i % 6 === 0,
   };
 });
@@ -85,11 +85,11 @@ function MapBackground() {
   return (
     <div
       className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none"
-      style={{ background: "#020109", zIndex: 0 }}
+      style={{ background: "#060411", zIndex: 0 }}
     >
 
       {/* ── 1. Micro-grain stone texture ── */}
-      <svg className="absolute inset-0 w-full h-full opacity-[0.09] mix-blend-soft-light">
+      <svg className="absolute inset-0 w-full h-full opacity-[0.20] mix-blend-soft-light">
         <filter id="mbg-grain">
           <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="4" stitchTiles="stitch" />
           <feColorMatrix type="saturate" values="0" />
@@ -97,15 +97,15 @@ function MapBackground() {
         <rect width="100%" height="100%" filter="url(#mbg-grain)" />
       </svg>
 
-      {/* ── 2. Void colour clouds — static, extremely subtle ── */}
+      {/* ── 2. Void colour clouds — static, slightly visible ── */}
       <div className="absolute inset-0" style={{
-        background: "radial-gradient(ellipse 60% 50% at 50% -5%, rgba(67,56,202,0.09) 0%, transparent 100%)",
+        background: "radial-gradient(ellipse 60% 50% at 50% -5%, rgba(67,56,202,0.18) 0%, transparent 100%)",
       }} />
       <div className="absolute inset-0" style={{
-        background: "radial-gradient(ellipse 50% 40% at 100% 100%, rgba(76,29,149,0.07) 0%, transparent 100%)",
+        background: "radial-gradient(ellipse 50% 40% at 100% 100%, rgba(76,29,149,0.15) 0%, transparent 100%)",
       }} />
       <div className="absolute inset-0" style={{
-        background: "radial-gradient(ellipse 45% 35% at 0% 70%, rgba(30,27,75,0.07) 0%, transparent 100%)",
+        background: "radial-gradient(ellipse 45% 35% at 0% 70%, rgba(30,27,75,0.18) 0%, transparent 100%)",
       }} />
 
       {/* ── 3. Star field + constellation lines ── */}
@@ -137,7 +137,7 @@ function MapBackground() {
         className="absolute inset-0 flex items-center justify-center"
         animate={{ rotate: 360 }}
         transition={{ duration: 200, repeat: Infinity, ease: "linear" }}
-        style={{ opacity: 0.038 }}
+        style={{ opacity: 0.18 }}
       >
         <svg viewBox="0 0 800 800" style={{ width: "min(112%, 112vh)", height: "min(112%, 112vh)" }}>
           {/* Concentric rings */}
@@ -145,7 +145,7 @@ function MapBackground() {
           <circle cx="400" cy="400" r="292" fill="none" stroke="#5B21B6" strokeWidth="0.45" />
           <circle cx="400" cy="400" r="212" fill="none" stroke="#5B21B6" strokeWidth="0.38" />
           <circle cx="400" cy="400" r="135" fill="none" stroke="#6D28D9" strokeWidth="0.38" strokeDasharray="3 9" />
-          <circle cx="400" cy="400" r="65"  fill="none" stroke="#5B21B6" strokeWidth="0.38" />
+          <circle cx="400" cy="400" r="65" fill="none" stroke="#5B21B6" strokeWidth="0.38" />
           <circle cx="400" cy="400" r="2.5" fill="#8B5CF6" opacity="0.6" />
           {/* Radial lines */}
           {ASTRO_LINES.map((l, i) => (
@@ -197,7 +197,7 @@ function MapBackground() {
       {/* ── 5. Stardust — two slow-breathing offset layers ── */}
       <motion.div
         className="absolute inset-0"
-        animate={{ opacity: [0.05, 0.13, 0.05] }}
+        animate={{ opacity: [0.1, 0.25, 0.1] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         style={{
           backgroundImage: "radial-gradient(circle, rgba(99,102,241,0.5) 1px, transparent 1px)",
@@ -206,7 +206,7 @@ function MapBackground() {
       />
       <motion.div
         className="absolute inset-0"
-        animate={{ opacity: [0.03, 0.09, 0.03] }}
+        animate={{ opacity: [0.08, 0.18, 0.08] }}
         transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 5 }}
         style={{
           backgroundImage: "radial-gradient(circle, rgba(139,92,246,0.45) 1px, transparent 1px)",
@@ -215,9 +215,9 @@ function MapBackground() {
         }}
       />
 
-      {/* ── 6. Heavy vignette — the keystone layer ── */}
+      {/* ── 6. Lighter vignette — no completely dark edge ── */}
       <div className="absolute inset-0" style={{
-        background: "radial-gradient(ellipse at 50% 50%, transparent 15%, rgba(2,1,9,0.82) 65%, rgba(1,0,6,0.95) 100%)",
+        background: "radial-gradient(ellipse at 50% 50%, transparent 25%, rgba(6,4,17,0.3) 75%, rgba(3,1,9,0.7) 100%)",
       }} />
 
       {/* ── 7. Inset edge shadow ── */}
@@ -235,17 +235,17 @@ function MapBackground() {
 
       {/* ── 9. Corner sigil marks ── */}
       {([
-        { top: 10,    left: 10,  rot: 0   },
-        { top: 10,    right: 10, rot: 90  },
+        { top: 10, left: 10, rot: 0 },
+        { top: 10, right: 10, rot: 90 },
         { bottom: 10, right: 10, rot: 180 },
-        { bottom: 10, left: 10,  rot: 270 },
+        { bottom: 10, left: 10, rot: 270 },
       ] as Array<{ top?: number; bottom?: number; left?: number; right?: number; rot: number }>)
         .map(({ rot, ...pos }, i) => (
           <svg
             key={i}
             width="20" height="20"
             className="absolute"
-            style={{ ...pos, opacity: 0.16, transform: `rotate(${rot}deg)` }}
+            style={{ ...pos, opacity: 0.35, transform: `rotate(${rot}deg)` }}
             viewBox="0 0 20 20"
           >
             <path d="M 2,2 L 11,2 L 11,5 L 5,5 L 5,11 L 2,11 Z" fill="#6D28D9" />
@@ -262,11 +262,11 @@ const MODAL_ZONE: Record<string, {
   color: string; icon: React.ReactNode; label: string;
   heroFrom: string; heroTo: string;
 }> = {
-  CAMP:       { color: "#F59E0B", label: "Acampamento",         heroFrom: "#2D1500", heroTo: "#0D0800", icon: <Sword   size={36} /> },
-  WATCHTOWER: { color: "#22D3EE", label: "Torre de Vigia",      heroFrom: "#001A1F", heroTo: "#020A0D", icon: <Shield  size={36} /> },
-  FORTRESS:   { color: "#A78BFA", label: "Fortaleza",           heroFrom: "#130720", heroTo: "#060310", icon: <Shield  size={36} /> },
-  CASTLE:     { color: "#C084FC", label: "Castelo",             heroFrom: "#180825", heroTo: "#070312", icon: <Crown   size={36} /> },
-  BOSS:       { color: "#F87171", label: "Fortaleza das Trevas", heroFrom: "#240808", heroTo: "#0D0303", icon: <Flame   size={36} /> },
+  CAMP: { color: "#F59E0B", label: "Acampamento", heroFrom: "#2D1500", heroTo: "#0D0800", icon: <Sword size={36} /> },
+  WATCHTOWER: { color: "#22D3EE", label: "Torre de Vigia", heroFrom: "#001A1F", heroTo: "#020A0D", icon: <Shield size={36} /> },
+  FORTRESS: { color: "#A78BFA", label: "Fortaleza", heroFrom: "#130720", heroTo: "#060310", icon: <Shield size={36} /> },
+  CASTLE: { color: "#C084FC", label: "Castelo", heroFrom: "#180825", heroTo: "#070312", icon: <Crown size={36} /> },
+  BOSS: { color: "#F87171", label: "Fortaleza das Trevas", heroFrom: "#240808", heroTo: "#0D0303", icon: <Flame size={36} /> },
 };
 
 // ── Zone Detail Modal ────────────────────────────────────────────────────────
@@ -278,13 +278,13 @@ function ZoneDetailModal({
   onClose: () => void;
   onEnter: (zone: ZoneState) => void;
 }) {
-  const cfg     = MODAL_ZONE[zone.zoneType] ?? MODAL_ZONE.CAMP;
-  const color   = cfg.color;
-  const isConquered  = zone.status === "CONQUERED";
-  const isAvailable  = zone.status === "AVAILABLE" || zone.status === "IN_PROGRESS";
-  const required     = Math.ceil(zone.questionCount * 0.7);
-  const progress     = Math.min(zone.progressPercent, 100);
-  const circ         = 2 * Math.PI * 22;
+  const cfg = MODAL_ZONE[zone.zoneType] ?? MODAL_ZONE.CAMP;
+  const color = cfg.color;
+  const isConquered = zone.status === "CONQUERED";
+  const isAvailable = zone.status === "AVAILABLE" || zone.status === "IN_PROGRESS";
+  const required = Math.ceil(zone.questionCount * 0.7);
+  const progress = Math.min(zone.progressPercent, 100);
+  const circ = 2 * Math.PI * 22;
 
   return (
     <motion.div
@@ -541,7 +541,7 @@ export default function WarMap({ zones, onZoneClick, guildName, totalScore }: Wa
       className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl"
       style={{
         minHeight: 600,
-        background: "#020109",
+        background: "#060411",
         border: "1px solid rgba(99,102,241,0.18)",
         boxShadow: "0 0 80px rgba(99,102,241,0.12), 0 30px 80px rgba(0,0,0,0.9)",
       }}
