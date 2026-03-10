@@ -136,10 +136,10 @@ public class WarDayGameService {
         String difficulty = difficultyFromLevel(zone.getDifficultyLevel());
 
         // Get a random question that this player hasn't answered yet in this zone
-        List<Question> candidates = questionRepository.findRandomByCategory("QUIZ", 20);
-        if (candidates.isEmpty()) {
-            candidates = questionRepository.findRandomByCategory("SIMULADO", 20);
-        }
+        List<Question> quizCandidates = questionRepository.findRandomByCategory("QUIZ", 20);
+        final List<Question> candidates = quizCandidates.isEmpty()
+                ? questionRepository.findRandomByCategory("SIMULADO", 20)
+                : quizCandidates;
 
         // Filter out questions already answered by this guild in this zone
         List<UUID> answeredInZone = attemptRepository.findAllByZoneProgressId(progress.getId())
