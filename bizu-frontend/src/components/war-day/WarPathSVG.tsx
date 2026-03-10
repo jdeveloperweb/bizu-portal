@@ -55,14 +55,32 @@ export default function WarPathSVG({ zones, containerWidth, containerHeight }: W
       style={{ zIndex: 1 }}
     >
       <defs>
-        <filter id="pathGlow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="3" result="blur" />
-          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        <filter id="magicalGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="4" result="blur" />
+          <feFlood floodColor="rgba(99,102,241,0.6)" result="color" />
+          <feComposite in="color" in2="blur" operator="in" result="glow" />
+          <feMerge>
+            <feMergeNode in="glow" />
+            <feMergeNode in="glow" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
         </filter>
-        <linearGradient id="activeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="rgba(56,189,248,0)" />
-          <stop offset="50%" stopColor="rgba(56,189,248,0.8)" />
-          <stop offset="100%" stopColor="rgba(56,189,248,0)" />
+
+        <filter id="conqueredGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="5" result="blur" />
+          <feFlood floodColor="rgba(245,158,11,0.5)" result="color" />
+          <feComposite in="color" in2="blur" operator="in" result="glow" />
+          <feMerge>
+            <feMergeNode in="glow" />
+            <feMergeNode in="glow" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+
+        <linearGradient id="energyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="transparent" />
+          <stop offset="50%" stopColor="white" />
+          <stop offset="100%" stopColor="transparent" />
         </linearGradient>
       </defs>
 
@@ -71,57 +89,104 @@ export default function WarPathSVG({ zones, containerWidth, containerHeight }: W
         const dy = path.y2 - path.y1;
         const midX = path.x1 + dx * 0.5;
         const midY = path.y1 + dy * 0.5;
-        // More subtle curve
-        const cx = midX + dy * 0.08;
-        const cy = midY - dx * 0.08;
+        // Subtle curve for a more organic "unfolding" map feel
+        const cx = midX + dy * 0.1;
+        const cy = midY - dx * 0.1;
         const d = `M ${path.x1} ${path.y1} Q ${cx} ${cy} ${path.x2} ${path.y2}`;
 
         return (
           <g key={path.id}>
-            {/* Base Path (Locked/Inactive) */}
+            {/* Background Path (Dotted/Ghostly) */}
             <path
               d={d}
               fill="none"
-              stroke={path.conquered ? "rgba(245,158,11,0.2)" : "rgba(99,102,241,0.1)"}
+              stroke="white"
               strokeWidth="1.5"
-              strokeLinecap="round"
+              strokeDasharray="4 8"
+              opacity="0.05"
             />
-            {/* Active/Conquered Highlight */}
-            {(path.active || path.conquered) && (
-              <motion.path
+
+            {/* Locked Path */}
+            {!path.active && (
+              <path
                 d={d}
                 fill="none"
-                stroke={path.conquered ? "#F59E0B" : "#6366F1"}
-                strokeWidth={path.conquered ? "2.5" : "1.5"}
+                stroke="white"
+                strokeWidth="2"
                 strokeLinecap="round"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-                filter="url(#pathGlow)"
+                opacity="0.1"
               />
             )}
-            {/* Energy Flow Animation */}
+
+            {/* Active Path Base */}
+            {path.active && !path.conquered && (
+              <>
+                <motion.path
+                  d={d}
+                  fill="none"
+                  stroke="#6366F1"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 0.4 }}
+                  transition={{ duration: 1 }}
+                />
+                <motion.path
+                  d={d}
+                  fill="none"
+                  stroke="#6366F1"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  filter="url(#magicalGlow)"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 1.5, delay: 0.2 }}
+                />
+              </>
+            )}
+
+            {/* Conquered Path */}
+            {path.conquered && (
+              <>
+                <path
+                  d={d}
+                  fill="none"
+                  stroke="#F59E0B"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  opacity="0.2"
+                />
+                <motion.path
+                  d={d}
+                  fill="none"
+                  stroke="#F59E0B"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  filter="url(#conqueredGlow)"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 0.8 }}
+                />
+              </>
+            )}
+
+            {/* Pulsing Energy Particle */}
             {path.active && !path.conquered && (
               <motion.path
                 d={d}
                 fill="none"
-                stroke="url(#activeGradient)"
-                strokeWidth="2.5"
+                stroke="url(#energyGradient)"
+                strokeWidth="3"
                 strokeLinecap="round"
-                strokeDasharray="40 120"
-                animate={{ strokeDashoffset: [-160, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                strokeDasharray="50 150"
+                animate={{ strokeDashoffset: [200, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                opacity="0.8"
               />
             )}
           </g>
         );
       })}
-
-      <style>{`
-        @keyframes dashMove {
-          to { stroke-dashoffset: -30; }
-        }
-      `}</style>
     </svg>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Lock, Swords, CheckCircle2, Star, Skull } from "lucide-react";
 import { ZoneState } from "@/lib/warDayService";
 
@@ -10,16 +10,16 @@ interface WarZoneNodeProps {
   isSelected: boolean;
 }
 
-const ZONE_VISUALS: Record<string, { label: string; color: string; glowColor: string; bgColor: string }> = {
-  CAMP: { label: "Acampamento", color: "#F59E0B", glowColor: "rgba(245,158,11,0.6)", bgColor: "#78350F" },
-  WATCHTOWER: { label: "Torre de Vigia", color: "#22D3EE", glowColor: "rgba(34,211,238,0.6)", bgColor: "#164E63" },
-  FORTRESS: { label: "Fortaleza", color: "#A78BFA", glowColor: "rgba(167,139,250,0.6)", bgColor: "#4C1D95" },
-  CASTLE: { label: "Castelo", color: "#C084FC", glowColor: "rgba(192,132,252,0.6)", bgColor: "#581C87" },
-  BOSS: { label: "Fortaleza das Trevas", color: "#F87171", glowColor: "rgba(248,113,113,0.8)", bgColor: "#7F1D1D" },
+const ZONE_VISUALS: Record<string, { label: string; color: string; glowColor: string; bgColor: string; accentColor: string }> = {
+  CAMP: { label: "Acampamento", color: "#F59E0B", glowColor: "rgba(245,158,11,0.5)", bgColor: "#1e150a", accentColor: "#fbbf24" },
+  WATCHTOWER: { label: "Torre de Vigia", color: "#22D3EE", glowColor: "rgba(34,211,238,0.5)", bgColor: "#0a1b1e", accentColor: "#67e8f9" },
+  FORTRESS: { label: "Fortaleza", color: "#A78BFA", glowColor: "rgba(167,139,250,0.5)", bgColor: "#150a1e", accentColor: "#c4b5fd" },
+  CASTLE: { label: "Castelo", color: "#C084FC", glowColor: "rgba(192,132,252,0.5)", bgColor: "#1a0a1e", accentColor: "#d8b4fe" },
+  BOSS: { label: "Fortaleza das Trevas", color: "#F87171", glowColor: "rgba(248,113,113,0.7)", bgColor: "#1e0a0a", accentColor: "#fca5a5" },
 };
 
 const STATUS_CONFIG = {
-  LOCKED: { opacity: 0.35, scale: 0.9 },
+  LOCKED: { opacity: 0.4, scale: 0.95 },
   AVAILABLE: { opacity: 1.0, scale: 1.0 },
   IN_PROGRESS: { opacity: 1.0, scale: 1.05 },
   CONQUERED: { opacity: 1.0, scale: 1.0 },
@@ -32,7 +32,7 @@ function ZoneIcon({ zoneType, status, color, bgColor }: { zoneType: string; stat
 
   if (zoneType === "BOSS") {
     return (
-      <svg width="42" height="42" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg width="68" height="68" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <radialGradient id="bossGrad" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor={iconColor} />
@@ -47,22 +47,21 @@ function ZoneIcon({ zoneType, status, color, bgColor }: { zoneType: string; stat
   }
   if (zoneType === "CASTLE") {
     return (
-      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg width="58" height="58" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M2 20V9L4 7V20M22 20V9L20 7V20M2 13H22M7 13V20M17 13V20M10 20V16C10 14.8954 10.8954 14 12 14C13.1046 14 14 14.8954 14 16V20M6 7V4H8V7M16 7V4H18V7M11 7V2H13V7" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        <rect x="9" y="9" width="6" height="4" rx="1" fill={iconColor} opacity="0.2" />
       </svg>
     );
   }
   if (zoneType === "FORTRESS") {
     return (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M3 21V10L5 8V21M21 21V10L19 8V21M3 14H21M8 14V21M16 14V21M11 21V17C11 16.4477 11.4477 16 12 16C12.5523 16 13 16.4477 13 17V21M7 8V5H9V8M15 8V5H17V8" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
   }
   if (zoneType === "WATCHTOWER") {
     return (
-      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg width="54" height="54" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M8 21V18H16V21M6 18H18L16 6H8L6 18ZM10 6V3H14V6M9 13H15M12 13V6" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         <circle cx="12" cy="10" r="1.5" fill={iconColor} />
       </svg>
@@ -70,7 +69,7 @@ function ZoneIcon({ zoneType, status, color, bgColor }: { zoneType: string; stat
   }
   // CAMP
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="50" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M12 3L2 21H22L12 3Z" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M12 13L16 21H8L12 13Z" fill={iconColor} opacity="0.3" />
       <path d="M12 17V21" stroke={iconColor} strokeWidth="1.5" strokeLinecap="round" />
@@ -87,161 +86,154 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
   const isInProgress = zone.status === "IN_PROGRESS";
   const isLocked = zone.status === "LOCKED";
 
-  const nodeSize = isBoss ? 72 : 56;
+  const nodeSize = isBoss ? 160 : 120;
   const difficultyStars = Array.from({ length: zone.difficultyLevel }, (_, i) => i);
 
   return (
     <motion.div
-      className="absolute cursor-pointer select-none"
+      className="absolute group"
       style={{
         left: `${zone.positionX * 100}%`,
         top: `${zone.positionY * 100}%`,
         transform: "translate(-50%, -50%)",
         width: nodeSize,
         zIndex: isSelected ? 30 : isInProgress ? 20 : 10,
+        cursor: isLocked ? "default" : "pointer",
       }}
       initial={{ opacity: 0, scale: 0.5 }}
       animate={{
         opacity: statusCfg.opacity,
         scale: isSelected ? 1.15 : statusCfg.scale,
+        y: [0, -4, 0], // Subtle floating animation
       }}
-      transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
+      transition={{
+        scale: { duration: 0.3, type: "spring", stiffness: 300 },
+        y: { duration: 4, repeat: Infinity, ease: "easeInOut", delay: Math.random() * 2 }
+      }}
       onClick={() => !isLocked && onClick(zone)}
-      title={isLocked ? "Zona bloqueada" : zone.name}
     >
-      {/* Outer glow ring for available/in-progress */}
+      {/* Active Area Glow */}
       {(isAvailable || isInProgress) && (
         <motion.div
-          className="absolute inset-0 rounded-full border border-white/20"
-          style={{ inset: -6, boxShadow: `0 0 25px 5px ${visual.glowColor}` }}
-          animate={{ opacity: [0.3, 0.8, 0.3], scale: [1, 1.05, 1] }}
-          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-0 rounded-full"
+          style={{ inset: -10, boxShadow: `0 0 35px 5px ${visual.glowColor}` }}
+          animate={{ opacity: [0.2, 0.6, 0.2], scale: [1, 1.1, 1] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         />
       )}
 
-      {/* Boss pulsing aura */}
+      {/* Boss Pulse */}
       {isBoss && isAvailable && (
         <motion.div
           className="absolute rounded-full"
           style={{
-            inset: -12,
-            border: `2px solid ${visual.color}`,
-            boxShadow: `0 0 30px 10px ${visual.glowColor}`,
+            inset: -15,
+            border: `2px solid ${visual.color}44`,
+            boxShadow: `0 0 40px 10px ${visual.glowColor}`,
           }}
-          animate={{ scale: [1, 1.2, 1], opacity: [0.6, 0.2, 0.6] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
+          animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
+          transition={{ duration: 2, repeat: Infinity }}
         />
       )}
 
-      {/* Zone container */}
-      <div
-        className="relative flex flex-col items-center"
-        style={{ width: nodeSize, height: nodeSize + 24 }}
-      >
-        {/* Main zone circle */}
+      <div className="relative flex flex-col items-center">
+        {/* The Node Base */}
         <div
-          className="relative flex items-center justify-center rounded-full border transition-all"
+          className="relative flex items-center justify-center rounded-3xl border-2 transition-transform duration-300 group-hover:scale-110"
           style={{
             width: nodeSize,
             height: nodeSize,
             background: isLocked
-              ? "rgba(15,15,25,0.7)"
-              : `linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%), ${visual.bgColor}`,
-            borderColor: isLocked ? "rgba(255,255,255,0.1)" : `${visual.color}80`,
+              ? "rgba(10,10,20,0.8)"
+              : `linear-gradient(135deg, ${visual.bgColor} 0%, #050510 100%)`,
+            borderColor: isLocked ? "rgba(255,255,255,0.05)" : `${visual.color}60`,
             boxShadow: isLocked
-              ? "inset 0 0 10px rgba(0,0,0,0.5)"
-              : isConquered
-                ? `0 0 30px -5px ${visual.glowColor}, inset 0 0 15px ${visual.glowColor}`
-                : `0 0 20px -8px ${visual.glowColor}, inset 0 0 10px ${visual.glowColor}`,
-            backdropFilter: "blur(8px)",
+              ? "none"
+              : `0 10px 30px -5px rgba(0,0,0,0.8), inset 0 0 20px ${visual.color}15`,
+            backdropFilter: "blur(12px)",
           }}
         >
-          {/* Inner ring for depth */}
-          <div className="absolute inset-1 rounded-full border border-white/5 pointer-events-none" />
+          {/* Internal Glowing Ring */}
+          {!isLocked && (
+            <div className="absolute inset-2 rounded-2xl border border-white/5 shadow-[inset_0_0_15px_rgba(255,255,255,0.05)]" />
+          )}
+
           {isLocked ? (
-            <Lock size={22} className="text-gray-600" />
+            <Lock size={24} className="text-gray-700 opacity-50" />
           ) : (
-            <ZoneIcon zoneType={zone.zoneType} status={zone.status} color={visual.color} bgColor={visual.bgColor} />
+            <ZoneIcon zoneType={zone.zoneType} status={zone.status} color={visual.accentColor} bgColor={visual.bgColor} />
           )}
 
-          {/* Conquered checkmark */}
-          {isConquered && (
-            <motion.div
-              className="absolute -top-1 -right-1 bg-emerald-500 rounded-full p-1"
-              style={{ boxShadow: "0 0 10px rgba(16, 185, 129, 0.6)" }}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 500 }}
-            >
-              <CheckCircle2 size={16} className="text-white" />
-            </motion.div>
-          )}
+          {/* Badges */}
+          <div className="absolute -top-1 -right-1 flex gap-1">
+            {isConquered && (
+              <motion.div
+                className="bg-emerald-500 rounded-lg p-1.5 shadow-lg border border-emerald-400/50"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+              >
+                <CheckCircle2 size={16} className="text-white" />
+              </motion.div>
+            )}
+            {isInProgress && (
+              <motion.div
+                className="bg-blue-500 rounded-lg p-1.5 shadow-lg border border-blue-400/50"
+                animate={{ rotate: [0, 15, -15, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Swords size={18} className="text-white" />
+              </motion.div>
+            )}
+          </div>
 
-          {/* In-progress indicator */}
-          {isInProgress && (
-            <motion.div
-              className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1"
-              style={{ boxShadow: "0 0 10px rgba(59, 130, 246, 0.6)" }}
-              animate={{ rotate: 360 }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            >
-              <Swords size={14} className="text-white" />
-            </motion.div>
-          )}
-
-          {/* Progress ring for in-progress */}
+          {/* Progress Ring */}
           {isInProgress && zone.progressPercent > 0 && (
             <svg
-              className="absolute"
-              style={{ width: nodeSize + 8, height: nodeSize + 8, top: -4, left: -4 }}
-              viewBox={`0 0 ${nodeSize + 8} ${nodeSize + 8}`}
+              className="absolute -inset-2 w-[calc(100%+16px)] h-[calc(100%+16px)] -rotate-90 pointer-events-none"
+              viewBox="0 0 100 100"
             >
               <circle
-                cx={(nodeSize + 8) / 2}
-                cy={(nodeSize + 8) / 2}
-                r={nodeSize / 2 + 2}
+                cx="50"
+                cy="50"
+                r="46"
                 fill="none"
                 stroke={visual.color}
-                strokeWidth="2.5"
-                strokeDasharray={`${(zone.progressPercent / 100) * (Math.PI * (nodeSize + 4))} ${Math.PI * (nodeSize + 4)}`}
+                strokeWidth="3"
+                strokeDasharray={`${zone.progressPercent * 2.89} 289`}
                 strokeLinecap="round"
-                transform={`rotate(-90 ${(nodeSize + 8) / 2} ${(nodeSize + 8) / 2})`}
-                opacity={0.9}
+                opacity="0.8"
               />
             </svg>
           )}
         </div>
 
-        {/* Zone name */}
-        <div
-          className="mt-3 px-2.5 py-1 rounded-md text-center font-bold tracking-tight shadow-lg border border-white/5"
-          style={{
-            fontSize: "10px",
-            lineHeight: "1.1",
-            background: "rgba(10,10,20,0.85)",
-            backdropFilter: "blur(12px)",
-            color: isLocked ? "#6B7280" : "#F3F4F6",
-            maxWidth: 140,
-            whiteSpace: "normal",
-            wordBreak: "break-word",
-            textShadow: "0 2px 4px rgba(0,0,0,0.5)"
-          }}
-        >
-          <span style={{ color: isLocked ? "#4B5563" : visual.color, display: 'block', fontSize: '8px', textTransform: 'uppercase', marginBottom: '2px', opacity: 0.8 }}>
-            {zone.zoneType}
-          </span>
-          {zone.name}
-        </div>
-
-        {/* Difficulty stars */}
-        {!isLocked && (
-          <div className="flex gap-0.5 mt-0.5">
-            {difficultyStars.map((_, i) => (
-              <Star key={i} size={8} fill={visual.color} color={visual.color} />
-            ))}
-            {isBoss && <Skull size={10} fill="#F87171" color="#F87171" />}
+        {/* Label and Info */}
+        <div className="mt-5 flex flex-col items-center gap-2">
+          <div
+            className="px-4 py-2 rounded-xl backdrop-blur-xl bg-black/60 border border-white/5 shadow-2xl flex flex-col items-center"
+            style={{
+              minWidth: 140,
+              boxShadow: isSelected ? `0 0 20px ${visual.glowColor}44` : '0 4px 20px rgba(0,0,0,0.4)'
+            }}
+          >
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] mb-1" style={{ color: isLocked ? "#444" : visual.color }}>
+              {isBoss ? "GRANDE CHEFE" : zone.zoneType}
+            </span>
+            <span className="text-sm font-black text-white tracking-tight text-center">
+              {zone.name}
+            </span>
           </div>
-        )}
+
+          {/* Difficulty and Skull */}
+          {!isLocked && (
+            <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-full border border-white/5">
+              {difficultyStars.map((_, i) => (
+                <Star key={i} size={10} fill={visual.color} color={visual.color} />
+              ))}
+              {isBoss && <Skull size={12} className="text-red-500 ml-1" />}
+            </div>
+          )}
+        </div>
       </div>
     </motion.div>
   );
