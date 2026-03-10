@@ -204,7 +204,7 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
   const isLocked    = zone.status === "LOCKED";
   const isActive    = isAvailable || isInProgress;
 
-  const nodeSize  = isBoss ? 108 : 80;
+  const nodeSize  = isBoss ? 96 : 70;
   // Deterministic float delay from zone position to avoid hydration mismatch
   const floatDelay = (zone.positionX + zone.positionY) * 1.5;
 
@@ -218,6 +218,7 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
         top: `${zone.positionY * 100}%`,
         transform: "translate(-50%, -50%)",
         width: nodeSize,
+        height: nodeSize,
         zIndex: isSelected ? 30 : isInProgress ? 20 : isBoss ? 15 : 10,
         cursor: isLocked ? "default" : "pointer",
       }}
@@ -234,7 +235,8 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
       }}
       onClick={() => !isLocked && onClick(zone)}
     >
-      <div className="relative flex flex-col items-center">
+      {/* Wrapper anchored to node body only — label is absolute below */}
+      <div className="relative" style={{ width: nodeSize, height: nodeSize }}>
 
         {/* ── OUTER AURA (available / in-progress) ── */}
         {isActive && (
@@ -267,24 +269,21 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
           </>
         )}
 
-        {/* ── NODE BODY ── */}
-        <div className="relative" style={{ width: nodeSize, height: nodeSize }}>
+        {/* Progress ring for IN_PROGRESS */}
+        {isInProgress && zone.progressPercent > 0 && (
+          <ProgressRing progress={zone.progressPercent} color={theme.color} size={nodeSize} />
+        )}
 
-          {/* Progress ring for IN_PROGRESS */}
-          {isInProgress && zone.progressPercent > 0 && (
-            <ProgressRing progress={zone.progressPercent} color={theme.color} size={nodeSize} />
-          )}
+        {/* Blurred glow behind */}
+        {!isLocked && (
+          <div
+            className="absolute inset-0 blur-2xl opacity-35 pointer-events-none"
+            style={{ background: theme.glow }}
+          />
+        )}
 
-          {/* Blurred glow behind (HTML layer, cheaper than SVG filter) */}
-          {!isLocked && (
-            <div
-              className="absolute inset-0 blur-2xl opacity-35 pointer-events-none"
-              style={{ background: theme.glow }}
-            />
-          )}
-
-          {/* SVG node */}
-          <svg
+        {/* SVG node */}
+        <svg
             width={nodeSize} height={nodeSize}
             viewBox="0 0 100 100"
             className="relative"
@@ -379,11 +378,20 @@ export default function WarZoneNode({ zone, onClick, isSelected }: WarZoneNodePr
               </g>
             )}
           </svg>
-        </div>
 
-        {/* ── LABEL ── */}
+        {/* ── LABEL — absolutely positioned below the node box ── */}
         <motion.div
-          className="mt-2 flex flex-col items-center gap-1 pointer-events-none"
+          className="pointer-events-none"
+          style={{
+            position: "absolute",
+            top: nodeSize + 8,
+            left: "50%",
+            transform: "translateX(-50%)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 4,
+          }}
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
