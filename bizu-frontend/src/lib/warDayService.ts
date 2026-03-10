@@ -154,69 +154,118 @@ export interface CreateZoneRequest {
 // ─── Student API ──────────────────────────────────────────────────────────────
 
 export const WarDayService = {
-  getActive: (): Promise<WarDayEvent | null> =>
-    apiFetch("/war-day/active").catch(() => null),
+  getActive: async (): Promise<WarDayEvent | null> => {
+    try {
+      const res = await apiFetch("/war-day/active");
+      if (!res.ok) return null;
+      return res.json();
+    } catch {
+      return null;
+    }
+  },
 
-  getUpcoming: (): Promise<WarDayEvent[]> =>
-    apiFetch("/war-day/upcoming"),
+  getUpcoming: async (): Promise<WarDayEvent[]> => {
+    const res = await apiFetch("/war-day/upcoming");
+    return res.json();
+  },
 
-  getEvent: (id: string): Promise<WarDayEvent> =>
-    apiFetch(`/war-day/${id}`),
+  getEvent: async (id: string): Promise<WarDayEvent> => {
+    const res = await apiFetch(`/war-day/${id}`);
+    if (!res.ok) throw new Error("Evento não encontrado");
+    return res.json();
+  },
 
-  joinEvent: (id: string): Promise<GuildMapState> =>
-    apiFetch(`/war-day/${id}/join`, { method: "POST" }),
+  joinEvent: async (id: string): Promise<GuildMapState> => {
+    const res = await apiFetch(`/war-day/${id}/join`, { method: "POST" });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message ?? "Erro ao entrar no evento"); }
+    return res.json();
+  },
 
-  getMap: (id: string): Promise<GuildMapState> =>
-    apiFetch(`/war-day/${id}/map`),
+  getMap: async (id: string): Promise<GuildMapState> => {
+    const res = await apiFetch(`/war-day/${id}/map`);
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message ?? "Erro ao carregar mapa"); }
+    return res.json();
+  },
 
-  getQuestion: (eventId: string, zoneId: string): Promise<QuestionResponse> =>
-    apiFetch(`/war-day/${eventId}/zone/${zoneId}/question`),
+  getQuestion: async (eventId: string, zoneId: string): Promise<QuestionResponse> => {
+    const res = await apiFetch(`/war-day/${eventId}/zone/${zoneId}/question`);
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message ?? "Erro ao buscar questão"); }
+    return res.json();
+  },
 
-  submitAnswer: (
+  submitAnswer: async (
     eventId: string,
     zoneId: string,
     questionId: string,
     selectedAnswer: string
-  ): Promise<AnswerResult> =>
-    apiFetch(`/war-day/${eventId}/zone/${zoneId}/answer`, {
+  ): Promise<AnswerResult> => {
+    const res = await apiFetch(`/war-day/${eventId}/zone/${zoneId}/answer`, {
       method: "POST",
       body: JSON.stringify({ questionId, selectedAnswer }),
-    }),
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message ?? "Erro ao enviar resposta"); }
+    return res.json();
+  },
 
-  getRanking: (eventId: string): Promise<RankingResponse> =>
-    apiFetch(`/war-day/${eventId}/ranking`),
+  getRanking: async (eventId: string): Promise<RankingResponse> => {
+    const res = await apiFetch(`/war-day/${eventId}/ranking`);
+    return res.json();
+  },
 };
 
 // ─── Admin API ────────────────────────────────────────────────────────────────
 
 export const AdminWarDayService = {
-  listEvents: (): Promise<WarDayEvent[]> =>
-    apiFetch("/admin/war-day"),
+  listEvents: async (): Promise<WarDayEvent[]> => {
+    const res = await apiFetch("/admin/war-day");
+    return res.json();
+  },
 
-  createEvent: (req: CreateEventRequest): Promise<WarDayEvent> =>
-    apiFetch("/admin/war-day", { method: "POST", body: JSON.stringify(req) }),
+  createEvent: async (req: CreateEventRequest): Promise<WarDayEvent> => {
+    const res = await apiFetch("/admin/war-day", { method: "POST", body: JSON.stringify(req) });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message ?? "Erro ao criar evento"); }
+    return res.json();
+  },
 
-  updateEvent: (id: string, req: CreateEventRequest): Promise<WarDayEvent> =>
-    apiFetch(`/admin/war-day/${id}`, { method: "PUT", body: JSON.stringify(req) }),
+  updateEvent: async (id: string, req: CreateEventRequest): Promise<WarDayEvent> => {
+    const res = await apiFetch(`/admin/war-day/${id}`, { method: "PUT", body: JSON.stringify(req) });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message ?? "Erro ao atualizar evento"); }
+    return res.json();
+  },
 
-  deleteEvent: (id: string): Promise<void> =>
-    apiFetch(`/admin/war-day/${id}`, { method: "DELETE" }),
+  deleteEvent: async (id: string): Promise<void> => {
+    await apiFetch(`/admin/war-day/${id}`, { method: "DELETE" });
+  },
 
-  forceStart: (id: string): Promise<WarDayEvent> =>
-    apiFetch(`/admin/war-day/${id}/start`, { method: "POST" }),
+  forceStart: async (id: string): Promise<WarDayEvent> => {
+    const res = await apiFetch(`/admin/war-day/${id}/start`, { method: "POST" });
+    return res.json();
+  },
 
-  forceEnd: (id: string): Promise<WarDayEvent> =>
-    apiFetch(`/admin/war-day/${id}/end`, { method: "POST" }),
+  forceEnd: async (id: string): Promise<WarDayEvent> => {
+    const res = await apiFetch(`/admin/war-day/${id}/end`, { method: "POST" });
+    return res.json();
+  },
 
-  getEventRankings: (id: string): Promise<GuildRankingEntry[]> =>
-    apiFetch(`/admin/war-day/${id}/rankings`),
+  getEventRankings: async (id: string): Promise<GuildRankingEntry[]> => {
+    const res = await apiFetch(`/admin/war-day/${id}/rankings`);
+    return res.json();
+  },
 
-  listMapTemplates: (): Promise<MapTemplate[]> =>
-    apiFetch("/admin/war-day/map-templates"),
+  listMapTemplates: async (): Promise<MapTemplate[]> => {
+    const res = await apiFetch("/admin/war-day/map-templates");
+    return res.json();
+  },
 
-  createMapTemplate: (req: CreateMapTemplateRequest): Promise<MapTemplate> =>
-    apiFetch("/admin/war-day/map-templates", { method: "POST", body: JSON.stringify(req) }),
+  createMapTemplate: async (req: CreateMapTemplateRequest): Promise<MapTemplate> => {
+    const res = await apiFetch("/admin/war-day/map-templates", { method: "POST", body: JSON.stringify(req) });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message ?? "Erro ao criar template"); }
+    return res.json();
+  },
 
-  updateMapTemplate: (id: string, req: CreateMapTemplateRequest): Promise<MapTemplate> =>
-    apiFetch(`/admin/war-day/map-templates/${id}`, { method: "PUT", body: JSON.stringify(req) }),
+  updateMapTemplate: async (id: string, req: CreateMapTemplateRequest): Promise<MapTemplate> => {
+    const res = await apiFetch(`/admin/war-day/map-templates/${id}`, { method: "PUT", body: JSON.stringify(req) });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message ?? "Erro ao atualizar template"); }
+    return res.json();
+  },
 };
